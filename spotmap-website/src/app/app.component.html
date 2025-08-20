@@ -1,5 +1,10 @@
-<div class="w-100 h-100 d-flex flex-column p-4 justify-content-center">
+<div class="w-100 h-100 d-flex flex-column p-2 justify-content-center" style="background-color: black;">
   <!-- Header section -->
-    <h1 class="mx-auto">Welcome Vienna Spotmap</h1>
-    <app-map-container class="my-auto h-100 w-100"></app-map-container>
+   @if(introFinished() == false){
+     <app-ascii-animation-text [text]='headerText' (animationFinished)="onIntroFinished()" class="h-100 w-100"></app-ascii-animation-text>
+
+   }
+   @else{
+     <app-map-container class="my-auto h-100 w-100 p-4"></app-map-container>
+   }
 </div>

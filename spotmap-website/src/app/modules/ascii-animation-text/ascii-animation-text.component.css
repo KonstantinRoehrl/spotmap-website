@@ -1,0 +1,95 @@
+/* ascii-animation-text.component.css */
+
+:host {
+  display: block !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  z-index: 1000 !important;
+  overflow: hidden !important;
+  background-color: #000000 !important;
+}
+
+.ascii-text {
+  font-family: 'Courier New', 'Lucida Console', 'Monaco', monospace !important;
+  white-space: pre !important;
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
+  overflow: hidden !important;
+  background-color: #000000 !important;
+  
+  /* Force green color with multiple methods */
+  color: #00ff00 !important;
+  
+  /* Remove all margins and padding */
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  
+  /* Dynamic font sizing to fill the screen */
+  font-size: 12px !important;
+  line-height: 1.0 !important;
+  letter-spacing: 0 !important;
+  
+  /* Ensure text glow effect */
+  text-shadow: 0 0 3px #00ff00, 0 0 6px #00ff00 !important;
+  
+  /* Text positioning */
+  text-align: left !important;
+  vertical-align: top !important;
+  
+  /* Box model */
+  box-sizing: border-box !important;
+}
+
+/* Global override - this will affect the entire application when this component is active */
+app-ascii-animation-text,
+app-ascii-animation-text *,
+app-ascii-animation-text .ascii-text,
+app-ascii-animation-text .ascii-text * {
+  color: #00ff00 !important;
+  background-color: transparent !important;
+  text-decoration: none !important;
+  border-color: #00ff00 !important;
+  outline-color: #00ff00 !important;
+}
+
+/* Override Bootstrap and other framework styles */
+.ascii-text,
+.ascii-text *,
+.ascii-text::before,
+.ascii-text::after {
+  color: #00ff00 !important;
+  background-color: transparent !important;
+  text-decoration: none !important;
+  border: none !important;
+  outline: none !important;
+}
+
+/* Responsive font sizing for different screen sizes */
+@media (max-width: 768px) {
+  .ascii-text {
+    font-size: 8px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .ascii-text {
+    font-size: 6px !important;
+  }
+}
+
+@media (min-width: 1920px) {
+  .ascii-text {
+    font-size: 16px !important;
+  }
+}
+
+@media (min-width: 2560px) {
+  .ascii-text {
+    font-size: 20px !important;
+  }
+}
