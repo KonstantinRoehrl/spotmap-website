@@ -1,10 +1,27 @@
 <div class="w-100 h-100 d-flex flex-column p-2 justify-content-center" style="background-color: black;">
   <!-- Header section -->
-   @if(introFinished() == false){
-     <app-ascii-animation-text [text]='headerText' (animationFinished)="onIntroFinished()" class="h-100 w-100"></app-ascii-animation-text>
-
-   }
-   @else{
-     <app-map-container class="my-auto h-100 w-100 p-4"></app-map-container>
-   }
+  @if(introFinished() == false){
+    <app-ascii-animation-text 
+    [messages]="['SYSTEM INITIALIZING...',
+    'ACCESSING QUANTUM ENCRYPTION MODULE...',
+    'DOWNLOADING SECRET MAP DATA FROM F.B.I DATABASE...',
+    'ENCRYPTING YOUR THOUGHTS...',
+    'ACCESS GRANTED',
+    'WELCOME TO THE VIENNA SPOTMAP']"
+    [waitFrames]="20"
+    [animationSpeed]="35"
+      (animationFinished)="onIntroFinished()" 
+      class="h-100 w-100">
+    </app-ascii-animation-text>
+  }
+  @else{
+    <app-ascii-animation-text
+    [messages]="['VIENNA SPOTMAP', 'RESPECT THE LOCALS', 'HAVE FUN EXPLORING', 'TOUCH THE UNTOUCHED SPOTS', 'CAN SOMEONE BRING WAX?', 'LET`S GO PLAZA', 'FILM SKATEVIDEOS!!']"
+    [waitFrames]="40"
+    [animationSpeed]="45"
+    [loop]="true"
+    [centered]="true">
+  </app-ascii-animation-text>
+    <app-map-container class="my-auto h-100 w-100 px-4 pb-4"></app-map-container>
+  }
 </div>

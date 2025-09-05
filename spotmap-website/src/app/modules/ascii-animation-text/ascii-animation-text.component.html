@@ -1,4 +1,7 @@
-<pre class="ascii-text" 
-     [style.color]="'#00ff00'"
-     [style.background-color]="'#000000'"
-     [style.text-shadow]="'0 0 3px #00ff00, 0 0 6px #00ff00'">{{ displayText() }}</pre>
+<div class="ascii-container">
+  <pre class="ascii-display" [style.font-size.px]="fontSize()">
+     <span class="loading-dots"></span>
+    <ng-container>{{ baseText() }}</ng-container>
+    <span class="loading-dots">{{ dots() }}</span>
+  </pre>
+</div>
