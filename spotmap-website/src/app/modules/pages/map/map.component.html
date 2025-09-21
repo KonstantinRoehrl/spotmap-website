@@ -1,0 +1,23 @@
+<div class="map-page d-flex flex-grow flex-column h-100 flex-fill">
+  <!-- Animated header text -->
+  <app-ascii-animation-text
+    [messages]="[
+      'VIENNA SPOTMAP', 
+      'RESPECT THE LOCALS', 
+      'EXPLORE THE CONCRETE JUNGLE', 
+      'TOUCH THE UNTOUCHED SPOTS', 
+      'CAN SOMEONE BRING WAX?', 
+      'LET`S GO PLAZA', 
+      'SKATEVIDEOS > INSTAGRAM', 
+      'SUPPORTED BY ROLLTROTTEL-VERBAND', 
+      'ANYONE HAS A PIN?', 
+      'JUST SOME RANDOM TEXT'
+    ]"
+    [waitFrames]="40"
+    [animationSpeed]="45"
+    [loop]="true"
+    [centered]="true">
+  </app-ascii-animation-text>
+
+  <app-map-container class="h-100 w-100 user-select-none"></app-map-container>
+</div>

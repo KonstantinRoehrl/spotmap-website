@@ -1,0 +1,7 @@
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;          /* full screen height */
+  background-color: black;
+  color: #00ff00;
+}

@@ -1,28 +1,28 @@
-<div class="w-100 h-100 d-flex flex-column p-2 justify-content-center" style="background-color: black;">
-  <!-- Header section -->
-  @if(introFinished() == false){
+<div class="app-container">
+  <!-- Show intro until finished -->
+  @if (!introFinished()) {
     <app-ascii-animation-text 
-    [messages]="['SYSTEM INITIALIZING...',
-    'ACCESSING QUANTUM ENCRYPTION MODULE...',
-    'DOWNLOADING TOP SECRET MAP DATA...',
-    'SYNCING WITH FBI DATABASE...',
-    'ENCRYPTING YOUR THOUGHTS...',
-    'ACCESS GRANTED',
-    'WELCOME TO THE VIENNA SPOTMAP']"
-    [waitFrames]="20"
-    [animationSpeed]="35"
+      [messages]="['WELCOME TO THE VIENNA SPOTMAP']"
+      [waitFrames]="60"
+      [animationSpeed]="35"
       (animationFinished)="onIntroFinished()" 
-      class="h-100 w-100">
+      class="flex-fill">
     </app-ascii-animation-text>
   }
-  @else{
-    <app-ascii-animation-text
-    [messages]="['VIENNA SPOTMAP', 'RESPECT THE LOCALS', 'HAVE FUN EXPLORING', 'TOUCH THE UNTOUCHED SPOTS', 'CAN SOMEONE BRING WAX?', 'LET`S GO PLAZA', 'FILM SKATEVIDEOS!!']"
-    [waitFrames]="40"
-    [animationSpeed]="45"
-    [loop]="true"
-    [centered]="true">
-  </app-ascii-animation-text>
-    <app-map-container class="my-auto h-100 w-100 px-4 pb-4"></app-map-container>
+
+  <!-- Show routed content after intro -->
+  @if (introFinished()) {
+    <app-nav-bar 
+      [links]="[
+        { name: 'Home', url: '/home' },
+        { name: 'Map', url: '/map' },
+        { name: 'About', url: '/about' }
+      ]"
+      class="nav-bar">
+    </app-nav-bar>
+
+    <div class="content flex-fill h-100 pb-4 px-4">
+      <router-outlet></router-outlet>
+    </div>
   }
 </div>

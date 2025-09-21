@@ -1,20 +1,30 @@
-import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
-import { MapContainerComponent } from './modules/map-container/map-container.component';
-import { AsciiAnimationTextComponent } from './modules/ascii-animation-text/ascii-animation-text.component';
+import { Component, OnInit, signal } from '@angular/core';
+import { Router, RouterOutlet } from '@angular/router';
+import { MapContainerComponent } from './modules/components/map-container/map-container.component';
+import { AsciiAnimationTextComponent } from './modules/components/ascii-animation-text/ascii-animation-text.component';
+import { NavBarComponent } from './modules/components/nav-bar/nav-bar.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, MapContainerComponent, AsciiAnimationTextComponent],
+  imports: [RouterOutlet, MapContainerComponent, AsciiAnimationTextComponent, NavBarComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
-export class AppComponent {
+export class AppComponent implements OnInit{
   title = 'spotmap-website';
   protected introFinished = signal<boolean>(false);
 
+  constructor(private router: Router){
+
+  }
+
+  ngOnInit(): void {
+    this.router.navigate([""])
+  }
+
   protected onIntroFinished(){
+    this.router.navigate(["map"])
     this.introFinished.set(true);
   }
 

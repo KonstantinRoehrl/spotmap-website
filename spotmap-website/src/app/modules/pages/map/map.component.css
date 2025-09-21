@@ -1,0 +1,15 @@
+.map-page {
+  height: 100%;        /* fill available space from router-outlet */
+}
+
+.map-container {
+  flex: 1 1 auto;      /* takes all remaining vertical space */
+  display: flex;
+}
+
+.map-container iframe {
+  flex: 1 1 auto;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
