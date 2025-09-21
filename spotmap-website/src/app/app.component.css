@@ -4,4 +4,9 @@
   height: 100vh;          /* full screen height */
   background-color: black;
   color: #00ff00;
+
+  /* Safe area for modern iPhones */
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
 }
