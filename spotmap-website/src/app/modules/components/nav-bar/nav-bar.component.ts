@@ -25,7 +25,6 @@ export class NavBarComponent implements OnInit {
 
   @HostListener('mousemove', ['$event'])
   onMouseMove(event: MouseEvent) {
-    return;
     const target = event.target as HTMLElement;
     const link = target.closest('a');
 
