@@ -47,10 +47,9 @@
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.2s ease-in;
-  /* fast fade-in */
   background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-      rgba(0, 255, 0, 0.2) 0%,
-      rgba(0, 255, 0, 0.1) 30%,
+      rgba(0, 255, 0, 0.3) 0%,
+      rgba(0, 255, 0, 0.15) 30%,
       transparent 60%);
   z-index: 0;
 }
@@ -66,12 +65,12 @@
   pointer-events: none;
   opacity: 0;
   transition: opacity 1s ease-out;
-  /* slow fade-out */
   border-radius: inherit;
   background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-      rgba(0, 255, 0, 0.4) 0%,
-      rgba(0, 255, 255, 0.2) 20%,
-      transparent 40%);
+      rgba(0, 255, 0, 0.6) 0%,
+      rgba(0, 255, 0, 0.3) 20%,
+      rgba(0, 255, 0, 0.15) 40%,
+      transparent 60%);
   z-index: -1;
 }
 
@@ -81,20 +80,19 @@
 .nav-bar a:hover::before,
 .nav-bar a:hover::after {
   opacity: 1;
-  /* instant glow on hover */
 }
 
 .nav-bar a:hover {
   color: #00ff00;
-  text-shadow: 0 0 8px #00ff00, 0 0 16px #00ff00;
+  text-shadow: 0 0 12px #00ff00, 0 0 24px #00ff00;
   background: linear-gradient(135deg,
-      rgba(0, 255, 0, 0.1),
+      rgba(0, 255, 0, 0.15),
       rgba(0, 255, 0, 0.05),
-      rgba(0, 255, 0, 0.1));
+      rgba(0, 255, 0, 0.15));
   box-shadow:
-    0 0 20px rgba(0, 255, 0, 0.3),
-    inset 0 1px 0 rgba(0, 255, 0, 0.2),
-    inset 0 -1px 0 rgba(0, 255, 0, 0.1);
+    0 0 30px rgba(0, 255, 0, 0.5),
+    inset 0 1px 0 rgba(0, 255, 0, 0.3),
+    inset 0 -1px 0 rgba(0, 255, 0, 0.2);
 }
 
 /* --------------------
@@ -102,66 +100,64 @@
 -------------------- */
 .nav-bar a.active {
   color: #00ff00;
-  text-shadow: 0 0 8px #00ff00, 0 0 16px #00ff00;
+  text-shadow: 0 0 12px #00ff00, 0 0 24px #00ff00;
   background: linear-gradient(135deg,
-      rgba(0, 255, 0, 0.1),
+      rgba(0, 255, 0, 0.15),
       rgba(0, 255, 0, 0.05),
-      rgba(0, 255, 0, 0.1));
+      rgba(0, 255, 0, 0.15));
   box-shadow:
-    0 0 20px rgba(0, 255, 0, 0.3),
-    inset 0 1px 0 rgba(0, 255, 0, 0.2),
-    inset 0 -1px 0 rgba(0, 255, 0, 0.1);
+    0 0 30px rgba(0, 255, 0, 0.5),
+    inset 0 1px 0 rgba(0, 255, 0, 0.3),
+    inset 0 -1px 0 rgba(0, 255, 0, 0.2);
 }
 
-/* Active should not depend on mouse/touch coordinates */
+/* Active should not show radial glow */
 .nav-bar a.active::before,
 .nav-bar a.active::after {
   opacity: 0;
-  /* no radial glow, just highlight */
 }
 
 /* --------------------
    Touch glow (temporary)
 -------------------- */
-/* Inner glow - fast fade-in */
 .nav-bar a.touch-glow::before {
   opacity: 1;
   transition: opacity 0.2s ease-in;
 }
 
-/* Outer glow - slow fade-out */
 .nav-bar a.touch-glow::after {
   opacity: 0.6;
   transition: opacity 1s ease-out;
 }
 
-/* Touch glow styling (button effect) */
 .nav-bar a.touch-glow {
   color: #00ff00;
-  text-shadow: 0 0 8px #00ff00, 0 0 16px #00ff00;
+  text-shadow: 0 0 12px #00ff00, 0 0 24px #00ff00;
   background: linear-gradient(135deg,
-      rgba(0, 255, 0, 0.1),
+      rgba(0, 255, 0, 0.15),
       rgba(0, 255, 0, 0.05),
-      rgba(0, 255, 0, 0.1));
+      rgba(0, 255, 0, 0.15));
   box-shadow:
-    0 0 20px rgba(0, 255, 0, 0.3),
-    inset 0 1px 0 rgba(0, 255, 0, 0.2),
-    inset 0 -1px 0 rgba(0, 255, 0, 0.1);
+    0 0 30px rgba(0, 255, 0, 0.5),
+    inset 0 1px 0 rgba(0, 255, 0, 0.3),
+    inset 0 -1px 0 rgba(0, 255, 0, 0.2);
 }
 
 /* --------------------
    Separator
 -------------------- */
 .nav-separator {
-  width: 1px;
+  width: 2px;
   flex-shrink: 0;
   background: linear-gradient(to bottom,
       transparent,
-      rgba(0, 255, 0, 0.4),
+      rgba(0, 255, 0, 0.6),
       transparent);
   height: 60%;
   margin: 0 1rem;
   align-self: center;
+  display: block;
+  /* ensure visible on desktop */
 }
 
 /* --------------------
@@ -205,6 +201,11 @@
 
   .nav-text {
     font-size: 0.7rem;
+  }
+
+  .nav-separator {
+    height: 70%;
+    display: block;
   }
 }
 
