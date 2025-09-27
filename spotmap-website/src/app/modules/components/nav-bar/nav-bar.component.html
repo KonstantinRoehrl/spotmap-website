@@ -2,7 +2,7 @@
   <ul>
     @for(link of links(); track link.name; let isLast = $last) {
     <li>
-      <a [routerLink]="link.url" routerLinkActive="active" appGlitchText>
+      <a [routerLink]="link.url" (click)="setActive(link)" [class.active]="isActive(link)" appGlitchText>
         <span class="nav-icon me-1">{{ link.icon }}</span>
         <span class="nav-text">{{ link.name }}</span>
       </a>

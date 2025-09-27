@@ -26,15 +26,116 @@
   align-items: center;
   text-decoration: none;
   color: #00ff00;
-  transition: all 0.3s ease;
-  gap: 0.3rem;
   border-radius: 6px;
   overflow: visible;
+  transition: all 0.3s ease;
+  gap: 0.3rem;
 }
 
-/* Base hover/active styles for link */
-.nav-bar a:hover,
-.nav-bar a.active,
+/* --------------------
+   Glow Pseudo-elements
+-------------------- */
+
+/* Inner glow (fast fade-in) */
+.nav-bar a::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease-in;
+  /* fast fade-in */
+  background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+      rgba(0, 255, 0, 0.2) 0%,
+      rgba(0, 255, 0, 0.1) 30%,
+      transparent 60%);
+  z-index: 0;
+}
+
+/* Outer glow / prismatic effect (slow fade-out) */
+.nav-bar a::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1s ease-out;
+  /* slow fade-out */
+  border-radius: inherit;
+  background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+      rgba(0, 255, 0, 0.4) 0%,
+      rgba(0, 255, 255, 0.2) 20%,
+      transparent 40%);
+  z-index: -1;
+}
+
+/* --------------------
+   Hover (desktop mouse)
+-------------------- */
+.nav-bar a:hover::before,
+.nav-bar a:hover::after {
+  opacity: 1;
+  /* instant glow on hover */
+}
+
+.nav-bar a:hover {
+  color: #00ff00;
+  text-shadow: 0 0 8px #00ff00, 0 0 16px #00ff00;
+  background: linear-gradient(135deg,
+      rgba(0, 255, 0, 0.1),
+      rgba(0, 255, 0, 0.05),
+      rgba(0, 255, 0, 0.1));
+  box-shadow:
+    0 0 20px rgba(0, 255, 0, 0.3),
+    inset 0 1px 0 rgba(0, 255, 0, 0.2),
+    inset 0 -1px 0 rgba(0, 255, 0, 0.1);
+}
+
+/* --------------------
+   Active (current page)
+-------------------- */
+.nav-bar a.active {
+  color: #00ff00;
+  text-shadow: 0 0 8px #00ff00, 0 0 16px #00ff00;
+  background: linear-gradient(135deg,
+      rgba(0, 255, 0, 0.1),
+      rgba(0, 255, 0, 0.05),
+      rgba(0, 255, 0, 0.1));
+  box-shadow:
+    0 0 20px rgba(0, 255, 0, 0.3),
+    inset 0 1px 0 rgba(0, 255, 0, 0.2),
+    inset 0 -1px 0 rgba(0, 255, 0, 0.1);
+}
+
+/* Active should not depend on mouse/touch coordinates */
+.nav-bar a.active::before,
+.nav-bar a.active::after {
+  opacity: 0;
+  /* no radial glow, just highlight */
+}
+
+/* --------------------
+   Touch glow (temporary)
+-------------------- */
+/* Inner glow - fast fade-in */
+.nav-bar a.touch-glow::before {
+  opacity: 1;
+  transition: opacity 0.2s ease-in;
+}
+
+/* Outer glow - slow fade-out */
+.nav-bar a.touch-glow::after {
+  opacity: 0.6;
+  transition: opacity 1s ease-out;
+}
+
+/* Touch glow styling (button effect) */
 .nav-bar a.touch-glow {
   color: #00ff00;
   text-shadow: 0 0 8px #00ff00, 0 0 16px #00ff00;
@@ -46,51 +147,11 @@
     0 0 20px rgba(0, 255, 0, 0.3),
     inset 0 1px 0 rgba(0, 255, 0, 0.2),
     inset 0 -1px 0 rgba(0, 255, 0, 0.1);
-  position: relative;
-  overflow: visible;
 }
 
-/* Glow pseudo-elements (radial gradient at mouse/touch position) */
-.nav-bar a::before,
-.nav-bar a::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 1s ease-out;
-  /* always active */
-}
-
-.nav-bar a::before {
-  background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-      rgba(0, 255, 0, 0.2) 0%,
-      rgba(0, 255, 0, 0.1) 30%,
-      transparent 60%);
-}
-
-.nav-bar a::after {
-  border-radius: inherit;
-  background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-      rgba(0, 255, 0, 0.4) 0%,
-      rgba(0, 255, 255, 0.2) 20%,
-      transparent 40%);
-}
-
-/* Show pseudo-elements for hover, active, and touch-glow */
-.nav-bar a:hover::before,
-.nav-bar a:hover::after,
-.nav-bar a.active::before,
-.nav-bar a.active::after,
-.nav-bar a.touch-glow::before,
-.nav-bar a.touch-glow::after {
-  opacity: 1;
-}
-
-/* Separator */
+/* --------------------
+   Separator
+-------------------- */
 .nav-separator {
   width: 1px;
   flex-shrink: 0;
@@ -98,6 +159,9 @@
       transparent,
       rgba(0, 255, 0, 0.4),
       transparent);
+  height: 60%;
+  margin: 0 1rem;
+  align-self: center;
 }
 
 /* --------------------
@@ -124,11 +188,6 @@
   .nav-bar li {
     flex: 1;
     justify-content: center;
-  }
-
-  .nav-separator {
-    height: 70%;
-    align-self: center;
   }
 
   .nav-bar a {
@@ -162,12 +221,6 @@
 
   .nav-bar ul {
     justify-content: flex-start;
-  }
-
-  .nav-separator {
-    height: 60%;
-    margin: 0 1rem;
-    align-self: center;
   }
 
   .nav-bar a {
