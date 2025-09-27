@@ -1,7 +1,11 @@
+/* app.component.css - App layout and content styles */
+
 .app-container {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  height: 100dvh;
+  /* Safari dynamic viewport fix */
   background-color: black;
   color: #00ff00;
 
@@ -14,130 +18,29 @@
 .content-container {
   flex: 1 1 auto;
   overflow: auto;
-  padding-bottom: 60px;
-  /* space for mobile bottom navbar */
 }
 
-@media (min-width: 769px) {
-  .content-container {
-    padding-bottom: 16px;
-    /* desktop navbar is not fixed */
-  }
-}
-
-
-/* --------------------
-   Mobile layout
--------------------- */
 @media (max-width: 768px) {
-  .app-container {
-    /* Leave space for bottom navbar */
-    padding-bottom: calc(env(safe-area-inset-bottom) + 60px);
+  .content-container {
+    padding-bottom: 76px;
+    /* Navbar height + spacing */
   }
 
   .map-page {
     flex: 1;
     display: flex;
     flex-direction: column;
-
-    /* Stop above the navbar */
-    height: calc(100vh - (60px + env(safe-area-inset-bottom)));
+    height: calc(100vh - (76px + env(safe-area-inset-bottom)));
   }
 
   app-map-container {
     flex: 1;
     min-height: 0;
-    /* flexbox shrink fix */
-  }
-
-  .nav-bar {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 60px;
-
-    border-top: 2px solid rgba(0, 255, 0, 0.2);
-    background-color: black;
-    z-index: 1000;
-
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-  }
-
-  .nav-bar ul {
-    flex: 1;
-    display: flex;
-    justify-content: space-around;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .nav-bar li {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-  }
-
-  .nav-bar a {
-    font-size: 1.2rem;
-    padding: 0.4rem;
-    text-align: center;
-
-    display: flex;
-    flex-direction: column;
-    /* icon above text */
-    align-items: center;
-    justify-content: center;
-  }
-
-  .nav-icon {
-    display: block;
-    font-size: 1.6rem;
-    margin-bottom: 0.2rem;
-  }
-
-  .nav-text {
-    display: block;
-    font-size: 0.7rem;
   }
 }
 
-/* --------------------
-   Desktop layout
--------------------- */
 @media (min-width: 769px) {
-  .nav-bar {
-    position: relative;
-    height: auto;
-    border-bottom: 2px solid rgba(0, 255, 0, 0.2);
-  }
-
-  .nav-bar ul {
-    display: flex;
-    gap: 2rem;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-  }
-
-  .nav-bar li {
-    display: flex;
-  }
-
-  .nav-bar a {
-    flex-direction: row;
-    /* inline */
-    font-size: 1.1rem;
-  }
-
-  .nav-icon {
-    display: none;
-  }
-
-  .nav-text {
-    display: inline;
+  .content-container {
+    padding-bottom: 16px;
   }
 }

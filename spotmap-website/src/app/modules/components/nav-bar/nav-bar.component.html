@@ -1,12 +1,15 @@
 <nav class="nav-bar user-select-none">
   <ul>
-    @for(link of links(); track link.name) {
+    @for(link of links(); track link.name; let isLast = $last) {
     <li>
       <a [routerLink]="link.url" routerLinkActive="active" appGlitchText>
-        <span class="nav-icon">{{ link.icon }}</span>
+        <span class="nav-icon me-1">{{ link.icon }}</span>
         <span class="nav-text">{{ link.name }}</span>
       </a>
     </li>
+    @if (!isLast) {
+    <div class="nav-separator"></div>
+    }
     }
   </ul>
 </nav>

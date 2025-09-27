@@ -1,4 +1,4 @@
-import { Component, input, OnInit } from '@angular/core';
+import { Component, HostListener, input, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { GlitchTextDirective } from '../../directives/glitch-text.directive';
 import { AsciiAnimationTextComponent } from '../ascii-animation-text/ascii-animation-text.component';
@@ -23,5 +23,21 @@ export class NavBarComponent implements OnInit {
 
   ngOnInit(): void {
 
+  }
+
+  @HostListener('mousemove', ['$event'])
+  onMouseMove(event: MouseEvent) {
+    // Only apply on desktop
+    const target = event.target as HTMLElement;
+    const link = target.closest('a');
+
+    if (link) {
+      const rect = link.getBoundingClientRect();
+      const x = ((event.clientX - rect.left) / rect.width) * 100;
+      const y = ((event.clientY - rect.top) / rect.height) * 100;
+
+      link.style.setProperty('--mouse-x', `${x}%`);
+      link.style.setProperty('--mouse-y', `${y}%`);
+    }
   }
 }
