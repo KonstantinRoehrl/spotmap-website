@@ -26,6 +26,7 @@
 }
 
 .nav-bar a {
+  padding: 10px;
   position: relative;
   display: flex;
   align-items: center;
