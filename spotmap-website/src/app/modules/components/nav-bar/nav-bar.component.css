@@ -1,8 +1,11 @@
-/* navbar.css - Clean with proper separators */
-
+/* --------------------
+   Base Navbar
+-------------------- */
 .nav-bar {
   background-color: black;
   font-family: 'Courier New', monospace;
+  overflow: visible;
+  /* allow pseudo-element effects */
 }
 
 .nav-bar ul {
@@ -13,17 +16,26 @@
   align-items: center;
 }
 
+.nav-bar li {
+  display: flex;
+}
+
 .nav-bar a {
+  position: relative;
   display: flex;
   align-items: center;
   text-decoration: none;
   color: #00ff00;
   transition: all 0.3s ease;
   gap: 0.3rem;
+  border-radius: 6px;
+  overflow: visible;
 }
 
+/* Base hover/active styles for link */
 .nav-bar a:hover,
-.nav-bar a.active {
+.nav-bar a.active,
+.nav-bar a.touch-glow {
   color: #00ff00;
   text-shadow: 0 0 8px #00ff00, 0 0 16px #00ff00;
   background: linear-gradient(135deg,
@@ -38,27 +50,8 @@
   overflow: visible;
 }
 
-.nav-bar a::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-      rgba(0, 255, 0, 0.2) 0%,
-      rgba(0, 255, 0, 0.1) 30%,
-      transparent 60%);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
-}
-
-.nav-bar a:hover::before {
-  opacity: 1;
-}
-
-/* Opposite edge glow */
+/* Glow pseudo-elements (radial gradient at mouse/touch position) */
+.nav-bar a::before,
 .nav-bar a::after {
   content: '';
   position: absolute;
@@ -66,31 +59,50 @@
   left: 0;
   right: 0;
   bottom: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1s ease-out;
+  /* always active */
+}
+
+.nav-bar a::before {
+  background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+      rgba(0, 255, 0, 0.2) 0%,
+      rgba(0, 255, 0, 0.1) 30%,
+      transparent 60%);
+}
+
+.nav-bar a::after {
   border-radius: inherit;
-  background: radial-gradient(circle at calc(var(--mouse-x, 50%)) calc(var(--mouse-y, 50%)),
+  background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
       rgba(0, 255, 0, 0.4) 0%,
       rgba(0, 255, 255, 0.2) 20%,
       transparent 40%);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
 }
 
-.nav-bar a:hover::after {
+/* Show pseudo-elements for hover, active, and touch-glow */
+.nav-bar a:hover::before,
+.nav-bar a:hover::after,
+.nav-bar a.active::before,
+.nav-bar a.active::after,
+.nav-bar a.touch-glow::before,
+.nav-bar a.touch-glow::after {
   opacity: 1;
 }
 
-/* Separator element */
+/* Separator */
 .nav-separator {
   width: 1px;
+  flex-shrink: 0;
   background: linear-gradient(to bottom,
       transparent,
       rgba(0, 255, 0, 0.4),
       transparent);
-  flex-shrink: 0;
 }
 
-/* Mobile - Bottom navbar */
+/* --------------------
+   Mobile - Bottom Navbar
+-------------------- */
 @media (max-width: 768px) {
   .nav-bar {
     position: fixed;
@@ -110,7 +122,6 @@
   }
 
   .nav-bar li {
-    display: flex;
     flex: 1;
     justify-content: center;
   }
@@ -122,19 +133,15 @@
 
   .nav-bar a {
     flex-direction: row;
-    /* Changed from column to row */
     padding: 0.4rem;
     gap: 0.3rem;
-    /* Increased gap for horizontal layout */
     border-radius: 8px;
     overflow: visible;
-    /* Allow prismatic effects */
     position: relative;
   }
 
   .nav-icon {
     font-size: 1.2rem;
-    /* Slightly smaller for horizontal layout */
   }
 
   .nav-text {
@@ -142,22 +149,19 @@
   }
 }
 
-/* Desktop - Top navbar */
+/* --------------------
+   Desktop - Top Navbar
+-------------------- */
 @media (min-width: 769px) {
   .nav-bar {
     position: relative;
     border-bottom: 1px solid rgba(0, 255, 0, 0.3);
     padding: 0.8rem 2rem;
     overflow: visible;
-    /* Allow prismatic effects */
   }
 
   .nav-bar ul {
     justify-content: flex-start;
-  }
-
-  .nav-bar li {
-    display: flex;
   }
 
   .nav-separator {
@@ -170,7 +174,6 @@
     padding: 0.4rem 0.8rem;
     border-radius: 6px;
     overflow: visible;
-    /* Allow prismatic effects */
     position: relative;
   }
 
