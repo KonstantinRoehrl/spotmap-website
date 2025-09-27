@@ -1,14 +1,14 @@
 import {
-  Component,
-  signal,
-  OnInit,
-  OnDestroy,
   AfterViewInit,
-  ViewEncapsulation,
-  Output,
+  Component,
   EventEmitter,
   input,
-  Input
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+  signal,
+  ViewEncapsulation
 } from '@angular/core';
 
 @Component({
@@ -53,11 +53,19 @@ export class AsciiAnimationTextComponent implements OnInit, AfterViewInit, OnDes
 
   private collapseFrames = 10;   // frames for collapse animation
 
-  ngOnInit() {}
+  private resizeListener?: () => void;
+
+  ngOnInit() { }
 
   ngAfterViewInit(): void {
     this.updateFontSize();
     this.startAnimation();
+
+    // Listen for window resize
+    this.resizeListener = () => {
+      this.updateFontSize();
+    };
+    window.addEventListener('resize', this.resizeListener);
   }
 
   ngOnDestroy() {

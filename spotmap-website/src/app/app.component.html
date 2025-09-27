@@ -1,28 +1,22 @@
 <div class="app-container">
   <!-- Show intro until finished -->
   @if (!introFinished()) {
-    <app-ascii-animation-text 
-      [messages]="['WELCOME TO THE VIENNA SPOTMAP']"
-      [waitFrames]="60"
-      [animationSpeed]="35"
-      (animationFinished)="onIntroFinished()" 
-      class="flex-fill">
-    </app-ascii-animation-text>
+  <app-ascii-animation-text [messages]="['WELCOME TO THE VIENNA SPOTMAP']" [waitFrames]="60" [animationSpeed]="35"
+    (animationFinished)="onIntroFinished()" class="flex-fill">
+  </app-ascii-animation-text>
   }
 
   <!-- Show routed content after intro -->
   @if (introFinished()) {
-    <app-nav-bar 
-      [links]="[
-        { name: 'Home', url: '/home' },
-        { name: 'Map', url: '/map' },
-        { name: 'About', url: '/about' }
-      ]"
-      class="nav-bar">
-    </app-nav-bar>
+  <app-nav-bar [links]="[
+          { name: 'Home', url: '/home', icon: '🏠'},
+          { name: 'Map', url: '/map', icon: '📍' },
+          { name: 'About', url: '/about', icon: 'ℹ️' }
+        ]" class="nav-bar">
+  </app-nav-bar>
 
-    <div class="flex-fill h-100 pb-4 px-4">
-      <router-outlet></router-outlet>
-    </div>
+  <div class="content-container flex-fill px-4">
+    <router-outlet></router-outlet>
+  </div>
   }
 </div>

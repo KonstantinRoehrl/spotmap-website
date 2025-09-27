@@ -1,9 +1,10 @@
 <nav class="nav-bar user-select-none">
   <ul>
-    @for(link of links; track link.name){
+    @for(link of links(); track link.name) {
     <li>
       <a [routerLink]="link.url" routerLinkActive="active" appGlitchText>
-        {{ link.name }}
+        <span class="nav-icon">{{ link.icon }}</span>
+        <span class="nav-text">{{ link.name }}</span>
       </a>
     </li>
     }

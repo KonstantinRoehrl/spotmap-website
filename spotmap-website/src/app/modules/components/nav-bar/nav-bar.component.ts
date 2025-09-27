@@ -1,7 +1,14 @@
-import { Component, Input, OnInit, OnDestroy } from '@angular/core';
+import { Component, input, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { AsciiAnimationTextComponent } from '../ascii-animation-text/ascii-animation-text.component';
 import { GlitchTextDirective } from '../../directives/glitch-text.directive';
+import { AsciiAnimationTextComponent } from '../ascii-animation-text/ascii-animation-text.component';
+
+export interface NavBarLink {
+  name: string,
+  url: string,
+  icon: string,
+}
+
 
 @Component({
   selector: 'app-nav-bar',
@@ -10,23 +17,11 @@ import { GlitchTextDirective } from '../../directives/glitch-text.directive';
   templateUrl: './nav-bar.component.html',
   styleUrls: ['./nav-bar.component.css']
 })
-export class NavBarComponent implements OnInit, OnDestroy {
-  @Input() links: { name: string; url: string }[] = [];
+export class NavBarComponent implements OnInit {
 
-  glitchedIndex: number | null = null;
-  private interval?: ReturnType<typeof setInterval>;
+  links = input<NavBarLink[]>([]);
 
   ngOnInit(): void {
-    // Rare glitch effect (about every 4–6 seconds)
-    this.interval = setInterval(() => {
-      if (Math.random() < 0.15 && this.links.length > 0) {
-        this.glitchedIndex = Math.floor(Math.random() * this.links.length);
-        setTimeout(() => (this.glitchedIndex = null), 500); // reset glitch after 0.5s
-      }
-    }, 4000);
-  }
 
-  ngOnDestroy(): void {
-    if (this.interval) clearInterval(this.interval);
   }
 }
