@@ -1,7 +1,11 @@
-<div class="map-container">
-  <iframe
-    src="https://www.google.com/maps/d/u/0/embed?mid=13c9hk1PqIRE5jgjTAr1pf4sP_9GNiIg&ehbc=2E312F&noprof=1&loading=async"
-    class="w-100 border-0" frameborder="0" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
-    allowfullscreen="0">
-  </iframe>
+<div class="map-container w-100 h-100 position-relative">
+  <iframe [src]="safeUrl" class="w-100 h-100 border-0 map-frame" frameborder="0" loading="lazy"
+    referrerpolicy="no-referrer-when-downgrade" allowfullscreen="0" [style.opacity]="iframeLoaded() == true ? 1 : 0"
+    (load)="onIframeLoad()"></iframe>
+
+  <!-- overlay spinner -->
+  @if(!iframeLoaded()){
+  <app-loading-bar
+    class="position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center"></app-loading-bar>
+  }
 </div>

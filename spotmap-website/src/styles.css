@@ -8,3 +8,17 @@ app-root {
   padding: 0;
   overflow: hidden;
 }
+
+a,
+div,
+span,
+pre,
+ng-container {
+  font-family: 'Courier New', monospace;
+  text-shadow:
+    0 0 2px #00ff00,
+    0 0 4px #00ff00,
+    0 0 6px #00ff00,
+    0 0 8px #00ff00,
+    0 0 10px #00ff00;
+}

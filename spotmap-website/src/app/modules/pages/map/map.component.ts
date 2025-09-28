@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { MapEnum } from '../../../models/enums/map-enum';
 import { AsciiAnimationTextComponent } from '../../components/ascii-animation-text/ascii-animation-text.component';
 import { MapContainerComponent } from '../../components/map-container/map-container.component';
 
@@ -10,5 +11,6 @@ import { MapContainerComponent } from '../../components/map-container/map-contai
   styleUrl: './map.component.css'
 })
 export class MapComponent {
+  MapEnum = MapEnum;   // expose enum
 
 }

@@ -1,0 +1,11 @@
+<div class="matrix-loader">
+    <div class="matrix-background">
+        <div class="matrix-column" *ngFor="let column of maskedColumns(); let colIndex = index"
+            [style.left]="'calc(' + colIndex + ' * var(--column-width) + ' + colIndex + ' * var(--column-gap))'">
+            <span class="matrix-char" *ngFor="let char of column; let rowIndex = index"
+                [style.top]="'calc(' + rowIndex + ' * var(--row-height) + ' + rowIndex + ' * var(--row-gap))'">
+                {{ char }}
+            </span>
+        </div>
+    </div>
+</div>

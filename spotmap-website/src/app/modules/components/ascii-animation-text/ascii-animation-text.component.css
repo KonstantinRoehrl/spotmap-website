@@ -10,20 +10,11 @@
 .ascii-display {
   margin: 0;
   padding: 20px;
-  font-family: 'Courier New', monospace;
   font-size: 18px;
   line-height: 1.4;
   white-space: nowrap;
   text-align: center;
   color: #00ff00;
-
-  /* Glowing green effect */
-  text-shadow:
-    0 0 2px #00ff00,
-    0 0 4px #00ff00,
-    0 0 6px #00ff00,
-    0 0 8px #00ff00,
-    0 0 10px #00ff00;
 }
 
 .loading-dots {

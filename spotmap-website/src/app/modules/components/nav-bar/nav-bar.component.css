@@ -2,15 +2,7 @@
    Base Navbar
 -------------------- */
 .nav-bar {
-  background-color: black;
-  font-family: 'Courier New', monospace;
   overflow: visible;
-  text-shadow:
-    0 0 2px #00ff00,
-    0 0 4px #00ff00,
-    0 0 6px #00ff00,
-    0 0 8px #00ff00,
-    0 0 10px #00ff00;
 }
 
 .nav-bar ul {
@@ -90,12 +82,6 @@
 .nav-bar a:hover,
 .nav-bar a.active:hover {
   color: #00ff00;
-  text-shadow:
-    0 0 2px #00ff00,
-    0 0 4px #00ff00,
-    0 0 6px #00ff00,
-    0 0 8px #00ff00,
-    0 0 10px #00ff00;
   background: linear-gradient(135deg,
       rgba(0, 255, 0, 0.15),
       rgba(0, 255, 0, 0.05),
@@ -111,12 +97,6 @@
 -------------------- */
 .nav-bar a.active {
   color: #00ff00;
-  text-shadow:
-    0 0 2px #00ff00,
-    0 0 4px #00ff00,
-    0 0 6px #00ff00,
-    0 0 8px #00ff00,
-    0 0 10px #00ff00;
   background: linear-gradient(135deg,
       rgba(0, 255, 0, 0.15),
       rgba(0, 255, 0, 0.05),
@@ -148,12 +128,6 @@
 
 .nav-bar a.touch-glow {
   color: #00ff00;
-  text-shadow:
-    0 0 2px #00ff00,
-    0 0 4px #00ff00,
-    0 0 6px #00ff00,
-    0 0 8px #00ff00,
-    0 0 10px #00ff00;
   background: linear-gradient(135deg,
       rgba(0, 255, 0, 0.15),
       rgba(0, 255, 0, 0.05),
