@@ -29,8 +29,6 @@ export class MapContainerComponent implements OnInit {
     // Reactively sanitize whenever mapLink changes
     effect(() => {
       const url = MapLinks[this.mapLink()];
-      console.log(url)
-      console.log("safe", this.sanitizer.bypassSecurityTrustResourceUrl(url))
       this.safeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
     });
   }
@@ -45,7 +43,6 @@ export class MapContainerComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    console.log(this.mapLink());
   }
 
 }

@@ -41,7 +41,6 @@ export class NavBarComponent implements AfterViewInit {
   @HostListener('mousemove', ['$event'])
   onMouseMove(event: MouseEvent) {
     if (this.ignoreMouse) return;
-    console.log("Mouse")
     const target = event.target as HTMLElement;
     const link = target.closest('a');
     if (!link) return;
@@ -57,7 +56,6 @@ export class NavBarComponent implements AfterViewInit {
   @HostListener('touchstart', ['$event'])
   onTouchStart(event: TouchEvent) {
     this.ignoreMouse = true;
-
     const touch = event.touches[0];
     const target = document.elementFromPoint(touch.clientX, touch.clientY) as HTMLElement;
     const link = target?.closest('a');
@@ -73,8 +71,6 @@ export class NavBarComponent implements AfterViewInit {
     const rect = link.getBoundingClientRect();
     const x = ((touch.clientX - rect.left) / rect.width) * 100;
     const y = ((touch.clientY - rect.top) / rect.height) * 100;
-    //link.style.setProperty('--mouse-x', `${x}%`);
-    //link.style.setProperty('--mouse-y', `${y}%`);
 
     // Apply touch glow
     link.classList.add('touch-glow');
@@ -82,7 +78,6 @@ export class NavBarComponent implements AfterViewInit {
     // Remove touch-glow after fade duration
     const fadeDuration = 1000; // match CSS ::after transition
     const timeout = setTimeout(() => {
-      console.log("remove touch")
       link.classList.remove('touch-glow');
       this.touchTimeouts.delete(link);
     }, fadeDuration);
