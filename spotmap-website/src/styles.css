@@ -1,5 +1,6 @@
-/* styles.css - Only essential global styles */
-
+/* --------------------
+   Essential global styles
+-------------------- */
 html,
 body,
 app-root {
@@ -21,4 +22,14 @@ ng-container {
     0 0 6px #00ff00,
     0 0 8px #00ff00,
     0 0 10px #00ff00;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
 }

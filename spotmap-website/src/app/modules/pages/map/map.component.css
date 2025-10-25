@@ -1,9 +1,12 @@
+/* --------------------
+   Map Page and Container
+-------------------- */
 .map-page {
-  height: 100%;        /* fill available space from router-outlet */
+  height: 100%;
 }
 
 .map-container {
-  flex: 1 1 auto;      /* takes all remaining vertical space */
+  flex: 1 1 auto;
   display: flex;
 }
 
@@ -12,4 +15,217 @@
   width: 100%;
   height: 100%;
   border: none;
+}
+
+/* --------------------
+   Material Form Field Styling
+-------------------- */
+
+/* Form field container */
+::ng-deep .mat-mdc-form-field {
+  font-family: 'Courier New', monospace !important;
+}
+
+/* Label */
+::ng-deep .mat-mdc-form-field .mat-mdc-floating-label {
+  color: #00ff00 !important;
+  font-family: 'Courier New', monospace !important;
+  text-shadow:
+    0 0 2px #00ff00,
+    0 0 4px #00ff00,
+    0 0 6px #00ff00;
+}
+
+/* Outline border - add transition */
+::ng-deep .mat-mdc-form-field .mdc-notched-outline__leading,
+::ng-deep .mat-mdc-form-field .mdc-notched-outline__notch,
+::ng-deep .mat-mdc-form-field .mdc-notched-outline__trailing {
+  border-color: rgba(0, 255, 0, 0.5) !important;
+  border-width: 1px !important;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Select trigger (main field) - add transition */
+::ng-deep .mat-mdc-select-trigger {
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+  border-radius: 4px;
+}
+
+/* Hide the subscript wrapper that creates the gap */
+::ng-deep .mat-mdc-form-field-subscript-wrapper {
+  display: none;
+}
+
+/* Adjust form field bottom margin since subscript is hidden */
+::ng-deep .mat-mdc-form-field {
+  margin-bottom: 0 !important;
+}
+
+/* Select trigger (main field) */
+::ng-deep .mat-mdc-select {
+  font-family: 'Courier New', monospace !important;
+  color: #00ff00 !important;
+  text-shadow:
+    0 0 2px #00ff00,
+    0 0 4px #00ff00,
+    0 0 6px #00ff00;
+}
+
+/* Select value text */
+::ng-deep .mat-mdc-select-value {
+  color: #00ff00 !important;
+  font-family: 'Courier New', monospace !important;
+}
+
+/* Dropdown arrow */
+::ng-deep .mat-mdc-select-arrow {
+  color: #00ff00 !important;
+}
+
+/* Hover effect on form field borders */
+::ng-deep .mat-mdc-form-field:hover .mdc-notched-outline__leading,
+::ng-deep .mat-mdc-form-field:hover .mdc-notched-outline__notch,
+::ng-deep .mat-mdc-form-field:hover .mdc-notched-outline__trailing {
+  border-color: #00ff00 !important;
+  box-shadow: 0 0 20px rgba(0, 255, 0, 0.4);
+}
+
+/* Hover glow effect on select trigger */
+::ng-deep .mat-mdc-form-field:hover {
+  box-shadow:
+    0 0 30px rgba(0, 255, 0, 0.3),
+    inset 0 1px 0 rgba(0, 255, 0, 0.2),
+    inset 0 -1px 0 rgba(0, 255, 0, 0.1);
+}
+
+/* Focused state - more stable */
+::ng-deep .mat-mdc-form-field.mat-focused .mdc-notched-outline .mdc-notched-outline__leading,
+::ng-deep .mat-mdc-form-field.mat-focused .mdc-notched-outline .mdc-notched-outline__notch,
+::ng-deep .mat-mdc-form-field.mat-focused .mdc-notched-outline .mdc-notched-outline__trailing {
+  border-color: #00ff00 !important;
+}
+
+::ng-deep .mat-mdc-form-field.mat-focused .mdc-notched-outline {
+  box-shadow: 0 0 30px rgba(0, 255, 0, 0.5);
+}
+
+/* Keep label color when focused */
+::ng-deep .mat-mdc-form-field.mat-focused .mat-mdc-floating-label {
+  color: #00ff00 !important;
+}
+
+/* --------------------
+   Dropdown Panel Styling
+-------------------- */
+
+/* Panel background */
+::ng-deep .mat-mdc-select-panel {
+  background-color: rgba(0, 0, 0, 0.95) !important;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 255, 0, 0.3);
+  box-shadow: 0 0 30px rgba(0, 255, 0, 0.3);
+}
+
+/* Options */
+::ng-deep .mat-mdc-option {
+  font-family: 'Courier New', monospace !important;
+  color: #00ff00 !important;
+  border-radius: 6px;
+  margin: 8px !important;
+  text-shadow:
+    0 0 2px #00ff00,
+    0 0 4px #00ff00,
+    0 0 6px #00ff00;
+  background-color: transparent !important;
+  transition: all 0.3s ease;
+}
+
+/* Option text */
+::ng-deep .mat-mdc-option .mdc-list-item__primary-text {
+  color: #00ff00 !important;
+  font-family: 'Courier New', monospace !important;
+}
+
+/* Hover effect on options */
+::ng-deep .mat-mdc-option:hover {
+  box-shadow:
+    0 0 30px rgba(0, 255, 0, 0.5),
+    inset 0 1px 0 rgba(0, 255, 0, 0.3),
+    inset 0 -1px 0 rgba(0, 255, 0, 0.2);
+}
+
+/* Selected option */
+::ng-deep .mat-mdc-option.mat-mdc-option-active,
+::ng-deep .mat-mdc-option.mdc-list-item--selected {
+  background: linear-gradient(135deg,
+      rgba(0, 255, 0, 0.2),
+      rgba(0, 255, 0, 0.1),
+      rgba(0, 255, 0, 0.2)) !important;
+  box-shadow:
+    0 0 30px rgba(0, 255, 0, 0.5),
+    inset 1px 1px 2px rgba(0, 255, 120, 0.6),
+    inset -1px -1px 3px rgba(0, 255, 100, 0.7);
+}
+
+/* Selected checkmark */
+::ng-deep .mat-mdc-option .mat-pseudo-checkbox-checked::after,
+::ng-deep .mat-mdc-option .mat-pseudo-checkbox-checked {
+  color: #00ff00 !important;
+  background-color: transparent !important;
+}
+
+/* Checkmark icon */
+::ng-deep .mat-pseudo-checkbox {
+  color: #00ff00 !important;
+}
+
+::ng-deep .mat-pseudo-checkbox-checked::after {
+  color: #00ff00 !important;
+}
+
+/* Remove ripple overlay color conflicts */
+::ng-deep .mat-mdc-option .mat-ripple-element {
+  background-color: rgba(0, 255, 0, 0.1);
+}
+
+/* --------------------
+   Optgroup Styling
+-------------------- */
+
+/* Optgroup label */
+::ng-deep .mat-mdc-optgroup-label {
+  font-family: 'Courier New', monospace !important;
+  text-shadow:
+    0 0 2px rgba(0, 255, 0, 0.2),
+    0 0 4px rgba(0, 255, 0, 0.2),
+    0 0 6px rgba(0, 255, 0, 0.2) !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+  background: transparent !important;
+  padding: 8px 16px !important;
+  border-top: 1px solid rgba(0, 255, 0, 0.2);
+  border-bottom: 1px solid rgba(0, 255, 0, 0.2);
+  margin: 0 !important;
+}
+
+/* Optgroup label text */
+::ng-deep .mat-mdc-optgroup-label .mdc-list-item__primary-text {
+  color: #00ff00 !important;
+  font-family: 'Courier New', monospace !important;
+}
+
+/* Consistent margins for all options */
+::ng-deep .mat-mdc-option {
+  margin: 4px 8px !important;
+}
+
+/* Indent options under groups */
+::ng-deep .mat-mdc-optgroup .mat-mdc-option {
+  margin-left: 2px !important;
+  margin-right: 2px !important;
+}
+
+/* Spacing between optgroups */
+::ng-deep .mat-mdc-optgroup+.mat-mdc-optgroup {
+  margin-top: 8px;
 }

@@ -1,7 +1,7 @@
 <div class="app-container">
   <!-- Show intro until finished -->
   @if (!introFinished()) {
-  <app-ascii-animation-text [messages]="['WELCOME TO THE VIENNA SPOTMAP']" [waitFrames]="60" [animationSpeed]="35"
+  <app-ascii-animation-text [messages]="['WELCOME TO THE SPOTMAP COMPENDIUM']" [waitFrames]="60" [animationSpeed]="35"
     (animationFinished)="onIntroFinished()" class="flex-fill">
   </app-ascii-animation-text>
   }
