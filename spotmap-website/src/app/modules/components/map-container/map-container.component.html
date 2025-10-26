@@ -1,5 +1,5 @@
 <div class="map-container w-100 h-100 position-relative">
-  <iframe [src]="safeUrl" class="w-100 h-100 border-0 map-frame" frameborder="0" loading="lazy"
+  <iframe [src]="safeUrl" class="w-100 h-100 border-0 map-frame" frameborder="0" loading="async"
     referrerpolicy="no-referrer-when-downgrade" allowfullscreen="0" [style.opacity]="iframeLoaded() == true ? 1 : 0"
     (load)="onIframeLoad()"></iframe>
 

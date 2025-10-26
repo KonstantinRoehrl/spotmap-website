@@ -1,5 +1,4 @@
 export enum CityEnum {
-    Unknown = "",
     // Austria
     Vienna = 'vienna',
     Graz = 'graz',
@@ -16,7 +15,28 @@ export enum CityEnum {
     // Serbia
     Belgrad = 'belgrade',
     // Bosnia
-    Sarajevo = 'sarajevo'
+    Sarajevo = 'sarajevo',
+    // Portugal
+    Lisbon = 'lisbon',
+    // France
+    Paris = 'paris',
+    // Germany
+    Munich = 'munich',
+    // Spain
+    Barcelona = 'barcelona'
+}
+
+export enum CountryEnum {
+    Austria = "austria",
+    Slovakia = "slovakia",
+    Czech = "czech",
+    Croatia = "croatia",
+    Serbia = "serbia",
+    Bosnia = "bosnia",
+    Portugal = "portugal",
+    France = "france",
+    Germany = "germany",
+    Spain = "spain"
 }
 
 export enum FlagEnum {
@@ -26,29 +46,11 @@ export enum FlagEnum {
     Croatia = "🇭🇷",
     Serbia = "🇷🇸",
     Bosnia = "🇧🇦",
+    Portugal = "🇵🇹",
+    France = "🇫🇷",
+    Germany = "🇩🇪",
+    Spain = "🇪🇸"
 }
 
-export const CityToFlag: Record<CityEnum, FlagEnum | null> = {
-    [CityEnum.Unknown]: null,
-    [CityEnum.Vienna]: FlagEnum.Austria,
-    [CityEnum.Graz]: FlagEnum.Austria,
-    [CityEnum.Linz]: FlagEnum.Austria,
-    [CityEnum.Salzburg]: FlagEnum.Austria,
-    [CityEnum.Bratislava]: FlagEnum.Slovakia,
-    [CityEnum.Prague]: FlagEnum.Czech,
-    [CityEnum.Split]: FlagEnum.Croatia,
-    [CityEnum.Zagreb]: FlagEnum.Croatia,
-    [CityEnum.Rijeka]: FlagEnum.Croatia,
-    [CityEnum.Belgrad]: FlagEnum.Serbia,
-    [CityEnum.Sarajevo]: FlagEnum.Bosnia,
-};
 
-export const FlagToCountry:
-    Record<FlagEnum, string> = {
-    [FlagEnum.Austria]: "austria",
-    [FlagEnum.Slovakia]: "slovakia",
-    [FlagEnum.Czech]: "czech",
-    [FlagEnum.Croatia]: "croatia",
-    [FlagEnum.Serbia]: "serbia",
-    [FlagEnum.Bosnia]: "bosnia",
-};
+

@@ -132,6 +132,8 @@
   color: #00ff00 !important;
   border-radius: 6px;
   margin: 8px !important;
+  margin-left: 64px !important;
+  margin-right: 64px !important;
   text-shadow:
     0 0 2px #00ff00,
     0 0 4px #00ff00,
@@ -214,15 +216,10 @@
   font-family: 'Courier New', monospace !important;
 }
 
-/* Consistent margins for all options */
-::ng-deep .mat-mdc-option {
-  margin: 4px 8px !important;
-}
-
 /* Indent options under groups */
 ::ng-deep .mat-mdc-optgroup .mat-mdc-option {
-  margin-left: 2px !important;
-  margin-right: 2px !important;
+  margin-left: 16px !important;
+  margin-right: 16px !important;
 }
 
 /* Spacing between optgroups */

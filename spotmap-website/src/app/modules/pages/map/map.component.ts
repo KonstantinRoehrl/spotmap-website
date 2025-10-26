@@ -1,54 +1,86 @@
-import { Component, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Component, OnInit, signal } from '@angular/core';
 import { MatOptionModule } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
-import { CityEnum, CityToFlag, FlagEnum, FlagToCountry } from '../../../models/enums/map-enum';
+import { SUPPORTED_CITIES } from '../../../models/enums/config';
+import { MapItem } from '../../../models/enums/interfaces/map-item-interface';
+import { CityEnum, FlagEnum } from '../../../models/enums/map-enum';
 import { AsciiAnimationTextComponent } from '../../components/ascii-animation-text/ascii-animation-text.component';
 import { MapContainerComponent } from '../../components/map-container/map-container.component';
+import { GlitchTextDirective } from '../../directives/glitch-text.directive';
 
 @Component({
   selector: 'app-map',
   standalone: true,
-  imports: [AsciiAnimationTextComponent, MapContainerComponent,
+  imports: [
+    CommonModule,
+    AsciiAnimationTextComponent,
+    MapContainerComponent,
     MatFormFieldModule,
+    GlitchTextDirective,
     MatSelectModule,
     MatOptionModule],
   templateUrl: './map.component.html',
   styleUrl: './map.component.css'
 })
-export class MapComponent {
+export class MapComponent implements OnInit {
   MapEnum = CityEnum;   // expose enum
-  CityToFlag = CityToFlag;
-  FlagToCountry = FlagToCountry;
   CountryEnum = FlagEnum; // expose enum
 
-  protected cityOptions = [CityEnum.Vienna, CityEnum.Split, CityEnum.Zagreb, CityEnum.Prague, CityEnum.Bratislava, CityEnum.Rijeka, CityEnum.Sarajevo, CityEnum.Belgrad, CityEnum.Graz, CityEnum.Linz, CityEnum.Salzburg];
-  protected selectedCity = signal<CityEnum>(CityEnum.Vienna);
 
-  // Group cities by country
-  protected get citiesByCountry(): Map<FlagEnum, CityEnum[]> {
-    const grouped = new Map<FlagEnum, CityEnum[]>();
+  protected selectedCity = signal<MapItem>(SUPPORTED_CITIES[CityEnum.Vienna]);
 
-    for (const city of this.cityOptions) {
-      const country = CityToFlag[city];
-      if (country) {
-        if (!grouped.has(country)) {
-          grouped.set(country, []);
-        }
-        grouped.get(country)!.push(city);
-      }
+  // The key under which to store the last used city of the user
+  protected localStorageKeyUserCity = "userCity"
+
+  protected citiesGroupedByCountry = signal<Map<FlagEnum, MapItem[]>>(new Map<FlagEnum, MapItem[]>());
+
+
+  ngOnInit() {
+    // Try get last used city of user
+    const userCity = localStorage.getItem(this.localStorageKeyUserCity);
+    if (userCity && SUPPORTED_CITIES[userCity as CityEnum]) {
+      this.selectedCity.set(SUPPORTED_CITIES[userCity as CityEnum]);
     }
 
-    return grouped;
+    const grouped = this.citiesByCountry();
+    this.citiesGroupedByCountry.set(grouped);
   }
 
-  // Get array of countries for iteration
-  protected get countriesWithCities(): FlagEnum[] {
-    return Array.from(this.citiesByCountry.keys());
+  protected citiesByCountry(): Map<FlagEnum, MapItem[]> {
+    const grouped = new Map<FlagEnum, MapItem[]>();
+
+    // Convert Record to array first
+    const citiesArray = Object.values(SUPPORTED_CITIES);
+
+    for (const city of citiesArray) {
+      const flag = city.flag;
+
+      if (!grouped.has(flag)) {
+        grouped.set(flag, []);
+      }
+      grouped.get(flag)!.push(city);
+    }
+
+    // Sort cities alphabetically by city name
+    for (const [, cities] of grouped) {
+      cities.sort((a, b) => a.city.localeCompare(b.city));
+    }
+
+    // Sort groups alphabetically by country name
+    const sortedEntries = Array.from(grouped.entries()).sort(
+      ([, aCities], [, bCities]) =>
+        aCities[0].country.localeCompare(bCities[0].country)
+    );
+
+    return new Map(sortedEntries);
   }
 
-  selectCity(city: CityEnum) {
+  selectCity(city: MapItem) {
     this.selectedCity.set(city);
+    localStorage.setItem(this.localStorageKeyUserCity, city.city); // store the city key
+
   }
 
 
