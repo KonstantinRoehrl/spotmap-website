@@ -23,7 +23,8 @@ export enum CityEnum {
     // Germany
     Munich = 'munich',
     // Spain
-    Barcelona = 'barcelona'
+    Barcelona = 'barcelona',
+    Valencia = 'valencia'
 }
 
 export enum CountryEnum {

@@ -91,5 +91,11 @@ export const SUPPORTED_CITIES: Record<CityEnum, MapItem> = {
         country: CountryEnum.Spain,
         flag: FlagEnum.Spain,
         mapLink: "https://www.google.com/maps/d/u/0/embed?mid=16PXTegYiPPz7-ZusqQ6kyuucHZ3yNhQ&ehbc=2E312F&noprof=1"
-    }
+    },
+    [CityEnum.Valencia]: {
+        city: CityEnum.Valencia,
+        country: CountryEnum.Spain,
+        flag: FlagEnum.Spain,
+        mapLink: "https://www.google.com/maps/d/u/0/embed?mid=1qvOlmPVyn0x11bbgaxDaxg0VqUGuAhc&ehbc=2E312F&noprof=1"
+    },
 };
