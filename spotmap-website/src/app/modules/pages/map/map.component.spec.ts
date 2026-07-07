@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideNoopAnimations } from '@angular/platform-browser/animations';
 
 import { MapComponent } from './map.component';
 
@@ -8,7 +9,8 @@ describe('MapComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [MapComponent]
+      imports: [MapComponent],
+      providers: [provideNoopAnimations()],
     })
     .compileComponents();
 
