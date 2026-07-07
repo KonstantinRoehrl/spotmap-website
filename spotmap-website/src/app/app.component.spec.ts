@@ -1,29 +1,31 @@
 import { TestBed } from '@angular/core/testing';
+import { provideRouter, Router } from '@angular/router';
 import { AppComponent } from './app.component';
 
 describe('AppComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AppComponent],
+      providers: [provideRouter([])],
     }).compileComponents();
   });
 
   it('should create the app', () => {
     const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
+    expect(fixture.componentInstance).toBeTruthy();
   });
 
   it(`should have the 'spotmap-website' title`, () => {
     const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app.title).toEqual('spotmap-website');
+    expect(fixture.componentInstance.title).toEqual('spotmap-website');
   });
 
-  it('should render title', () => {
+  it('shows the intro animation and hides the nav before the intro finishes', () => {
     const fixture = TestBed.createComponent(AppComponent);
+    spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
     fixture.detectChanges();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, spotmap-website');
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('app-ascii-animation-text')).toBeTruthy();
+    expect(el.querySelector('app-nav-bar')).toBeFalsy();
   });
 });
