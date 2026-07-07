@@ -38,14 +38,28 @@ export class MapComponent implements OnInit {
 
 
   ngOnInit() {
-    // Try get last used city of user
-    const userCity = localStorage.getItem(this.localStorageKeyUserCity);
+    const userCity = this.readStoredCity();
     if (userCity && SUPPORTED_CITIES[userCity as CityEnum]) {
       this.selectedCity.set(SUPPORTED_CITIES[userCity as CityEnum]);
     }
 
-    const grouped = this.citiesByCountry();
-    this.citiesGroupedByCountry.set(grouped);
+    this.citiesGroupedByCountry.set(this.citiesByCountry());
+  }
+
+  private readStoredCity(): string | null {
+    try {
+      return localStorage.getItem(this.localStorageKeyUserCity);
+    } catch {
+      return null;
+    }
+  }
+
+  private storeCity(cityKey: string): void {
+    try {
+      localStorage.setItem(this.localStorageKeyUserCity, cityKey);
+    } catch {
+      /* storage unavailable (private mode / blocked cookies) — non-fatal */
+    }
   }
 
   protected citiesByCountry(): Map<FlagEnum, MapItem[]> {
@@ -79,8 +93,7 @@ export class MapComponent implements OnInit {
 
   selectCity(city: MapItem) {
     this.selectedCity.set(city);
-    localStorage.setItem(this.localStorageKeyUserCity, city.city); // store the city key
-
+    this.storeCity(city.city);
   }
 
 
