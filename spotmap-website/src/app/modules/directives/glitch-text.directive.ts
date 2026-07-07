@@ -9,6 +9,7 @@ export class GlitchTextDirective implements OnInit, OnDestroy {
   private intervalId?: number;
   private glitchChars = ['#', '%', '&', '@', '*', '!', '?', '/', '\\', '|', '~', '$'];
   private textNode?: HTMLElement;
+  private observer?: MutationObserver;
 
   constructor(private el: ElementRef, private renderer: Renderer2) { }
 
@@ -19,6 +20,8 @@ export class GlitchTextDirective implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.stopGlitch();
+    this.observer?.disconnect();
+    this.observer = undefined;
   }
 
   private checkActive() {
@@ -28,7 +31,7 @@ export class GlitchTextDirective implements OnInit, OnDestroy {
     }
 
     // Use a MutationObserver to detect class changes dynamically
-    const observer = new MutationObserver(() => {
+    this.observer = new MutationObserver(() => {
       if (a.classList.contains('active')) {
         this.startGlitch();
       } else if (!a.matches(':hover')) {
@@ -37,7 +40,7 @@ export class GlitchTextDirective implements OnInit, OnDestroy {
       }
     });
 
-    observer.observe(a, { attributes: true, attributeFilter: ['class'] });
+    this.observer.observe(a, { attributes: true, attributeFilter: ['class'] });
   }
 
   @HostListener('mouseenter')
