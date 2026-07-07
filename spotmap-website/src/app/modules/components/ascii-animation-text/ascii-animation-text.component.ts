@@ -72,6 +72,10 @@ export class AsciiAnimationTextComponent implements OnInit, AfterViewInit, OnDes
     if (this.interval) {
       clearInterval(this.interval);
     }
+    if (this.resizeListener) {
+      window.removeEventListener('resize', this.resizeListener);
+      this.resizeListener = undefined;
+    }
   }
 
   private startAnimation() {
