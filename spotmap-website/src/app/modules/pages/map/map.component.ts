@@ -10,7 +10,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { SUPPORTED_CITIES } from '../../../models/enums/config';
 import { MapItem } from '../../../models/enums/interfaces/map-item-interface';
-import { CityEnum, FlagEnum } from '../../../models/enums/map-enum';
+import { CityEnum, CountryCodeEnum } from '../../../models/enums/map-enum';
 import { AsciiAnimationTextComponent } from '../../components/ascii-animation-text/ascii-animation-text.component';
 import { MapContainerComponent } from '../../components/map-container/map-container.component';
 
@@ -30,15 +30,15 @@ import { MapContainerComponent } from '../../components/map-container/map-contai
 })
 export class MapComponent implements OnInit {
   MapEnum = CityEnum; // expose enum
-  CountryEnum = FlagEnum; // expose enum
+  CountryCodeEnum = CountryCodeEnum; // expose enum
 
   protected selectedCity = signal<MapItem>(SUPPORTED_CITIES[CityEnum.Vienna]);
 
   // The key under which to store the last used city of the user
   protected localStorageKeyUserCity = 'userCity';
 
-  protected citiesGroupedByCountry = signal<Map<FlagEnum, MapItem[]>>(
-    new Map<FlagEnum, MapItem[]>(),
+  protected citiesGroupedByCountry = signal<Map<CountryCodeEnum, MapItem[]>>(
+    new Map<CountryCodeEnum, MapItem[]>(),
   );
 
   ngOnInit() {
@@ -66,19 +66,19 @@ export class MapComponent implements OnInit {
     }
   }
 
-  protected citiesByCountry(): Map<FlagEnum, MapItem[]> {
-    const grouped = new Map<FlagEnum, MapItem[]>();
+  protected citiesByCountry(): Map<CountryCodeEnum, MapItem[]> {
+    const grouped = new Map<CountryCodeEnum, MapItem[]>();
 
     // Convert Record to array first
     const citiesArray = Object.values(SUPPORTED_CITIES);
 
     for (const city of citiesArray) {
-      const flag = city.flag;
+      const countryCode = city.countryCode;
 
-      if (!grouped.has(flag)) {
-        grouped.set(flag, []);
+      if (!grouped.has(countryCode)) {
+        grouped.set(countryCode, []);
       }
-      grouped.get(flag)!.push(city);
+      grouped.get(countryCode)!.push(city);
     }
 
     // Sort cities alphabetically by city name

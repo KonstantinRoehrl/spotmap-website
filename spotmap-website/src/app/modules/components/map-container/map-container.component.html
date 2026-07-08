@@ -1,4 +1,7 @@
-<div class="map-container w-full h-full relative">
+<div
+  class="map-container w-full h-full relative"
+  [attr.aria-busy]="!iframeLoaded() && !loadError()"
+>
   <iframe
     [src]="safeUrl()"
     [title]="city() + ' skate spots map'"
@@ -16,6 +19,9 @@
   @if (!iframeLoaded() && !loadError()) {
     <app-loading-bar
       class="absolute top-0 left-0 w-full h-full flex justify-center items-center"
+      role="status"
+      aria-live="polite"
+      aria-label="Loading map"
     ></app-loading-bar>
   }
 

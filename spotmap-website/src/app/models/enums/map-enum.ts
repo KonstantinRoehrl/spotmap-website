@@ -40,15 +40,15 @@ export enum CountryEnum {
   Spain = 'spain',
 }
 
-export enum FlagEnum {
-  Austria = '🇦🇹',
-  Slovakia = '🇸🇰',
-  Czech = '🇨🇿',
-  Croatia = '🇭🇷',
-  Serbia = '🇷🇸',
-  Bosnia = '🇧🇦',
-  Portugal = '🇵🇹',
-  France = '🇫🇷',
-  Germany = '🇩🇪',
-  Spain = '🇪🇸',
+export enum CountryCodeEnum {
+  Austria = 'AT',
+  Slovakia = 'SK',
+  Czech = 'CZ',
+  Croatia = 'HR',
+  Serbia = 'RS',
+  Bosnia = 'BA',
+  Portugal = 'PT',
+  France = 'FR',
+  Germany = 'DE',
+  Spain = 'ES',
 }

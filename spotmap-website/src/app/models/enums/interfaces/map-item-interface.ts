@@ -1,11 +1,11 @@
-import { CityEnum, CountryEnum, FlagEnum } from '../map-enum';
+import { CityEnum, CountryEnum, CountryCodeEnum } from '../map-enum';
 
 /**
- * Holds the city name, country name and optional map link
+ * Holds the city name, country name, ISO 3166-1 alpha-2 country code and optional map link
  */
 export interface MapItem {
   city: CityEnum;
   country: CountryEnum;
-  flag: FlagEnum;
+  countryCode: CountryCodeEnum;
   mapLink: string;
 }

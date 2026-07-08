@@ -38,6 +38,14 @@
   transition: all 0.3s ease;
 }
 
+/* Keyboard focus: explicit phosphor outline so focus is clearly visible
+   instead of relying on the browser default (DESIGN.md: 1px phosphor,
+   offset 2px, sharp — no motion). */
+.nav-bar a:focus-visible {
+  outline: 1px solid var(--color-phosphor);
+  outline-offset: 2px;
+}
+
 /* --------------------
    Glow Pseudo-elements
 -------------------- */
