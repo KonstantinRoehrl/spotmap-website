@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, computed, OnDestroy, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { GlitchTextDirective } from '../../directives/glitch-text.directive';
 import { AsciiAnimationTextComponent } from '../ascii-animation-text/ascii-animation-text.component';
 
@@ -7,6 +7,7 @@ import { AsciiAnimationTextComponent } from '../ascii-animation-text/ascii-anima
     selector: 'app-loading-bar',
     imports: [CommonModule, AsciiAnimationTextComponent, GlitchTextDirective],
     templateUrl: './loading-bar.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './loading-bar.component.css'
 })
 export class LoadingBarComponent implements OnInit, OnDestroy {

@@ -1,4 +1,4 @@
-import { Component, computed, input, signal } from '@angular/core';
+import { Component, computed, input, signal, ChangeDetectionStrategy } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { SUPPORTED_CITIES } from '../../../models/enums/config';
 import { CityEnum } from '../../../models/enums/map-enum';
@@ -8,6 +8,7 @@ import { LoadingBarComponent } from '../loading-bar/loading-bar.component';
     selector: 'app-map-container',
     imports: [LoadingBarComponent],
     templateUrl: './map-container.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './map-container.component.css'
 })
 export class MapContainerComponent {

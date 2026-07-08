@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { MatOptionModule } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
@@ -22,6 +22,7 @@ import { GlitchTextDirective } from '../../directives/glitch-text.directive';
         MatOptionModule
     ],
     templateUrl: './map.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './map.component.css'
 })
 export class MapComponent implements OnInit {

@@ -8,7 +8,8 @@ import {
   OnInit,
   Output,
   signal,
-  ViewEncapsulation
+  ViewEncapsulation,
+  ChangeDetectionStrategy
 } from '@angular/core';
 
 @Component({
@@ -16,6 +17,7 @@ import {
   standalone: true,
   templateUrl: './ascii-animation-text.component.html',
   styleUrls: ['./ascii-animation-text.component.css'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   encapsulation: ViewEncapsulation.None
 })
 export class AsciiAnimationTextComponent implements OnInit, AfterViewInit, OnDestroy {

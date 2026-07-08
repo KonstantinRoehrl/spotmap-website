@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { MapContainerComponent } from './modules/components/map-container/map-container.component';
 import { AsciiAnimationTextComponent } from './modules/components/ascii-animation-text/ascii-animation-text.component';
@@ -8,6 +8,7 @@ import { NavBarComponent } from './modules/components/nav-bar/nav-bar.component'
     selector: 'app-root',
     imports: [RouterOutlet, MapContainerComponent, AsciiAnimationTextComponent, NavBarComponent],
     templateUrl: './app.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './app.component.css'
 })
 export class AppComponent implements OnInit{
