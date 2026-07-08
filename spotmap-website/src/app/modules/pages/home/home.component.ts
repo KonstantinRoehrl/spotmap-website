@@ -1,9 +1,9 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
-import { AsciiAnimationTextComponent } from '../../components/ascii-animation-text/ascii-animation-text.component';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-home',
-  imports: [AsciiAnimationTextComponent],
+  imports: [RouterLink],
   templateUrl: './home.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: './home.component.css',

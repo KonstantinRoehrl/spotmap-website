@@ -1,8 +1,52 @@
-<app-ascii-animation-text
-  [messages]="['Gotta write here something at some point', 'Hello World']"
-  [waitFrames]="60"
-  [animationSpeed]="35"
-  [loop]="true"
-  class="h-full w-full"
->
-</app-ascii-animation-text>
+<section class="term">
+  <div class="term-window">
+    <div class="term-titlebar">
+      <span class="tb-label">SPOTMAP // HOME</span>
+      <span class="tb-status" aria-hidden="true">ONLINE</span>
+    </div>
+
+    <div class="term-body">
+      <h1 class="term-title">THE PHOSPHOR ARCHIVE</h1>
+      <p class="dim">// a skate-spot compendium running on borrowed phosphor</p>
+
+      <p class="line">
+        <span class="prompt" aria-hidden="true">&gt;</span>
+        <span>a green screen that remembers where to skate.</span>
+      </p>
+      <p class="line">
+        <span class="prompt" aria-hidden="true">&gt;</span>
+        <span
+          >pick a city, read the pins, go. new spots, dead spots, the one they
+          poured a planter over in '09 &mdash; all still logged.</span
+        >
+      </p>
+      <p class="line">
+        <span class="prompt" aria-hidden="true">&gt;</span>
+        <span
+          >no feed. no likes. no algorithm deciding what you're allowed to find.
+          just the map and the crew that keeps it.</span
+        >
+      </p>
+
+      <div class="care-block">
+        <p class="line care">
+          <span class="prompt" aria-hidden="true">&gt;</span>
+          <span>RESPECT THE LOCALS</span>
+        </p>
+        <p class="line care">
+          <span class="prompt" aria-hidden="true">&gt;</span>
+          <span>TAKE CARE OF PEDESTRIANS</span>
+        </p>
+      </div>
+
+      <a routerLink="/map" class="enter-map">[ ENTER THE MAP ]</a>
+
+      <p class="dim">
+        // for educational purposes only<span
+          class="cursor"
+          aria-hidden="true"
+        ></span>
+      </p>
+    </div>
+  </div>
+</section>

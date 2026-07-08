@@ -1,9 +1,8 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
-import { AsciiAnimationTextComponent } from '../../components/ascii-animation-text/ascii-animation-text.component';
 
 @Component({
   selector: 'app-about',
-  imports: [AsciiAnimationTextComponent],
+  imports: [],
   templateUrl: './about.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: './about.component.css',
