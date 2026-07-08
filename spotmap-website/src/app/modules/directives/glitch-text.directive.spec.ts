@@ -3,9 +3,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { GlitchTextDirective } from './glitch-text.directive';
 
 @Component({
-  standalone: true,
-  imports: [GlitchTextDirective],
-  template: `<a appGlitchText><span class="nav-text">Map</span></a>`,
+    imports: [GlitchTextDirective],
+    template: `<a appGlitchText><span class="nav-text">Map</span></a>`
 })
 class HostComponent {}
 

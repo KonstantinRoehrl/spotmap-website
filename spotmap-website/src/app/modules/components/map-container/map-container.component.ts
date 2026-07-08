@@ -5,11 +5,10 @@ import { CityEnum } from '../../../models/enums/map-enum';
 import { LoadingBarComponent } from '../loading-bar/loading-bar.component';
 
 @Component({
-  selector: 'app-map-container',
-  standalone: true,
-  imports: [LoadingBarComponent],
-  templateUrl: './map-container.component.html',
-  styleUrl: './map-container.component.css',
+    selector: 'app-map-container',
+    imports: [LoadingBarComponent],
+    templateUrl: './map-container.component.html',
+    styleUrl: './map-container.component.css'
 })
 export class MapContainerComponent {
   city = input.required<CityEnum>();

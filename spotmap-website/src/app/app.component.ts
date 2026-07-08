@@ -5,11 +5,10 @@ import { AsciiAnimationTextComponent } from './modules/components/ascii-animatio
 import { NavBarComponent } from './modules/components/nav-bar/nav-bar.component';
 
 @Component({
-  selector: 'app-root',
-  standalone: true,
-  imports: [RouterOutlet, MapContainerComponent, AsciiAnimationTextComponent, NavBarComponent],
-  templateUrl: './app.component.html',
-  styleUrl: './app.component.css'
+    selector: 'app-root',
+    imports: [RouterOutlet, MapContainerComponent, AsciiAnimationTextComponent, NavBarComponent],
+    templateUrl: './app.component.html',
+    styleUrl: './app.component.css'
 })
 export class AppComponent implements OnInit{
   title = 'spotmap-website';

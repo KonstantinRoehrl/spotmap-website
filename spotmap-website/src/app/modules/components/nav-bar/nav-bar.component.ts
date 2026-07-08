@@ -11,11 +11,10 @@ export interface NavBarLink {
 
 
 @Component({
-  selector: 'app-nav-bar',
-  standalone: true,
-  imports: [RouterLink, AsciiAnimationTextComponent, GlitchTextDirective],
-  templateUrl: './nav-bar.component.html',
-  styleUrls: ['./nav-bar.component.css']
+    selector: 'app-nav-bar',
+    imports: [RouterLink, AsciiAnimationTextComponent, GlitchTextDirective],
+    templateUrl: './nav-bar.component.html',
+    styleUrls: ['./nav-bar.component.css']
 })
 export class NavBarComponent implements AfterViewInit {
   links = input<NavBarLink[]>([]);

@@ -4,11 +4,10 @@ import { GlitchTextDirective } from '../../directives/glitch-text.directive';
 import { AsciiAnimationTextComponent } from '../ascii-animation-text/ascii-animation-text.component';
 
 @Component({
-  selector: 'app-loading-bar',
-  standalone: true,
-  imports: [CommonModule, AsciiAnimationTextComponent, GlitchTextDirective],
-  templateUrl: './loading-bar.component.html',
-  styleUrl: './loading-bar.component.css'
+    selector: 'app-loading-bar',
+    imports: [CommonModule, AsciiAnimationTextComponent, GlitchTextDirective],
+    templateUrl: './loading-bar.component.html',
+    styleUrl: './loading-bar.component.css'
 })
 export class LoadingBarComponent implements OnInit, OnDestroy {
   columns = signal<string[][]>([]);

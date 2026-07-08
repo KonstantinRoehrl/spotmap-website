@@ -11,18 +11,18 @@ import { MapContainerComponent } from '../../components/map-container/map-contai
 import { GlitchTextDirective } from '../../directives/glitch-text.directive';
 
 @Component({
-  selector: 'app-map',
-  standalone: true,
-  imports: [
-    CommonModule,
-    AsciiAnimationTextComponent,
-    MapContainerComponent,
-    MatFormFieldModule,
-    GlitchTextDirective,
-    MatSelectModule,
-    MatOptionModule],
-  templateUrl: './map.component.html',
-  styleUrl: './map.component.css'
+    selector: 'app-map',
+    imports: [
+        CommonModule,
+        AsciiAnimationTextComponent,
+        MapContainerComponent,
+        MatFormFieldModule,
+        GlitchTextDirective,
+        MatSelectModule,
+        MatOptionModule
+    ],
+    templateUrl: './map.component.html',
+    styleUrl: './map.component.css'
 })
 export class MapComponent implements OnInit {
   MapEnum = CityEnum;   // expose enum
