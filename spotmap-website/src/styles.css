@@ -1,5 +1,75 @@
 @import "tailwindcss";
 
+/* ============================================================
+   Matrix design-token layer — single source of truth
+   Values authored per DESIGN.md (§2 colors in OKLCH, §3 type,
+   §4 elevation) and .impeccable/design.json (shadows, motion).
+   Colors are authored in OKLCH (The "author color in OKLCH" Do).
+   ============================================================ */
+
+/* Tailwind v4 theme tokens → utilities + :root custom properties
+   (text-phosphor, bg-surface, border-line, font-mono, rounded-sm,
+   shadow-edge-frame, …). Only colors/fonts/radius/shadow live here;
+   raw motion + text-shadow glows go in :root below (not valid
+   @theme namespaces). `static` forces Tailwind v4 to always emit these
+   CSS variables to :root — even before a utility references them — so
+   the token layer is a reliable single source of truth for later stages
+   (consumable as `var(--color-phosphor)` or as `text-phosphor`, etc.). */
+@theme static {
+  /* Phosphor green — the archive's voice */
+  --color-phosphor: oklch(86.6% 0.2948 142.5);        /* #00ff00 */
+  --color-phosphor-bright: oklch(93% 0.12 145);       /* #b6ffb6 */
+  --color-phosphor-dim: oklch(70% 0.22 145);          /* #00b800 */
+  --color-phosphor-deep: oklch(45% 0.14 145);         /* #005a00 */
+
+  /* CRT amber — the rare care/selection channel */
+  --color-amber: oklch(79.6% 0.166 76);               /* #ffb000 */
+  --color-amber-dim: oklch(63% 0.145 70);             /* #cc7a00 */
+
+  /* Alert red — hard failures only */
+  --color-danger: oklch(63% 0.24 27);                 /* #ff2e2e */
+
+  /* Neutrals — true-black ground + near-black green-tinted surfaces */
+  --color-bg: oklch(0% 0 0);                           /* #000000 */
+  --color-surface: oklch(14% 0.012 150);               /* #0a0f0a */
+  --color-surface-raised: oklch(18.8% 0.0224 144.6);   /* #0d160d */
+  --color-line: oklch(31.9% 0.0813 146.4);             /* #0f3d17 */
+
+  /* Typography — one monospace grid */
+  --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
+
+  /* Radius — sharp, the terminal has edges */
+  --radius-sm: 2px;
+  --radius-md: 4px;
+
+  /* Edge glow (box-shadow) — elevation is bloom, never a gray shadow.
+     Wide 24–30px halos are for non-text chrome only (Bloom-Budget). */
+  --shadow-edge-frame: 0 0 24px rgba(0, 255, 0, 0.35);
+  --shadow-edge-active: 0 0 30px rgba(0, 255, 0, 0.5), inset 0 0 2px rgba(0, 255, 120, 0.6);
+}
+
+/* Glow (text-shadow) + motion tokens — raw CSS vars for later
+   stages/components to consume. Text-shadow and durations/easings
+   are not valid @theme namespaces, so they live here. */
+:root {
+  /* Text glow — resting stays ≤6px so letters keep clean edges in
+     sunlight (Bloom-Budget Rule). */
+  --glow-text-rest: 0 0 2px #00ff00, 0 0 4px #00ff00, 0 0 6px #00ff00;
+  --glow-text-hot: 0 0 4px #00ff00, 0 0 8px #00ff00, 0 0 12px #00ff00;
+  --glow-text-amber: 0 0 4px #ffb000, 0 0 8px #ffb000;
+
+  /* Edge glow — mirror of the @theme shadow tokens, for direct use */
+  --glow-edge-frame: 0 0 24px rgba(0, 255, 0, 0.35);
+  --glow-edge-active: 0 0 30px rgba(0, 255, 0, 0.5), inset 0 0 2px rgba(0, 255, 120, 0.6);
+
+  /* Motion — no bounce/elastic; CRT transitions */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-glitch: 80ms;   /* per-character glitch scramble (GlitchText) */
+  --dur-type: 40ms;     /* typewriter cadence (design.json range 35–45ms) */
+  --dur-fast: 200ms;    /* hover/focus glow, tab changes */
+  --dur-glow-fade: 1000ms; /* slow phosphor-decay fade-out */
+}
+
 /* --------------------
    Essential global styles
 -------------------- */
@@ -17,13 +87,8 @@ div,
 span,
 pre,
 ng-container {
-  font-family: 'Courier New', monospace;
-  text-shadow:
-    0 0 2px #00ff00,
-    0 0 4px #00ff00,
-    0 0 6px #00ff00,
-    0 0 8px #00ff00,
-    0 0 10px #00ff00;
+  font-family: var(--font-mono);
+  text-shadow: var(--glow-text-rest);
 }
 
 html,
@@ -33,5 +98,6 @@ body {
 
 body {
   margin: 0;
-  font-family: Roboto, "Helvetica Neue", sans-serif;
+  font-family: var(--font-mono);
+  background: var(--color-bg);
 }
