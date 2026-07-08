@@ -229,7 +229,6 @@
 
   .nav-separator {
     height: 70%;
-    display: block;
   }
 }
 
@@ -238,17 +237,10 @@
     position: relative;
     border-bottom: 1px solid rgba(0, 255, 0, 0.3);
     padding: 0.8rem 2rem;
-    overflow: visible;
   }
 
   .nav-bar ul {
     justify-content: flex-start;
-  }
-
-  .nav-bar a {
-    border-radius: 6px;
-    overflow: visible;
-    position: relative;
   }
 
   .nav-icon {
