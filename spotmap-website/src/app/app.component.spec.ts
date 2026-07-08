@@ -64,4 +64,24 @@ describe('AppComponent', () => {
     expect(el.querySelector('app-ascii-animation-text')).toBeFalsy();
     expect(sessionStorage.getItem('spotmap:introSeen')).toBe('1');
   });
+
+  it('does not double-finish when the [ SKIP ] button click bubbles to the wrapper', async () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    const navSpy = spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(
+      true,
+    );
+    fixture.detectChanges();
+
+    const el = fixture.nativeElement as HTMLElement;
+    const skipBtn = el.querySelector('.intro-skip') as HTMLElement;
+    expect(skipBtn).toBeTruthy();
+    // A native click on the button also bubbles to the wrapper's (click)="skipIntro()"
+    // in the same tick; the synchronous `finishing` latch must keep this to ONE finish.
+    skipBtn.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(navSpy).toHaveBeenCalledTimes(1);
+    expect(navSpy).toHaveBeenCalledWith(['map']);
+  });
 });

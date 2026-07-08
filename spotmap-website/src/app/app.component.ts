@@ -24,6 +24,12 @@ export class AppComponent implements OnInit {
   title = 'spotmap-website';
   protected introFinished = signal<boolean>(false);
 
+  // Synchronous latch: introFinished only flips inside navigate().then() (a
+  // microtask), so a click on [ SKIP ] bubbling to the wrapper — or Escape
+  // firing alongside animationFinished — would re-enter finishIntro() in the
+  // same tick before the signal updates. This guards that window.
+  private finishing = false;
+
   constructor(private router: Router) {}
 
   ngOnInit(): void {
@@ -57,7 +63,8 @@ export class AppComponent implements OnInit {
    * navigation resolves. Idempotent so completion + skip can't double-fire.
    */
   private finishIntro(): void {
-    if (this.introFinished()) return;
+    if (this.finishing || this.introFinished()) return;
+    this.finishing = true;
     this.markIntroSeen();
     void this.router.navigate(['map']).then(() => this.introFinished.set(true));
   }
