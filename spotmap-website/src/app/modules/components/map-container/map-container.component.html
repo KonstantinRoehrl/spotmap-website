@@ -1,11 +1,21 @@
 <div class="map-container w-full h-full relative">
-  <iframe [src]="safeUrl()" class="w-full h-full border-0 map-frame" frameborder="0" loading="async"
-    referrerpolicy="no-referrer-when-downgrade" allowfullscreen="0" [style.opacity]="iframeLoaded() == true ? 1 : 0"
-    (load)="onIframeLoad()"></iframe>
+  <iframe [src]="safeUrl()" [title]="city() + ' skate spots map'"
+    class="w-full h-full border-0 map-frame" frameborder="0" loading="async"
+    referrerpolicy="no-referrer-when-downgrade" allowfullscreen="0"
+    [style.opacity]="iframeLoaded() == true ? 1 : 0"
+    (load)="onIframeLoad()" (error)="onIframeError()"></iframe>
 
-  <!-- overlay spinner -->
-  @if(!iframeLoaded()){
+  <!-- loading: matrix-radar spinner over the dark surface -->
+  @if(!iframeLoaded() && !loadError()){
   <app-loading-bar
     class="absolute top-0 left-0 w-full h-full flex justify-center items-center"></app-loading-bar>
+  }
+
+  <!-- error / timeout: phosphor terminal message on --color-surface, never white -->
+  @if(loadError()){
+  <div class="map-error absolute top-0 left-0 w-full h-full flex flex-col justify-center items-center" role="alert">
+    <p class="map-error__line">&gt; SIGNAL LOST // MAP UNREACHABLE</p>
+    <button type="button" class="map-error__retry" (click)="retry()">&gt; RETRY</button>
+  </div>
   }
 </div>

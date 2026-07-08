@@ -1,7 +1,9 @@
 .map-container {
   position: relative;
-  border-radius: 12px;
-  box-shadow: 0px 0px 24px #00ff00;
+  /* Near-black backing so a blank/slow/failed embed reads black-green, never white. */
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--glow-edge-frame);
   overflow: hidden;
 }
 
@@ -12,74 +14,6 @@
   border: 0;
 }
 
-.matrix-loader {
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.matrix-lines {
-  font-family: var(--font-mono);
-  font-size: 20px;
-  color: var(--color-phosphor);
-  white-space: nowrap;
-  text-shadow:
-    0 0 5px #00ff00,
-    0 0 10px #00ff00,
-    0 0 20px #00ff00,
-    0 0 40px #00ff00;
-  animation: glitch 0.1s infinite;
-}
-
-/* Glitch animation - shifts letters randomly */
-@keyframes glitch {
-  0% {
-    transform: translate(0px, 0px);
-    opacity: 1;
-  }
-
-  20% {
-    transform: translate(-2px, 1px);
-    opacity: 0.8;
-  }
-
-  40% {
-    transform: translate(2px, -2px);
-    opacity: 1;
-  }
-
-  60% {
-    transform: translate(-1px, 1px);
-    opacity: 0.9;
-  }
-
-  80% {
-    transform: translate(1px, -1px);
-    opacity: 1;
-  }
-
-  100% {
-    transform: translate(0px, 0px);
-    opacity: 1;
-  }
-}
-
-/* Optional: vertical falling matrix characters */
-@keyframes matrix-fall {
-  0% {
-    transform: translateY(-100%);
-  }
-
-  100% {
-    transform: translateY(100%);
-  }
-}
-
 .map-frame {
   opacity: 0;
   transition: opacity 0.4s ease-in-out;
@@ -87,4 +21,52 @@
 
 .map-frame.visible {
   opacity: 1;
+}
+
+/* Error / timeout overlay — opaque near-black surface hides any iframe white flash. */
+.map-error {
+  background: var(--color-surface);
+  gap: 20px;
+  padding: 24px;
+  text-align: center;
+}
+
+.map-error__line {
+  margin: 0;
+  font-family: var(--font-mono);
+  color: var(--color-phosphor);
+  text-shadow: var(--glow-text-rest);
+  letter-spacing: 0.08em;
+  font-size: clamp(0.9rem, 2.2vw, 1.125rem);
+  line-height: 1.4;
+}
+
+.map-error__retry {
+  font-family: var(--font-mono);
+  color: var(--color-phosphor);
+  background: transparent;
+  border: 1px solid var(--color-phosphor-deep);
+  border-radius: var(--radius-sm);
+  padding: 10px 16px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  text-shadow: var(--glow-text-rest);
+  transition:
+    box-shadow var(--dur-fast, 200ms) ease-out,
+    color var(--dur-fast, 200ms) ease-out,
+    border-color var(--dur-fast, 200ms) ease-out;
+}
+
+.map-error__retry:hover,
+.map-error__retry:focus-visible {
+  color: var(--color-phosphor-bright);
+  border-color: var(--color-phosphor);
+  box-shadow: 0 0 20px rgba(0, 255, 0, 0.4);
+  text-shadow: var(--glow-text-hot);
+}
+
+.map-error__retry:focus-visible {
+  outline: 1px solid var(--color-phosphor);
+  outline-offset: 2px;
 }
