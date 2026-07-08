@@ -1,5 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  signal,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { MatOptionModule } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
@@ -10,31 +15,31 @@ import { AsciiAnimationTextComponent } from '../../components/ascii-animation-te
 import { MapContainerComponent } from '../../components/map-container/map-container.component';
 
 @Component({
-    selector: 'app-map',
-    imports: [
-        CommonModule,
-        AsciiAnimationTextComponent,
-        MapContainerComponent,
-        MatFormFieldModule,
-        MatSelectModule,
-        MatOptionModule
-    ],
-    templateUrl: './map.component.html',
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    styleUrl: './map.component.css'
+  selector: 'app-map',
+  imports: [
+    CommonModule,
+    AsciiAnimationTextComponent,
+    MapContainerComponent,
+    MatFormFieldModule,
+    MatSelectModule,
+    MatOptionModule,
+  ],
+  templateUrl: './map.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  styleUrl: './map.component.css',
 })
 export class MapComponent implements OnInit {
-  MapEnum = CityEnum;   // expose enum
+  MapEnum = CityEnum; // expose enum
   CountryEnum = FlagEnum; // expose enum
-
 
   protected selectedCity = signal<MapItem>(SUPPORTED_CITIES[CityEnum.Vienna]);
 
   // The key under which to store the last used city of the user
-  protected localStorageKeyUserCity = "userCity"
+  protected localStorageKeyUserCity = 'userCity';
 
-  protected citiesGroupedByCountry = signal<Map<FlagEnum, MapItem[]>>(new Map<FlagEnum, MapItem[]>());
-
+  protected citiesGroupedByCountry = signal<Map<FlagEnum, MapItem[]>>(
+    new Map<FlagEnum, MapItem[]>(),
+  );
 
   ngOnInit() {
     const userCity = this.readStoredCity();
@@ -84,7 +89,7 @@ export class MapComponent implements OnInit {
     // Sort groups alphabetically by country name
     const sortedEntries = Array.from(grouped.entries()).sort(
       ([, aCities], [, bCities]) =>
-        aCities[0].country.localeCompare(bCities[0].country)
+        aCities[0].country.localeCompare(bCities[0].country),
     );
 
     return new Map(sortedEntries);
@@ -94,6 +99,4 @@ export class MapComponent implements OnInit {
     this.selectedCity.set(city);
     this.storeCity(city.city);
   }
-
-
 }

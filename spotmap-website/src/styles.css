@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 /* ============================================================
    Self-hosted IBM Plex Mono — the terminal face
@@ -11,21 +11,24 @@
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url('/fonts/ibm-plex-mono/ibm-plex-mono-latin-400-normal.woff2') format('woff2');
+  src: url('/fonts/ibm-plex-mono/ibm-plex-mono-latin-400-normal.woff2')
+    format('woff2');
 }
 @font-face {
   font-family: 'IBM Plex Mono';
   font-style: normal;
   font-weight: 500;
   font-display: swap;
-  src: url('/fonts/ibm-plex-mono/ibm-plex-mono-latin-500-normal.woff2') format('woff2');
+  src: url('/fonts/ibm-plex-mono/ibm-plex-mono-latin-500-normal.woff2')
+    format('woff2');
 }
 @font-face {
   font-family: 'IBM Plex Mono';
   font-style: normal;
   font-weight: 600;
   font-display: swap;
-  src: url('/fonts/ibm-plex-mono/ibm-plex-mono-latin-600-normal.woff2') format('woff2');
+  src: url('/fonts/ibm-plex-mono/ibm-plex-mono-latin-600-normal.woff2')
+    format('woff2');
 }
 
 /* ============================================================
@@ -45,23 +48,23 @@
    (consumable as `var(--color-phosphor)` or as `text-phosphor`, etc.). */
 @theme static {
   /* Phosphor green — the archive's voice */
-  --color-phosphor: oklch(86.6% 0.2948 142.5);        /* #00ff00 */
-  --color-phosphor-bright: oklch(93% 0.12 145);       /* #b6ffb6 */
-  --color-phosphor-dim: oklch(70% 0.22 145);          /* #00b800 */
-  --color-phosphor-deep: oklch(45% 0.14 145);         /* #005a00 */
+  --color-phosphor: oklch(86.6% 0.2948 142.5); /* #00ff00 */
+  --color-phosphor-bright: oklch(93% 0.12 145); /* #b6ffb6 */
+  --color-phosphor-dim: oklch(70% 0.22 145); /* #00b800 */
+  --color-phosphor-deep: oklch(45% 0.14 145); /* #005a00 */
 
   /* CRT amber — the rare care/selection channel */
-  --color-amber: oklch(79.6% 0.166 76);               /* #ffb000 */
-  --color-amber-dim: oklch(63% 0.145 70);             /* #cc7a00 */
+  --color-amber: oklch(79.6% 0.166 76); /* #ffb000 */
+  --color-amber-dim: oklch(63% 0.145 70); /* #cc7a00 */
 
   /* Alert red — hard failures only */
-  --color-danger: oklch(63% 0.24 27);                 /* #ff2e2e */
+  --color-danger: oklch(63% 0.24 27); /* #ff2e2e */
 
   /* Neutrals — true-black ground + near-black green-tinted surfaces */
-  --color-bg: oklch(0% 0 0);                           /* #000000 */
-  --color-surface: oklch(14% 0.012 150);               /* #0a0f0a */
-  --color-surface-raised: oklch(18.8% 0.0224 144.6);   /* #0d160d */
-  --color-line: oklch(31.9% 0.0813 146.4);             /* #0f3d17 */
+  --color-bg: oklch(0% 0 0); /* #000000 */
+  --color-surface: oklch(14% 0.012 150); /* #0a0f0a */
+  --color-surface-raised: oklch(18.8% 0.0224 144.6); /* #0d160d */
+  --color-line: oklch(31.9% 0.0813 146.4); /* #0f3d17 */
 
   /* Typography — one monospace grid */
   --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
@@ -73,7 +76,8 @@
   /* Edge glow (box-shadow) — elevation is bloom, never a gray shadow.
      Wide 24–30px halos are for non-text chrome only (Bloom-Budget). */
   --shadow-edge-frame: 0 0 24px rgba(0, 255, 0, 0.35);
-  --shadow-edge-active: 0 0 30px rgba(0, 255, 0, 0.5), inset 0 0 2px rgba(0, 255, 120, 0.6);
+  --shadow-edge-active:
+    0 0 30px rgba(0, 255, 0, 0.5), inset 0 0 2px rgba(0, 255, 120, 0.6);
 }
 
 /* Glow (text-shadow) + motion tokens — raw CSS vars for later
@@ -88,13 +92,14 @@
 
   /* Edge glow — mirror of the @theme shadow tokens, for direct use */
   --glow-edge-frame: 0 0 24px rgba(0, 255, 0, 0.35);
-  --glow-edge-active: 0 0 30px rgba(0, 255, 0, 0.5), inset 0 0 2px rgba(0, 255, 120, 0.6);
+  --glow-edge-active:
+    0 0 30px rgba(0, 255, 0, 0.5), inset 0 0 2px rgba(0, 255, 120, 0.6);
 
   /* Motion — no bounce/elastic; CRT transitions */
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
-  --dur-glitch: 80ms;   /* per-character glitch scramble (GlitchText) */
-  --dur-type: 40ms;     /* typewriter cadence (design.json range 35–45ms) */
-  --dur-fast: 200ms;    /* hover/focus glow, tab changes */
+  --dur-glitch: 80ms; /* per-character glitch scramble (GlitchText) */
+  --dur-type: 40ms; /* typewriter cadence (design.json range 35–45ms) */
+  --dur-fast: 200ms; /* hover/focus glow, tab changes */
   --dur-glow-fade: 1000ms; /* slow phosphor-decay fade-out */
 }
 

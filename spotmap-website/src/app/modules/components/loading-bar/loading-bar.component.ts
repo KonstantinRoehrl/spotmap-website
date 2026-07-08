@@ -1,11 +1,18 @@
-import { Component, computed, OnDestroy, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
+import {
+  Component,
+  computed,
+  OnDestroy,
+  OnInit,
+  signal,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 
 @Component({
-    selector: 'app-loading-bar',
-    imports: [],
-    templateUrl: './loading-bar.component.html',
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    styleUrl: './loading-bar.component.css'
+  selector: 'app-loading-bar',
+  imports: [],
+  templateUrl: './loading-bar.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  styleUrl: './loading-bar.component.css',
 })
 export class LoadingBarComponent implements OnInit, OnDestroy {
   columns = signal<string[][]>([]);
@@ -25,7 +32,7 @@ export class LoadingBarComponent implements OnInit, OnDestroy {
     const thickness = 3;
     const innerRadius = outerRadius - thickness;
 
-    const baseGap = 90;       // angular gap at the middle of the ring
+    const baseGap = 90; // angular gap at the middle of the ring
     const arrowSharpness = 2; // controls how pointed the arrow is
 
     const currentRotation = this.rotation();
@@ -44,7 +51,7 @@ export class LoadingBarComponent implements OnInit, OnDestroy {
         // radial weight relative to middle radius
         const t = (distance - innerRadius) / (outerRadius - innerRadius); // 0 at inner, 1 at outer
         const innerWeight = Math.pow(1 - t, arrowSharpness); // inner taper
-        const outerWeight = Math.pow(t, arrowSharpness);     // outer taper
+        const outerWeight = Math.pow(t, arrowSharpness); // outer taper
 
         // compute gap angular width for inner and outer radius separately
         const innerGap = baseGap * innerWeight;
@@ -61,7 +68,7 @@ export class LoadingBarComponent implements OnInit, OnDestroy {
         }
 
         return char;
-      })
+      }),
     );
   });
 
@@ -78,9 +85,9 @@ export class LoadingBarComponent implements OnInit, OnDestroy {
     const thickness = 3;
     const innerRadius = outerRadius - thickness;
 
-    const baseGap = 15;      // min angular gap at edges
-    const tipGap = 60;       // max angular gap at middle
-    const sharpness = 3;     // >1 = sharper arrow, <1 = smoother
+    const baseGap = 15; // min angular gap at edges
+    const tipGap = 60; // max angular gap at middle
+    const sharpness = 3; // >1 = sharper arrow, <1 = smoother
 
     const middleRadius = (innerRadius + outerRadius) / 2;
     const currentRotation = this.rotation();
@@ -105,8 +112,8 @@ export class LoadingBarComponent implements OnInit, OnDestroy {
         const adjustedGap = baseGap + weight * (tipGap - baseGap);
 
         // Shift gapStart and gapEnd so that widest point is at middle radius
-        const gapStart = (currentRotation - 20 + (adjustedGap / 2)) % 360;
-        const gapEnd = (currentRotation + 20 + (adjustedGap / 2)) % 360;
+        const gapStart = (currentRotation - 20 + adjustedGap / 2) % 360;
+        const gapEnd = (currentRotation + 20 + adjustedGap / 2) % 360;
 
         // angular masking with wrap-around
         if (gapStart < gapEnd) {
@@ -116,16 +123,14 @@ export class LoadingBarComponent implements OnInit, OnDestroy {
         }
 
         return char;
-      })
+      }),
     );
   });
 
-
-
-
   private shiftIntervalId?: number;
   private rotationIntervalId?: number;
-  private readonly matrixChars = '01ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()[]{}|;:,.<>?';
+  private readonly matrixChars =
+    '01ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()[]{}|;:,.<>?';
   private readonly numColumns = 21; // square
   private readonly charsPerColumn = 21;
 
@@ -149,12 +154,14 @@ export class LoadingBarComponent implements OnInit, OnDestroy {
         column.push(this.getRandomChar());
       }
 
-      this.columns.update(prev => [...prev, column]);
+      this.columns.update((prev) => [...prev, column]);
     }
   }
 
   private getRandomChar(): string {
-    return this.matrixChars[Math.floor(Math.random() * this.matrixChars.length)];
+    return this.matrixChars[
+      Math.floor(Math.random() * this.matrixChars.length)
+    ];
   }
 
   // Start both timers
@@ -180,18 +187,18 @@ export class LoadingBarComponent implements OnInit, OnDestroy {
 
   // Just update rotation signal
   private increaseRotation() {
-    this.rotation.update(prev => (prev + 3) % 360); // keep it in 0–360
+    this.rotation.update((prev) => (prev + 3) % 360); // keep it in 0–360
   }
 
   // Shift characters normally
   private shiftCharacters() {
-    this.columns.update(prev =>
-      prev.map(column => {
+    this.columns.update((prev) =>
+      prev.map((column) => {
         const newColumn = [...column];
         newColumn.shift();
         newColumn.push(this.getRandomChar());
         return newColumn;
-      })
+      }),
     );
   }
 }

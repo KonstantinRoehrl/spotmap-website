@@ -1,17 +1,40 @@
-import { Directive, ElementRef, HostListener, OnDestroy, OnInit, Renderer2 } from '@angular/core';
+import {
+  Directive,
+  ElementRef,
+  HostListener,
+  OnDestroy,
+  OnInit,
+  Renderer2,
+} from '@angular/core';
 
 @Directive({
   selector: '[appGlitchText]',
-  standalone: true
+  standalone: true,
 })
 export class GlitchTextDirective implements OnInit, OnDestroy {
   private originalText = '';
   private intervalId?: number;
-  private glitchChars = ['#', '%', '&', '@', '*', '!', '?', '/', '\\', '|', '~', '$'];
+  private glitchChars = [
+    '#',
+    '%',
+    '&',
+    '@',
+    '*',
+    '!',
+    '?',
+    '/',
+    '\\',
+    '|',
+    '~',
+    '$',
+  ];
   private textNode?: HTMLElement;
   private observer?: MutationObserver;
 
-  constructor(private el: ElementRef, private renderer: Renderer2) { }
+  constructor(
+    private el: ElementRef,
+    private renderer: Renderer2,
+  ) {}
 
   ngOnInit() {
     // If the element is active at init, start glitch
@@ -69,10 +92,12 @@ export class GlitchTextDirective implements OnInit, OnDestroy {
       if (!this.textNode) return;
 
       const chars = this.originalText.split('');
-      const glitched = chars.map(c =>
+      const glitched = chars.map((c) =>
         Math.random() < 0.15 && c !== ' '
-          ? this.glitchChars[Math.floor(Math.random() * this.glitchChars.length)]
-          : c
+          ? this.glitchChars[
+              Math.floor(Math.random() * this.glitchChars.length)
+            ]
+          : c,
       );
 
       this.textNode.innerText = glitched.join('');

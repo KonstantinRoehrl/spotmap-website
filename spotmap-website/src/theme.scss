@@ -26,21 +26,23 @@ html {
   // Green built-in palette drives the primary hue; orange seeds the
   // tertiary (the amber channel is pinned exactly below). theme-type:dark
   // gives fixed dark values (not prefers-color-scheme responsive).
-  @include mat.theme((
-    color: (
-      primary: mat.$green-palette,
-      tertiary: mat.$orange-palette,
-      theme-type: dark,
-    ),
-    typography: (
-      plain-family: $mono-stack,
-      brand-family: $mono-stack,
-      bold-weight: 600,
-      medium-weight: 500,
-      regular-weight: 400,
-    ),
-    density: 0,
-  ));
+  @include mat.theme(
+    (
+      color: (
+        primary: mat.$green-palette,
+        tertiary: mat.$orange-palette,
+        theme-type: dark,
+      ),
+      typography: (
+        plain-family: $mono-stack,
+        brand-family: $mono-stack,
+        bold-weight: 600,
+        medium-weight: 500,
+        regular-weight: 400,
+      ),
+      density: 0,
+    )
+  );
 
   // --- Design-token overrides (DESIGN §2 / §5 + the No-White Rule) ---
   // M3's dark scheme leaves `on-surface` near-white and the surfaces a
@@ -56,7 +58,9 @@ html {
   --mat-sys-background: var(--color-bg);
   --mat-sys-surface: var(--color-surface);
   --mat-sys-surface-variant: var(--color-surface);
-  --mat-sys-surface-container: var(--color-surface);          // select dropdown panel body
+  --mat-sys-surface-container: var(
+    --color-surface
+  ); // select dropdown panel body
   --mat-sys-surface-container-lowest: var(--color-bg);
   --mat-sys-surface-container-low: var(--color-surface);
   --mat-sys-surface-container-high: var(--color-surface-raised);
@@ -64,9 +68,15 @@ html {
 
   // Ink → phosphor green (the archive's default voice)
   --mat-sys-on-background: var(--color-phosphor);
-  --mat-sys-on-surface: var(--color-phosphor);               // trigger value + option label text
-  --mat-sys-on-surface-variant: var(--color-phosphor-dim);   // placeholder, arrow, label, optgroup, dividers
-  --mat-sys-primary: var(--color-phosphor);                  // focus outline / label / arrow / caret
+  --mat-sys-on-surface: var(
+    --color-phosphor
+  ); // trigger value + option label text
+  --mat-sys-on-surface-variant: var(
+    --color-phosphor-dim
+  ); // placeholder, arrow, label, optgroup, dividers
+  --mat-sys-primary: var(
+    --color-phosphor
+  ); // focus outline / label / arrow / caret
   --mat-sys-on-primary: var(--color-bg);
 
   // Structure — the resting 1px field border is phosphor-deep (DESIGN §5)

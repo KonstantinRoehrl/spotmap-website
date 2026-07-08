@@ -1,15 +1,31 @@
 <div class="matrix-loader">
-    <div class="matrix-background">
-        @for (column of maskedColumns(); track $index; let colIndex = $index) {
-            <div class="matrix-column"
-                [style.left]="'calc(' + colIndex + ' * var(--column-width) + ' + colIndex + ' * var(--column-gap))'">
-                @for (char of column; track $index; let rowIndex = $index) {
-                    <span class="matrix-char"
-                        [style.top]="'calc(' + rowIndex + ' * var(--row-height) + ' + rowIndex + ' * var(--row-gap))'">
-                        {{ char }}
-                    </span>
-                }
-            </div>
+  <div class="matrix-background">
+    @for (column of maskedColumns(); track $index; let colIndex = $index) {
+      <div
+        class="matrix-column"
+        [style.left]="
+          'calc(' +
+          colIndex +
+          ' * var(--column-width) + ' +
+          colIndex +
+          ' * var(--column-gap))'
+        "
+      >
+        @for (char of column; track $index; let rowIndex = $index) {
+          <span
+            class="matrix-char"
+            [style.top]="
+              'calc(' +
+              rowIndex +
+              ' * var(--row-height) + ' +
+              rowIndex +
+              ' * var(--row-gap))'
+            "
+          >
+            {{ char }}
+          </span>
         }
-    </div>
+      </div>
+    }
+  </div>
 </div>

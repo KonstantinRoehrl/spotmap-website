@@ -1,23 +1,33 @@
-<div class="map-page flex flex-col h-full flex-auto w-full md:w-10/12 lg:w-9/12 xl:w-8/12 mx-auto">
+<div
+  class="map-page flex flex-col h-full flex-auto w-full md:w-10/12 lg:w-9/12 xl:w-8/12 mx-auto"
+>
   <!-- Header row: stacked on mobile, side-by-side on larger screens -->
   <div class="flex flex-col md:flex-row justify-between items-center py-4">
     <!-- ASCII animation - full width on mobile, 8 cols on desktop -->
-    <div class="ascii-header w-full md:w-8/12 text-center md:text-left mb-4 md:mb-0 px-0 md:px-2">
-      <app-ascii-animation-text [messages]="[
-          selectedCity().city.toUpperCase() + ' SPOTMAP', 
-          'RESPECT THE LOCALS', 
-          'EXPLORE THE CONCRETE JUNGLE', 
-          'TOUCH THE UNTOUCHED SPOTS', 
-          'CAN SOMEONE BRING WAX?', 
-          'LET`S GO PLAZA', 
-          'SKATEVIDEOS > INSTAGRAM', 
-          'SUPPORTED BY ROLLTROTTEL-VERBAND', 
-          'ANYONE HAS A PIN?', 
+    <div
+      class="ascii-header w-full md:w-8/12 text-center md:text-left mb-4 md:mb-0 px-0 md:px-2"
+    >
+      <app-ascii-animation-text
+        [messages]="[
+          selectedCity().city.toUpperCase() + ' SPOTMAP',
+          'RESPECT THE LOCALS',
+          'EXPLORE THE CONCRETE JUNGLE',
+          'TOUCH THE UNTOUCHED SPOTS',
+          'CAN SOMEONE BRING WAX?',
+          'LET`S GO PLAZA',
+          'SKATEVIDEOS > INSTAGRAM',
+          'SUPPORTED BY ROLLTROTTEL-VERBAND',
+          'ANYONE HAS A PIN?',
           'JUST SOME RANDOM TEXT',
           'FOR EDUCATIONAL PURPOSES ONLY',
-          'CONTINUOUSLY UPDATED'
-        ]" [waitFrames]="40" [animationSpeed]="45" [loop]="true" [centered]="true"
-        class="ascii-animation inline-block px-0">
+          'CONTINUOUSLY UPDATED',
+        ]"
+        [waitFrames]="40"
+        [animationSpeed]="45"
+        [loop]="true"
+        [centered]="true"
+        class="ascii-animation inline-block px-0"
+      >
       </app-ascii-animation-text>
     </div>
 
@@ -25,14 +35,16 @@
     <div class="w-full md:w-4/12 px-0 md:px-2">
       <mat-form-field appearance="outline" class="select-none w-full">
         <mat-label>City</mat-label>
-        <mat-select [value]="selectedCity()" (selectionChange)="selectCity($event.value)">
+        <mat-select
+          [value]="selectedCity()"
+          (selectionChange)="selectCity($event.value)"
+        >
           <mat-select-trigger>
             {{ selectedCity().flag + ' - ' + selectedCity().city }}
           </mat-select-trigger>
 
           @for (entry of citiesGroupedByCountry() | keyvalue; track entry.key) {
             <mat-optgroup [label]="entry.value[0].country + ' ' + entry.key">
-
               @for (city of entry.value; track city.city) {
                 <mat-option [value]="city">
                   {{ city.city }}
@@ -40,7 +52,6 @@
               }
             </mat-optgroup>
           }
-
         </mat-select>
       </mat-form-field>
     </div>
@@ -48,7 +59,10 @@
 
   <!-- Map container -->
   <div class="flex-row h-full">
-    <app-map-container [city]="selectedCity().city" class="h-full w-full select-none block">
+    <app-map-container
+      [city]="selectedCity().city"
+      class="h-full w-full select-none block"
+    >
     </app-map-container>
   </div>
 </div>

@@ -8,7 +8,7 @@ import {
   signal,
   viewChild,
   ViewEncapsulation,
-  ChangeDetectionStrategy
+  ChangeDetectionStrategy,
 } from '@angular/core';
 
 // Fixed font size used only for glyph measurement; the real size is derived by
@@ -22,7 +22,7 @@ const MEASURE_REFERENCE_PX = 100;
   templateUrl: './ascii-animation-text.component.html',
   styleUrls: ['./ascii-animation-text.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
 })
 export class AsciiAnimationTextComponent implements AfterViewInit, OnDestroy {
   messages = input<string[]>([
@@ -33,12 +33,12 @@ export class AsciiAnimationTextComponent implements AfterViewInit, OnDestroy {
     'CALCULATING THEORETICAL TIME TRAVEL...',
     'ENCRYPTING YOUR THOUGHTS...',
     'ACCESS GRANTED',
-    'WELCOME TO THE VIENNA SPOTMAP'
+    'WELCOME TO THE VIENNA SPOTMAP',
   ]);
 
   centered = input<boolean>(false);
   animationSpeed = input<number>(45);
-  waitFrames = input<number>(20);   // Frames to wait after full text is displayed
+  waitFrames = input<number>(20); // Frames to wait after full text is displayed
   glitchChance = input<number>(0.015);
   breakFrames = input<number>(5);
   loop = input<boolean>(false);
@@ -47,11 +47,12 @@ export class AsciiAnimationTextComponent implements AfterViewInit, OnDestroy {
 
   // Scoped to THIS component's view so measurement never picks up another
   // <app-ascii-animation-text> instance's container from the document.
-  private readonly asciiContainer = viewChild.required<ElementRef<HTMLElement>>('asciiContainer');
+  private readonly asciiContainer =
+    viewChild.required<ElementRef<HTMLElement>>('asciiContainer');
 
-  baseText = signal<string>('');   // main text
-  dots = signal<string>('');       // animated dots
-  fontSize = signal<number>(22);   // default 22px
+  baseText = signal<string>(''); // main text
+  dots = signal<string>(''); // animated dots
+  fontSize = signal<number>(22); // default 22px
 
   // Lazily-created canvas 2d context reused for glyph measurement.
   // `undefined` = not created yet, `null` = created but no 2d context.
@@ -63,9 +64,21 @@ export class AsciiAnimationTextComponent implements AfterViewInit, OnDestroy {
   private hasFinished = false;
 
   private glitchedPositions = new Set<number>();
-  private glitchChars: string[] = ['#', '%', '&', '@', '*', '!', '?', '/', '\\', '|', '~'];
+  private glitchChars: string[] = [
+    '#',
+    '%',
+    '&',
+    '@',
+    '*',
+    '!',
+    '?',
+    '/',
+    '\\',
+    '|',
+    '~',
+  ];
 
-  private collapseFrames = 10;   // frames for collapse animation
+  private collapseFrames = 10; // frames for collapse animation
 
   private resizeListener?: () => void;
 
@@ -115,14 +128,24 @@ export class AsciiAnimationTextComponent implements AfterViewInit, OnDestroy {
         this.charIndex++;
       }
       // Collapse animation
-      else if (this.charIndex < currentMessage.length + this.waitFrames() + this.collapseFrames) {
-        const collapseStep = this.charIndex - currentMessage.length - this.waitFrames();
+      else if (
+        this.charIndex <
+        currentMessage.length + this.waitFrames() + this.collapseFrames
+      ) {
+        const collapseStep =
+          this.charIndex - currentMessage.length - this.waitFrames();
         this.baseText.set(this.collapseText(currentMessage, collapseStep));
         this.charIndex++;
       }
       // Short break (text fully cleared)
-      else if (this.charIndex < currentMessage.length + this.waitFrames() + this.collapseFrames + this.breakFrames()) {
-        this.baseText.set('');  // keep screen empty
+      else if (
+        this.charIndex <
+        currentMessage.length +
+          this.waitFrames() +
+          this.collapseFrames +
+          this.breakFrames()
+      ) {
+        this.baseText.set(''); // keep screen empty
         this.charIndex++;
       }
       // Next message or finish
@@ -134,7 +157,10 @@ export class AsciiAnimationTextComponent implements AfterViewInit, OnDestroy {
           let nextIndex: number;
           do {
             nextIndex = Math.floor(Math.random() * this.messages().length);
-          } while (nextIndex === this.currentIndex && this.messages().length > 1);
+          } while (
+            nextIndex === this.currentIndex &&
+            this.messages().length > 1
+          );
           this.currentIndex = nextIndex;
         } else {
           this.currentIndex++;
@@ -185,7 +211,7 @@ export class AsciiAnimationTextComponent implements AfterViewInit, OnDestroy {
     // Longest message drives the fit.
     const messages = this.messages();
     const maxLength = messages.length
-      ? Math.max(...messages.map(msg => msg.length))
+      ? Math.max(...messages.map((msg) => msg.length))
       : 0;
 
     // Nothing to size against, or the element has not been laid out yet.
@@ -198,7 +224,9 @@ export class AsciiAnimationTextComponent implements AfterViewInit, OnDestroy {
     if (!referenceLineWidth) return; // no canvas / zero-width measurement
 
     // Scale so `maxLength` glyphs exactly fill the container.
-    let newFontSize = Math.floor((containerWidth / referenceLineWidth) * MEASURE_REFERENCE_PX);
+    let newFontSize = Math.floor(
+      (containerWidth / referenceLineWidth) * MEASURE_REFERENCE_PX,
+    );
 
     // Clamp font size
     if (newFontSize > 40) newFontSize = 40;
@@ -258,9 +286,10 @@ export class AsciiAnimationTextComponent implements AfterViewInit, OnDestroy {
       }
     }
 
-    this.glitchedPositions.forEach(pos => {
+    this.glitchedPositions.forEach((pos) => {
       if (pos < result.length && result[pos] !== ' ') {
-        result[pos] = this.glitchChars[Math.floor(Math.random() * this.glitchChars.length)];
+        result[pos] =
+          this.glitchChars[Math.floor(Math.random() * this.glitchChars.length)];
       }
     });
 

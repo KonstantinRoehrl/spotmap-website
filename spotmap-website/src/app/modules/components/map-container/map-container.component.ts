@@ -1,4 +1,12 @@
-import { Component, computed, DestroyRef, inject, input, signal, ChangeDetectionStrategy } from '@angular/core';
+import {
+  Component,
+  computed,
+  DestroyRef,
+  inject,
+  input,
+  signal,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { SUPPORTED_CITIES } from '../../../models/enums/config';
 import { CityEnum } from '../../../models/enums/map-enum';
@@ -11,11 +19,11 @@ const LOAD_TIMEOUT_MS = 15_000;
 const REVEAL_DELAY_MS = 700;
 
 @Component({
-    selector: 'app-map-container',
-    imports: [LoadingBarComponent],
-    templateUrl: './map-container.component.html',
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    styleUrl: './map-container.component.css'
+  selector: 'app-map-container',
+  imports: [LoadingBarComponent],
+  templateUrl: './map-container.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  styleUrl: './map-container.component.css',
 })
 export class MapContainerComponent {
   city = input.required<CityEnum>();
@@ -69,7 +77,7 @@ export class MapContainerComponent {
     this.clearAllTimers();
     this.iframeLoaded.set(false);
     this.loadError.set(false);
-    this.reloadNonce.update(n => n + 1);
+    this.reloadNonce.update((n) => n + 1);
     this.startTimer();
   }
 

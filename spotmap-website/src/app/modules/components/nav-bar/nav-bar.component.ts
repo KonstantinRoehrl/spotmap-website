@@ -1,20 +1,26 @@
-import { AfterViewInit, Component, HostListener, input, signal, ChangeDetectionStrategy } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  HostListener,
+  input,
+  signal,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { GlitchTextDirective } from '../../directives/glitch-text.directive';
 
 export interface NavBarLink {
-  name: string,
-  url: string,
-  icon: string,
+  name: string;
+  url: string;
+  icon: string;
 }
 
-
 @Component({
-    selector: 'app-nav-bar',
-    imports: [RouterLink, GlitchTextDirective],
-    templateUrl: './nav-bar.component.html',
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    styleUrls: ['./nav-bar.component.css']
+  selector: 'app-nav-bar',
+  imports: [RouterLink, GlitchTextDirective],
+  templateUrl: './nav-bar.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  styleUrls: ['./nav-bar.component.css'],
 })
 export class NavBarComponent implements AfterViewInit {
   links = input<NavBarLink[]>([]);
@@ -56,7 +62,10 @@ export class NavBarComponent implements AfterViewInit {
   onTouchStart(event: TouchEvent) {
     this.ignoreMouse = true;
     const touch = event.touches[0];
-    const target = document.elementFromPoint(touch.clientX, touch.clientY) as HTMLElement;
+    const target = document.elementFromPoint(
+      touch.clientX,
+      touch.clientY,
+    ) as HTMLElement;
     const link = target?.closest('a');
     if (!link) return;
 

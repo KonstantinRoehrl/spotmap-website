@@ -13,8 +13,7 @@ describe('MapComponent', () => {
     await TestBed.configureTestingModule({
       imports: [MapComponent],
       providers: [provideNoopAnimations()],
-    })
-    .compileComponents();
+    }).compileComponents();
 
     fixture = TestBed.createComponent(MapComponent);
     component = fixture.componentInstance;

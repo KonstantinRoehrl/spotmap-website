@@ -1,22 +1,30 @@
 <div class="app-container">
   <!-- Show intro until finished -->
   @if (!introFinished()) {
-  <app-ascii-animation-text [messages]="['WELCOME TO THE SPOTMAP COMPENDIUM']" [waitFrames]="60" [animationSpeed]="35"
-    (animationFinished)="onIntroFinished()" class="flex-auto">
-  </app-ascii-animation-text>
+    <app-ascii-animation-text
+      [messages]="['WELCOME TO THE SPOTMAP COMPENDIUM']"
+      [waitFrames]="60"
+      [animationSpeed]="35"
+      (animationFinished)="onIntroFinished()"
+      class="flex-auto"
+    >
+    </app-ascii-animation-text>
   }
 
   <!-- Show routed content after intro -->
   @if (introFinished()) {
-  <app-nav-bar [links]="[
-          { name: 'Home', url: '/home', icon: '⌂'},
-          { name: 'Map', url: '/map', icon: '⌖' },
-          { name: 'About', url: '/about', icon: 'ⓘ' }
-        ]" class="nav-bar">
-  </app-nav-bar>
+    <app-nav-bar
+      [links]="[
+        { name: 'Home', url: '/home', icon: '⌂' },
+        { name: 'Map', url: '/map', icon: '⌖' },
+        { name: 'About', url: '/about', icon: 'ⓘ' },
+      ]"
+      class="nav-bar"
+    >
+    </app-nav-bar>
 
-  <div class="content-container flex-auto px-6">
-    <router-outlet></router-outlet>
-  </div>
+    <div class="content-container flex-auto px-6">
+      <router-outlet></router-outlet>
+    </div>
   }
 </div>

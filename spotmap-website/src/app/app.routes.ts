@@ -8,5 +8,5 @@ export const routes: Routes = [
   { path: 'map', component: MapComponent },
   { path: 'about', component: AboutComponent },
   { path: '', redirectTo: 'home', pathMatch: 'full' },
-  { path: '**', redirectTo: 'home' }
+  { path: '**', redirectTo: 'home' },
 ];
