@@ -90,7 +90,6 @@ html {
   // this token is what carries the field's sharp corner now that the legacy
   // `.mat-mdc-select-trigger { border-radius: 4px }` override is gone.)
   --mat-sys-corner-extra-small: var(--radius-md);
-  --mat-sys-corner-small: var(--radius-md);
 
   // Glow-Is-The-Shadow (DESIGN §4): replace the select panel's stock gray
   // MDC elevation drop-shadow with a phosphor bloom. The shipped panel CSS

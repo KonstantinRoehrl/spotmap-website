@@ -31,16 +31,14 @@
           </mat-select-trigger>
 
           @for (entry of citiesGroupedByCountry() | keyvalue; track entry.key) {
-            <ng-container>
-              <mat-optgroup [label]="entry.value[0].country + ' ' + entry.key">
+            <mat-optgroup [label]="entry.value[0].country + ' ' + entry.key">
 
-                @for (city of entry.value; track city.city) {
-                  <mat-option [value]="city">
-                    {{ city.city }}
-                  </mat-option>
-                }
-              </mat-optgroup>
-            </ng-container>
+              @for (city of entry.value; track city.city) {
+                <mat-option [value]="city">
+                  {{ city.city }}
+                </mat-option>
+              }
+            </mat-optgroup>
           }
 
         </mat-select>

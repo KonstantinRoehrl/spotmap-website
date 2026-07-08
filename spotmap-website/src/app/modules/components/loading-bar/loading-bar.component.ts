@@ -1,11 +1,8 @@
-import { CommonModule } from '@angular/common';
 import { Component, computed, OnDestroy, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
-import { GlitchTextDirective } from '../../directives/glitch-text.directive';
-import { AsciiAnimationTextComponent } from '../ascii-animation-text/ascii-animation-text.component';
 
 @Component({
     selector: 'app-loading-bar',
-    imports: [CommonModule, AsciiAnimationTextComponent, GlitchTextDirective],
+    imports: [],
     templateUrl: './loading-bar.component.html',
     changeDetection: ChangeDetectionStrategy.OnPush,
     styleUrl: './loading-bar.component.css'

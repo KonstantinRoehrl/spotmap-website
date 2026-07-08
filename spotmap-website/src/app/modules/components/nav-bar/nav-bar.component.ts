@@ -1,7 +1,6 @@
 import { AfterViewInit, Component, HostListener, input, signal, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { GlitchTextDirective } from '../../directives/glitch-text.directive';
-import { AsciiAnimationTextComponent } from '../ascii-animation-text/ascii-animation-text.component';
 
 export interface NavBarLink {
   name: string,
@@ -12,7 +11,7 @@ export interface NavBarLink {
 
 @Component({
     selector: 'app-nav-bar',
-    imports: [RouterLink, AsciiAnimationTextComponent, GlitchTextDirective],
+    imports: [RouterLink, GlitchTextDirective],
     templateUrl: './nav-bar.component.html',
     changeDetection: ChangeDetectionStrategy.OnPush,
     styleUrls: ['./nav-bar.component.css']

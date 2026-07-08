@@ -8,7 +8,6 @@ import { MapItem } from '../../../models/enums/interfaces/map-item-interface';
 import { CityEnum, FlagEnum } from '../../../models/enums/map-enum';
 import { AsciiAnimationTextComponent } from '../../components/ascii-animation-text/ascii-animation-text.component';
 import { MapContainerComponent } from '../../components/map-container/map-container.component';
-import { GlitchTextDirective } from '../../directives/glitch-text.directive';
 
 @Component({
     selector: 'app-map',
@@ -17,7 +16,6 @@ import { GlitchTextDirective } from '../../directives/glitch-text.directive';
         AsciiAnimationTextComponent,
         MapContainerComponent,
         MatFormFieldModule,
-        GlitchTextDirective,
         MatSelectModule,
         MatOptionModule
     ],

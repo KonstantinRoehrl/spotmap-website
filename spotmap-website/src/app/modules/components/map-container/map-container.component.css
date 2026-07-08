@@ -19,10 +19,6 @@
   transition: opacity 0.4s ease-in-out;
 }
 
-.map-frame.visible {
-  opacity: 1;
-}
-
 /* Error / timeout overlay — opaque near-black surface hides any iframe white flash. */
 .map-error {
   background: var(--color-surface);
@@ -53,16 +49,16 @@
   cursor: pointer;
   text-shadow: var(--glow-text-rest);
   transition:
-    box-shadow var(--dur-fast, 200ms) ease-out,
-    color var(--dur-fast, 200ms) ease-out,
-    border-color var(--dur-fast, 200ms) ease-out;
+    box-shadow var(--dur-fast) ease-out,
+    color var(--dur-fast) ease-out,
+    border-color var(--dur-fast) ease-out;
 }
 
 .map-error__retry:hover,
 .map-error__retry:focus-visible {
   color: var(--color-phosphor-bright);
   border-color: var(--color-phosphor);
-  box-shadow: 0 0 20px rgba(0, 255, 0, 0.4);
+  box-shadow: var(--glow-edge-active);
   text-shadow: var(--glow-text-hot);
 }
 
