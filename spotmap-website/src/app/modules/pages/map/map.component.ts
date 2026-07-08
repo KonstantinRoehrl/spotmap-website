@@ -22,7 +22,7 @@ import { GlitchTextDirective } from '../../directives/glitch-text.directive';
         MatOptionModule
     ],
     templateUrl: './map.component.html',
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     styleUrl: './map.component.css'
 })
 export class MapComponent implements OnInit {

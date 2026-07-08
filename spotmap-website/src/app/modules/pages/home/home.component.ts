@@ -5,7 +5,7 @@ import { AsciiAnimationTextComponent } from '../../components/ascii-animation-te
     selector: 'app-home',
     imports: [AsciiAnimationTextComponent],
     templateUrl: './home.component.html',
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     styleUrl: './home.component.css'
 })
 export class HomeComponent {

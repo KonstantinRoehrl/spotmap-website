@@ -21,7 +21,7 @@ const MEASURE_REFERENCE_PX = 100;
   standalone: true,
   templateUrl: './ascii-animation-text.component.html',
   styleUrls: ['./ascii-animation-text.component.css'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None
 })
 export class AsciiAnimationTextComponent implements AfterViewInit, OnDestroy {

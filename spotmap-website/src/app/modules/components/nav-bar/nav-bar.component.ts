@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, HostListener, input, ChangeDetectionStrategy } from '@angular/core';
+import { AfterViewInit, Component, HostListener, input, signal, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { GlitchTextDirective } from '../../directives/glitch-text.directive';
 import { AsciiAnimationTextComponent } from '../ascii-animation-text/ascii-animation-text.component';
@@ -14,7 +14,7 @@ export interface NavBarLink {
     selector: 'app-nav-bar',
     imports: [RouterLink, AsciiAnimationTextComponent, GlitchTextDirective],
     templateUrl: './nav-bar.component.html',
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     styleUrls: ['./nav-bar.component.css']
 })
 export class NavBarComponent implements AfterViewInit {
@@ -22,20 +22,20 @@ export class NavBarComponent implements AfterViewInit {
   private touchTimeouts = new WeakMap<HTMLElement, any>();
   private ignoreMouse = false; // <-- flag to ignore mouse after touch
 
-  activeLink: string = "";
+  activeLink = signal<string>('');
 
   ngAfterViewInit() {
-    this.activeLink = "Map"
+    this.activeLink.set('Map');
   }
 
   /** Set clicked link as active */
   setActive(link: NavBarLink) {
-    this.activeLink = link.name;
+    this.activeLink.set(link.name);
   }
 
   /** Check if a link is active */
   isActive(link: NavBarLink) {
-    return this.activeLink === link.name;
+    return this.activeLink() === link.name;
   }
 
   @HostListener('mousemove', ['$event'])

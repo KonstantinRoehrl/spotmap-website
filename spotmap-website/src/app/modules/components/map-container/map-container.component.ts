@@ -14,7 +14,7 @@ const REVEAL_DELAY_MS = 700;
     selector: 'app-map-container',
     imports: [LoadingBarComponent],
     templateUrl: './map-container.component.html',
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     styleUrl: './map-container.component.css'
 })
 export class MapContainerComponent {

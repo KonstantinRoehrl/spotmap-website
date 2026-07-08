@@ -4,7 +4,7 @@ import { GlitchTextDirective } from './glitch-text.directive';
 
 @Component({
     imports: [GlitchTextDirective],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     template: `<a appGlitchText><span class="nav-text">Map</span></a>`
 })
 class HostComponent {}

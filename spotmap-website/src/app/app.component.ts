@@ -8,7 +8,7 @@ import { NavBarComponent } from './modules/components/nav-bar/nav-bar.component'
     selector: 'app-root',
     imports: [RouterOutlet, MapContainerComponent, AsciiAnimationTextComponent, NavBarComponent],
     templateUrl: './app.component.html',
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     styleUrl: './app.component.css'
 })
 export class AppComponent {
