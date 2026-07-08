@@ -134,3 +134,25 @@ body {
   font-family: var(--font-mono);
   background: var(--color-bg);
 }
+
+/* --------------------
+   Reduced-motion safety-net (DESIGN.md motion rule)
+   Neutralizes every CSS transition/animation app-wide so heavy motion
+   collapses to its static end-state — covers the nav phosphor-glow
+   transitions, map-container transitions, and the styles.css transition
+   in one place. JS-interval-driven motion (glitch scramble, matrix loader,
+   nav radial/touch glow) is additionally guarded in TS via matchMedia,
+   since CSS alone cannot stop a setInterval.
+   `!important` is intentional here — it must override component-level
+   transition declarations regardless of specificity.
+-------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -6,6 +6,7 @@ import {
   OnInit,
   Renderer2,
 } from '@angular/core';
+import { prefersReducedMotion } from '../../utils/prefers-reduced-motion';
 
 @Directive({
   selector: '[appGlitchText]',
@@ -82,6 +83,11 @@ export class GlitchTextDirective implements OnInit, OnDestroy {
 
   private startGlitch() {
     if (this.intervalId) return;
+
+    // Reduced-motion: leave the final text intact, never scramble glyphs.
+    // The MutationObserver / mouseleave restore paths are unaffected —
+    // nothing was mutated, so there is nothing to restore.
+    if (prefersReducedMotion()) return;
 
     this.textNode = this.el.nativeElement.querySelector('.nav-text');
     if (!this.textNode) return;

@@ -6,6 +6,7 @@ import {
   signal,
   ChangeDetectionStrategy,
 } from '@angular/core';
+import { prefersReducedMotion } from '../../../utils/prefers-reduced-motion';
 
 @Component({
   selector: 'app-loading-bar',
@@ -136,6 +137,12 @@ export class LoadingBarComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.initializeMatrix();
+
+    // Reduced-motion: render a single static frame of the masked matrix ring
+    // (rotation stays at 0, no character shifting) so the loader still visibly
+    // communicates "loading" without the rotation/shift motion.
+    if (prefersReducedMotion()) return;
+
     this.startAnimation();
   }
 

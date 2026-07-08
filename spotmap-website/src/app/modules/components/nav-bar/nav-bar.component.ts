@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { GlitchTextDirective } from '../../directives/glitch-text.directive';
+import { prefersReducedMotion } from '../../../utils/prefers-reduced-motion';
 
 export interface NavBarLink {
   name: string;
@@ -45,6 +46,9 @@ export class NavBarComponent implements AfterViewInit {
 
   @HostListener('mousemove', ['$event'])
   onMouseMove(event: MouseEvent) {
+    // Reduced-motion: skip the radial hover-glow tracking; the static styled
+    // link (+ :focus-visible outline) stands in.
+    if (prefersReducedMotion()) return;
     if (this.ignoreMouse) return;
     const target = event.target as HTMLElement;
     const link = target.closest('a');
@@ -60,6 +64,9 @@ export class NavBarComponent implements AfterViewInit {
 
   @HostListener('touchstart', ['$event'])
   onTouchStart(event: TouchEvent) {
+    // Reduced-motion: skip the 1s touch-glow fade; leave the static styled
+    // link (mobile bottom-nav is the accessibility-priority surface).
+    if (prefersReducedMotion()) return;
     this.ignoreMouse = true;
     const touch = event.touches[0];
     const target = document.elementFromPoint(
