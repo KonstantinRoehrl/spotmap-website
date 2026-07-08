@@ -23,17 +23,14 @@
 
 /* Form field container */
 ::ng-deep .mat-mdc-form-field {
-  font-family: 'Courier New', monospace !important;
+  font-family: var(--font-mono) !important;
 }
 
 /* Label */
 ::ng-deep .mat-mdc-form-field .mat-mdc-floating-label {
-  color: #00ff00 !important;
-  font-family: 'Courier New', monospace !important;
-  text-shadow:
-    0 0 2px #00ff00,
-    0 0 4px #00ff00,
-    0 0 6px #00ff00;
+  color: var(--color-phosphor) !important;
+  font-family: var(--font-mono) !important;
+  text-shadow: var(--glow-text-rest);
 }
 
 /* Outline border - add transition */
@@ -63,30 +60,27 @@
 
 /* Select trigger (main field) */
 ::ng-deep .mat-mdc-select {
-  font-family: 'Courier New', monospace !important;
-  color: #00ff00 !important;
-  text-shadow:
-    0 0 2px #00ff00,
-    0 0 4px #00ff00,
-    0 0 6px #00ff00;
+  font-family: var(--font-mono) !important;
+  color: var(--color-phosphor) !important;
+  text-shadow: var(--glow-text-rest);
 }
 
 /* Select value text */
 ::ng-deep .mat-mdc-select-value {
-  color: #00ff00 !important;
-  font-family: 'Courier New', monospace !important;
+  color: var(--color-phosphor) !important;
+  font-family: var(--font-mono) !important;
 }
 
 /* Dropdown arrow */
 ::ng-deep .mat-mdc-select-arrow {
-  color: #00ff00 !important;
+  color: var(--color-phosphor) !important;
 }
 
 /* Hover effect on form field borders */
 ::ng-deep .mat-mdc-form-field:hover .mdc-notched-outline__leading,
 ::ng-deep .mat-mdc-form-field:hover .mdc-notched-outline__notch,
 ::ng-deep .mat-mdc-form-field:hover .mdc-notched-outline__trailing {
-  border-color: #00ff00 !important;
+  border-color: var(--color-phosphor) !important;
   box-shadow: 0 0 20px rgba(0, 255, 0, 0.4);
 }
 
@@ -102,7 +96,7 @@
 ::ng-deep .mat-mdc-form-field.mat-focused .mdc-notched-outline .mdc-notched-outline__leading,
 ::ng-deep .mat-mdc-form-field.mat-focused .mdc-notched-outline .mdc-notched-outline__notch,
 ::ng-deep .mat-mdc-form-field.mat-focused .mdc-notched-outline .mdc-notched-outline__trailing {
-  border-color: #00ff00 !important;
+  border-color: var(--color-phosphor) !important;
 }
 
 ::ng-deep .mat-mdc-form-field.mat-focused .mdc-notched-outline {
@@ -111,7 +105,7 @@
 
 /* Keep label color when focused */
 ::ng-deep .mat-mdc-form-field.mat-focused .mat-mdc-floating-label {
-  color: #00ff00 !important;
+  color: var(--color-phosphor) !important;
 }
 
 /* --------------------
@@ -128,24 +122,21 @@
 
 /* Options */
 ::ng-deep .mat-mdc-option {
-  font-family: 'Courier New', monospace !important;
-  color: #00ff00 !important;
+  font-family: var(--font-mono) !important;
+  color: var(--color-phosphor) !important;
   border-radius: 6px;
   margin: 8px !important;
   margin-left: 64px !important;
   margin-right: 64px !important;
-  text-shadow:
-    0 0 2px #00ff00,
-    0 0 4px #00ff00,
-    0 0 6px #00ff00;
+  text-shadow: var(--glow-text-rest);
   background-color: transparent !important;
   transition: all 0.3s ease;
 }
 
 /* Option text */
 ::ng-deep .mat-mdc-option .mdc-list-item__primary-text {
-  color: #00ff00 !important;
-  font-family: 'Courier New', monospace !important;
+  color: var(--color-phosphor) !important;
+  font-family: var(--font-mono) !important;
 }
 
 /* Hover effect on options */
@@ -172,17 +163,17 @@
 /* Selected checkmark */
 ::ng-deep .mat-mdc-option .mat-pseudo-checkbox-checked::after,
 ::ng-deep .mat-mdc-option .mat-pseudo-checkbox-checked {
-  color: #00ff00 !important;
+  color: var(--color-phosphor) !important;
   background-color: transparent !important;
 }
 
 /* Checkmark icon */
 ::ng-deep .mat-pseudo-checkbox {
-  color: #00ff00 !important;
+  color: var(--color-phosphor) !important;
 }
 
 ::ng-deep .mat-pseudo-checkbox-checked::after {
-  color: #00ff00 !important;
+  color: var(--color-phosphor) !important;
 }
 
 /* Remove ripple overlay color conflicts */
@@ -196,7 +187,7 @@
 
 /* Optgroup label */
 ::ng-deep .mat-mdc-optgroup-label {
-  font-family: 'Courier New', monospace !important;
+  font-family: var(--font-mono) !important;
   text-shadow:
     0 0 2px rgba(0, 255, 0, 0.2),
     0 0 4px rgba(0, 255, 0, 0.2),
@@ -212,8 +203,8 @@
 
 /* Optgroup label text */
 ::ng-deep .mat-mdc-optgroup-label .mdc-list-item__primary-text {
-  color: #00ff00 !important;
-  font-family: 'Courier New', monospace !important;
+  color: var(--color-phosphor) !important;
+  font-family: var(--font-mono) !important;
 }
 
 /* Indent options under groups */

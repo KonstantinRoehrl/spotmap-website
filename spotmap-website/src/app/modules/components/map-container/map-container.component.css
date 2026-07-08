@@ -24,9 +24,9 @@
 }
 
 .matrix-lines {
-  font-family: 'Courier New', monospace;
+  font-family: var(--font-mono);
   font-size: 20px;
-  color: #00ff00;
+  color: var(--color-phosphor);
   white-space: nowrap;
   text-shadow:
     0 0 5px #00ff00,

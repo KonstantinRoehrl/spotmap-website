@@ -29,7 +29,7 @@
 .matrix-char {
     position: absolute;
     font-size: 8px;
-    color: #00ff00;
+    color: var(--color-phosphor);
     text-align: center;
     width: 100%;
 }
