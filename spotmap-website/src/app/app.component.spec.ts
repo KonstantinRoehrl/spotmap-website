@@ -37,12 +37,13 @@ describe('AppComponent', () => {
     const navSpy = spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(
       true,
     );
-    fixture.detectChanges(); // ngOnInit -> already seen -> reveal content + go to map
+    fixture.detectChanges(); // ngOnInit -> already seen -> reveal content, no forced nav
 
     const el = fixture.nativeElement as HTMLElement;
     expect(el.querySelector('app-ascii-animation-text')).toBeFalsy();
     expect(el.querySelector('app-nav-bar')).toBeTruthy();
-    expect(navSpy).toHaveBeenCalledWith(['map']);
+    // Must NOT force /map, so a reloaded/deep-linked route stays put.
+    expect(navSpy).not.toHaveBeenCalled();
   });
 
   it('finishing via a skip click reveals the content and remembers the session', async () => {

@@ -33,11 +33,11 @@ export class AppComponent implements OnInit {
   constructor(private router: Router) {}
 
   ngOnInit(): void {
-    // Already played this session → skip the intro entirely: reveal the content
-    // immediately (never mount the animation) and land on /map like a reload.
+    // Already played this session → skip the intro and reveal content immediately
+    // (never mount the animation). Deliberately does NOT force a route, so
+    // reloading or deep-linking /home, /map, or /about stays on that page.
     if (this.hasSeenIntro()) {
       this.introFinished.set(true);
-      void this.router.navigate(['map']);
     }
   }
 
