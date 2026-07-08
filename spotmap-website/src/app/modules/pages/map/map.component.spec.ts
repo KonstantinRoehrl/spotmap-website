@@ -21,6 +21,10 @@ describe('MapComponent', () => {
     fixture.detectChanges();
   });
 
+  afterEach(() => {
+    fixture?.destroy();
+  });
+
   it('should create', () => {
     expect(component).toBeTruthy();
   });
@@ -30,6 +34,7 @@ describe('MapComponent', () => {
     const f = TestBed.createComponent(MapComponent);
     expect(() => f.detectChanges()).not.toThrow();
     expect(f.componentInstance['selectedCity']().city).toBe(CityEnum.Vienna);
+    f.destroy();
   });
 
   it('does not throw when localStorage.setItem throws', () => {
@@ -38,5 +43,6 @@ describe('MapComponent', () => {
     f.detectChanges();
     const anyCity = SUPPORTED_CITIES[CityEnum.Graz];
     expect(() => f.componentInstance.selectCity(anyCity)).not.toThrow();
+    f.destroy();
   });
 });
