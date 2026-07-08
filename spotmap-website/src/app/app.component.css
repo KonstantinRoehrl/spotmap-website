@@ -20,6 +20,59 @@
   overflow: auto;
 }
 
+/* Intro overlay: fills the column, anchors the skip affordance, and makes the
+   whole surface a click/tap target for skipping. */
+.intro-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  cursor: pointer;
+}
+
+.intro-skip {
+  position: absolute;
+  bottom: calc(1.5rem + env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.2em;
+  color: var(--color-phosphor-dim);
+  background: transparent;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  padding: 0.35rem 0.9rem;
+  cursor: pointer;
+  opacity: 0.7;
+  transition:
+    opacity 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.intro-skip:hover,
+.intro-skip:focus-visible {
+  opacity: 1;
+  color: var(--color-phosphor);
+  border-color: var(--color-phosphor);
+  box-shadow: var(--shadow-edge-frame);
+  outline: none;
+}
+
+.intro-skip:focus-visible {
+  outline: 2px solid var(--color-phosphor);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro-skip {
+    transition: none;
+  }
+}
+
 @media (max-width: 768px) {
   .content-container {
     padding-bottom: 76px;

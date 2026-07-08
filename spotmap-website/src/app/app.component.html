@@ -1,14 +1,25 @@
 <div class="app-container">
-  <!-- Show intro until finished -->
+  <!-- Show intro until finished. Click/tap anywhere (or Esc / the button) skips. -->
   @if (!introFinished()) {
-    <app-ascii-animation-text
-      [messages]="['WELCOME TO THE SPOTMAP COMPENDIUM']"
-      [waitFrames]="60"
-      [animationSpeed]="35"
-      (animationFinished)="onIntroFinished()"
-      class="flex-auto"
-    >
-    </app-ascii-animation-text>
+    <div class="intro-wrapper flex-auto" (click)="skipIntro()">
+      <app-ascii-animation-text
+        [messages]="['WELCOME TO THE SPOTMAP COMPENDIUM']"
+        [waitFrames]="60"
+        [animationSpeed]="35"
+        (animationFinished)="onIntroFinished()"
+        class="flex-auto"
+      >
+      </app-ascii-animation-text>
+
+      <button
+        type="button"
+        class="intro-skip"
+        aria-label="Skip intro animation"
+        (click)="skipIntro()"
+      >
+        [ SKIP ]
+      </button>
+    </div>
   }
 
   <!-- Show routed content after intro -->

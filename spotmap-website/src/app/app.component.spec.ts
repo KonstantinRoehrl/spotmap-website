@@ -4,6 +4,8 @@ import { AppComponent } from './app.component';
 
 describe('AppComponent', () => {
   beforeEach(async () => {
+    // Isolate the once-per-session flag so tests don't leak into each other.
+    sessionStorage.clear();
     await TestBed.configureTestingModule({
       imports: [AppComponent],
       providers: [provideRouter([])],
@@ -27,5 +29,39 @@ describe('AppComponent', () => {
     const el = fixture.nativeElement as HTMLElement;
     expect(el.querySelector('app-ascii-animation-text')).toBeTruthy();
     expect(el.querySelector('app-nav-bar')).toBeFalsy();
+  });
+
+  it('skips the intro when it was already seen this browser session', () => {
+    sessionStorage.setItem('spotmap:introSeen', '1');
+    const fixture = TestBed.createComponent(AppComponent);
+    const navSpy = spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(
+      true,
+    );
+    fixture.detectChanges(); // ngOnInit -> already seen -> reveal content + go to map
+
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('app-ascii-animation-text')).toBeFalsy();
+    expect(el.querySelector('app-nav-bar')).toBeTruthy();
+    expect(navSpy).toHaveBeenCalledWith(['map']);
+  });
+
+  it('finishing via a skip click reveals the content and remembers the session', async () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    const navSpy = spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(
+      true,
+    );
+    fixture.detectChanges();
+
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('app-ascii-animation-text')).toBeTruthy();
+
+    (el.querySelector('.intro-wrapper') as HTMLElement).click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(navSpy).toHaveBeenCalledWith(['map']);
+    expect(el.querySelector('app-nav-bar')).toBeTruthy();
+    expect(el.querySelector('app-ascii-animation-text')).toBeFalsy();
+    expect(sessionStorage.getItem('spotmap:introSeen')).toBe('1');
   });
 });

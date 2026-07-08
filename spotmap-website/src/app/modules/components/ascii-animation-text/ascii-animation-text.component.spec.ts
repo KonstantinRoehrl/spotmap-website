@@ -60,6 +60,35 @@ describe('AsciiAnimationTextComponent', () => {
     f.destroy(); // clears the interval; no timers left for fakeAsync
   }));
 
+  it('under reduced motion shows the final message instantly and emits once', () => {
+    spyOn(window, 'matchMedia').and.callFake(
+      (query: string) =>
+        ({
+          matches: query.includes('prefers-reduced-motion'),
+          media: query,
+          onchange: null,
+          addListener: () => {},
+          removeListener: () => {},
+          addEventListener: () => {},
+          removeEventListener: () => {},
+          dispatchEvent: () => false,
+        }) as MediaQueryList,
+    );
+
+    const f = TestBed.createComponent(AsciiAnimationTextComponent);
+    f.componentRef.setInput('messages', ['ALPHA', 'OMEGA']);
+    const finished = jasmine.createSpy('animationFinished');
+    f.componentInstance.animationFinished.subscribe(finished);
+
+    f.detectChanges(); // ngAfterViewInit -> startAnimation (reduced-motion branch)
+
+    // Final line rendered fully, no per-character interval scheduled.
+    expect(f.componentInstance.baseText()).toBe('OMEGA');
+    expect(finished).toHaveBeenCalledTimes(1);
+
+    f.destroy(); // no timers were created, so nothing to leak
+  });
+
   it('keeps the default font size and does not throw when there is nothing to measure', () => {
     const f = TestBed.createComponent(AsciiAnimationTextComponent);
     f.componentRef.setInput('messages', []); // maxLength === 0 -> guarded early-return

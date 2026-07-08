@@ -10,6 +10,7 @@ import {
   ViewEncapsulation,
   ChangeDetectionStrategy,
 } from '@angular/core';
+import { prefersReducedMotion } from '../../../utils/prefers-reduced-motion';
 
 // Fixed font size used only for glyph measurement; the real size is derived by
 // scaling this by containerWidth / measuredWidth. Any value works (advance is
@@ -62,6 +63,7 @@ export class AsciiAnimationTextComponent implements AfterViewInit, OnDestroy {
   private charIndex = 0;
   private interval?: ReturnType<typeof setInterval>;
   private hasFinished = false;
+  private destroyed = false;
 
   private glitchedPositions = new Set<number>();
   private glitchChars: string[] = [
@@ -84,6 +86,16 @@ export class AsciiAnimationTextComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.updateFontSize();
+
+    // The first measurement above can run against the fallback font before
+    // IBM Plex Mono has loaded, giving a slightly wrong glyph advance / size.
+    // Re-measure once web fonts are ready. Guarded for no-DOM / no-`fonts` envs.
+    if (typeof document !== 'undefined' && document.fonts?.ready) {
+      document.fonts.ready.then(() => {
+        if (!this.destroyed) this.updateFontSize();
+      });
+    }
+
     this.startAnimation();
 
     // Listen for window resize
@@ -94,6 +106,7 @@ export class AsciiAnimationTextComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.destroyed = true;
     if (this.interval) {
       clearInterval(this.interval);
     }
@@ -105,6 +118,18 @@ export class AsciiAnimationTextComponent implements AfterViewInit, OnDestroy {
 
   private startAnimation() {
     if (this.hasFinished) return;
+
+    // Reduced motion: skip the per-character typewriter/glitch loop entirely.
+    // Render the final message (last line, fully typed, un-glitched) at once
+    // and emit `animationFinished` a single time so the flow still proceeds.
+    if (prefersReducedMotion()) {
+      const messages = this.messages();
+      const finalMessage = messages.length ? messages[messages.length - 1] : '';
+      this.baseText.set(this.animateLoadingDots(finalMessage));
+      this.hasFinished = true;
+      this.animationFinished.emit();
+      return;
+    }
 
     this.interval = setInterval(() => {
       const currentMessage = this.messages()[this.currentIndex];
