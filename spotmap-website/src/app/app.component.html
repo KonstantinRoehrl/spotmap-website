@@ -2,7 +2,7 @@
   <!-- Show intro until finished -->
   @if (!introFinished()) {
   <app-ascii-animation-text [messages]="['WELCOME TO THE SPOTMAP COMPENDIUM']" [waitFrames]="60" [animationSpeed]="35"
-    (animationFinished)="onIntroFinished()" class="flex-fill">
+    (animationFinished)="onIntroFinished()" class="flex-auto">
   </app-ascii-animation-text>
   }
 
@@ -15,7 +15,7 @@
         ]" class="nav-bar">
   </app-nav-bar>
 
-  <div class="content-container flex-fill px-4">
+  <div class="content-container flex-auto px-6">
     <router-outlet></router-outlet>
   </div>
   }

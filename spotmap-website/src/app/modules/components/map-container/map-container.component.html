@@ -1,11 +1,11 @@
-<div class="map-container w-100 h-100 position-relative">
-  <iframe [src]="safeUrl()" class="w-100 h-100 border-0 map-frame" frameborder="0" loading="async"
+<div class="map-container w-full h-full relative">
+  <iframe [src]="safeUrl()" class="w-full h-full border-0 map-frame" frameborder="0" loading="async"
     referrerpolicy="no-referrer-when-downgrade" allowfullscreen="0" [style.opacity]="iframeLoaded() == true ? 1 : 0"
     (load)="onIframeLoad()"></iframe>
 
   <!-- overlay spinner -->
   @if(!iframeLoaded()){
   <app-loading-bar
-    class="position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center"></app-loading-bar>
+    class="absolute top-0 left-0 w-full h-full flex justify-center items-center"></app-loading-bar>
   }
 </div>
