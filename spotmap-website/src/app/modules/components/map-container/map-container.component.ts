@@ -39,9 +39,11 @@ export class MapContainerComponent {
   }
 
   onIframeLoad() {
+    // Cancel the unreachable-timeout the instant load fires, so a slow-but-successful
+    // load in the final window before LOAD_TIMEOUT_MS can't flash "SIGNAL LOST".
+    this.clearTimer();
     // Preserve the existing fade-in cadence: reveal shortly after the embed reports ready.
     setTimeout(() => {
-      this.clearTimer();
       this.loadError.set(false);
       this.iframeLoaded.set(true);
     }, 700);
