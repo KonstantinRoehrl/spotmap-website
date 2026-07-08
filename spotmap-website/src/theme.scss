@@ -1,0 +1,84 @@
+// ============================================================
+//  Green-terminal Material M3 theme — "The Phosphor Archive"
+//  Stage 5 · Task 1. Replaces the stock `azure-blue` prebuilt.
+//
+//  API: Angular Material v22's M3 `mat.theme()` mixin — the current,
+//  non-deprecated system-variable theming API (v19+). It emits the
+//  `--mat-sys-*` design tokens that every Material component reads via
+//  `var(--mat-<comp>-token, var(--mat-sys-*))` fallbacks (verified in the
+//  shipped select/form-field CSS), so this ONE mixin themes the app's
+//  only Material surface: mat-form-field / mat-select / mat-option /
+//  mat-optgroup. No `mat.all-component-themes` (older define-theme API)
+//  is needed — the fallback chain resolves straight to the system tokens.
+//
+//  The design tokens (--color-*) are authored in OKLCH in src/styles.css
+//  (DESIGN §2). This file consumes them; it defines no new colours.
+// ============================================================
+@use '@angular/material' as mat;
+
+// The one-grid terminal face (DESIGN §3). Self-hosted IBM Plex Mono is
+// declared via @font-face in src/styles.css; `Courier New` is the offline
+// fallback the ASCII animation's fixed advance width relies on.
+$mono-stack: 'IBM Plex Mono', 'Courier New', monospace;
+
+html {
+  // --- M3 theme: GREEN primary · DARK scheme · monospace · density 0 ---
+  // Green built-in palette drives the primary hue; orange seeds the
+  // tertiary (the amber channel is pinned exactly below). theme-type:dark
+  // gives fixed dark values (not prefers-color-scheme responsive).
+  @include mat.theme((
+    color: (
+      primary: mat.$green-palette,
+      tertiary: mat.$orange-palette,
+      theme-type: dark,
+    ),
+    typography: (
+      plain-family: $mono-stack,
+      brand-family: $mono-stack,
+      bold-weight: 600,
+      medium-weight: 500,
+      regular-weight: 400,
+    ),
+    density: 0,
+  ));
+
+  // --- Design-token overrides (DESIGN §2 / §5 + the No-White Rule) ---
+  // M3's dark scheme leaves `on-surface` near-white and the surfaces a
+  // neutral gray — both banned here. Remap the system tokens to the
+  // phosphor palette so the field, value text, arrow, label, dropdown
+  // PANEL and every option render on near-black `--color-surface` with
+  // phosphor-green ink. These are declared AFTER the mixin, so they win
+  // the cascade; set on `html` they inherit into the CDK overlay panel
+  // (rendered at the document root), making the panel rules global —
+  // no `::ng-deep` / `!important` needed.
+
+  // Surfaces → near-black green-tinted tints (No-White Rule)
+  --mat-sys-background: var(--color-bg);
+  --mat-sys-surface: var(--color-surface);
+  --mat-sys-surface-variant: var(--color-surface);
+  --mat-sys-surface-container: var(--color-surface);          // select dropdown panel body
+  --mat-sys-surface-container-lowest: var(--color-bg);
+  --mat-sys-surface-container-low: var(--color-surface);
+  --mat-sys-surface-container-high: var(--color-surface-raised);
+  --mat-sys-surface-container-highest: var(--color-surface-raised);
+
+  // Ink → phosphor green (the archive's default voice)
+  --mat-sys-on-background: var(--color-phosphor);
+  --mat-sys-on-surface: var(--color-phosphor);               // trigger value + option label text
+  --mat-sys-on-surface-variant: var(--color-phosphor-dim);   // placeholder, arrow, label, optgroup, dividers
+  --mat-sys-primary: var(--color-phosphor);                  // focus outline / label / arrow / caret
+  --mat-sys-on-primary: var(--color-bg);
+
+  // Structure — the resting 1px field border is phosphor-deep (DESIGN §5)
+  --mat-sys-outline: var(--color-phosphor-deep);
+  --mat-sys-outline-variant: var(--color-line);
+
+  // Selected option = amber text on surface-raised — the ONE place amber
+  // marks "current" (DESIGN §5 + the Rarity Rule).
+  --mat-sys-secondary-container: var(--color-surface-raised);
+  --mat-sys-on-secondary-container: var(--color-amber);
+
+  // Hard-failure channel only
+  --mat-sys-error: var(--color-danger);
+  --mat-sys-on-error: var(--color-bg);
+}
