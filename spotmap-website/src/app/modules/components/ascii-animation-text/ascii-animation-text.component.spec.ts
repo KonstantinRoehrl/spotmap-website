@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 
 import { AsciiAnimationTextComponent } from './ascii-animation-text.component';
 
@@ -36,5 +36,30 @@ describe('AsciiAnimationTextComponent', () => {
     f.destroy();
 
     expect(removeSpy).toHaveBeenCalledWith('resize', handler!);
+  });
+
+  it('types out the message provided via the signal input', fakeAsync(() => {
+    const f = TestBed.createComponent(AsciiAnimationTextComponent);
+    f.componentRef.setInput('messages', ['HELLO']);
+    f.componentRef.setInput('glitchChance', 0); // deterministic: no character scrambling
+    f.componentRef.setInput('animationSpeed', 10);
+    f.detectChanges(); // ngAfterViewInit -> startAnimation
+
+    expect(f.componentInstance.messages()).toEqual(['HELLO']);
+
+    tick(10); // one frame -> first character typed with the trailing caret
+    expect(f.componentInstance.baseText()).toBe('H_');
+
+    f.destroy(); // clears the interval; no timers left for fakeAsync
+  }));
+
+  it('keeps the default font size and does not throw when there is nothing to measure', () => {
+    const f = TestBed.createComponent(AsciiAnimationTextComponent);
+    f.componentRef.setInput('messages', []); // maxLength === 0 -> guarded early-return
+
+    expect(() => f.detectChanges()).not.toThrow();
+    expect(f.componentInstance.fontSize()).toBe(22);
+
+    f.destroy();
   });
 });

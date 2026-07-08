@@ -1,16 +1,20 @@
 import {
   AfterViewInit,
   Component,
-  EventEmitter,
+  ElementRef,
   input,
-  Input,
   OnDestroy,
-  OnInit,
-  Output,
+  output,
   signal,
+  viewChild,
   ViewEncapsulation,
   ChangeDetectionStrategy
 } from '@angular/core';
+
+// Fixed font size used only for glyph measurement; the real size is derived by
+// scaling this by containerWidth / measuredWidth. Any value works (advance is
+// linear in font size); 100 keeps the arithmetic readable.
+const MEASURE_REFERENCE_PX = 100;
 
 @Component({
   selector: 'app-ascii-animation-text',
@@ -20,8 +24,8 @@ import {
   changeDetection: ChangeDetectionStrategy.Eager,
   encapsulation: ViewEncapsulation.None
 })
-export class AsciiAnimationTextComponent implements OnInit, AfterViewInit, OnDestroy {
-  @Input() messages: string[] = [
+export class AsciiAnimationTextComponent implements AfterViewInit, OnDestroy {
+  messages = input<string[]>([
     'SYSTEM INITIALIZING...',
     'ACCESSING QUANTUM ENCRYPTION MODULE...',
     'LOADING TOP SECRET MAP DATA...',
@@ -30,7 +34,7 @@ export class AsciiAnimationTextComponent implements OnInit, AfterViewInit, OnDes
     'ENCRYPTING YOUR THOUGHTS...',
     'ACCESS GRANTED',
     'WELCOME TO THE VIENNA SPOTMAP'
-  ];
+  ]);
 
   centered = input<boolean>(false);
   animationSpeed = input<number>(45);
@@ -39,11 +43,19 @@ export class AsciiAnimationTextComponent implements OnInit, AfterViewInit, OnDes
   breakFrames = input<number>(5);
   loop = input<boolean>(false);
 
-  @Output() animationFinished = new EventEmitter<void>();
+  animationFinished = output<void>();
+
+  // Scoped to THIS component's view so measurement never picks up another
+  // <app-ascii-animation-text> instance's container from the document.
+  private readonly asciiContainer = viewChild.required<ElementRef<HTMLElement>>('asciiContainer');
 
   baseText = signal<string>('');   // main text
   dots = signal<string>('');       // animated dots
   fontSize = signal<number>(22);   // default 22px
+
+  // Lazily-created canvas 2d context reused for glyph measurement.
+  // `undefined` = not created yet, `null` = created but no 2d context.
+  private measureCtx?: CanvasRenderingContext2D | null;
 
   private currentIndex = 0;
   private charIndex = 0;
@@ -56,8 +68,6 @@ export class AsciiAnimationTextComponent implements OnInit, AfterViewInit, OnDes
   private collapseFrames = 10;   // frames for collapse animation
 
   private resizeListener?: () => void;
-
-  ngOnInit() { }
 
   ngAfterViewInit(): void {
     this.updateFontSize();
@@ -84,7 +94,7 @@ export class AsciiAnimationTextComponent implements OnInit, AfterViewInit, OnDes
     if (this.hasFinished) return;
 
     this.interval = setInterval(() => {
-      const currentMessage = this.messages[this.currentIndex];
+      const currentMessage = this.messages()[this.currentIndex];
 
       // Typing phase
       if (this.charIndex < currentMessage.length) {
@@ -123,12 +133,12 @@ export class AsciiAnimationTextComponent implements OnInit, AfterViewInit, OnDes
         if (this.loop()) {
           let nextIndex: number;
           do {
-            nextIndex = Math.floor(Math.random() * this.messages.length);
-          } while (nextIndex === this.currentIndex && this.messages.length > 1);
+            nextIndex = Math.floor(Math.random() * this.messages().length);
+          } while (nextIndex === this.currentIndex && this.messages().length > 1);
           this.currentIndex = nextIndex;
         } else {
           this.currentIndex++;
-          if (this.currentIndex >= this.messages.length) {
+          if (this.currentIndex >= this.messages().length) {
             this.hasFinished = true;
             clearInterval(this.interval);
             this.animationFinished.emit();
@@ -167,21 +177,60 @@ export class AsciiAnimationTextComponent implements OnInit, AfterViewInit, OnDes
   }
 
   private updateFontSize() {
-    const container = document.querySelector('.ascii-container') as HTMLElement;
-    if (!container) return;
-
-    // Find the length of the longest message
-    const maxLength = Math.max(...this.messages.map(msg => msg.length));
+    // Query THIS component's own container, not the first .ascii-container in
+    // the document (there can be several instances on the page).
+    const container = this.asciiContainer().nativeElement;
     const containerWidth = container.clientWidth;
 
-    // Font size based on longest text
-    let newFontSize = Math.floor(containerWidth / maxLength);
+    // Longest message drives the fit.
+    const messages = this.messages();
+    const maxLength = messages.length
+      ? Math.max(...messages.map(msg => msg.length))
+      : 0;
+
+    // Nothing to size against, or the element has not been laid out yet.
+    if (maxLength === 0 || containerWidth === 0) return;
+
+    // Width of the longest line rendered at a fixed reference size, using the
+    // component's ACTUAL monospace face — so we account for IBM Plex Mono's
+    // ~0.6x advance instead of assuming 1 glyph === fontSize px wide.
+    const referenceLineWidth = this.measureLineWidth(container, maxLength);
+    if (!referenceLineWidth) return; // no canvas / zero-width measurement
+
+    // Scale so `maxLength` glyphs exactly fill the container.
+    let newFontSize = Math.floor((containerWidth / referenceLineWidth) * MEASURE_REFERENCE_PX);
 
     // Clamp font size
     if (newFontSize > 40) newFontSize = 40;
     if (newFontSize < 12) newFontSize = 12;
 
     this.fontSize.set(newFontSize);
+  }
+
+  /**
+   * Pixel width of `maxLength` monospace glyphs rendered at
+   * MEASURE_REFERENCE_PX, measured via a canvas 2d context using the font
+   * actually applied to the <pre>. Returns 0 when measurement is impossible
+   * (no 2d context, or a zero-width result pre-layout).
+   */
+  private measureLineWidth(container: HTMLElement, maxLength: number): number {
+    const ctx = this.getMeasureContext();
+    if (!ctx) return 0;
+
+    const pre = container.querySelector('.ascii-display') as HTMLElement | null;
+    const fontFamily =
+      (pre && getComputedStyle(pre).fontFamily) || "'IBM Plex Mono', monospace";
+
+    ctx.font = `${MEASURE_REFERENCE_PX}px ${fontFamily}`;
+    return ctx.measureText('0'.repeat(maxLength)).width;
+  }
+
+  /** Lazily create and cache a canvas 2d context for text measurement. */
+  private getMeasureContext(): CanvasRenderingContext2D | null {
+    if (this.measureCtx === undefined) {
+      this.measureCtx = document.createElement('canvas').getContext('2d');
+    }
+    return this.measureCtx;
   }
 
   private animateLoadingDots(text: string): string {
