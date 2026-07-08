@@ -81,4 +81,78 @@ html {
   // Hard-failure channel only
   --mat-sys-error: var(--color-danger);
   --mat-sys-on-error: var(--color-bg);
+
+  // Sharp corners — the terminal has edges (DESIGN §4, sharp 0–4px).
+  // The outlined field reads its radius from `--mat-sys-corner-extra-small`
+  // (M3 default 4px); pin it to the design's --radius-md so the field keeps
+  // a hard 4px corner regardless of future M3 default drift. (The select
+  // PANEL already ships a hardcoded 4px radius and options are square, so
+  // this token is what carries the field's sharp corner now that the legacy
+  // `.mat-mdc-select-trigger { border-radius: 4px }` override is gone.)
+  --mat-sys-corner-extra-small: var(--radius-md);
+  --mat-sys-corner-small: var(--radius-md);
+
+  // Glow-Is-The-Shadow (DESIGN §4): replace the select panel's stock gray
+  // MDC elevation drop-shadow with a phosphor bloom. The shipped panel CSS
+  // reads `box-shadow: var(--mat-select-container-elevation-shadow, …)`
+  // directly, so overriding this ONE component token on `html` recolours
+  // the overlay's shadow with zero specificity fights and no override hacks.
+  --mat-select-container-elevation-shadow: var(--glow-edge-frame);
+}
+
+// ============================================================
+//  Global Material-select chrome the tokens can't express
+//  ------------------------------------------------------------
+//  Everything below is authored at GLOBAL scope on purpose: the select
+//  dropdown is a CDK overlay rendered at the document root, unreachable from
+//  the component stylesheet's encapsulated scope. These rules only add what
+//  the `--mat-sys-*` tokens above cannot carry — phosphor text-glow, hover
+//  bloom, the panel edge/blur, group separators and transitions. Material
+//  sets none of these properties on these elements, so each rule wins the
+//  cascade on its own without any forced-priority flag.
+// ============================================================
+
+// --- Text glow: phosphor bloom on the field label + trigger value ---
+.mat-mdc-form-field .mat-mdc-floating-label,
+.mat-mdc-select-value {
+  text-shadow: var(--glow-text-rest);
+}
+
+// --- Field: smooth glow transition + hover/focus edge bloom ---
+.mat-mdc-text-field-wrapper {
+  transition: box-shadow var(--dur-fast) var(--ease-out-expo);
+}
+.mat-mdc-form-field:hover .mat-mdc-text-field-wrapper,
+.mat-mdc-form-field.mat-focused .mat-mdc-text-field-wrapper {
+  box-shadow: var(--glow-edge-frame);
+}
+
+// --- Dropdown panel: phosphor edge + CRT blur (bg + shadow are tokens) ---
+.mat-mdc-select-panel {
+  border: 1px solid var(--color-phosphor-deep);
+  backdrop-filter: blur(10px);
+}
+
+// --- Options: text glow, sharp corners, hover bloom, glow transition ---
+.mat-mdc-option {
+  border-radius: var(--radius-sm);
+  transition: box-shadow var(--dur-fast) var(--ease-out-expo);
+}
+.mat-mdc-option .mdc-list-item__primary-text {
+  text-shadow: var(--glow-text-rest);
+}
+.mat-mdc-option:hover {
+  box-shadow: var(--glow-edge-active);
+}
+
+// --- Optgroup: glowing, separator-boxed group header ---
+.mat-mdc-optgroup-label {
+  text-shadow: var(--glow-text-rest);
+  border-top: 1px solid var(--color-line);
+  border-bottom: 1px solid var(--color-line);
+}
+
+// --- Hide the empty hint/error subscript row to keep the field tight ---
+.mat-mdc-form-field-subscript-wrapper {
+  display: none;
 }
