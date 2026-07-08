@@ -17,6 +17,15 @@
   display: flex;
 }
 
+/* Terminal glyph icons (Unicode text symbols, not emoji).
+   Force text presentation so no browser/font ever substitutes a
+   color emoji glyph; color + glow are inherited from the parent
+   link (phosphor green + global text-shadow rule). */
+.nav-icon {
+  font-variant-emoji: text;
+  line-height: 1;
+}
+
 .nav-bar a {
   padding: 10px;
   position: relative;
