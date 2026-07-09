@@ -43,7 +43,10 @@
             {{ selectedCity().city + ' · ' + selectedCity().countryCode }}
           </mat-select-trigger>
 
-          @for (entry of citiesGroupedByCountry() | keyvalue; track entry.key) {
+          @for (
+            entry of citiesGroupedByCountry() | keyvalue: byCountryName;
+            track entry.key
+          ) {
             <mat-optgroup [label]="entry.value[0].country | uppercase">
               @for (city of entry.value; track city.city) {
                 <mat-option [value]="city">

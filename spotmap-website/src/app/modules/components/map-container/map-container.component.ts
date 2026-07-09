@@ -2,6 +2,7 @@ import {
   Component,
   computed,
   DestroyRef,
+  effect,
   inject,
   input,
   signal,
@@ -47,6 +48,33 @@ export class MapContainerComponent {
 
   constructor(private sanitizer: DomSanitizer) {
     inject(DestroyRef).onDestroy(() => this.clearAllTimers());
+    this.startTimer();
+
+    // The component instance is reused across dropdown selections (only the
+    // `city` input changes, the component is not recreated). Re-arm the
+    // reveal/error/timeout state machine on every city change AFTER the first,
+    // so a newly selected embed shows the loading overlay again instead of a
+    // stale "loaded" frame (no white flash) and gets its own watchdog — without
+    // it, switching cities after a successful load leaves iframeLoaded=true and
+    // no timeout, so a hung/failed new city never surfaces SIGNAL LOST/RETRY.
+    // The first run (initial city) is skipped: the constructor armed it above.
+    let firstCity = true;
+    effect(() => {
+      this.city(); // track the input
+      if (firstCity) {
+        firstCity = false;
+        return;
+      }
+      this.resetForNewCity();
+    });
+  }
+
+  /** Reset the reveal/error/timeout state machine for a freshly selected city. */
+  private resetForNewCity() {
+    this.clearAllTimers();
+    this.iframeLoaded.set(false);
+    this.loadError.set(false);
+    this.reloadNonce.set(0);
     this.startTimer();
   }
 

@@ -90,10 +90,10 @@
   --glow-text-hot: 0 0 4px #00ff00, 0 0 8px #00ff00, 0 0 12px #00ff00;
   --glow-text-amber: 0 0 4px #ffb000, 0 0 8px #ffb000;
 
-  /* Edge glow — mirror of the @theme shadow tokens, for direct use */
-  --glow-edge-frame: 0 0 24px rgba(0, 255, 0, 0.35);
-  --glow-edge-active:
-    0 0 30px rgba(0, 255, 0, 0.5), inset 0 0 2px rgba(0, 255, 120, 0.6);
+  /* Edge glow — alias the @theme shadow tokens (single source of truth), so a
+     glow tweak in one place can't drift from the box-shadow tokens. */
+  --glow-edge-frame: var(--shadow-edge-frame);
+  --glow-edge-active: var(--shadow-edge-active);
 
   /* Motion — no bounce/elastic; CRT transitions */
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);

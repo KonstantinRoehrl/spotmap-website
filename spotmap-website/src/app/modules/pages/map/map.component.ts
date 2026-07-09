@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, KeyValue } from '@angular/common';
 import {
   Component,
   OnInit,
@@ -91,6 +91,17 @@ export class MapComponent implements OnInit {
 
     return new Map(sortedEntries);
   }
+
+  /**
+   * Keep the country optgroups in the country-name-alphabetical order
+   * citiesByCountry() built them in. Without a comparator, KeyValuePipe re-sorts
+   * entries by the country-CODE key (AT, BA, CZ, DE, ES, FR, …), which doesn't
+   * match the country-NAME labels shown on each optgroup.
+   */
+  protected readonly byCountryName = (
+    a: KeyValue<CountryCodeEnum, MapItem[]>,
+    b: KeyValue<CountryCodeEnum, MapItem[]>,
+  ): number => a.value[0].country.localeCompare(b.value[0].country);
 
   selectCity(city: MapItem) {
     this.selectedCity.set(city);

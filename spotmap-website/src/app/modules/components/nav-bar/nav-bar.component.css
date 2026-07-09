@@ -36,6 +36,12 @@
   border-radius: 6px;
   overflow: visible;
   transition: all 0.3s ease;
+  /* Softer than the global --glow-text-rest (a 2/4/6px full-opacity stack that
+     blooms the labels into an illegible smear). Tight bright core + faint halo
+     keeps the phosphor glow while the letters stay readable. */
+  text-shadow:
+    0 0 2px rgba(0, 255, 0, 0.5),
+    0 0 4px rgba(0, 255, 0, 0.2);
 }
 
 /* Keyboard focus: explicit phosphor outline so focus is clearly visible

@@ -59,11 +59,13 @@
   color: var(--color-phosphor);
   border-color: var(--color-phosphor);
   box-shadow: var(--shadow-edge-frame);
-  outline: none;
 }
 
+/* DESIGN.md §5 Buttons: 1px phosphor outline, offset 2px (matches .nav-bar a
+   and .enter-map). No `outline: none` above it, so the ring can't be lost to
+   source-order edits. */
 .intro-skip:focus-visible {
-  outline: 2px solid var(--color-phosphor);
+  outline: 1px solid var(--color-phosphor);
   outline-offset: 2px;
 }
 

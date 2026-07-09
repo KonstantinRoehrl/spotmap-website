@@ -1,0 +1,96 @@
+/* Shared terminal-window chrome for the static content pages (Home + About).
+   Both render the same window grammar; page-specific rules live in each
+   component's own stylesheet. Referenced via styleUrls in both components, so
+   this is the single source of truth for the shared look. */
+:host {
+  display: block;
+  width: 100%;
+}
+
+.term {
+  max-width: 72ch;
+  margin: 0 auto;
+  padding: 2rem 0 3rem;
+}
+
+.term-window {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  box-shadow: var(--glow-edge-frame);
+  overflow: hidden;
+}
+
+.term-titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.55rem 0.9rem;
+  border-bottom: 1px solid var(--color-line);
+  color: var(--color-phosphor-dim);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.term-title {
+  margin: 0;
+  font-size: clamp(1.4rem, 5vw, 2.25rem);
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--color-phosphor);
+  text-shadow: var(--glow-text-hot);
+}
+
+.dim {
+  margin: 0;
+  color: var(--color-phosphor-dim);
+  font-size: 0.85rem;
+}
+
+.line {
+  display: flex;
+  gap: 0.6ch;
+  margin: 0;
+  max-width: 68ch;
+  color: var(--color-phosphor);
+  line-height: 1.5;
+}
+
+.line .prompt {
+  flex: none;
+  color: var(--color-phosphor-dim);
+}
+
+/* Care channel — the single amber role per page (Rarity Rule). */
+.line.care {
+  color: var(--color-amber);
+  text-shadow: var(--glow-text-amber);
+}
+
+.line.care .prompt {
+  color: var(--color-amber-dim);
+}
+
+/* Idle cursor. Reduced-motion net (styles.css) freezes it to a solid block. */
+.cursor {
+  display: inline-block;
+  width: 0.6ch;
+  height: 1em;
+  background: var(--color-phosphor-dim);
+  vertical-align: text-bottom;
+  animation: cursor-blink 1.1s steps(1) infinite;
+}
+
+@keyframes cursor-blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  50.01%,
+  100% {
+    opacity: 0;
+  }
+}

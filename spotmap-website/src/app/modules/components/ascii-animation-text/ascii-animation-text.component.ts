@@ -131,6 +131,15 @@ export class AsciiAnimationTextComponent implements AfterViewInit, OnDestroy {
       return;
     }
 
+    // Nothing to type: don't start a loop that would deref messages()[i] on an
+    // empty array. Emit once so the flow still proceeds. (The reduced-motion
+    // branch above is already guarded; keep the two paths symmetric.)
+    if (!this.messages().length) {
+      this.hasFinished = true;
+      this.animationFinished.emit();
+      return;
+    }
+
     this.interval = setInterval(() => {
       const currentMessage = this.messages()[this.currentIndex];
 

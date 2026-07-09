@@ -20,6 +20,8 @@ export const routes: Routes = [
         (m) => m.AboutComponent,
       ),
   },
-  { path: '', redirectTo: 'home', pathMatch: 'full' },
+  // Root has no requested page → land on the map (the intro's default
+  // destination). Explicit /home, /map, /about are matched above and preserved.
+  { path: '', redirectTo: 'map', pathMatch: 'full' },
   { path: '**', redirectTo: 'home' },
 ];

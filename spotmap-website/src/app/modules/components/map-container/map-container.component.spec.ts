@@ -88,6 +88,35 @@ describe('MapContainerComponent', () => {
     fixture.destroy();
   }));
 
+  it('re-arms the loading/error/timeout state machine when the city changes', fakeAsync(() => {
+    // Empty template so detectChanges() flushes the city effect without a real
+    // (network-loading) iframe interfering with the virtual clock.
+    TestBed.overrideComponent(MapContainerComponent, { set: { template: '' } });
+    const fixture = TestBed.createComponent(MapContainerComponent);
+    fixture.componentRef.setInput('city', CityEnum.Vienna);
+    fixture.detectChanges(); // effect's first run consumes the initial city
+    const c = fixture.componentInstance;
+
+    // First city loads and reveals.
+    c.onIframeLoad();
+    tick(REVEAL_DELAY_MS);
+    expect(mapShown(c)).toBe(true);
+    expect(errorShown(c)).toBe(false);
+
+    // Switch to a different city on the SAME instance: the overlay must return
+    // (no stale "loaded" frame / white flash) and no error should show yet.
+    fixture.componentRef.setInput('city', CityEnum.Graz);
+    fixture.detectChanges(); // flush the effect -> resetForNewCity()
+    expect(mapShown(c)).toBe(false);
+    expect(errorShown(c)).toBe(false);
+
+    // The new city hangs -> its own fresh watchdog still surfaces SIGNAL LOST.
+    tick(LOAD_TIMEOUT_MS);
+    expect(errorShown(c)).toBe(true);
+    expect(mapShown(c)).toBe(false);
+    fixture.destroy();
+  }));
+
   it('cancels pending timers on destroy', fakeAsync(() => {
     const fixture = create();
     const c = fixture.componentInstance;

@@ -6,7 +6,6 @@ import {
 } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { GlitchTextDirective } from '../../directives/glitch-text.directive';
-import { prefersReducedMotion } from '../../../utils/prefers-reduced-motion';
 
 export interface NavBarLink {
   name: string;
@@ -26,11 +25,20 @@ export class NavBarComponent {
   private touchTimeouts = new WeakMap<HTMLElement, any>();
   private ignoreMouse = false; // <-- flag to ignore mouse after touch
 
+  // Cached once so the per-mousemove hot path doesn't allocate a new
+  // MediaQueryList on every event (prefersReducedMotion() calls matchMedia()
+  // per call). `.matches` stays live as the OS setting changes; null under
+  // SSR / no matchMedia.
+  private readonly reducedMotion =
+    typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+      ? window.matchMedia('(prefers-reduced-motion: reduce)')
+      : null;
+
   @HostListener('mousemove', ['$event'])
   onMouseMove(event: MouseEvent) {
     // Reduced-motion: skip the radial hover-glow tracking; the static styled
     // link (+ :focus-visible outline) stands in.
-    if (prefersReducedMotion()) return;
+    if (this.reducedMotion?.matches) return;
     if (this.ignoreMouse) return;
     const target = event.target as HTMLElement;
     const link = target.closest('a');
@@ -48,7 +56,7 @@ export class NavBarComponent {
   onTouchStart(event: TouchEvent) {
     // Reduced-motion: skip the 1s touch-glow fade; leave the static styled
     // link (mobile bottom-nav is the accessibility-priority surface).
-    if (prefersReducedMotion()) return;
+    if (this.reducedMotion?.matches) return;
     this.ignoreMouse = true;
     const touch = event.touches[0];
     const target = document.elementFromPoint(

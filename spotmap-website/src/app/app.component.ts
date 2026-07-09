@@ -5,7 +5,7 @@ import {
   HostListener,
   OnInit,
 } from '@angular/core';
-import { Router, RouterOutlet } from '@angular/router';
+import { RouterOutlet } from '@angular/router';
 import { AsciiAnimationTextComponent } from './modules/components/ascii-animation-text/ascii-animation-text.component';
 import { NavBarComponent } from './modules/components/nav-bar/nav-bar.component';
 
@@ -23,14 +23,6 @@ const INTRO_SEEN_KEY = 'spotmap:introSeen';
 export class AppComponent implements OnInit {
   title = 'spotmap-website';
   protected introFinished = signal<boolean>(false);
-
-  // Synchronous latch: introFinished only flips inside navigate().then() (a
-  // microtask), so a click on [ SKIP ] bubbling to the wrapper — or Escape
-  // firing alongside animationFinished — would re-enter finishIntro() in the
-  // same tick before the signal updates. This guards that window.
-  private finishing = false;
-
-  constructor(private router: Router) {}
 
   ngOnInit(): void {
     // Already played this session → skip the intro and reveal content immediately
@@ -58,15 +50,17 @@ export class AppComponent implements OnInit {
   }
 
   /**
-   * Single finish path shared by natural completion and manual skip. Remembers
-   * the intro for the session, then lands on /map and reveals the content once
-   * navigation resolves. Idempotent so completion + skip can't double-fire.
+   * Single finish path shared by natural completion and manual skip. Reveals
+   * the already-resolved route in place (a deep-linked /about stays /about;
+   * root '/' resolves to /map via the route config) and remembers the intro for
+   * the session. Reveal is synchronous, so the introFinished() guard alone keeps
+   * completion + skip + a bubbling button click to a single finish — no
+   * navigation promise to reject and strand the user on the intro screen.
    */
   private finishIntro(): void {
-    if (this.finishing || this.introFinished()) return;
-    this.finishing = true;
+    if (this.introFinished()) return;
     this.markIntroSeen();
-    void this.router.navigate(['map']).then(() => this.introFinished.set(true));
+    this.introFinished.set(true);
   }
 
   private hasSeenIntro(): boolean {
