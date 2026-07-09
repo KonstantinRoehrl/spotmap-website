@@ -5,12 +5,17 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "build:pages": "ng build --configuration production --output-path=../dist/spotmap-website --base-href /spotmap-website/",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "format": "prettier --write \"src/**/*.{ts,html,css,scss}\"",
     "format:check": "prettier --check \"src/**/*.{ts,html,css,scss}\""
   },
   "private": true,
+  "engines": {
+    "node": ">=26",
+    "npm": ">=11"
+  },
   "dependencies": {
     "@angular/animations": "^22.0.5",
     "@angular/cdk": "^22.0.3",
