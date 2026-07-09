@@ -29,9 +29,6 @@ import { MapContainerComponent } from '../../components/map-container/map-contai
   styleUrl: './map.component.css',
 })
 export class MapComponent implements OnInit {
-  MapEnum = CityEnum; // expose enum
-  CountryCodeEnum = CountryCodeEnum; // expose enum
-
   protected selectedCity = signal<MapItem>(SUPPORTED_CITIES[CityEnum.Vienna]);
 
   // The key under which to store the last used city of the user
