@@ -4,8 +4,8 @@
       <li>
         <a
           [routerLink]="link.url"
-          (click)="setActive(link)"
-          [class.active]="isActive(link)"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
           appGlitchText
         >
           <span class="nav-icon me-1" aria-hidden="true">{{ link.icon }}</span>
