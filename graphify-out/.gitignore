@@ -1,0 +1,18 @@
+# The knowledge graph itself IS committed (graph.json, graph.html, GRAPH_REPORT.md,
+# manifest.json, cost.json, cache/) — see ../CLAUDE.md. Only machine-specific or
+# regenerated sidecars are ignored so the committed graph stays portable.
+
+# Absolute, per-machine pointers written on each run
+.graphify_python
+.graphify_root
+
+# Internal labeling sidecar — regenerated every build
+.graphify_labels.json
+
+# Transient per-build temp files (normally auto-cleaned)
+.graphify_detect.*
+.graphify_*.tmp
+.needs_update
+
+# Machine-specific file-stat index for --update change detection (regenerated)
+cache/stat-index.json

@@ -1,0 +1,11 @@
+# Keep the graphify knowledge graph scoped to the app + real docs, so every rebuild
+# (/graphify . or --update) stays consistent instead of re-ingesting scaffolding.
+# See CLAUDE.md "Knowledge graph".
+
+# Process / tooling scaffolding — not repo architecture
+.superpowers/
+.claude/
+.impeccable/
+
+# Don't let graphify ingest its own output
+graphify-out/
