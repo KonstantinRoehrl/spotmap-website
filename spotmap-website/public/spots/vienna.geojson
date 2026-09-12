@@ -1,0 +1,230 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.4169023,
+          48.2397385
+        ]
+      },
+      "properties": {
+        "id": "donaupark",
+        "name": "Donaupark",
+        "status": "active",
+        "photos": [
+          "spots/vienna/donaupark-1.webp",
+          "spots/vienna/donaupark-2.webp",
+          "spots/vienna/donaupark-3.webp",
+          "spots/vienna/donaupark-4.webp",
+          "spots/vienna/donaupark-5.webp",
+          "spots/vienna/donaupark-6.webp",
+          "spots/vienna/donaupark-7.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.3191363,
+          48.2102833
+        ]
+      },
+      "properties": {
+        "id": "schuhmeierplatz",
+        "name": "Schuhmeierplatz",
+        "status": "active",
+        "photos": [
+          "spots/vienna/schuhmeierplatz-1.webp",
+          "spots/vienna/schuhmeierplatz-2.webp",
+          "spots/vienna/schuhmeierplatz-3.webp",
+          "spots/vienna/schuhmeierplatz-4.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.504363,
+          48.2236505
+        ]
+      },
+      "properties": {
+        "id": "r-i-p-seestadt-wood-curbs",
+        "name": "R.I.P Seestadt Wood Curbs",
+        "status": "demolished",
+        "photos": [
+          "spots/vienna/r-i-p-seestadt-wood-curbs-1.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.2520824,
+          48.1999608
+        ]
+      },
+      "properties": {
+        "id": "huetteldorfer-rail-r-i-p",
+        "name": "Hütteldorfer Rail R.I.P",
+        "status": "demolished",
+        "photos": [
+          "spots/vienna/huetteldorfer-rail-r-i-p-1.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.3778959,
+          48.203729
+        ]
+      },
+      "properties": {
+        "id": "r-i-p-stadtpark-8-stair",
+        "name": "R.I.P. Stadtpark 8 Stair",
+        "status": "demolished",
+        "photos": [
+          "spots/vienna/r-i-p-stadtpark-8-stair-1.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.3487298,
+          48.166938
+        ]
+      },
+      "properties": {
+        "id": "wienerberg-curb-r-i-p",
+        "name": "Wienerberg Curb R.I.P",
+        "status": "demolished",
+        "photos": [
+          "spots/vienna/wienerberg-curb-r-i-p-1.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.3397924,
+          48.1983179
+        ]
+      },
+      "properties": {
+        "id": "stollgasse",
+        "name": "Stollgasse",
+        "status": "unclassified",
+        "photos": [
+          "spots/vienna/stollgasse-1.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.4188453,
+          48.2104182
+        ]
+      },
+      "properties": {
+        "id": "manny-pad",
+        "name": "Manny Pad",
+        "status": "unclassified",
+        "photos": [
+          "spots/vienna/manny-pad-1.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.4291427,
+          48.1632409
+        ]
+      },
+      "properties": {
+        "id": "simmeringer-bad",
+        "name": "Simmeringer Bad",
+        "status": "active",
+        "photos": [
+          "spots/vienna/simmeringer-bad-1.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.2131,
+          48.2068598
+        ]
+      },
+      "properties": {
+        "id": "wallenberg",
+        "name": "Wallenberg",
+        "status": "active",
+        "photos": [
+          "spots/vienna/wallenberg-1.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.3161135,
+          48.1512606
+        ]
+      },
+      "properties": {
+        "id": "15-stair-rail",
+        "name": "15 Stair Rail",
+        "status": "active",
+        "photos": [
+          "spots/vienna/15-stair-rail-1.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.3444024,
+          48.244499
+        ]
+      },
+      "properties": {
+        "id": "oberdoebling-dropledges",
+        "name": "Oberdöbling Dropledges",
+        "status": "active",
+        "photos": [
+          "spots/vienna/oberdoebling-dropledges-1.webp"
+        ]
+      }
+    }
+  ]
+}
