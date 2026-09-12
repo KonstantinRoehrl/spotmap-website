@@ -1452,7 +1452,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "spotmap_website_src_app_models_spots_spot",
-      "community": 7,
+      "community": 98,
       "norm_label": "spot.ts"
     },
     {
@@ -1462,7 +1462,7 @@
       "source_location": "L2",
       "_origin": "ast",
       "id": "spotmap_website_src_app_models_spots_spot_spotstatus",
-      "community": 7,
+      "community": 98,
       "norm_label": "spotstatus"
     },
     {
@@ -1472,7 +1472,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "spotmap_website_src_app_models_spots_spot_spotproperties",
-      "community": 7,
+      "community": 98,
       "norm_label": "spotproperties"
     },
     {
@@ -1482,7 +1482,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "spotmap_website_src_app_models_spots_spot_spotfeature",
-      "community": 7,
+      "community": 98,
       "norm_label": "spotfeature"
     },
     {
@@ -1492,7 +1492,7 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "spotmap_website_src_app_models_spots_spot_spotcollection",
-      "community": 7,
+      "community": 98,
       "norm_label": "spotcollection"
     },
     {
@@ -1502,7 +1502,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "spotmap_website_src_app_models_spots_vienna_spots_spec",
-      "community": 7,
+      "community": 98,
       "norm_label": "vienna-spots.spec.ts"
     },
     {
@@ -1532,7 +1532,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "spotmap_website_src_app_modules_components_ascii_animation_text_ascii_animation_text_component_asciianimationtextcomponent",
-      "community": 10,
+      "community": 4,
       "norm_label": "asciianimationtextcomponent"
     },
     {
@@ -1542,7 +1542,7 @@
       "source_location": "L87",
       "_origin": "ast",
       "id": "spotmap_website_src_app_modules_components_ascii_animation_text_ascii_animation_text_component_asciianimationtextcomponent_ngafterviewinit",
-      "community": 10,
+      "community": 4,
       "norm_label": ".ngafterviewinit()"
     },
     {
@@ -1552,7 +1552,7 @@
       "source_location": "L102",
       "_origin": "ast",
       "id": "spotmap_website_src_app_modules_components_ascii_animation_text_ascii_animation_text_component_asciianimationtextcomponent_resizelistener",
-      "community": 10,
+      "community": 4,
       "norm_label": ".resizelistener()"
     },
     {
@@ -1562,7 +1562,7 @@
       "source_location": "L108",
       "_origin": "ast",
       "id": "spotmap_website_src_app_modules_components_ascii_animation_text_ascii_animation_text_component_asciianimationtextcomponent_ngondestroy",
-      "community": 10,
+      "community": 4,
       "norm_label": ".ngondestroy()"
     },
     {
@@ -1572,7 +1572,7 @@
       "source_location": "L119",
       "_origin": "ast",
       "id": "spotmap_website_src_app_modules_components_ascii_animation_text_ascii_animation_text_component_asciianimationtextcomponent_startanimation",
-      "community": 10,
+      "community": 4,
       "norm_label": ".startanimation()"
     },
     {
@@ -1582,7 +1582,7 @@
       "source_location": "L213",
       "_origin": "ast",
       "id": "spotmap_website_src_app_modules_components_ascii_animation_text_ascii_animation_text_component_asciianimationtextcomponent_collapsetext",
-      "community": 10,
+      "community": 4,
       "norm_label": ".collapsetext()"
     },
     {
@@ -1592,7 +1592,7 @@
       "source_location": "L227",
       "_origin": "ast",
       "id": "spotmap_website_src_app_modules_components_ascii_animation_text_ascii_animation_text_component_asciianimationtextcomponent_applyeffects",
-      "community": 10,
+      "community": 4,
       "norm_label": ".applyeffects()"
     },
     {
@@ -1602,7 +1602,7 @@
       "source_location": "L239",
       "_origin": "ast",
       "id": "spotmap_website_src_app_modules_components_ascii_animation_text_ascii_animation_text_component_asciianimationtextcomponent_updatefontsize",
-      "community": 10,
+      "community": 4,
       "norm_label": ".updatefontsize()"
     },
     {
@@ -1612,7 +1612,7 @@
       "source_location": "L278",
       "_origin": "ast",
       "id": "spotmap_website_src_app_modules_components_ascii_animation_text_ascii_animation_text_component_asciianimationtextcomponent_measurelinewidth",
-      "community": 10,
+      "community": 4,
       "norm_label": ".measurelinewidth()"
     },
     {
@@ -1622,7 +1622,7 @@
       "source_location": "L291",
       "_origin": "ast",
       "id": "spotmap_website_src_app_modules_components_ascii_animation_text_ascii_animation_text_component_asciianimationtextcomponent_getmeasurecontext",
-      "community": 10,
+      "community": 4,
       "norm_label": ".getmeasurecontext()"
     },
     {
@@ -1632,7 +1632,7 @@
       "source_location": "L298",
       "_origin": "ast",
       "id": "spotmap_website_src_app_modules_components_ascii_animation_text_ascii_animation_text_component_asciianimationtextcomponent_animateloadingdots",
-      "community": 10,
+      "community": 4,
       "norm_label": ".animateloadingdots()"
     },
     {
@@ -1642,7 +1642,7 @@
       "source_location": "L310",
       "_origin": "ast",
       "id": "spotmap_website_src_app_modules_components_ascii_animation_text_ascii_animation_text_component_asciianimationtextcomponent_applyglitcheffect",
-      "community": 10,
+      "community": 4,
       "norm_label": ".applyglitcheffect()"
     },
     {
@@ -2106,6 +2106,226 @@
       "norm_label": "createmaplibremap()"
     },
     {
+      "label": "spot-map.component.spec.ts",
+      "file_type": "code",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.spec.ts",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spec",
+      "community": 98,
+      "norm_label": "spot-map.component.spec.ts"
+    },
+    {
+      "label": "FakeMap",
+      "file_type": "code",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.spec.ts",
+      "source_location": "L12",
+      "_origin": "ast",
+      "id": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spec_fakemap",
+      "community": 98,
+      "norm_label": "fakemap"
+    },
+    {
+      "label": ".on()",
+      "file_type": "code",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.spec.ts",
+      "source_location": "L23",
+      "_origin": "ast",
+      "id": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spec_fakemap_on",
+      "community": 98,
+      "norm_label": ".on()"
+    },
+    {
+      "label": ".emit()",
+      "file_type": "code",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.spec.ts",
+      "source_location": "L30",
+      "_origin": "ast",
+      "id": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spec_fakemap_emit",
+      "community": 98,
+      "norm_label": ".emit()"
+    },
+    {
+      "label": ".addSource()",
+      "file_type": "code",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.spec.ts",
+      "source_location": "L33",
+      "_origin": "ast",
+      "id": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spec_fakemap_addsource",
+      "community": 98,
+      "norm_label": ".addsource()"
+    },
+    {
+      "label": ".addLayer()",
+      "file_type": "code",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.spec.ts",
+      "source_location": "L36",
+      "_origin": "ast",
+      "id": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spec_fakemap_addlayer",
+      "community": 98,
+      "norm_label": ".addlayer()"
+    },
+    {
+      "label": ".fitBounds()",
+      "file_type": "code",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.spec.ts",
+      "source_location": "L39",
+      "_origin": "ast",
+      "id": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spec_fakemap_fitbounds",
+      "community": 98,
+      "norm_label": ".fitbounds()"
+    },
+    {
+      "label": ".addControl()",
+      "file_type": "code",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.spec.ts",
+      "source_location": "L45",
+      "_origin": "ast",
+      "id": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spec_fakemap_addcontrol",
+      "community": 98,
+      "norm_label": ".addcontrol()"
+    },
+    {
+      "label": ".getCanvas()",
+      "file_type": "code",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.spec.ts",
+      "source_location": "L48",
+      "_origin": "ast",
+      "id": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spec_fakemap_getcanvas",
+      "community": 98,
+      "norm_label": ".getcanvas()"
+    },
+    {
+      "label": ".setFeatureState()",
+      "file_type": "code",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.spec.ts",
+      "source_location": "L51",
+      "_origin": "ast",
+      "id": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spec_fakemap_setfeaturestate",
+      "community": 98,
+      "norm_label": ".setfeaturestate()"
+    },
+    {
+      "label": ".remove()",
+      "file_type": "code",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.spec.ts",
+      "source_location": "L52",
+      "_origin": "ast",
+      "id": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spec_fakemap_remove",
+      "community": 98,
+      "norm_label": ".remove()"
+    },
+    {
+      "label": "COLLECTION",
+      "file_type": "code",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.spec.ts",
+      "source_location": "L57",
+      "_origin": "ast",
+      "id": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spec_collection",
+      "community": 98,
+      "norm_label": "collection"
+    },
+    {
+      "label": "create()",
+      "file_type": "code",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.spec.ts",
+      "source_location": "L106",
+      "_origin": "ast",
+      "id": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spec_create",
+      "community": 98,
+      "norm_label": "create()"
+    },
+    {
+      "label": "spot-map.component.ts",
+      "file_type": "code",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "spotmap_website_src_app_modules_components_spot_map_spot_map_component",
+      "community": 98,
+      "norm_label": "spot-map.component.ts"
+    },
+    {
+      "label": "SPOT_LAYERS",
+      "file_type": "code",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts",
+      "source_location": "L43",
+      "_origin": "ast",
+      "id": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spot_layers",
+      "community": 98,
+      "norm_label": "spot_layers"
+    },
+    {
+      "label": "SpotMapComponent",
+      "file_type": "code",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts",
+      "source_location": "L113",
+      "_origin": "ast",
+      "id": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spotmapcomponent",
+      "community": 98,
+      "norm_label": "spotmapcomponent"
+    },
+    {
+      "label": ".constructor()",
+      "file_type": "code",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts",
+      "source_location": "L139",
+      "_origin": "ast",
+      "id": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spotmapcomponent_constructor",
+      "community": 98,
+      "norm_label": ".constructor()"
+    },
+    {
+      "label": ".build()",
+      "file_type": "code",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts",
+      "source_location": "L154",
+      "_origin": "ast",
+      "id": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spotmapcomponent_build",
+      "community": 98,
+      "norm_label": ".build()"
+    },
+    {
+      "label": ".drawSpots()",
+      "file_type": "code",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts",
+      "source_location": "L206",
+      "_origin": "ast",
+      "id": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spotmapcomponent_drawspots",
+      "community": 98,
+      "norm_label": ".drawspots()"
+    },
+    {
+      "label": ".boundsOf()",
+      "file_type": "code",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts",
+      "source_location": "L228",
+      "_origin": "ast",
+      "id": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spotmapcomponent_boundsof",
+      "community": 98,
+      "norm_label": ".boundsof()"
+    },
+    {
+      "label": ".hasWebGl()",
+      "file_type": "code",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts",
+      "source_location": "L251",
+      "_origin": "ast",
+      "id": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spotmapcomponent_haswebgl",
+      "community": 98,
+      "norm_label": ".haswebgl()"
+    },
+    {
+      "label": ".teardown()",
+      "file_type": "code",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts",
+      "source_location": "L257",
+      "_origin": "ast",
+      "id": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spotmapcomponent_teardown",
+      "community": 98,
+      "norm_label": ".teardown()"
+    },
+    {
       "label": "terminal-map-style.spec.ts",
       "file_type": "code",
       "source_file": "spotmap-website/src/app/modules/components/spot-map/terminal-map-style.spec.ts",
@@ -2129,7 +2349,7 @@
       "label": "TERMINAL_PALETTE",
       "file_type": "code",
       "source_file": "spotmap-website/src/app/modules/components/spot-map/terminal-map-style.ts",
-      "source_location": "L20",
+      "source_location": "L21",
       "_origin": "ast",
       "id": "spotmap_website_src_app_modules_components_spot_map_terminal_map_style_terminal_palette",
       "community": 98,
@@ -2139,7 +2359,7 @@
       "label": "buildTerminalStyle()",
       "file_type": "code",
       "source_file": "spotmap-website/src/app/modules/components/spot-map/terminal-map-style.ts",
-      "source_location": "L33",
+      "source_location": "L34",
       "_origin": "ast",
       "id": "spotmap_website_src_app_modules_components_spot_map_terminal_map_style_buildterminalstyle",
       "community": 98,
@@ -2502,7 +2722,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "spotmap_website_src_app_services_spots_service_spec",
-      "community": 7,
+      "community": 98,
       "norm_label": "spots.service.spec.ts"
     },
     {
@@ -2512,7 +2732,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "spotmap_website_src_app_services_spots_service",
-      "community": 7,
+      "community": 98,
       "norm_label": "spots.service.ts"
     },
     {
@@ -2522,7 +2742,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "spotmap_website_src_app_services_spots_service_spotsservice",
-      "community": 7,
+      "community": 98,
       "norm_label": "spotsservice"
     },
     {
@@ -2532,7 +2752,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "spotmap_website_src_app_services_spots_service_spotsservice_loadspots",
-      "community": 7,
+      "community": 98,
       "norm_label": ".loadspots()"
     },
     {
@@ -2644,6 +2864,16 @@
       "id": "devcycle_findings_7_round_1",
       "community": 102,
       "norm_label": "7-round-1.md"
+    },
+    {
+      "label": "8-round-1.md",
+      "file_type": "document",
+      "source_file": ".devcycle/findings/8-round-1.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "devcycle_findings_8_round_1",
+      "community": 103,
+      "norm_label": "8-round-1.md"
     },
     {
       "label": "ledger.md",
@@ -2764,6 +2994,26 @@
       "id": "devcycle_ledger_wave_2_closed_2026_09_12t21_48_11z",
       "community": 83,
       "norm_label": "wave 2 closed, 2026-09-12t21:48:11z"
+    },
+    {
+      "label": "Session resume, 2026-09-12T21:55Z (/devcycle:continue)",
+      "file_type": "document",
+      "source_file": ".devcycle/ledger.md",
+      "source_location": "L105",
+      "_origin": "ast",
+      "id": "devcycle_ledger_session_resume_2026_09_12t21_55z_devcycle_continue",
+      "community": 83,
+      "norm_label": "session resume, 2026-09-12t21:55z (/devcycle:continue)"
+    },
+    {
+      "label": "Wave 3 formation, 2026-09-12T21:57Z",
+      "file_type": "document",
+      "source_file": ".devcycle/ledger.md",
+      "source_location": "L110",
+      "_origin": "ast",
+      "id": "devcycle_ledger_wave_3_formation_2026_09_12t21_57z",
+      "community": 83,
+      "norm_label": "wave 3 formation, 2026-09-12t21:57z"
     },
     {
       "label": "1.md",
@@ -2913,6 +3163,26 @@
       "_origin": "ast",
       "id": "devcycle_reports_7_task_report",
       "community": 100,
+      "norm_label": "task report"
+    },
+    {
+      "label": "8.md",
+      "file_type": "document",
+      "source_file": ".devcycle/reports/8.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "devcycle_reports_8",
+      "community": 10,
+      "norm_label": "8.md"
+    },
+    {
+      "label": "Task report",
+      "file_type": "document",
+      "source_file": ".devcycle/reports/8.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "devcycle_reports_8_task_report",
+      "community": 10,
       "norm_label": "task report"
     },
     {
@@ -3394,6 +3664,16 @@
       "id": "docs_maplibre_vienna_pilot_on_device_checklist_real_map_factory_registered_task_7",
       "community": 85,
       "norm_label": "real map factory registered (task 7)"
+    },
+    {
+      "label": "The spot map itself (Task 8)",
+      "file_type": "document",
+      "source_file": "docs/maplibre-vienna-pilot/on-device-checklist.md",
+      "source_location": "L125",
+      "_origin": "ast",
+      "id": "docs_maplibre_vienna_pilot_on_device_checklist_the_spot_map_itself_task_8",
+      "community": 85,
+      "norm_label": "the spot map itself (task 8)"
     },
     {
       "label": "2026-07-07-spotmap-audit-refactor.md",
@@ -7685,6 +7965,28 @@
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts",
+      "source_location": "L15",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component",
+      "target": "spotmap_website_src_app_models_enums_map_enum",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.spec.ts",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spec",
+      "target": "spotmap_website_src_app_models_enums_map_enum",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
       "source_file": "spotmap-website/src/app/modules/pages/map/map.component.ts",
       "source_location": "L13",
       "weight": 1.0,
@@ -7766,6 +8068,39 @@
       "source_location": "L8",
       "weight": 1.0,
       "source": "spotmap_website_src_app_modules_components_map_container_map_container_component_spec",
+      "target": "spotmap_website_src_app_models_enums_map_enum_cityenum",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts",
+      "source_location": "L15",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component",
+      "target": "spotmap_website_src_app_models_enums_map_enum_cityenum",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.spec.ts",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spec",
+      "target": "spotmap_website_src_app_models_enums_map_enum_cityenum",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts",
+      "source_location": "L154",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spotmapcomponent_build",
       "target": "spotmap_website_src_app_models_enums_map_enum_cityenum",
       "confidence_score": 1.0
     },
@@ -7902,6 +8237,17 @@
       "confidence_score": 1.0
     },
     {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts",
+      "source_location": "L15",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component",
+      "target": "spotmap_website_src_app_models_enums_map_enum_mapfailurereason",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "spotmap-website/src/app/models/spots/spot.ts",
@@ -7956,6 +8302,17 @@
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts",
+      "source_location": "L16",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component",
+      "target": "spotmap_website_src_app_models_spots_spot",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
       "source_file": "spotmap-website/src/app/services/spots.service.ts",
       "source_location": "L5",
       "weight": 1.0,
@@ -7971,6 +8328,39 @@
       "source_location": "L4",
       "weight": 1.0,
       "source": "spotmap_website_src_app_models_spots_vienna_spots_spec",
+      "target": "spotmap_website_src_app_models_spots_spot_spotcollection",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts",
+      "source_location": "L16",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component",
+      "target": "spotmap_website_src_app_models_spots_spot_spotcollection",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts",
+      "source_location": "L228",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spotmapcomponent_boundsof",
+      "target": "spotmap_website_src_app_models_spots_spot_spotcollection",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts",
+      "source_location": "L206",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spotmapcomponent_drawspots",
       "target": "spotmap_website_src_app_models_spots_spot_spotcollection",
       "confidence_score": 1.0
     },
@@ -9133,6 +9523,28 @@
       "confidence_score": 1.0
     },
     {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts",
+      "source_location": "L19",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component",
+      "target": "spotmap_website_src_app_modules_components_spot_map_map_factory_token",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.spec.ts",
+      "source_location": "L8",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spec",
+      "target": "spotmap_website_src_app_modules_components_spot_map_map_factory_token",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
@@ -9144,6 +9556,28 @@
       "confidence_score": 1.0
     },
     {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts",
+      "source_location": "L19",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component",
+      "target": "spotmap_website_src_app_modules_components_spot_map_map_factory_token_map_factory",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.spec.ts",
+      "source_location": "L8",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spec",
+      "target": "spotmap_website_src_app_modules_components_spot_map_map_factory_token_map_factory",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "spotmap-website/src/app/modules/components/spot-map/map-factory.ts",
@@ -9152,6 +9586,360 @@
       "source": "spotmap_website_src_app_modules_components_spot_map_map_factory",
       "target": "spotmap_website_src_app_modules_components_spot_map_map_factory_createmaplibremap",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.spec.ts",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spec",
+      "target": "spotmap_website_src_app_modules_components_spot_map_spot_map_component",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.spec.ts",
+      "source_location": "L57",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spec",
+      "target": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spec_collection",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.spec.ts",
+      "source_location": "L106",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spec",
+      "target": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spec_create",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.spec.ts",
+      "source_location": "L12",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spec",
+      "target": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spec_fakemap",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.spec.ts",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spec",
+      "target": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spotmapcomponent",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.spec.ts",
+      "source_location": "L45",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spec_fakemap",
+      "target": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spec_fakemap_addcontrol",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.spec.ts",
+      "source_location": "L36",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spec_fakemap",
+      "target": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spec_fakemap_addlayer",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.spec.ts",
+      "source_location": "L33",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spec_fakemap",
+      "target": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spec_fakemap_addsource",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.spec.ts",
+      "source_location": "L30",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spec_fakemap",
+      "target": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spec_fakemap_emit",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.spec.ts",
+      "source_location": "L39",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spec_fakemap",
+      "target": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spec_fakemap_fitbounds",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.spec.ts",
+      "source_location": "L48",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spec_fakemap",
+      "target": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spec_fakemap_getcanvas",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.spec.ts",
+      "source_location": "L23",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spec_fakemap",
+      "target": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spec_fakemap_on",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.spec.ts",
+      "source_location": "L52",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spec_fakemap",
+      "target": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spec_fakemap_remove",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.spec.ts",
+      "source_location": "L51",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spec_fakemap",
+      "target": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spec_fakemap_setfeaturestate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "indirect_call",
+      "context": "argument",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.spec.ts",
+      "source_location": "L107",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spec_create",
+      "target": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spotmapcomponent"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts",
+      "source_location": "L43",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component",
+      "target": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spot_layers",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts",
+      "source_location": "L113",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component",
+      "target": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spotmapcomponent",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts",
+      "source_location": "L20",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component",
+      "target": "spotmap_website_src_app_modules_components_spot_map_terminal_map_style",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts",
+      "source_location": "L20",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component",
+      "target": "spotmap_website_src_app_modules_components_spot_map_terminal_map_style_buildterminalstyle",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts",
+      "source_location": "L20",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component",
+      "target": "spotmap_website_src_app_modules_components_spot_map_terminal_map_style_terminal_palette",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts",
+      "source_location": "L17",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component",
+      "target": "spotmap_website_src_app_services_spots_service",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts",
+      "source_location": "L17",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component",
+      "target": "spotmap_website_src_app_services_spots_service_spotsservice",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts",
+      "source_location": "L18",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component",
+      "target": "spotmap_website_src_app_utils_prefers_reduced_motion",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts",
+      "source_location": "L18",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component",
+      "target": "spotmap_website_src_app_utils_prefers_reduced_motion_prefersreducedmotion",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts",
+      "source_location": "L228",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spotmapcomponent",
+      "target": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spotmapcomponent_boundsof",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts",
+      "source_location": "L154",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spotmapcomponent",
+      "target": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spotmapcomponent_build",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts",
+      "source_location": "L139",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spotmapcomponent",
+      "target": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spotmapcomponent_constructor",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts",
+      "source_location": "L206",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spotmapcomponent",
+      "target": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spotmapcomponent_drawspots",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts",
+      "source_location": "L251",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spotmapcomponent",
+      "target": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spotmapcomponent_haswebgl",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts",
+      "source_location": "L257",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spotmapcomponent",
+      "target": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spotmapcomponent_teardown",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts",
+      "source_location": "L159",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spotmapcomponent_build",
+      "target": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spotmapcomponent_haswebgl",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts",
+      "source_location": "L177",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spotmapcomponent_build",
+      "target": "spotmap_website_src_app_modules_components_spot_map_terminal_map_style_buildterminalstyle"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts",
+      "source_location": "L217",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spotmapcomponent_drawspots",
+      "target": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spotmapcomponent_boundsof",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts",
+      "source_location": "L222",
+      "weight": 1.0,
+      "source": "spotmap_website_src_app_modules_components_spot_map_spot_map_component_spotmapcomponent_drawspots",
+      "target": "spotmap_website_src_app_utils_prefers_reduced_motion_prefersreducedmotion"
     },
     {
       "relation": "imports_from",
@@ -9179,7 +9967,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "spotmap-website/src/app/modules/components/spot-map/terminal-map-style.ts",
-      "source_location": "L33",
+      "source_location": "L34",
       "weight": 1.0,
       "source": "spotmap_website_src_app_modules_components_spot_map_terminal_map_style",
       "target": "spotmap_website_src_app_modules_components_spot_map_terminal_map_style_buildterminalstyle",
@@ -9189,7 +9977,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "spotmap-website/src/app/modules/components/spot-map/terminal-map-style.ts",
-      "source_location": "L20",
+      "source_location": "L21",
       "weight": 1.0,
       "source": "spotmap_website_src_app_modules_components_spot_map_terminal_map_style",
       "target": "spotmap_website_src_app_modules_components_spot_map_terminal_map_style_terminal_palette",
@@ -9844,6 +10632,16 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": ".devcycle/ledger.md",
+      "source_location": "L105",
+      "weight": 1.0,
+      "source": "devcycle_ledger_devcycle_ledger",
+      "target": "devcycle_ledger_session_resume_2026_09_12t21_55z_devcycle_continue",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".devcycle/ledger.md",
       "source_location": "L44",
       "weight": 1.0,
       "source": "devcycle_ledger_devcycle_ledger",
@@ -9888,6 +10686,16 @@
       "weight": 1.0,
       "source": "devcycle_ledger_devcycle_ledger",
       "target": "devcycle_ledger_wave_2_formation_2026_09_12t21_28_04z_coordinator_deviating_from_the_plan_s_dispatch_map",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".devcycle/ledger.md",
+      "source_location": "L110",
+      "weight": 1.0,
+      "source": "devcycle_ledger_devcycle_ledger",
+      "target": "devcycle_ledger_wave_3_formation_2026_09_12t21_57z",
       "confidence_score": 1.0
     },
     {
@@ -9978,6 +10786,16 @@
       "weight": 1.0,
       "source": "devcycle_reports_7",
       "target": "devcycle_reports_7_task_report",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".devcycle/reports/8.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "devcycle_reports_8",
+      "target": "devcycle_reports_8_task_report",
       "confidence_score": 1.0
     },
     {
@@ -10398,6 +11216,16 @@
       "weight": 1.0,
       "source": "docs_maplibre_vienna_pilot_on_device_checklist_on_device_checklist_maplibre_vienna_pilot",
       "target": "docs_maplibre_vienna_pilot_on_device_checklist_terminal_basemap_style_task_6",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/maplibre-vienna-pilot/on-device-checklist.md",
+      "source_location": "L125",
+      "weight": 1.0,
+      "source": "docs_maplibre_vienna_pilot_on_device_checklist_on_device_checklist_maplibre_vienna_pilot",
+      "target": "docs_maplibre_vienna_pilot_on_device_checklist_the_spot_map_itself_task_8",
       "confidence_score": 1.0
     },
     {
@@ -11852,5 +12680,5 @@
       "source_file": "spotmap-website/src/app/app.component.html"
     }
   ],
-  "built_at_commit": "4d0c8d207435fb507b3bad4637936fe61b329916"
+  "built_at_commit": "4826ddc63068dc28f28f0664ebda9f81ad0da26f"
 }

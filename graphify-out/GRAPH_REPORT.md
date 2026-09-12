@@ -1,16 +1,16 @@
-# Graph Report - spotmap-website  (2026-09-12)
+# Graph Report - spotmap-website  (2026-09-13)
 
 ## Corpus Check
-- 80 files · ~280,033 words
+- 84 files · ~288,476 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 531 nodes · 588 edges · 103 communities (30 shown, 73 thin omitted)
-- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 15 edges (avg confidence: 0.75)
+- 559 nodes · 640 edges · 104 communities (32 shown, 72 thin omitted)
+- Extraction: 97% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 16 edges (avg confidence: 0.76)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `4d0c8d20`
+- Built from commit: `4826ddc6`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -116,26 +116,26 @@
 ## God Nodes (most connected - your core abstractions)
 1. `AsciiAnimationTextComponent` - 18 edges
 2. `AppComponent` - 16 edges
-3. `MapContainerComponent` - 15 edges
-4. `CityEnum` - 13 edges
+3. `CityEnum` - 16 edges
+4. `MapContainerComponent` - 15 edges
 5. `LoadingBarComponent` - 13 edges
-6. `MapComponent` - 12 edges
-7. `Roadmap` - 12 edges
-8. `MapLibre pilot for Vienna — design` - 12 edges
-9. `GlitchTextDirective` - 11 edges
-10. `devcycle ledger` - 11 edges
+6. `devcycle ledger` - 13 edges
+7. `MapComponent` - 12 edges
+8. `Roadmap` - 12 edges
+9. `MapLibre pilot for Vienna — design` - 12 edges
+10. `GlitchTextDirective` - 11 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `HomeComponent` --references--> `Terminal / Phosphor CRT Retro Aesthetic Pattern`  [INFERRED]
   spotmap-website/src/app/modules/pages/home/home.component.ts → spotmap-website/src/app/modules/pages/about/about.component.html
 - `AppComponent` --references--> `Skippable Intro Animation Pattern`  [EXTRACTED]
   spotmap-website/src/app/app.component.ts → spotmap-website/src/app/app.component.html
-- `LoadingBarComponent` --semantically_similar_to--> `AsciiAnimationTextComponent`  [INFERRED] [semantically similar]
-  spotmap-website/src/app/modules/components/loading-bar/loading-bar.component.ts → spotmap-website/src/app/modules/components/ascii-animation-text/ascii-animation-text.component.ts
 - `NavBarComponent` --references--> `Glitch Text Hover Directive (appGlitchText)`  [EXTRACTED]
   spotmap-website/src/app/modules/components/nav-bar/nav-bar.component.ts → spotmap-website/src/app/modules/components/nav-bar/nav-bar.component.html
 - `HomeComponent` --references--> `MapComponent`  [AMBIGUOUS]
   spotmap-website/src/app/modules/pages/home/home.component.ts → spotmap-website/src/app/modules/pages/map/map.component.ts
+- `SPA 404.html Routing Fallback` --conceptually_related_to--> `Project structure`  [INFERRED]
+  .github/workflows/deploy-angular.yml → spotmap-website/README.md
 
 ## Import Cycles
 - None detected.
@@ -150,7 +150,7 @@
 - **App Root Composition Shell (Nav Bar + Intro Animation)** — spotmap_website_src_app_app_component_appcomponent, spotmap_website_src_app_modules_components_ascii_animation_text_ascii_animation_text_component_asciianimationtextcomponent, spotmap_website_src_app_modules_components_nav_bar_nav_bar_component_navbarcomponent [INFERRED 0.80]
 - **Signal-Driven @if/@for Control Flow Templates** — spotmap_website_src_app_app_component_appcomponent, spotmap_website_src_app_modules_components_map_container_map_container_component_mapcontainercomponent, spotmap_website_src_app_modules_components_nav_bar_nav_bar_component_navbarcomponent [INFERRED 0.70]
 
-## Communities (103 total, 73 thin omitted)
+## Communities (104 total, 72 thin omitted)
 
 ### Community 0 - "App Shell, Routing & Pages"
 Cohesion: 0.11
@@ -169,16 +169,16 @@ Cohesion: 0.06
 Nodes (30): dependencies, @angular/animations, @angular/cdk, @angular/common, @angular/compiler, @angular/core, @angular/forms, @angular/material (+22 more)
 
 ### Community 4 - "Loader, Glitch FX & Motion Guard"
-Cohesion: 0.12
-Nodes (4): LoadingBarComponent, GlitchTextDirective, HostComponent, prefersReducedMotion()
+Cohesion: 0.09
+Nodes (5): AsciiAnimationTextComponent, LoadingBarComponent, GlitchTextDirective, HostComponent, prefersReducedMotion()
 
 ### Community 5 - "Design Language & Product Docs"
 Cohesion: 0.18
 Nodes (10): GitHub Pages Build Job, GitHub Pages Deploy Job, SPA 404.html Routing Fallback, Deployment, Design system, Getting started, Project structure, Spotmap (+2 more)
 
 ### Community 7 - "Map Page & City Data Model"
-Cohesion: 0.13
-Nodes (15): SUPPORTED_CITIES, MapItem, CityEnum, CountryCodeEnum, CountryEnum, MapFailureReason, MapRendererEnum, SpotCollection (+7 more)
+Cohesion: 0.20
+Nodes (10): SUPPORTED_CITIES, MapItem, CityEnum, CountryCodeEnum, CountryEnum, MapFailureReason, MapRendererEnum, GmapsEmbedComponent (+2 more)
 
 ### Community 9 - "Angular Runtime Dependencies"
 Cohesion: 0.12
@@ -237,40 +237,44 @@ Cohesion: 0.10
 Nodes (19): Appendix A — Getting data out of My Maps (tested), Appendix B — Rendering & basemap alternatives, Appendix C — Hosting, the API, and photo uploads, Appendix D — What's genuinely hard, Beyond My Maps — Roadmap, Decision 1 — Confirm the pin taxonomy and My Maps' fate, Decision 2 — Prep for opening submissions, Phase 1 (Devcycle) — Pilot the renderer swap on one city (+11 more)
 
 ### Community 83 - "devcycle ledger"
-Cohesion: 0.17
-Nodes (11): Coordinator ruling — evidence-completeness-check runner-summary regex (cycle-wide), devcycle ledger, Events, Pre-existing working-tree state (NOT this cycle's work — never stage these), Session resume, 2026-09-12T19:22:58Z (/devcycle:continue), Session stop (user request), 2026-09-12T14:09:35Z, Wave 1 closed, 2026-09-12T19:49:07Z, Wave 1 continues — task 4 closed, task 3 now dispatched (batch order per the 13:31 wave-formation ruling) (+3 more)
+Cohesion: 0.14
+Nodes (13): Coordinator ruling — evidence-completeness-check runner-summary regex (cycle-wide), devcycle ledger, Events, Pre-existing working-tree state (NOT this cycle's work — never stage these), Session resume, 2026-09-12T19:22:58Z (/devcycle:continue), Session resume, 2026-09-12T21:55Z (/devcycle:continue), Session stop (user request), 2026-09-12T14:09:35Z, Wave 1 closed, 2026-09-12T19:49:07Z (+5 more)
 
 ### Community 85 - "On-device checklist — MapLibre Vienna pilot"
-Cohesion: 0.29
-Nodes (6): Container / renderer split — no visible change intended (Task 5), On-device checklist — MapLibre Vienna pilot, Photo gallery rendering (Task 4), Real map factory registered (Task 7), Spot data on the real map (Task 2), Terminal basemap style (Task 6)
+Cohesion: 0.25
+Nodes (7): Container / renderer split — no visible change intended (Task 5), On-device checklist — MapLibre Vienna pilot, Photo gallery rendering (Task 4), Real map factory registered (Task 7), Spot data on the real map (Task 2), Terminal basemap style (Task 6), The spot map itself (Task 8)
 
 ### Community 86 - "map-factory.ts"
 Cohesion: 0.35
 Nodes (5): appConfig, routes, createMapLibreMap(), MAP_FACTORY, MapFactory
+
+### Community 98 - "terminal-map-style.ts"
+Cohesion: 0.08
+Nodes (12): SpotCollection, SpotFeature, SpotProperties, SpotStatus, COLLECTION, create(), FakeMap, SPOT_LAYERS (+4 more)
 
 ## Ambiguous Edges - Review These
 - `HomeComponent` → `MapComponent`  [AMBIGUOUS]
   spotmap-website/src/app/modules/pages/home/home.component.html · relation: references
 
 ## Knowledge Gaps
-- **278 isolated node(s):** `$schema`, `version`, `newProjectRoot`, `projectType`, `schematics` (+273 more)
+- **283 isolated node(s):** `$schema`, `version`, `newProjectRoot`, `projectType`, `schematics` (+278 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **73 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **72 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
 - **What is the exact relationship between `HomeComponent` and `MapComponent`?**
   _Edge tagged AMBIGUOUS (relation: references) - confidence is low._
-- **Why does `AppComponent` connect `App Shell, Routing & Pages` to `ASCII Typewriter Engine`, `map-factory.ts`, `Map Page & City Data Model`?**
-  _High betweenness centrality (0.018) - this node is a cross-community bridge._
-- **Why does `AsciiAnimationTextComponent` connect `ASCII Typewriter Engine` to `App Shell, Routing & Pages`, `Loader, Glitch FX & Motion Guard`, `Map Page & City Data Model`?**
-  _High betweenness centrality (0.017) - this node is a cross-community bridge._
-- **Why does `MapComponent` connect `Map Page & City Data Model` to `App Shell, Routing & Pages`, `ASCII Typewriter Engine`, `Map Iframe State Machine`?**
-  _High betweenness centrality (0.013) - this node is a cross-community bridge._
+- **Why does `AppComponent` connect `App Shell, Routing & Pages` to `Loader, Glitch FX & Motion Guard`, `map-factory.ts`, `Map Page & City Data Model`?**
+  _High betweenness centrality (0.016) - this node is a cross-community bridge._
+- **Why does `AsciiAnimationTextComponent` connect `Loader, Glitch FX & Motion Guard` to `App Shell, Routing & Pages`, `Map Page & City Data Model`?**
+  _High betweenness centrality (0.015) - this node is a cross-community bridge._
+- **Why does `MapComponent` connect `Map Page & City Data Model` to `App Shell, Routing & Pages`, `Map Iframe State Machine`, `Loader, Glitch FX & Motion Guard`?**
+  _High betweenness centrality (0.012) - this node is a cross-community bridge._
 - **Are the 3 inferred relationships involving `AppComponent` (e.g. with `AboutComponent` and `HomeComponent`) actually correct?**
   _`AppComponent` has 3 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `$schema`, `version`, `newProjectRoot` to the rest of the system?**
-  _292 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _297 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `App Shell, Routing & Pages` be split into smaller, more focused modules?**
   _Cohesion score 0.10846560846560846 - nodes in this community are weakly interconnected._
