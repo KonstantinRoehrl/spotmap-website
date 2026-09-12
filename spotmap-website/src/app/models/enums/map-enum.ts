@@ -52,3 +52,12 @@ export enum CountryCodeEnum {
   Germany = 'DE',
   Spain = 'ES',
 }
+
+/** Which renderer draws a city's map. The Google embed is being retired city by city. */
+export enum MapRendererEnum {
+  GoogleMyMaps = 'gmaps',
+  MapLibre = 'maplibre',
+}
+
+/** Why a renderer gave up. `unsupported` is unrecoverable, so it must not offer a retry. */
+export type MapFailureReason = 'unreachable' | 'unsupported';

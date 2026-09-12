@@ -5,7 +5,8 @@ import {
   tick,
 } from '@angular/core/testing';
 
-import { CityEnum } from '../../../models/enums/map-enum';
+import { CityEnum, MapFailureReason } from '../../../models/enums/map-enum';
+import { GmapsEmbedComponent } from '../gmaps-embed/gmaps-embed.component';
 import { MapContainerComponent } from './map-container.component';
 
 // Mirror the private timing constants in map-container.component.ts.
@@ -17,6 +18,11 @@ describe('MapContainerComponent', () => {
     await TestBed.configureTestingModule({
       imports: [MapContainerComponent],
     }).compileComponents();
+
+    // The container owns the state machine, not the embed. Blank the renderer's
+    // template so these tests never open a live Google iframe; the embed's own
+    // markup is covered by gmaps-embed.component.spec.ts.
+    TestBed.overrideComponent(GmapsEmbedComponent, { set: { template: '' } });
   });
 
   /** Create + bind the required input. Pass `render` to also run change detection. */
@@ -29,11 +35,21 @@ describe('MapContainerComponent', () => {
     return fixture;
   }
 
-  // The state signals are protected; read them through a cast in tests only.
-  const errorShown = (c: MapContainerComponent) =>
-    (c as unknown as { loadError: () => boolean }).loadError();
+  // The state signals and renderer callbacks are protected; reach them through a
+  // cast in tests only.
+  const failure = (c: MapContainerComponent) =>
+    (
+      c as unknown as { failureReason: () => MapFailureReason | null }
+    ).failureReason();
+  const errorShown = (c: MapContainerComponent) => failure(c) !== null;
   const mapShown = (c: MapContainerComponent) =>
-    (c as unknown as { iframeLoaded: () => boolean }).iframeLoaded();
+    (c as unknown as { mapReady: () => boolean }).mapReady();
+  const rendererReady = (c: MapContainerComponent) =>
+    (c as unknown as { onRendererReady: () => void }).onRendererReady();
+  const rendererFailed = (c: MapContainerComponent, reason: MapFailureReason) =>
+    (
+      c as unknown as { onRendererFailed: (reason: MapFailureReason) => void }
+    ).onRendererFailed(reason);
 
   it('should create', () => {
     const fixture = create(true);
@@ -41,9 +57,9 @@ describe('MapContainerComponent', () => {
     fixture.destroy();
   });
 
-  it('exposes a sanitized url for the selected city', () => {
+  it('renders the google embed for a city configured to use it', () => {
     const fixture = create(true);
-    expect(fixture.componentInstance.safeUrl()).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('app-gmaps-embed')).toBeTruthy();
     fixture.destroy();
   });
 
@@ -53,6 +69,7 @@ describe('MapContainerComponent', () => {
     expect(errorShown(c)).toBe(false);
     tick(LOAD_TIMEOUT_MS);
     expect(errorShown(c)).toBe(true);
+    expect(failure(c)).toBe('unreachable');
     expect(mapShown(c)).toBe(false);
     fixture.destroy();
   }));
@@ -60,7 +77,7 @@ describe('MapContainerComponent', () => {
   it('cancels the unreachable timeout on load, then reveals the map', fakeAsync(() => {
     const fixture = create();
     const c = fixture.componentInstance;
-    c.onIframeLoad();
+    rendererReady(c);
     tick(LOAD_TIMEOUT_MS); // well past both the (cancelled) timeout and the reveal delay
     expect(errorShown(c)).toBe(false);
     expect(mapShown(c)).toBe(true);
@@ -73,8 +90,8 @@ describe('MapContainerComponent', () => {
     // 1. original navigation never loads -> SIGNAL LOST
     tick(LOAD_TIMEOUT_MS);
     expect(errorShown(c)).toBe(true);
-    // 2. the slow original iframe finally fires load, scheduling a reveal...
-    c.onIframeLoad();
+    // 2. the slow original renderer finally reports ready, scheduling a reveal...
+    rendererReady(c);
     // 3. ...but the user hits RETRY within the reveal window
     c.retry();
     expect(errorShown(c)).toBe(false);
@@ -90,7 +107,7 @@ describe('MapContainerComponent', () => {
 
   it('re-arms the loading/error/timeout state machine when the city changes', fakeAsync(() => {
     // Empty template so detectChanges() flushes the city effect without a real
-    // (network-loading) iframe interfering with the virtual clock.
+    // (network-loading) renderer interfering with the virtual clock.
     TestBed.overrideComponent(MapContainerComponent, { set: { template: '' } });
     const fixture = TestBed.createComponent(MapContainerComponent);
     fixture.componentRef.setInput('city', CityEnum.Vienna);
@@ -98,7 +115,7 @@ describe('MapContainerComponent', () => {
     const c = fixture.componentInstance;
 
     // First city loads and reveals.
-    c.onIframeLoad();
+    rendererReady(c);
     tick(REVEAL_DELAY_MS);
     expect(mapShown(c)).toBe(true);
     expect(errorShown(c)).toBe(false);
@@ -120,10 +137,33 @@ describe('MapContainerComponent', () => {
   it('cancels pending timers on destroy', fakeAsync(() => {
     const fixture = create();
     const c = fixture.componentInstance;
-    c.onIframeLoad(); // schedules a reveal
+    rendererReady(c); // schedules a reveal
     fixture.destroy();
     tick(LOAD_TIMEOUT_MS + REVEAL_DELAY_MS); // nothing should fire post-destroy
     expect(errorShown(c)).toBe(false);
     expect(mapShown(c)).toBe(false);
   }));
+
+  it('offers RETRY for an unreachable failure', () => {
+    const fixture = create(true);
+    const c = fixture.componentInstance;
+    rendererFailed(c, 'unreachable');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('SIGNAL LOST');
+    expect(
+      fixture.nativeElement.querySelector('.map-error__retry'),
+    ).toBeTruthy();
+    fixture.destroy();
+  });
+
+  it('withholds RETRY for an unsupported renderer', () => {
+    const fixture = create(true);
+    const c = fixture.componentInstance;
+    rendererFailed(c, 'unsupported');
+    fixture.detectChanges();
+    expect(failure(c)).toBe('unsupported');
+    expect(fixture.nativeElement.textContent).toContain('NO RENDERER');
+    expect(fixture.nativeElement.querySelector('.map-error__retry')).toBeNull();
+    fixture.destroy();
+  });
 });
