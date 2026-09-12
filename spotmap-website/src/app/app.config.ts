@@ -4,6 +4,8 @@ import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
+import { createMapLibreMap } from './modules/components/spot-map/map-factory';
+import { MAP_FACTORY } from './modules/components/spot-map/map-factory.token';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -11,5 +13,6 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideAnimationsAsync(),
     provideHttpClient(),
+    { provide: MAP_FACTORY, useValue: createMapLibreMap },
   ],
 };
