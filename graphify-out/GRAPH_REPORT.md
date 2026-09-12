@@ -1,16 +1,16 @@
 # Graph Report - spotmap-website  (2026-09-12)
 
 ## Corpus Check
-- 73 files · ~271,159 words
+- 80 files · ~280,033 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 516 nodes · 570 edges · 98 communities (27 shown, 71 thin omitted)
+- 531 nodes · 588 edges · 103 communities (30 shown, 73 thin omitted)
 - Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 15 edges (avg confidence: 0.75)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `2935207a`
+- Built from commit: `4d0c8d20`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -109,6 +109,9 @@
 - [[_COMMUNITY_4|4.md]]
 - [[_COMMUNITY_5|5.md]]
 - [[_COMMUNITY_state|state.md]]
+- [[_COMMUNITY_terminal-map-style.ts|terminal-map-style.ts]]
+- [[_COMMUNITY_6|6.md]]
+- [[_COMMUNITY_7|7.md]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `AsciiAnimationTextComponent` - 18 edges
@@ -120,7 +123,7 @@
 7. `Roadmap` - 12 edges
 8. `MapLibre pilot for Vienna — design` - 12 edges
 9. `GlitchTextDirective` - 11 edges
-10. `STAGE 0 — Stabilization (P0)` - 10 edges
+10. `devcycle ledger` - 11 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `HomeComponent` --references--> `Terminal / Phosphor CRT Retro Aesthetic Pattern`  [INFERRED]
@@ -147,11 +150,11 @@
 - **App Root Composition Shell (Nav Bar + Intro Animation)** — spotmap_website_src_app_app_component_appcomponent, spotmap_website_src_app_modules_components_ascii_animation_text_ascii_animation_text_component_asciianimationtextcomponent, spotmap_website_src_app_modules_components_nav_bar_nav_bar_component_navbarcomponent [INFERRED 0.80]
 - **Signal-Driven @if/@for Control Flow Templates** — spotmap_website_src_app_app_component_appcomponent, spotmap_website_src_app_modules_components_map_container_map_container_component_mapcontainercomponent, spotmap_website_src_app_modules_components_nav_bar_nav_bar_component_navbarcomponent [INFERRED 0.70]
 
-## Communities (98 total, 71 thin omitted)
+## Communities (103 total, 73 thin omitted)
 
 ### Community 0 - "App Shell, Routing & Pages"
-Cohesion: 0.09
-Nodes (12): AppComponent, Skippable Intro Animation Pattern, appConfig, routes, Glitch Text Hover Directive (appGlitchText), NavBarComponent, NavBarLink, HostComponent (+4 more)
+Cohesion: 0.11
+Nodes (10): AppComponent, Skippable Intro Animation Pattern, Glitch Text Hover Directive (appGlitchText), NavBarComponent, NavBarLink, HostComponent, StubPageComponent, AboutComponent (+2 more)
 
 ### Community 1 - "Angular Build Config"
 Cohesion: 0.08
@@ -163,7 +166,7 @@ Nodes (27): newProjectRoot, projects, spotmap-website, $schema, schematics, type
 
 ### Community 3 - "Dev Tooling & npm Scripts"
 Cohesion: 0.06
-Nodes (31): devDependencies, @angular/cli, @angular/compiler-cli, @angular-devkit/build-angular, istanbul-lib-instrument, jasmine-core, karma, karma-chrome-launcher (+23 more)
+Nodes (30): dependencies, @angular/animations, @angular/cdk, @angular/common, @angular/compiler, @angular/core, @angular/forms, @angular/material (+22 more)
 
 ### Community 4 - "Loader, Glitch FX & Motion Guard"
 Cohesion: 0.12
@@ -178,8 +181,8 @@ Cohesion: 0.13
 Nodes (15): SUPPORTED_CITIES, MapItem, CityEnum, CountryCodeEnum, CountryEnum, MapFailureReason, MapRendererEnum, SpotCollection (+7 more)
 
 ### Community 9 - "Angular Runtime Dependencies"
-Cohesion: 0.13
-Nodes (15): dependencies, @angular/animations, @angular/cdk, @angular/common, @angular/compiler, @angular/core, @angular/forms, @angular/material (+7 more)
+Cohesion: 0.12
+Nodes (16): devDependencies, @angular/cli, @angular/compiler-cli, @angular-devkit/build-angular, istanbul-lib-instrument, jasmine-core, karma, karma-chrome-launcher (+8 more)
 
 ### Community 12 - "App Icons & Brand Identity"
 Cohesion: 0.83
@@ -234,36 +237,40 @@ Cohesion: 0.10
 Nodes (19): Appendix A — Getting data out of My Maps (tested), Appendix B — Rendering & basemap alternatives, Appendix C — Hosting, the API, and photo uploads, Appendix D — What's genuinely hard, Beyond My Maps — Roadmap, Decision 1 — Confirm the pin taxonomy and My Maps' fate, Decision 2 — Prep for opening submissions, Phase 1 (Devcycle) — Pilot the renderer swap on one city (+11 more)
 
 ### Community 83 - "devcycle ledger"
-Cohesion: 0.20
-Nodes (9): Coordinator ruling — evidence-completeness-check runner-summary regex (cycle-wide), devcycle ledger, Events, Pre-existing working-tree state (NOT this cycle's work — never stage these), Session resume, 2026-09-12T19:22:58Z (/devcycle:continue), Session stop (user request), 2026-09-12T14:09:35Z, Wave 1 closed, 2026-09-12T19:49:07Z, Wave 1 continues — task 4 closed, task 3 now dispatched (batch order per the 13:31 wave-formation ruling) (+1 more)
+Cohesion: 0.17
+Nodes (11): Coordinator ruling — evidence-completeness-check runner-summary regex (cycle-wide), devcycle ledger, Events, Pre-existing working-tree state (NOT this cycle's work — never stage these), Session resume, 2026-09-12T19:22:58Z (/devcycle:continue), Session stop (user request), 2026-09-12T14:09:35Z, Wave 1 closed, 2026-09-12T19:49:07Z, Wave 1 continues — task 4 closed, task 3 now dispatched (batch order per the 13:31 wave-formation ruling) (+3 more)
 
 ### Community 85 - "On-device checklist — MapLibre Vienna pilot"
-Cohesion: 0.40
-Nodes (4): Container / renderer split — no visible change intended (Task 5), On-device checklist — MapLibre Vienna pilot, Photo gallery rendering (Task 4), Spot data on the real map (Task 2)
+Cohesion: 0.29
+Nodes (6): Container / renderer split — no visible change intended (Task 5), On-device checklist — MapLibre Vienna pilot, Photo gallery rendering (Task 4), Real map factory registered (Task 7), Spot data on the real map (Task 2), Terminal basemap style (Task 6)
+
+### Community 86 - "map-factory.ts"
+Cohesion: 0.35
+Nodes (5): appConfig, routes, createMapLibreMap(), MAP_FACTORY, MapFactory
 
 ## Ambiguous Edges - Review These
 - `HomeComponent` → `MapComponent`  [AMBIGUOUS]
   spotmap-website/src/app/modules/pages/home/home.component.html · relation: references
 
 ## Knowledge Gaps
-- **272 isolated node(s):** `$schema`, `version`, `newProjectRoot`, `projectType`, `schematics` (+267 more)
+- **278 isolated node(s):** `$schema`, `version`, `newProjectRoot`, `projectType`, `schematics` (+273 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **71 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **73 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
 - **What is the exact relationship between `HomeComponent` and `MapComponent`?**
   _Edge tagged AMBIGUOUS (relation: references) - confidence is low._
-- **Why does `AppComponent` connect `App Shell, Routing & Pages` to `ASCII Typewriter Engine`, `Map Page & City Data Model`?**
-  _High betweenness centrality (0.016) - this node is a cross-community bridge._
+- **Why does `AppComponent` connect `App Shell, Routing & Pages` to `ASCII Typewriter Engine`, `map-factory.ts`, `Map Page & City Data Model`?**
+  _High betweenness centrality (0.018) - this node is a cross-community bridge._
 - **Why does `AsciiAnimationTextComponent` connect `ASCII Typewriter Engine` to `App Shell, Routing & Pages`, `Loader, Glitch FX & Motion Guard`, `Map Page & City Data Model`?**
-  _High betweenness centrality (0.016) - this node is a cross-community bridge._
+  _High betweenness centrality (0.017) - this node is a cross-community bridge._
 - **Why does `MapComponent` connect `Map Page & City Data Model` to `App Shell, Routing & Pages`, `ASCII Typewriter Engine`, `Map Iframe State Machine`?**
   _High betweenness centrality (0.013) - this node is a cross-community bridge._
 - **Are the 3 inferred relationships involving `AppComponent` (e.g. with `AboutComponent` and `HomeComponent`) actually correct?**
   _`AppComponent` has 3 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `$schema`, `version`, `newProjectRoot` to the rest of the system?**
-  _286 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _292 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `App Shell, Routing & Pages` be split into smaller, more focused modules?**
-  _Cohesion score 0.0928030303030303 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.10846560846560846 - nodes in this community are weakly interconnected._
