@@ -1,10 +1,17 @@
-import { buildTerminalStyle, OPENFREEMAP_GLYPHS, OPENFREEMAP_TILES } from './terminal-map-style';
+import {
+  buildTerminalStyle,
+  OPENFREEMAP_GLYPHS,
+  OPENFREEMAP_TILES,
+} from './terminal-map-style';
 
 describe('buildTerminalStyle', () => {
   const style = buildTerminalStyle();
 
   it('sources vector tiles from OpenFreeMap and declares no sprite', () => {
-    expect(style.sources['openmaptiles']).toEqual({ type: 'vector', url: OPENFREEMAP_TILES });
+    expect(style.sources['openmaptiles']).toEqual({
+      type: 'vector',
+      url: OPENFREEMAP_TILES,
+    });
     expect(style.glyphs).toBe(OPENFREEMAP_GLYPHS);
     expect(style.sprite).toBeUndefined();
   });
@@ -12,7 +19,11 @@ describe('buildTerminalStyle', () => {
   it('paints a true-black ground', () => {
     const background = style.layers.find((l) => l.id === 'background');
     expect(background).toBeDefined();
-    expect((background as { paint: Record<string, unknown> }).paint['background-color']).toBe('#000000');
+    expect(
+      (background as { paint: Record<string, unknown> }).paint[
+        'background-color'
+      ],
+    ).toBe('#000000');
   });
 
   it('uses no white or near-white colour anywhere', () => {
@@ -28,9 +39,18 @@ describe('buildTerminalStyle', () => {
 
   it('draws water, roads, buildings and street labels', () => {
     const sourceLayers = new Set(
-      style.layers.map((l) => (l as { 'source-layer'?: string })['source-layer']).filter(Boolean),
+      style.layers
+        .map((l) => (l as { 'source-layer'?: string })['source-layer'])
+        .filter(Boolean),
     );
-    for (const expected of ['water', 'landuse', 'building', 'transportation', 'transportation_name', 'place']) {
+    for (const expected of [
+      'water',
+      'landuse',
+      'building',
+      'transportation',
+      'transportation_name',
+      'place',
+    ]) {
       expect(sourceLayers).toContain(expected);
     }
   });

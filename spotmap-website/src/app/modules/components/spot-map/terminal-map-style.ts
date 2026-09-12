@@ -1,7 +1,8 @@
 import type { StyleSpecification } from 'maplibre-gl';
 
 export const OPENFREEMAP_TILES = 'https://tiles.openfreemap.org/planet';
-export const OPENFREEMAP_GLYPHS = 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf';
+export const OPENFREEMAP_GLYPHS =
+  'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf';
 
 export const SPOT_SOURCE_ID = 'spots';
 export const SPOT_HIT_LAYER_ID = 'spots-hit';
@@ -55,7 +56,11 @@ export function buildTerminalStyle(): StyleSpecification {
         type: 'fill',
         source: BASEMAP_SOURCE_ID,
         'source-layer': 'landuse',
-        filter: ['in', ['get', 'class'], ['literal', ['park', 'grass', 'wood']]],
+        filter: [
+          'in',
+          ['get', 'class'],
+          ['literal', ['park', 'grass', 'wood']],
+        ],
         paint: { 'fill-color': TERMINAL_PALETTE.surfaceRaised },
       },
       {
@@ -82,7 +87,17 @@ export function buildTerminalStyle(): StyleSpecification {
         'source-layer': 'transportation',
         paint: {
           'line-color': TERMINAL_PALETTE.phosphorDeep,
-          'line-width': ['interpolate', ['linear'], ['zoom'], 10, 0.6, 14, 2, 18, 6],
+          'line-width': [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            10,
+            0.6,
+            14,
+            2,
+            18,
+            6,
+          ],
         },
       },
       {
@@ -93,7 +108,17 @@ export function buildTerminalStyle(): StyleSpecification {
         filter: ['in', ['get', 'class'], ['literal', ['minor', 'service']]],
         paint: {
           'line-color': TERMINAL_PALETTE.phosphorDeep,
-          'line-width': ['interpolate', ['linear'], ['zoom'], 12, 0.3, 14, 0.8, 18, 3],
+          'line-width': [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            12,
+            0.3,
+            14,
+            0.8,
+            18,
+            3,
+          ],
         },
       },
       {
@@ -108,7 +133,19 @@ export function buildTerminalStyle(): StyleSpecification {
         ],
         paint: {
           'line-color': TERMINAL_PALETTE.phosphorDim,
-          'line-width': ['interpolate', ['linear'], ['zoom'], 8, 0.5, 12, 1.2, 16, 3, 18, 5],
+          'line-width': [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            8,
+            0.5,
+            12,
+            1.2,
+            16,
+            3,
+            18,
+            5,
+          ],
         },
       },
       {
