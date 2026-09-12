@@ -20,14 +20,14 @@
     "semantic_hash": "5a70b3d3763f6628c8083d7b033b98b8"
   },
   "spotmap-website/angular.json": {
-    "mtime": 1783580761.6111503,
-    "ast_hash": "80106f9f439f3a3c5de9725f1c6f5a94",
-    "semantic_hash": "80106f9f439f3a3c5de9725f1c6f5a94"
+    "mtime": 1789220389.3637652,
+    "ast_hash": "846daadca4531fc9396391ac8330d610",
+    "semantic_hash": ""
   },
   "spotmap-website/package.json": {
-    "mtime": 1783580761.612935,
-    "ast_hash": "fc5ea75c294f1e788fb9e0bf31e97003",
-    "semantic_hash": "fc5ea75c294f1e788fb9e0bf31e97003"
+    "mtime": 1789220364.0330343,
+    "ast_hash": "7e691cdd19d0aa50a12e78ebbef1e68c",
+    "semantic_hash": ""
   },
   "spotmap-website/src/app/app.component.spec.ts": {
     "mtime": 1783580761.6143868,
@@ -40,9 +40,9 @@
     "semantic_hash": "a8393d2b204cebcce2ab83c6b08b254d"
   },
   "spotmap-website/src/app/app.config.ts": {
-    "mtime": 1783580761.6148195,
-    "ast_hash": "7704ca212be182fcd7f2db8b7ebda539",
-    "semantic_hash": "7704ca212be182fcd7f2db8b7ebda539"
+    "mtime": 1789241356.5495334,
+    "ast_hash": "2fb8e163cb85658962c5806fe520bad0",
+    "semantic_hash": ""
   },
   "spotmap-website/src/app/app.routes.ts": {
     "mtime": 1783580761.614968,
@@ -50,19 +50,19 @@
     "semantic_hash": "34fc46c9ae698b67c3e0018868aa6bbd"
   },
   "spotmap-website/src/app/models/enums/config.ts": {
-    "mtime": 1783580761.615304,
-    "ast_hash": "bd32ffa6f9322c64cb35f11b89c6aafc",
-    "semantic_hash": "bd32ffa6f9322c64cb35f11b89c6aafc"
+    "mtime": 1789241857.643938,
+    "ast_hash": "528bd74bdb4dd07eb931ab66e092c4fd",
+    "semantic_hash": ""
   },
   "spotmap-website/src/app/models/enums/interfaces/map-item-interface.ts": {
-    "mtime": 1783580761.6155617,
-    "ast_hash": "5eb7b1a63b7e05b4f7a166b440f8ccd6",
-    "semantic_hash": "5eb7b1a63b7e05b4f7a166b440f8ccd6"
+    "mtime": 1789241857.6434016,
+    "ast_hash": "a7310d7f9aa850ff3c3e04dcecebeacf",
+    "semantic_hash": ""
   },
   "spotmap-website/src/app/models/enums/map-enum.ts": {
-    "mtime": 1783580761.6157265,
-    "ast_hash": "da342227314190b2088f684f1c665213",
-    "semantic_hash": "da342227314190b2088f684f1c665213"
+    "mtime": 1789241857.6432567,
+    "ast_hash": "aeaaaea636b480eeb4f9e43c9ed37980",
+    "semantic_hash": ""
   },
   "spotmap-website/src/app/modules/components/ascii-animation-text/ascii-animation-text.component.spec.ts": {
     "mtime": 1783580761.616574,
@@ -85,14 +85,14 @@
     "semantic_hash": "567072a4e13d2b03844962f1797bd6ba"
   },
   "spotmap-website/src/app/modules/components/map-container/map-container.component.spec.ts": {
-    "mtime": 1783580761.6189215,
-    "ast_hash": "73e95fdc0a9dedaa512366d3af028198",
-    "semantic_hash": "73e95fdc0a9dedaa512366d3af028198"
+    "mtime": 1789241968.0079708,
+    "ast_hash": "42a94cec806f1ec4d83348b966e5b2de",
+    "semantic_hash": ""
   },
   "spotmap-website/src/app/modules/components/map-container/map-container.component.ts": {
-    "mtime": 1783580761.6191459,
-    "ast_hash": "07e7d9ae1e0d7ef8d0d667ae9fe6b2c9",
-    "semantic_hash": "07e7d9ae1e0d7ef8d0d667ae9fe6b2c9"
+    "mtime": 1789241910.6375175,
+    "ast_hash": "89a0e7d6c86ebb80c38b185eab261b61",
+    "semantic_hash": ""
   },
   "spotmap-website/src/app/modules/components/nav-bar/nav-bar.component.spec.ts": {
     "mtime": 1783580761.6199214,
@@ -170,9 +170,9 @@
     "semantic_hash": "ca9db05584071e35b6fbf01c5bde5f9c"
   },
   ".github/workflows/deploy-angular.yml": {
-    "mtime": 1783425252.4806943,
-    "ast_hash": "ba86b8fdab75d7a132fb19994971f49f",
-    "semantic_hash": "ba86b8fdab75d7a132fb19994971f49f"
+    "mtime": 1783602605.102584,
+    "ast_hash": "6e8955bd6a153964976117c70fc83b8a",
+    "semantic_hash": ""
   },
   "DESIGN.md": {
     "mtime": 1783498849.2404494,
@@ -245,9 +245,9 @@
     "semantic_hash": "a5e99450c23ab7213c03b210f7965af9"
   },
   "spotmap-website/src/app/modules/components/map-container/map-container.component.html": {
-    "mtime": 1783580761.618704,
-    "ast_hash": "183f84e04ff4bc8ce74f2d443e6c62a4",
-    "semantic_hash": "183f84e04ff4bc8ce74f2d443e6c62a4"
+    "mtime": 1789241967.9674547,
+    "ast_hash": "c6b4d7e7530d6c740815fb791523962b",
+    "semantic_hash": ""
   },
   "spotmap-website/src/app/modules/components/nav-bar/nav-bar.component.html": {
     "mtime": 1783580761.6196249,
@@ -288,5 +288,315 @@
     "mtime": 1783425252.4925416,
     "ast_hash": "337969341fd0d279928e30c7f6fa3e3a",
     "semantic_hash": "337969341fd0d279928e30c7f6fa3e3a"
+  },
+  "CLAUDE.md": {
+    "mtime": 1783600380.3022046,
+    "ast_hash": "60d5774113bf9b2184e0821476f5f2d2",
+    "semantic_hash": ""
+  },
+  ".devcycle/workload-cursor.json": {
+    "mtime": 1789242495.4219818,
+    "ast_hash": "de4873cacb64791e0a388529dd4f17f4",
+    "semantic_hash": ""
+  },
+  "spotmap-website/src/app/models/spots/spot.ts": {
+    "mtime": 1789220493.025825,
+    "ast_hash": "16c3484988000afc327e829219effbd3",
+    "semantic_hash": ""
+  },
+  "spotmap-website/src/app/models/spots/vienna-spots.spec.ts": {
+    "mtime": 1789220955.0316732,
+    "ast_hash": "197d7297308b311d236a61219324a37b",
+    "semantic_hash": ""
+  },
+  "spotmap-website/src/app/modules/components/gmaps-embed/gmaps-embed.component.spec.ts": {
+    "mtime": 1789241882.652803,
+    "ast_hash": "a27cc41612099fea1b7d4a6537fe5bfb",
+    "semantic_hash": ""
+  },
+  "spotmap-website/src/app/modules/components/gmaps-embed/gmaps-embed.component.ts": {
+    "mtime": 1789241869.4547923,
+    "ast_hash": "3257b1774ce854cea99d2e6eae11c6cd",
+    "semantic_hash": ""
+  },
+  "spotmap-website/src/app/modules/components/spot-map/map-factory.token.ts": {
+    "mtime": 1789220397.58053,
+    "ast_hash": "a6e44ae45396350286429cc9720ef9bb",
+    "semantic_hash": ""
+  },
+  "spotmap-website/src/app/modules/components/spot-map/map-factory.ts": {
+    "mtime": 1789220401.341101,
+    "ast_hash": "ab7bdadec32a3f782979129a0bcf613f",
+    "semantic_hash": ""
+  },
+  "spotmap-website/src/app/modules/components/spot-photo-gallery/spot-photo-gallery.component.spec.ts": {
+    "mtime": 1789220629.9377172,
+    "ast_hash": "73dd059b2e88f72b8ae711b64bcf3c06",
+    "semantic_hash": ""
+  },
+  "spotmap-website/src/app/modules/components/spot-photo-gallery/spot-photo-gallery.component.ts": {
+    "mtime": 1789220832.800112,
+    "ast_hash": "02678c885b91775c0553e9554fcfbe46",
+    "semantic_hash": ""
+  },
+  "spotmap-website/src/app/services/spots.service.spec.ts": {
+    "mtime": 1789241373.0878568,
+    "ast_hash": "9e6b824014addc0971a47d4c4ed53efe",
+    "semantic_hash": ""
+  },
+  "spotmap-website/src/app/services/spots.service.ts": {
+    "mtime": 1789241348.95636,
+    "ast_hash": "747f6f0b85922ea10d19f88251a42700",
+    "semantic_hash": ""
+  },
+  ".devcycle/evidence/1-after.txt": {
+    "mtime": 1789220412.0233102,
+    "ast_hash": "b61dcdf68e88909f2a5c87f490f12679",
+    "semantic_hash": ""
+  },
+  ".devcycle/evidence/1-before.txt": {
+    "mtime": 1789220339.1390083,
+    "ast_hash": "5add2837801d81d24c5a29677a5f80d0",
+    "semantic_hash": ""
+  },
+  ".devcycle/evidence/2-after.txt": {
+    "mtime": 1789220970.1569257,
+    "ast_hash": "f69fe5607f8e193cee026e6ddd5face6",
+    "semantic_hash": ""
+  },
+  ".devcycle/evidence/2-before.txt": {
+    "mtime": 1789220507.0001333,
+    "ast_hash": "c91d66919f5b09728a9dbf26b58e6176",
+    "semantic_hash": ""
+  },
+  ".devcycle/evidence/3-after.txt": {
+    "mtime": 1789241385.4084299,
+    "ast_hash": "6bc1b58d77521caf58939bc7106ae297",
+    "semantic_hash": ""
+  },
+  ".devcycle/evidence/3-before.txt": {
+    "mtime": 1789241298.9181294,
+    "ast_hash": "4b085322ac6a0f46897f8f1067d78fc2",
+    "semantic_hash": ""
+  },
+  ".devcycle/evidence/3-red.txt": {
+    "mtime": 1789241335.545446,
+    "ast_hash": "766cd79672106060bfd4abf5ae76b599",
+    "semantic_hash": ""
+  },
+  ".devcycle/evidence/4-after.txt": {
+    "mtime": 1789221791.9651787,
+    "ast_hash": "23062a045980b880d4b7f8f2988702d5",
+    "semantic_hash": ""
+  },
+  ".devcycle/evidence/4-before.txt": {
+    "mtime": 1789220501.7759042,
+    "ast_hash": "a1976fd5f28287bc4f62cf8637eec91b",
+    "semantic_hash": ""
+  },
+  ".devcycle/evidence/5-after.txt": {
+    "mtime": 1789241995.568476,
+    "ast_hash": "558853427620dda45ad241f3f3bc4a3d",
+    "semantic_hash": ""
+  },
+  ".devcycle/evidence/5-before.txt": {
+    "mtime": 1789241724.149313,
+    "ast_hash": "67f2ae7eef381a0c23878434f737cf87",
+    "semantic_hash": ""
+  },
+  ".devcycle/findings/1-round-1.md": {
+    "mtime": 1789220987.1116648,
+    "ast_hash": "037da47791d9e76e91fe8dfda8912ac1",
+    "semantic_hash": ""
+  },
+  ".devcycle/findings/2-round-1.md": {
+    "mtime": 1789221641.2674627,
+    "ast_hash": "f21ab7769643283560372e4214d29e6f",
+    "semantic_hash": ""
+  },
+  ".devcycle/findings/3-round-1.md": {
+    "mtime": 1789241624.7151763,
+    "ast_hash": "d9b30d5374d99bbfaeaef8991ba82408",
+    "semantic_hash": ""
+  },
+  ".devcycle/findings/4-round-1.md": {
+    "mtime": 1789241133.9508154,
+    "ast_hash": "26ff31b3196dd8b33b9231bcf8f4faa4",
+    "semantic_hash": ""
+  },
+  ".devcycle/findings/5-round-1.md": {
+    "mtime": 1789242467.9437597,
+    "ast_hash": "e52b7212a2c62c3248ce8f8bab81936f",
+    "semantic_hash": ""
+  },
+  ".devcycle/ledger.md": {
+    "mtime": 1789242547.3349879,
+    "ast_hash": "c8dd2560912eaad477599d0f29f6c913",
+    "semantic_hash": ""
+  },
+  ".devcycle/reports/1.md": {
+    "mtime": 1789220532.280451,
+    "ast_hash": "575f9ebd6af62b512b5c4f979d3b03c8",
+    "semantic_hash": ""
+  },
+  ".devcycle/reports/2.md": {
+    "mtime": 1789221184.540979,
+    "ast_hash": "5a17f43c80c34775734618b424ce17a9",
+    "semantic_hash": ""
+  },
+  ".devcycle/reports/3.md": {
+    "mtime": 1789241473.9584026,
+    "ast_hash": "9132e8a787445b69fafca5b9f5288ce2",
+    "semantic_hash": ""
+  },
+  ".devcycle/reports/4.md": {
+    "mtime": 1789221863.4633195,
+    "ast_hash": "e53ddf073855de539cd20ba9d469ca61",
+    "semantic_hash": ""
+  },
+  ".devcycle/reports/5.md": {
+    "mtime": 1789242103.8049417,
+    "ast_hash": "cf230a92836c36f3c23f493ab02a391c",
+    "semantic_hash": ""
+  },
+  ".devcycle/state.md": {
+    "mtime": 1789242547.2846866,
+    "ast_hash": "25758223c36b00f79c2ea7f0effa529b",
+    "semantic_hash": ""
+  },
+  "docs/maplibre-vienna-pilot/on-device-checklist.md": {
+    "mtime": 1789242200.4877224,
+    "ast_hash": "78afd848e0cb9ebf92e2e5fa0e9e64bf",
+    "semantic_hash": ""
+  },
+  "docs/superpowers/plans/2026-09-12-maplibre-vienna-pilot-plan.md": {
+    "mtime": 1789220154.305311,
+    "ast_hash": "2311b84e9b1fd9177378c85ccd640dd5",
+    "semantic_hash": ""
+  },
+  "docs/superpowers/specs/2026-09-12-beyond-my-maps-roadmap.md": {
+    "mtime": 1789217404.219334,
+    "ast_hash": "a0d7c5c6f71e209e7d4d99325e6410a4",
+    "semantic_hash": ""
+  },
+  "docs/superpowers/specs/2026-09-12-maplibre-vienna-pilot-design.md": {
+    "mtime": 1789219281.7213218,
+    "ast_hash": "c20120ec47a2716eb0da3fbeb3179d66",
+    "semantic_hash": ""
+  },
+  "spotmap-website/src/app/modules/components/gmaps-embed/gmaps-embed.component.html": {
+    "mtime": 1789241869.4569023,
+    "ast_hash": "9c47b94047ebb6b6abc41bba1b0a5e6c",
+    "semantic_hash": ""
+  },
+  "spotmap-website/src/app/modules/components/spot-photo-gallery/spot-photo-gallery.component.html": {
+    "mtime": 1789220629.925525,
+    "ast_hash": "496be2066f27f304e8e9ffc3be32bc0c",
+    "semantic_hash": ""
+  },
+  "spotmap-website/public/spots/vienna/15-stair-rail-1.webp": {
+    "mtime": 1789220859.328836,
+    "ast_hash": "83c825d71b806aef2d1fdd877e51bbbd",
+    "semantic_hash": ""
+  },
+  "spotmap-website/public/spots/vienna/donaupark-1.webp": {
+    "mtime": 1789220634.7987335,
+    "ast_hash": "b5cd15651309326a2ab0b9004607b79f",
+    "semantic_hash": ""
+  },
+  "spotmap-website/public/spots/vienna/donaupark-2.webp": {
+    "mtime": 1789220639.4938452,
+    "ast_hash": "adabbd72bebdc62ceaf57701cfa25700",
+    "semantic_hash": ""
+  },
+  "spotmap-website/public/spots/vienna/donaupark-3.webp": {
+    "mtime": 1789220642.7693756,
+    "ast_hash": "1e3c956d13a60605a5505dede8486db4",
+    "semantic_hash": ""
+  },
+  "spotmap-website/public/spots/vienna/donaupark-4.webp": {
+    "mtime": 1789220645.6542993,
+    "ast_hash": "3be978b434efd433314b4d5778404d51",
+    "semantic_hash": ""
+  },
+  "spotmap-website/public/spots/vienna/donaupark-5.webp": {
+    "mtime": 1789220649.9915726,
+    "ast_hash": "6feed4a32bd8858dc8676011ca72342d",
+    "semantic_hash": ""
+  },
+  "spotmap-website/public/spots/vienna/donaupark-6.webp": {
+    "mtime": 1789220654.4426188,
+    "ast_hash": "3d4f5b594250e03f9efdade29f808e72",
+    "semantic_hash": ""
+  },
+  "spotmap-website/public/spots/vienna/donaupark-7.webp": {
+    "mtime": 1789220656.6442142,
+    "ast_hash": "885d579a0b0869f64068bc0963094844",
+    "semantic_hash": ""
+  },
+  "spotmap-website/public/spots/vienna/huetteldorfer-rail-r-i-p-1.webp": {
+    "mtime": 1789220761.856966,
+    "ast_hash": "75cccfdb1de0e69445b9e41a4d22d568",
+    "semantic_hash": ""
+  },
+  "spotmap-website/public/spots/vienna/manny-pad-1.webp": {
+    "mtime": 1789220794.2327542,
+    "ast_hash": "85740d125b1ae2119b2296e1c936f910",
+    "semantic_hash": ""
+  },
+  "spotmap-website/public/spots/vienna/oberdoebling-dropledges-1.webp": {
+    "mtime": 1789220866.3300498,
+    "ast_hash": "209d22574dcfbda108e4b09672725534",
+    "semantic_hash": ""
+  },
+  "spotmap-website/public/spots/vienna/r-i-p-seestadt-wood-curbs-1.webp": {
+    "mtime": 1789220736.9735844,
+    "ast_hash": "0e0cd578ae0416ca900b5c6011ad6486",
+    "semantic_hash": ""
+  },
+  "spotmap-website/public/spots/vienna/r-i-p-stadtpark-8-stair-1.webp": {
+    "mtime": 1789220766.7859285,
+    "ast_hash": "ab03e8c47407f3b0a9f40cb53047b433",
+    "semantic_hash": ""
+  },
+  "spotmap-website/public/spots/vienna/schuhmeierplatz-1.webp": {
+    "mtime": 1789220661.2239313,
+    "ast_hash": "c582009b7eaab9228360f0e73eec1ab7",
+    "semantic_hash": ""
+  },
+  "spotmap-website/public/spots/vienna/schuhmeierplatz-2.webp": {
+    "mtime": 1789220676.0957088,
+    "ast_hash": "39c158d31f982ffa7e9984d4d31092c5",
+    "semantic_hash": ""
+  },
+  "spotmap-website/public/spots/vienna/schuhmeierplatz-3.webp": {
+    "mtime": 1789220701.7886374,
+    "ast_hash": "9d033e6ac4c8460571a1cb4ba4663fd7",
+    "semantic_hash": ""
+  },
+  "spotmap-website/public/spots/vienna/schuhmeierplatz-4.webp": {
+    "mtime": 1789220726.364242,
+    "ast_hash": "f2c282a06f04b08789491032a47769ea",
+    "semantic_hash": ""
+  },
+  "spotmap-website/public/spots/vienna/simmeringer-bad-1.webp": {
+    "mtime": 1789220810.3330774,
+    "ast_hash": "03701219dfac11508410559cf48fc998",
+    "semantic_hash": ""
+  },
+  "spotmap-website/public/spots/vienna/stollgasse-1.webp": {
+    "mtime": 1789220776.5074308,
+    "ast_hash": "f5f91e4f912ba560bad1f3b8cd2fd59f",
+    "semantic_hash": ""
+  },
+  "spotmap-website/public/spots/vienna/wallenberg-1.webp": {
+    "mtime": 1789220853.2032998,
+    "ast_hash": "b35101b191d3423d31867090828a5f08",
+    "semantic_hash": ""
+  },
+  "spotmap-website/public/spots/vienna/wienerberg-curb-r-i-p-1.webp": {
+    "mtime": 1789220770.7189527,
+    "ast_hash": "876858b27ec6dda88a49012069dbfcda",
+    "semantic_hash": ""
   }
 }
