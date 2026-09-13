@@ -381,3 +381,35 @@ above was unreachable on a real device. Confirm the map paints at all, then walk
 - [ ] The About page reads true: Vienna's map is the site's own, the other cities still run on the
       Google embed, and the voice still sounds like the rest of the page.
       Where: About page  ·  How to get there: `ⓘ About` from the nav
+## Branch review fixes (round 2)
+
+A second review round re-checked the first round's fixes and found more. These items cover what
+changed as a result: the directions link no longer replaces the archive, tunnels of every class
+came off the basemap while elevated transit went back on, and the no-renderer message was
+rewritten for people who do not know what WebGL is.
+
+- [ ] After the first deploy with these changes, the live Pages site loads its map with no
+      `maplibre-gl-worker.mjs` 404 in the network log. The build guard proves the file is
+      emitted next to the chunk that asks for it; only the deployed site proves it is delivered
+      under the `/spotmap-website/` base path.
+      Where: the deployed site  ·  How to get there: open the Pages URL on the phone with the
+      network log recording
+- [ ] The `> NO RENDERER // THIS BROWSER IS TOO OLD FOR THIS MAP` line does not wrap badly on a
+      narrow phone — it is 52 characters against the 31 of `> SIGNAL LOST // MAP UNREACHABLE`,
+      so it is the longest phosphor message the failure surfaces carry.
+      Where: Vienna city page  ·  How to get there: disable WebGL 2 in the browser's flags,
+      reload, look at it in portrait on the narrowest phone available
+- [ ] `> DIRECTIONS` leaves the archive standing: on an iPhone whose maps app is Apple Maps, and
+      on an Android without Google Maps, the map, its open popup and the amber selection ring
+      are all still there when you come back. On a phone that does have Google Maps, the app
+      still opens. On iOS Safari specifically, check the new tab is not suppressed as a pop-up.
+      Where: spot popup  ·  How to get there: tap a pin, then `> DIRECTIONS`, on each device
+- [ ] Vienna's elevated U6 viaduct reads as dashed track along the Gürtel, and the U4 along the
+      Wienfluss likewise — landmarks to navigate by rather than noise. Road tunnels now stop at
+      the portal, so check the A23 and the Kaisermühlentunnel still read as a navigable network,
+      and that no underpass a skater actually rolls through went missing with them.
+      Where: Vienna city page  ·  How to get there: pan along the Gürtel at z13 and above, then
+      out to the A23
+- [ ] The About credits block reads right with three prompt lines where it had two — its rhythm
+      against the neighbouring blocks is a look call the suite cannot make.
+      Where: About page  ·  How to get there: `ⓘ About` from the nav, scroll to CREDITS
