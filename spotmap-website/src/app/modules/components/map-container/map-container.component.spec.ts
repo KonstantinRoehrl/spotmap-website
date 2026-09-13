@@ -199,7 +199,7 @@ describe('MapContainerComponent', () => {
     // for, has WebGL 1 and would be told something false. It says what the reader can act on
     // instead of a version number they cannot.
     expect(fixture.nativeElement.textContent).toContain(
-      '> NO RENDERER // THIS BROWSER IS TOO OLD FOR THIS MAP',
+      '> NO RENDERER // THIS BROWSER CANNOT DRAW THE MAP',
     );
     expect(fixture.nativeElement.querySelector('.map-error__retry')).toBeNull();
     fixture.destroy();

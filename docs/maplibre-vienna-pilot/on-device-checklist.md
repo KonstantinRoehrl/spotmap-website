@@ -394,8 +394,8 @@ rewritten for people who do not know what WebGL is.
       under the `/spotmap-website/` base path.
       Where: the deployed site  ·  How to get there: open the Pages URL on the phone with the
       network log recording
-- [ ] The `> NO RENDERER // THIS BROWSER IS TOO OLD FOR THIS MAP` line does not wrap badly on a
-      narrow phone — it is 52 characters against the 31 of `> SIGNAL LOST // MAP UNREACHABLE`,
+- [ ] The `> NO RENDERER // THIS BROWSER CANNOT DRAW THE MAP` line does not wrap badly on a
+      narrow phone — it is 48 characters against the 31 of `> SIGNAL LOST // MAP UNREACHABLE`,
       so it is the longest phosphor message the failure surfaces carry.
       Where: Vienna city page  ·  How to get there: disable WebGL 2 in the browser's flags,
       reload, look at it in portrait on the narrowest phone available
