@@ -74,6 +74,15 @@ describe('SpotPopupComponent', () => {
     );
   });
 
+  it('leaves the demolished line unlit, with none of the glow the name carries', () => {
+    // text-shadow inherits, and styles.css puts the resting glow on every div — so a rule that
+    // only sets a colour still paints this line with the bloom it is supposed to have dropped.
+    const status = create(spot({ status: 'demolished' })).querySelector(
+      '.spot-popup__status',
+    )!;
+    expect(getComputedStyle(status).textShadow).toBe('none');
+  });
+
   it('recedes the demolished line the way a ghosted pin recedes', () => {
     const status = create(spot({ status: 'demolished' })).querySelector(
       '.spot-popup__status',

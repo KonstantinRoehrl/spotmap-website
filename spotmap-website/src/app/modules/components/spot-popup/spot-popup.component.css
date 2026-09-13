@@ -27,6 +27,8 @@
   font-size: 0.75rem;
   letter-spacing: 0.08em;
   color: var(--color-phosphor-dim);
+  /* Inherited from the popup's own div, so dropping the bloom takes saying so. */
+  text-shadow: none;
 }
 
 .spot-popup__directions {
