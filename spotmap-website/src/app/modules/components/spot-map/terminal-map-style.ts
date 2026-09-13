@@ -52,15 +52,13 @@ export function buildTerminalStyle(): StyleSpecification {
         paint: { 'fill-color': TERMINAL_PALETTE.surface },
       },
       {
-        id: 'landuse',
+        // Parks, woods and grass live in `landcover`, not `landuse` (which is the built
+        // environment): OpenMapTiles files park, garden and meadow under class `grass`.
+        id: 'landcover',
         type: 'fill',
         source: BASEMAP_SOURCE_ID,
-        'source-layer': 'landuse',
-        filter: [
-          'in',
-          ['get', 'class'],
-          ['literal', ['park', 'grass', 'wood']],
-        ],
+        'source-layer': 'landcover',
+        filter: ['in', ['get', 'class'], ['literal', ['grass', 'wood']]],
         paint: { 'fill-color': TERMINAL_PALETTE.surfaceRaised },
       },
       {
