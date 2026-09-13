@@ -31,13 +31,14 @@ export class SpotPopupComponent {
   );
 
   /**
-   * A `geo:` URI, so the phone opens whichever maps app the user actually has instead of a
-   * hosted map. The `q=` pair is what navigates; the name in parentheses is the label that app
-   * shows for the destination.
+   * A Google Maps URL rather than a `geo:` URI: iOS registers no handler for `geo:`, so that
+   * link was dead in Safari. This form hands off to the maps app on both phones that have it
+   * and falls back to the maps site where they don't. The destination stays coordinates — the
+   * spot's name would be geocoded to whatever it matches, which is not where the spot is.
    */
   protected readonly directionsHref = computed(() => {
     const [lng, lat] = this.spot().geometry.coordinates;
-    const label = encodeURIComponent(this.properties().name);
-    return `geo:${lat},${lng}?q=${lat},${lng}(${label})`;
+    const destination = encodeURIComponent(`${lat},${lng}`);
+    return `https://www.google.com/maps/dir/?api=1&destination=${destination}`;
   });
 }

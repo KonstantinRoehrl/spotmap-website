@@ -18,12 +18,13 @@
   text-shadow: var(--glow-text-rest);
 }
 
+/* Dim and unlit, the text form of the ghosted pin: on the record, but gone. Amber belongs to the
+   selection ring alone, so no screen carries it in two roles at once. */
 .spot-popup__status {
   margin: 0;
   font-size: 0.75rem;
   letter-spacing: 0.08em;
-  color: var(--color-amber);
-  text-shadow: var(--glow-text-amber);
+  color: var(--color-phosphor-dim);
 }
 
 .spot-popup__directions {

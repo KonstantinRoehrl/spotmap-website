@@ -19,6 +19,19 @@ function spot(overrides: Partial<SpotProperties> = {}): SpotFeature {
   };
 }
 
+/**
+ * What the browser actually paints for a design token, so a colour assertion compares rendered
+ * output instead of the stylesheet's text.
+ */
+function painted(property: 'color' | 'text-shadow', token: string): string {
+  const probe = document.createElement('span');
+  probe.style.setProperty(property, token);
+  document.body.appendChild(probe);
+  const value = getComputedStyle(probe).getPropertyValue(property);
+  probe.remove();
+  return value;
+}
+
 describe('SpotPopupComponent', () => {
   let fixture: ComponentFixture<SpotPopupComponent>;
 
@@ -50,14 +63,39 @@ describe('SpotPopupComponent', () => {
     );
   });
 
+  it('leaves amber to the selection ring instead of the demolished line', () => {
+    const status = create(spot({ status: 'demolished' })).querySelector(
+      '.spot-popup__status',
+    )!;
+    const style = getComputedStyle(status);
+    expect(style.color).not.toBe(painted('color', 'var(--color-amber)'));
+    expect(style.textShadow).not.toBe(
+      painted('text-shadow', 'var(--glow-text-amber)'),
+    );
+  });
+
+  it('recedes the demolished line the way a ghosted pin recedes', () => {
+    const status = create(spot({ status: 'demolished' })).querySelector(
+      '.spot-popup__status',
+    )!;
+    expect(getComputedStyle(status).color).toBe(
+      painted('color', 'var(--color-phosphor-dim)'),
+    );
+  });
+
   it('leaves a standing spot unmarked', () => {
     expect(create(spot()).textContent).not.toContain('DEMOLISHED');
   });
 
-  it('links to the coordinates with a geo URI any maps app can take', () => {
+  it('links to the coordinates through a maps URL, not a scheme iOS cannot open', () => {
+    const href = create(spot()).querySelector('a')?.getAttribute('href') ?? '';
+    expect(href.startsWith('https://')).toBeTrue();
+  });
+
+  it('points the maps URL at the spot coordinates', () => {
     const link = create(spot({ name: 'Hbf Curb' })).querySelector('a');
     expect(link?.getAttribute('href')).toBe(
-      'geo:48.2397385,16.4169023?q=48.2397385,16.4169023(Hbf%20Curb)',
+      'https://www.google.com/maps/dir/?api=1&destination=48.2397385%2C16.4169023',
     );
   });
 
