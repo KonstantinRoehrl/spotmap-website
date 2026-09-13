@@ -25,9 +25,9 @@
     "semantic_hash": "87fd1d0b09aadac41ab74f27001b53da"
   },
   "spotmap-website/package.json": {
-    "mtime": 1789294271.0417793,
-    "ast_hash": "e26173d810515d7a63a20a5fe326a185",
-    "semantic_hash": "e26173d810515d7a63a20a5fe326a185"
+    "mtime": 1789312692.4588404,
+    "ast_hash": "163faee97e3b88efb7bfdc38804c3529",
+    "semantic_hash": ""
   },
   "spotmap-website/src/app/app.component.spec.ts": {
     "mtime": 1783580761.6143868,
@@ -175,9 +175,9 @@
     "semantic_hash": "6e8955bd6a153964976117c70fc83b8a"
   },
   "DESIGN.md": {
-    "mtime": 1789296583.518875,
-    "ast_hash": "98cb46abad3539772882e1e9d69fcb40",
-    "semantic_hash": "98cb46abad3539772882e1e9d69fcb40"
+    "mtime": 1789312079.9578013,
+    "ast_hash": "09cde946a14f6060e6070d57159ce5f5",
+    "semantic_hash": ""
   },
   "PRODUCT.md": {
     "mtime": 1789286309.9684315,
@@ -190,9 +190,9 @@
     "semantic_hash": "f70c2be7083c2c093e155b1e2e0e5b74"
   },
   "spotmap-website/README.md": {
-    "mtime": 1783580761.6108873,
-    "ast_hash": "0b9a0a0f019ba7c5a3d019378c0b5a39",
-    "semantic_hash": "0b9a0a0f019ba7c5a3d019378c0b5a39"
+    "mtime": 1789312679.078516,
+    "ast_hash": "f05ee8ea35b8aa35f7829c174ebb2725",
+    "semantic_hash": ""
   },
   "spotmap-website/src/app/app.component.html": {
     "mtime": 1783580761.6142,
@@ -310,9 +310,9 @@
     "semantic_hash": "747f6f0b85922ea10d19f88251a42700"
   },
   "docs/maplibre-vienna-pilot/on-device-checklist.md": {
-    "mtime": 1789296583.5184875,
-    "ast_hash": "00983dddd9591c3c8a876430536827b8",
-    "semantic_hash": "00983dddd9591c3c8a876430536827b8"
+    "mtime": 1789312098.5218527,
+    "ast_hash": "7a82957a5907cf472359410c559d0484",
+    "semantic_hash": ""
   },
   "spotmap-website/src/app/modules/components/gmaps-embed/gmaps-embed.component.html": {
     "mtime": 1789241869.4569023,
@@ -355,9 +355,9 @@
     "semantic_hash": "926c524f4414c40ae3a09b58662f6e55"
   },
   "spotmap-website/src/app/modules/components/spot-popup/spot-popup.component.spec.ts": {
-    "mtime": 1789293216.8430336,
-    "ast_hash": "dbf9cb6fb26c596767d1914ee8b5cc56",
-    "semantic_hash": "dbf9cb6fb26c596767d1914ee8b5cc56"
+    "mtime": 1789311784.1377196,
+    "ast_hash": "a0b38bf5b247c1950efa23875e070117",
+    "semantic_hash": ""
   },
   "spotmap-website/src/app/modules/components/spot-popup/spot-popup.component.ts": {
     "mtime": 1789293242.9068165,
@@ -388,5 +388,20 @@
     "mtime": 1789294231.9280279,
     "ast_hash": "bc8a7b84c0376ed6ce90bf07e5edfe00",
     "semantic_hash": "bc8a7b84c0376ed6ce90bf07e5edfe00"
+  },
+  "spotmap-website/tools/verify-css-asset-urls.mjs": {
+    "mtime": 1789312685.5712411,
+    "ast_hash": "6afda773fda0a4ad3a33a9da9e6aabf0",
+    "semantic_hash": ""
+  },
+  "spotmap-website/tools/verify-css-asset-urls.test.mjs": {
+    "mtime": 1789311887.4991956,
+    "ast_hash": "d4235d6544c587ead49014148f45b57d",
+    "semantic_hash": ""
+  },
+  "docs/maplibre-vienna-pilot/on-device-results.md": {
+    "mtime": 1789311677.9759066,
+    "ast_hash": "c97663e027335dadc56ab080b3c86630",
+    "semantic_hash": ""
   }
 }
