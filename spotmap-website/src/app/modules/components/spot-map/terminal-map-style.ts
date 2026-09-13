@@ -1,4 +1,8 @@
-import type { StyleSpecification } from 'maplibre-gl';
+import type {
+  ExpressionSpecification,
+  LineLayerSpecification,
+  StyleSpecification,
+} from 'maplibre-gl';
 
 export const OPENFREEMAP_TILES = 'https://tiles.openfreemap.org/planet';
 export const OPENFREEMAP_GLYPHS =
@@ -29,6 +33,135 @@ export const TERMINAL_PALETTE = {
   phosphorDeep: '#005a00', // --color-phosphor-deep
   amber: '#ffb000', // --color-amber
 } as const;
+
+/** The zoom stops every road tier's width ramp runs through. */
+const ROAD_ZOOMS = [10, 12, 14, 16, 18];
+
+interface RoadTier {
+  readonly id: string;
+  /** `transportation.class` values, as OpenFreeMap serves them (decode table in the spec). */
+  readonly classes: readonly string[];
+  readonly color: string;
+  /**
+   * Over the true-black ground, opacity is a brightness step — and the palette holds only two
+   * greens below the phosphor the spot pins own, which is fewer than the ranking needs.
+   */
+  readonly opacity: number;
+  /** Stroke width in px, one per ROAD_ZOOMS stop. */
+  readonly widths: readonly number[];
+  readonly minzoom?: number;
+}
+
+/**
+ * The road ranking, brightest and widest first: motorway and trunk carry the city, service
+ * roads and tracks barely register, and every road class the Vienna tiles serve lands in
+ * exactly one tier. Whatever the tiles carry that is not a road — footways, piers, rails,
+ * bridge decks, unbuilt roads — is drawn by its own layer below, or not at all.
+ */
+const ROAD_TIERS: readonly RoadTier[] = [
+  {
+    id: 'road-major',
+    classes: ['motorway', 'trunk'],
+    color: TERMINAL_PALETTE.phosphorDim,
+    opacity: 1,
+    widths: [0.8, 1.4, 2.6, 4.5, 7],
+  },
+  {
+    id: 'road-arterial',
+    classes: ['primary', 'secondary'],
+    color: TERMINAL_PALETTE.phosphorDim,
+    opacity: 0.68,
+    widths: [0.5, 1, 1.8, 3.2, 5],
+  },
+  {
+    id: 'road-local',
+    classes: ['tertiary', 'minor'],
+    color: TERMINAL_PALETTE.phosphorDeep,
+    opacity: 1,
+    widths: [0.3, 0.6, 1.1, 2.2, 3.6],
+  },
+  {
+    id: 'road-service',
+    classes: ['service', 'track', 'busway'],
+    color: TERMINAL_PALETTE.phosphorDeep,
+    opacity: 0.72,
+    widths: [0.2, 0.3, 0.7, 1.4, 2.4],
+    minzoom: 13,
+  },
+];
+
+/** Only the two widest tiers stack and run in parallel often enough to need a casing. */
+const CASED_TIERS = ROAD_TIERS.slice(0, 2);
+
+/** How much wider than its fill a casing draws, in px. */
+const ROAD_CASING_HALO = 1.4;
+
+/** `class` is one of these. */
+function classFilter(classes: readonly string[]): ExpressionSpecification {
+  return ['in', ['get', 'class'], ['literal', [...classes]]];
+}
+
+/** `class` is one of these and `subclass` is none of those. */
+function classFilterWithout(
+  classes: readonly string[],
+  subclasses: readonly string[],
+): ExpressionSpecification {
+  return [
+    'all',
+    classFilter(classes),
+    ['!', ['in', ['get', 'subclass'], ['literal', [...subclasses]]]],
+  ];
+}
+
+/** A width ramp across ROAD_ZOOMS. */
+function widthRamp(widths: readonly number[]): ExpressionSpecification {
+  return [
+    'interpolate',
+    ['linear'],
+    ['zoom'],
+    ...ROAD_ZOOMS.flatMap((zoom, stop) => [zoom, widths[stop]]),
+  ] as ExpressionSpecification;
+}
+
+/**
+ * The casing ramp: each cased tier's own width plus the halo, chosen per class, because a
+ * casing sized for a motorway would give an arterial the weight of one.
+ */
+function casingRamp(): ExpressionSpecification {
+  return [
+    'interpolate',
+    ['linear'],
+    ['zoom'],
+    ...ROAD_ZOOMS.flatMap((zoom, stop) => [
+      zoom,
+      [
+        'match',
+        ['get', 'class'],
+        ...CASED_TIERS.flatMap((tier) => [
+          [...tier.classes],
+          tier.widths[stop] + ROAD_CASING_HALO,
+        ]),
+        0,
+      ],
+    ]),
+  ] as ExpressionSpecification;
+}
+
+function roadLayer(tier: RoadTier): LineLayerSpecification {
+  return {
+    id: tier.id,
+    type: 'line',
+    source: BASEMAP_SOURCE_ID,
+    'source-layer': 'transportation',
+    ...(tier.minzoom === undefined ? {} : { minzoom: tier.minzoom }),
+    filter: classFilter(tier.classes),
+    paint: {
+      'line-color': tier.color,
+      'line-opacity': tier.opacity,
+      'line-width': widthRamp(tier.widths),
+    },
+  };
+}
 
 /** The basemap: a phosphor wireframe of the city, not a recoloured street map. */
 export function buildTerminalStyle(): StyleSpecification {
@@ -79,73 +212,52 @@ export function buildTerminalStyle(): StyleSpecification {
         },
       },
       {
+        // Tram and surface rail: track a skater crosses. The subway is a tunnel nobody sees
+        // from the street, so it is filtered out by subclass.
+        id: 'rail',
+        type: 'line',
+        source: BASEMAP_SOURCE_ID,
+        'source-layer': 'transportation',
+        minzoom: 13,
+        filter: classFilterWithout(['rail', 'transit'], ['subway']),
+        paint: {
+          'line-color': TERMINAL_PALETTE.line,
+          'line-opacity': 0.5,
+          'line-dasharray': [1, 3],
+          'line-width': ['interpolate', ['linear'], ['zoom'], 13, 0.3, 18, 1],
+        },
+      },
+      {
+        // Footways, steps, cycleways, pedestrian plazas and piers: ground a skater can roll
+        // on, so they stay on the map — a hairline below street weight, never at it. Station
+        // platforms and indoor corridors are transit furniture and stay off.
+        id: 'path',
+        type: 'line',
+        source: BASEMAP_SOURCE_ID,
+        'source-layer': 'transportation',
+        minzoom: 14,
+        filter: classFilterWithout(['path', 'pier'], ['platform', 'corridor']),
+        paint: {
+          'line-color': TERMINAL_PALETTE.line,
+          'line-opacity': 0.75,
+          'line-dasharray': [3, 2],
+          'line-width': ['interpolate', ['linear'], ['zoom'], 14, 0.5, 18, 1.4],
+        },
+      },
+      {
+        // Runs under the two widest tiers only, so that a footway or a pier can never inherit
+        // road weight from it the way an unfiltered casing hands it out.
         id: 'road-casing',
         type: 'line',
         source: BASEMAP_SOURCE_ID,
         'source-layer': 'transportation',
+        filter: classFilter(CASED_TIERS.flatMap((tier) => [...tier.classes])),
         paint: {
-          'line-color': TERMINAL_PALETTE.phosphorDeep,
-          'line-width': [
-            'interpolate',
-            ['linear'],
-            ['zoom'],
-            10,
-            0.6,
-            14,
-            2,
-            18,
-            6,
-          ],
+          'line-color': TERMINAL_PALETTE.line,
+          'line-width': casingRamp(),
         },
       },
-      {
-        id: 'road-minor',
-        type: 'line',
-        source: BASEMAP_SOURCE_ID,
-        'source-layer': 'transportation',
-        filter: ['in', ['get', 'class'], ['literal', ['minor', 'service']]],
-        paint: {
-          'line-color': TERMINAL_PALETTE.phosphorDeep,
-          'line-width': [
-            'interpolate',
-            ['linear'],
-            ['zoom'],
-            12,
-            0.3,
-            14,
-            0.8,
-            18,
-            3,
-          ],
-        },
-      },
-      {
-        id: 'road-major',
-        type: 'line',
-        source: BASEMAP_SOURCE_ID,
-        'source-layer': 'transportation',
-        filter: [
-          'in',
-          ['get', 'class'],
-          ['literal', ['motorway', 'trunk', 'primary', 'secondary']],
-        ],
-        paint: {
-          'line-color': TERMINAL_PALETTE.phosphorDim,
-          'line-width': [
-            'interpolate',
-            ['linear'],
-            ['zoom'],
-            8,
-            0.5,
-            12,
-            1.2,
-            16,
-            3,
-            18,
-            5,
-          ],
-        },
-      },
+      ...[...ROAD_TIERS].reverse().map(roadLayer),
       {
         id: 'street-label',
         type: 'symbol',
