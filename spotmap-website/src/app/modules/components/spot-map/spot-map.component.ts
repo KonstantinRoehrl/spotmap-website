@@ -1,21 +1,35 @@
 import {
+  ApplicationRef,
   ChangeDetectionStrategy,
   Component,
+  ComponentRef,
+  createComponent,
   DestroyRef,
   effect,
   ElementRef,
+  EnvironmentInjector,
   inject,
+  InjectionToken,
   input,
   output,
   untracked,
   viewChild,
 } from '@angular/core';
-import type { CircleLayerSpecification, Map as MapLibreMap } from 'maplibre-gl';
+import type {
+  CircleLayerSpecification,
+  Map as MapLibreMap,
+  MapLayerMouseEvent,
+  Popup as MapLibrePopup,
+} from 'maplibre-gl';
 import { firstValueFrom } from 'rxjs';
 import { CityEnum, MapFailureReason } from '../../../models/enums/map-enum';
 import { SpotCollection } from '../../../models/spots/spot';
 import { SpotsService } from '../../../services/spots.service';
 import { prefersReducedMotion } from '../../../utils/prefers-reduced-motion';
+import {
+  SPOT_POPUP_FRAME_CLASS,
+  SpotPopupComponent,
+} from '../spot-popup/spot-popup.component';
 import { MAP_FACTORY } from './map-factory.token';
 import {
   buildTerminalStyle,
@@ -27,6 +41,28 @@ import {
   TERMINAL_PALETTE,
 } from './terminal-map-style';
 
+/** Builds the MapLibre popup that frames a tapped spot's details. */
+export type PopupFactory = (options: {
+  closeButton: boolean;
+  maxWidth: string;
+  className: string;
+}) => Promise<MapLibrePopup>;
+
+/**
+ * Injected for the same reason the map itself is: a spec that reached maplibre-gl's ESM build
+ * would drag it into the karma bundle. Unlike {@link MAP_FACTORY} this one carries its own
+ * default, because nothing has to be registered for a popup to work — the dynamic import keeps
+ * maplibre-gl out of the initial chunk and is already resolved by the time a pin can be tapped,
+ * since the map had to load for one to exist.
+ */
+export const POPUP_FACTORY = new InjectionToken<PopupFactory>('POPUP_FACTORY', {
+  providedIn: 'root',
+  factory: () => async (options) => {
+    const { Popup } = await import('maplibre-gl');
+    return new Popup(options);
+  },
+});
+
 /** Padding, in pixels, around the fitted spot bounds. */
 const FIT_PADDING_PX = 48;
 
@@ -35,6 +71,38 @@ const FIT_MAX_ZOOM = 16;
 
 /** How long the opening fit-to-spots camera move takes, unless reduced motion is requested. */
 const FIT_DURATION_MS = 600;
+
+/** Wide enough for the photo gallery, narrow enough to leave the map readable behind it. */
+const POPUP_MAX_WIDTH = '320px';
+
+/**
+ * Whether a MapLibre `error` means a source the style cannot do without never came up — the one
+ * failure this map can never paint through. Both fields are read off the payload, since neither
+ * is declared on maplibre-gl's public `ErrorEvent`:
+ *
+ * - `sourceId` is attached to every event bubbling out of a source's tile manager
+ *   (maplibre-gl-dev.mjs:15165-15169), so an error fired on the style itself — `Source layer …
+ *   does not exist` at `:14888` — carries none, and a map that can still paint is left alone.
+ * - `tile` is attached only when a single tile failed (`:6422`; a 404 fires nothing at all,
+ *   `:6423`). A glyph range is fetched while a tile is parsed, so it arrives the same way.
+ * - a source that did come up fired `data`/`metadata` first (`:2871`) — the success branch the
+ *   failing path at `:2877-2881` skips — so a source still awaiting metadata never loaded.
+ *
+ * `map.isStyleLoaded()` is no use here: it already reports `true` by the time a source error
+ * reaches this handler, because the tile manager's own `error` listener (`:6359-6360`)
+ * short-circuits `TileManager.loaded()` (`:6391`) and with it `Style.loaded()` (`:14890-14894`).
+ */
+function namesAnUnusableSource(
+  event: unknown,
+  sourcesAwaitingMetadata: ReadonlySet<string>,
+): boolean {
+  const { sourceId, tile } = event as { sourceId?: string; tile?: unknown };
+  return (
+    sourceId !== undefined &&
+    tile === undefined &&
+    sourcesAwaitingMetadata.has(sourceId)
+  );
+}
 
 /**
  * The spot pins, drawn in paint order. The hit layer comes first so its 22 px transparent
@@ -123,11 +191,22 @@ export class SpotMapComponent {
     viewChild.required<ElementRef<HTMLDivElement>>('canvasHost');
   private readonly spots = inject(SpotsService);
   private readonly mapFactory = inject(MAP_FACTORY);
+  private readonly popupFactory = inject(POPUP_FACTORY);
+  private readonly environment = inject(EnvironmentInjector);
+  private readonly applicationRef = inject(ApplicationRef);
 
   private map?: MapLibreMap;
 
-  /** Separates a fatal error before first paint from a single tile failing afterwards. */
-  private loaded = false;
+  /**
+   * Latched the moment the map either paints or gives up, so one map can never report both
+   * `ready` and `failed`. Every teardown resets it, because the next build is a new map.
+   */
+  private outcome: 'pending' | 'painted' | 'failed' = 'pending';
+
+  /** The open popup, the component inside it and the pin it belongs to — one spot at a time. */
+  private popup?: MapLibrePopup;
+  private popupRef?: ComponentRef<SpotPopupComponent>;
+  private selectedId?: string;
 
   /**
    * Bumped by every teardown. A build whose await resolves against a stale generation lost its
@@ -157,7 +236,7 @@ export class SpotMapComponent {
     // Probed before anything is fetched: a browser without WebGL can never draw this map,
     // and the container withholds RETRY for `unsupported`.
     if (!this.hasWebGl()) {
-      this.failed.emit('unsupported');
+      this.fail('unsupported', generation);
       return;
     }
 
@@ -165,16 +244,30 @@ export class SpotMapComponent {
     try {
       collection = await firstValueFrom(this.spots.loadSpots(city));
     } catch {
-      this.failed.emit('unreachable');
+      this.fail('unreachable', generation);
       return;
     }
     if (generation !== this.generation) {
       return;
     }
 
+    // A city whose spot set is still empty has nothing to frame: with no bounds the map would
+    // open on the null island (lng 0, lat 0, zoom 0) with no sign that anything is missing, so
+    // the container's failure chrome — which already offers RETRY — is the honest outcome.
+    if (collection.features.length === 0) {
+      this.fail('unreachable', generation);
+      return;
+    }
+
+    const style = buildTerminalStyle();
+    // Each of these owes the map its metadata — the TileJSON, for the vector basemap — before
+    // anything can be drawn from it. The ids are read back out of the style this component just
+    // built, so they cannot drift from it.
+    const sourcesAwaitingMetadata = new Set(Object.keys(style.sources));
+
     const map = await this.mapFactory({
       container: this.canvasHost().nativeElement,
-      style: buildTerminalStyle(),
+      style,
       // Attribution is a licence condition of the OSM-derived tiles, never optional.
       attributionControl: { compact: true },
     });
@@ -188,18 +281,161 @@ export class SpotMapComponent {
     map.dragRotate.disable();
     map.touchZoomRotate.disableRotation();
 
-    map.on('error', () => {
-      // After first paint an error is a single tile or glyph failing, which the map survives.
-      if (!this.loaded) {
-        this.failed.emit('unreachable');
+    map.on('sourcedata', (event) => {
+      // No generation guard: the set belongs to this build, and only this build's own error
+      // handler reads it.
+      if (event.sourceDataType === 'metadata') {
+        sourcesAwaitingMetadata.delete(event.sourceId);
+      }
+    });
+
+    map.on('error', (event) => {
+      // MapLibre fires one `error` for everything from a dead basemap to a single 404'd glyph
+      // range, so what the payload names is what separates a map that will never draw from one
+      // that paints fine without that resource. The generation guard keeps a late error from a
+      // torn-down map off the build that replaced it.
+      if (generation !== this.generation) {
+        return;
+      }
+      if (namesAnUnusableSource(event, sourcesAwaitingMetadata)) {
+        this.fail('unreachable', generation);
       }
     });
 
     map.on('load', () => {
-      this.loaded = true;
+      if (generation !== this.generation || this.outcome !== 'pending') {
+        return;
+      }
+      this.outcome = 'painted';
       this.drawSpots(map, collection);
       this.ready.emit();
     });
+
+    map.on('click', SPOT_HIT_LAYER_ID, (event: MapLayerMouseEvent) => {
+      void this.openPopup(map, collection, event, generation);
+    });
+
+    // A pointer over a pin should say it can be tapped; the hit layer is the 22 px thumb target.
+    map.on('mouseenter', SPOT_HIT_LAYER_ID, () => {
+      map.getCanvas().style.cursor = 'pointer';
+    });
+    map.on('mouseleave', SPOT_HIT_LAYER_ID, () => {
+      map.getCanvas().style.cursor = '';
+    });
+  }
+
+  /**
+   * Opens one popup for the tapped pin, carrying a {@link SpotPopupComponent}. The previous
+   * selection is dropped first, so a tap while another popup is open replaces it instead of
+   * leaving a second component alive on the map.
+   */
+  private async openPopup(
+    map: MapLibreMap,
+    collection: SpotCollection,
+    event: MapLayerMouseEvent,
+    generation: number,
+  ): Promise<void> {
+    // The rendered feature only carries the id; the loaded collection is where the typed spot —
+    // photo list included — actually lives.
+    const tappedId = event.features?.[0]?.id;
+    const spot = collection.features.find(
+      (feature) => feature.properties.id === String(tappedId),
+    );
+    if (!spot) {
+      return;
+    }
+
+    this.clearSelection();
+    const id = spot.properties.id;
+    map.setFeatureState({ source: SPOT_SOURCE_ID, id }, { selected: true });
+    this.selectedId = id;
+
+    const content = createComponent(SpotPopupComponent, {
+      environmentInjector: this.environment,
+    });
+    content.setInput('spot', spot);
+    // Built outside any template, so its view has to be attached by hand: without that nothing
+    // would ever re-render the gallery's photo after an arrow is pressed.
+    this.applicationRef.attachView(content.hostView);
+    content.changeDetectorRef.detectChanges();
+    this.popupRef = content;
+
+    let popup: MapLibrePopup;
+    try {
+      popup = await this.popupFactory({
+        closeButton: true,
+        maxWidth: POPUP_MAX_WIDTH,
+        className: SPOT_POPUP_FRAME_CLASS,
+      });
+    } catch {
+      // The popup's maplibre-gl chunk never arrived. Left alone this would show an amber pin
+      // with nothing beside it, so the tap is unwound: the view released, the pin dropped.
+      if (this.popupRef === content) {
+        this.clearSelection();
+      } else if (!content.hostView.destroyed) {
+        content.destroy();
+      }
+      return;
+    }
+    if (generation !== this.generation || this.popupRef !== content) {
+      // A teardown or a second tap overtook this popup while maplibre-gl was loading.
+      popup.remove();
+      if (!content.hostView.destroyed) {
+        content.destroy();
+      }
+      return;
+    }
+
+    popup
+      .setLngLat(spot.geometry.coordinates)
+      .setDOMContent(content.location.nativeElement)
+      .addTo(map);
+    // MapLibre also closes on a tap on the map, and fires `close` either way. The identity check
+    // keeps a closing popup from clearing a selection that already belongs to its successor.
+    popup.on('close', () => {
+      if (this.popup === popup) {
+        this.clearSelection();
+      }
+    });
+    this.popup = popup;
+  }
+
+  /**
+   * Closes the open popup, destroys the component inside it and drops the pin's selected state.
+   * One popup is created per pin tap, so anything left behind here leaks on every tap (QC6).
+   */
+  private clearSelection(): void {
+    const popup = this.popup;
+    this.popup = undefined;
+    popup?.remove();
+
+    const ref = this.popupRef;
+    this.popupRef = undefined;
+    if (ref && !ref.hostView.destroyed) {
+      ref.destroy();
+    }
+
+    const id = this.selectedId;
+    this.selectedId = undefined;
+    if (id !== undefined) {
+      this.map?.removeFeatureState({ source: SPOT_SOURCE_ID, id }, 'selected');
+    }
+  }
+
+  /**
+   * Gives up on this build: the container puts its failure chrome up, so the map is released
+   * rather than left holding a WebGL context behind it. A build that already lost its race, or
+   * one that has already painted or failed, reports nothing.
+   */
+  private fail(reason: MapFailureReason, generation: number): void {
+    if (generation !== this.generation || this.outcome !== 'pending') {
+      return;
+    }
+    this.outcome = 'failed';
+    this.clearSelection();
+    this.map?.remove();
+    this.map = undefined;
+    this.failed.emit(reason);
   }
 
   /** Adds the spot source and its pins, then frames the city's spots. */
@@ -248,15 +484,22 @@ export class SpotMapComponent {
     ];
   }
 
+  /**
+   * Whether this browser can draw the map at all. The probe's own context is handed straight
+   * back: this runs on every build, and the browser caps how many contexts may be alive (QC6).
+   */
   private hasWebGl(): boolean {
     const probe = document.createElement('canvas');
-    return !!(probe.getContext('webgl2') ?? probe.getContext('webgl'));
+    const context = probe.getContext('webgl2') ?? probe.getContext('webgl');
+    context?.getExtension('WEBGL_lose_context')?.loseContext();
+    return !!context;
   }
 
   /** Releases the map's WebGL context — the browser caps how many may be alive at once. */
   private teardown(): void {
     this.generation += 1;
-    this.loaded = false;
+    this.outcome = 'pending';
+    this.clearSelection();
     this.map?.remove();
     this.map = undefined;
   }

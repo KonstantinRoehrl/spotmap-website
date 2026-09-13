@@ -1,0 +1,116 @@
+:host {
+  display: block;
+}
+
+.spot-popup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-family: var(--font-mono);
+  color: var(--color-phosphor);
+}
+
+.spot-popup__name {
+  margin: 0;
+  font-size: 0.875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-shadow: var(--glow-text-rest);
+}
+
+.spot-popup__status {
+  margin: 0;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  color: var(--color-amber);
+  text-shadow: var(--glow-text-amber);
+}
+
+.spot-popup__directions {
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 4px;
+  font-size: 0.8125rem;
+  letter-spacing: 0.08em;
+  color: var(--color-phosphor);
+  text-decoration: none;
+  text-shadow: var(--glow-text-rest);
+}
+
+.spot-popup__directions:hover {
+  color: var(--color-phosphor-bright);
+  text-shadow: var(--glow-text-hot);
+}
+
+.spot-popup__directions:focus-visible {
+  outline: 1px solid var(--color-phosphor);
+  outline-offset: 2px;
+}
+
+/* MapLibre builds the popup frame — content box, tip and close button — outside this component's
+   DOM, and ships it white, which the No-White Rule forbids. The rules below therefore have to
+   leave this component's scope: a leading ::ng-deep with no :host compiles to an unscoped
+   selector. They stay gated behind .spot-popup-frame (SPOT_POPUP_FRAME_CLASS, which
+   SpotMapComponent puts on the popup) so nothing else in the app can be hit. */
+::ng-deep .spot-popup-frame .maplibregl-popup-content {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--glow-edge-frame);
+  padding: 8px;
+}
+
+::ng-deep .spot-popup-frame.maplibregl-popup-anchor-top .maplibregl-popup-tip,
+::ng-deep
+  .spot-popup-frame.maplibregl-popup-anchor-top-left
+  .maplibregl-popup-tip,
+::ng-deep
+  .spot-popup-frame.maplibregl-popup-anchor-top-right
+  .maplibregl-popup-tip {
+  border-bottom-color: var(--color-line);
+}
+
+::ng-deep
+  .spot-popup-frame.maplibregl-popup-anchor-bottom
+  .maplibregl-popup-tip,
+::ng-deep
+  .spot-popup-frame.maplibregl-popup-anchor-bottom-left
+  .maplibregl-popup-tip,
+::ng-deep
+  .spot-popup-frame.maplibregl-popup-anchor-bottom-right
+  .maplibregl-popup-tip {
+  border-top-color: var(--color-line);
+}
+
+::ng-deep .spot-popup-frame.maplibregl-popup-anchor-left .maplibregl-popup-tip {
+  border-right-color: var(--color-line);
+}
+
+::ng-deep
+  .spot-popup-frame.maplibregl-popup-anchor-right
+  .maplibregl-popup-tip {
+  border-left-color: var(--color-line);
+}
+
+/* Thumb-sized and phosphor, with the repo's focus ring pulled inside the frame's border. */
+::ng-deep .spot-popup-frame .maplibregl-popup-close-button {
+  width: 44px;
+  height: 44px;
+  font-family: var(--font-mono);
+  font-size: 1.25rem;
+  line-height: 1;
+  color: var(--color-phosphor-dim);
+  background: transparent;
+}
+
+::ng-deep .spot-popup-frame .maplibregl-popup-close-button:hover {
+  color: var(--color-phosphor);
+  background: transparent;
+}
+
+::ng-deep .spot-popup-frame .maplibregl-popup-close-button:focus-visible {
+  outline: 1px solid var(--color-phosphor);
+  outline-offset: -2px;
+}
