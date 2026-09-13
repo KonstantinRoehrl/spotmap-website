@@ -87,6 +87,15 @@ const SERVED_SUBCLASSES: readonly string[] = [
   'tram',
 ];
 
+/**
+ * `transportation.brunnel`, from the same decode widened to z14 x 8928-8943, y 5676-5686 (176
+ * tiles). Three values, and the field is simply absent on the 35847 features that run on plain
+ * ground: `bridge` (2803), `tunnel` (2330), `ford` (14). This — not `subclass` — is the field
+ * that says "underground": of the 288 `transit`/`subway` segments over Vienna, 121 are tunnels
+ * and 167 are not (99 at grade, 68 up on the U6 and U4 viaducts).
+ */
+const SERVED_BRUNNELS: readonly string[] = ['bridge', 'ford', 'tunnel'];
+
 /** A basemap layer, seen through the handful of fields these tests reason about. */
 interface StyleLayer {
   id: string;
@@ -100,6 +109,7 @@ interface StyleLayer {
 interface TileFeature {
   class: string;
   subclass?: string;
+  brunnel?: string;
 }
 
 /**
@@ -143,24 +153,25 @@ function filteredClasses(layer: unknown): readonly string[] {
   return filterValues(layer, 'class').admits;
 }
 
+/**
+ * Whether one tile property gets a feature past a layer's filter: a listed value is admitted, a
+ * rejected one is dropped, and a filter that lists nothing for the property admits everything.
+ */
+function passes(
+  layer: StyleLayer,
+  property: string,
+  value: string | undefined,
+): boolean {
+  const { admits, rejects } = filterValues(layer, property);
+  // A missing property is `null`, which MapLibre's `in` never finds in a literal list.
+  if (admits.length > 0 && !admits.includes(value ?? '')) return false;
+  return value === undefined || !rejects.includes(value);
+}
+
 /** Whether a layer paints this feature. A layer with no class filter paints all of them. */
 function draws(layer: StyleLayer, feature: TileFeature): boolean {
-  const classes = filterValues(layer, 'class');
-  if (classes.admits.length > 0 && !classes.admits.includes(feature.class)) {
-    return false;
-  }
-  if (classes.rejects.includes(feature.class)) return false;
-  const subclasses = filterValues(layer, 'subclass');
-  // A missing subclass is `null`, which MapLibre's `in` never finds in a literal list.
-  if (
-    subclasses.admits.length > 0 &&
-    !subclasses.admits.includes(feature.subclass ?? '')
-  ) {
-    return false;
-  }
-  return !(
-    feature.subclass !== undefined &&
-    subclasses.rejects.includes(feature.subclass)
+  return (['class', 'subclass', 'brunnel'] as const).every((property) =>
+    passes(layer, property, feature[property]),
   );
 }
 
@@ -375,12 +386,13 @@ describe('buildTerminalStyle road hierarchy', () => {
   }
 
   function label(feature: TileFeature): string {
-    return feature.subclass
+    const kind = feature.subclass
       ? `${feature.class}/${feature.subclass}`
       : feature.class;
+    return feature.brunnel ? `${kind} (${feature.brunnel})` : kind;
   }
 
-  it('filters every road layer on classes and subclasses the tiles actually serve', () => {
+  it('filters every road layer on classes, subclasses and brunnels the tiles serve', () => {
     expect(transportLayers.length).toBeGreaterThan(0);
     for (const layer of transportLayers) {
       const classes = filterValues(layer, 'class');
@@ -399,6 +411,14 @@ describe('buildTerminalStyle road hierarchy', () => {
             `${layer.id} filters transportation.subclass on "${sub}"`,
           )
           .toContain(sub);
+      }
+      const brunnels = filterValues(layer, 'brunnel');
+      for (const brunnel of [...brunnels.admits, ...brunnels.rejects]) {
+        expect(SERVED_BRUNNELS)
+          .withContext(
+            `${layer.id} filters transportation.brunnel on "${brunnel}"`,
+          )
+          .toContain(brunnel);
       }
     }
   });
@@ -489,9 +509,61 @@ describe('buildTerminalStyle road hierarchy', () => {
     expect(isDrawn({ class: 'pier' })).toBe(true);
   });
 
-  it('leaves subway tunnels, platforms, bridge decks and unbuilt roads undrawn', () => {
-    const noise: TileFeature[] = [
+  it('draws the rail a skater sees, at grade and up on the viaduct', () => {
+    const track: TileFeature[] = [
+      { class: 'rail', subclass: 'rail' },
+      { class: 'rail', subclass: 'rail', brunnel: 'bridge' },
+      { class: 'transit', subclass: 'tram' },
+      { class: 'transit', subclass: 'light_rail' },
       { class: 'transit', subclass: 'subway' },
+      { class: 'transit', subclass: 'subway', brunnel: 'bridge' },
+    ];
+    for (const feature of track) {
+      expect(isDrawn(feature))
+        .withContext(`${label(feature)} is on the map`)
+        .toBe(true);
+    }
+  });
+
+  it('leaves everything in a tunnel undrawn, whatever it carries', () => {
+    const underground: TileFeature[] = [
+      { class: 'transit', subclass: 'subway', brunnel: 'tunnel' },
+      { class: 'transit', subclass: 'tram', brunnel: 'tunnel' },
+      { class: 'rail', subclass: 'rail', brunnel: 'tunnel' },
+      { class: 'motorway', brunnel: 'tunnel' },
+      { class: 'primary', brunnel: 'tunnel' },
+      { class: 'minor', brunnel: 'tunnel' },
+      { class: 'service', brunnel: 'tunnel' },
+      { class: 'path', subclass: 'footway', brunnel: 'tunnel' },
+      { class: 'path', subclass: 'steps', brunnel: 'tunnel' },
+    ];
+    for (const feature of underground) {
+      expect(isDrawn(feature))
+        .withContext(`${label(feature)} stays off the map`)
+        .toBe(false);
+    }
+    expect(drawnWidth({ class: 'motorway', brunnel: 'tunnel' }, 16))
+      .withContext('a motorway tunnel gets neither a fill nor a casing')
+      .toBe(0);
+  });
+
+  it('keeps bridges and fords, which are structure in plain sight', () => {
+    const inTheOpen: TileFeature[] = [
+      { class: 'motorway', brunnel: 'bridge' },
+      { class: 'minor', brunnel: 'bridge' },
+      { class: 'path', subclass: 'footway', brunnel: 'bridge' },
+      { class: 'path', subclass: 'path', brunnel: 'ford' },
+      { class: 'track', brunnel: 'ford' },
+    ];
+    for (const feature of inTheOpen) {
+      expect(isDrawn(feature))
+        .withContext(`${label(feature)} is on the map`)
+        .toBe(true);
+    }
+  });
+
+  it('leaves platforms, bridge decks and unbuilt roads undrawn', () => {
+    const noise: TileFeature[] = [
       { class: 'path', subclass: 'platform' },
       { class: 'path', subclass: 'corridor' },
       { class: 'bridge' },

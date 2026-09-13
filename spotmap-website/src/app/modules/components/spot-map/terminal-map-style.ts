@@ -96,21 +96,40 @@ const CASED_TIERS = ROAD_TIERS.slice(0, 2);
 /** How much wider than its fill a casing draws, in px. */
 const ROAD_CASING_HALO = 1.4;
 
+/**
+ * The `transportation.brunnel` values that put a way out of sight. The tiles serve three —
+ * `bridge`, `tunnel` and `ford` (decode table in the spec) — and only a tunnel hides anything:
+ * a bridge or a ford is right in front of whoever is standing in the street.
+ */
+const HIDDEN_BRUNNELS: readonly string[] = ['tunnel'];
+
 /** `class` is one of these. */
 function classFilter(classes: readonly string[]): ExpressionSpecification {
   return ['in', ['get', 'class'], ['literal', [...classes]]];
 }
 
-/** `class` is one of these and `subclass` is none of those. */
-function classFilterWithout(
+/**
+ * `class` is one of these, the way is above ground, and `subclass` is none of those. What a
+ * person standing in the street can see is the whole test — which is why the tunnel goes by
+ * `brunnel` and not by mode: the U-Bahn on its Gürtel viaduct is a landmark to steer by, the
+ * same line underground is not, and neither is a motorway, a garage ramp or a subway passage
+ * in a tunnel of its own.
+ */
+function visibleFilter(
   classes: readonly string[],
-  subclasses: readonly string[],
+  hiddenSubclasses: readonly string[] = [],
 ): ExpressionSpecification {
-  return [
-    'all',
+  const clauses: ExpressionSpecification[] = [
     classFilter(classes),
-    ['!', ['in', ['get', 'subclass'], ['literal', [...subclasses]]]],
+    ['!', ['in', ['get', 'brunnel'], ['literal', [...HIDDEN_BRUNNELS]]]],
   ];
+  if (hiddenSubclasses.length > 0) {
+    clauses.push([
+      '!',
+      ['in', ['get', 'subclass'], ['literal', [...hiddenSubclasses]]],
+    ]);
+  }
+  return ['all', ...clauses] as ExpressionSpecification;
 }
 
 /** A width ramp across ROAD_ZOOMS. */
@@ -154,7 +173,7 @@ function roadLayer(tier: RoadTier): LineLayerSpecification {
     source: BASEMAP_SOURCE_ID,
     'source-layer': 'transportation',
     ...(tier.minzoom === undefined ? {} : { minzoom: tier.minzoom }),
-    filter: classFilter(tier.classes),
+    filter: visibleFilter(tier.classes),
     paint: {
       'line-color': tier.color,
       'line-opacity': tier.opacity,
@@ -212,14 +231,15 @@ export function buildTerminalStyle(): StyleSpecification {
         },
       },
       {
-        // Tram and surface rail: track a skater crosses. The subway is a tunnel nobody sees
-        // from the street, so it is filtered out by subclass.
+        // Track a skater crosses or steers by: the tram in the roadway, surface rail, and the
+        // U-Bahn wherever it runs in the open — at grade or up on a viaduct, which is a
+        // landmark in its own right. Only the underground stretches drop out.
         id: 'rail',
         type: 'line',
         source: BASEMAP_SOURCE_ID,
         'source-layer': 'transportation',
         minzoom: 13,
-        filter: classFilterWithout(['rail', 'transit'], ['subway']),
+        filter: visibleFilter(['rail', 'transit']),
         paint: {
           'line-color': TERMINAL_PALETTE.line,
           'line-opacity': 0.5,
@@ -236,7 +256,7 @@ export function buildTerminalStyle(): StyleSpecification {
         source: BASEMAP_SOURCE_ID,
         'source-layer': 'transportation',
         minzoom: 14,
-        filter: classFilterWithout(['path', 'pier'], ['platform', 'corridor']),
+        filter: visibleFilter(['path', 'pier'], ['platform', 'corridor']),
         paint: {
           'line-color': TERMINAL_PALETTE.line,
           'line-opacity': 0.75,
@@ -251,7 +271,7 @@ export function buildTerminalStyle(): StyleSpecification {
         type: 'line',
         source: BASEMAP_SOURCE_ID,
         'source-layer': 'transportation',
-        filter: classFilter(CASED_TIERS.flatMap((tier) => [...tier.classes])),
+        filter: visibleFilter(CASED_TIERS.flatMap((tier) => [...tier.classes])),
         paint: {
           'line-color': TERMINAL_PALETTE.line,
           'line-width': casingRamp(),
