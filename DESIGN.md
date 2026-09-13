@@ -179,7 +179,7 @@ This system has **no conventional shadows.** Depth is carried entirely by **phos
 - **Background:** `surface` (near-black) — the backing both renderers sit on, so a blank/slow/failed map reads black-green, **never white**.
 - **Glow Strategy:** `box-shadow: 0 0 24px rgba(0,255,0,0.35)` frame halo.
 - **Loading:** the matrix-radar spinner (green ASCII rotor) over `surface`, with the renderer held at `opacity: 0` and faded in only once it reports a first paint.
-- **Error/timeout:** an opaque `surface` overlay carrying the phosphor line `> SIGNAL LOST // MAP UNREACHABLE` and a `> RETRY` button (phosphor on a phosphor-deep border, hot glow on hover/focus) — not a white void. A browser with no WebGL gets `> NO RENDERER // THIS BROWSER HAS NO WEBGL` and **no** retry, because retrying cannot help it.
+- **Error/timeout:** an opaque `surface` overlay carrying the phosphor line `> SIGNAL LOST // MAP UNREACHABLE` and a `> RETRY` button (phosphor on a phosphor-deep border, hot glow on hover/focus) — not a white void. A browser without WebGL 2 — which is what MapLibre needs — gets `> NO RENDERER // THIS BROWSER HAS NO WEBGL` and **no** retry, because retrying cannot help it.
 
 ### Map Surface (signature — Vienna)
 The site's own map, drawn from OpenFreeMap vector tiles in the palette above. Everything here is the terminal system, not a theme layered over a street map.
