@@ -1,167 +1,175 @@
 # Graph Report - .  (2026-09-13)
 
 ## Corpus Check
-- 76 files · ~135,973 words
+- 18 files · ~140,466 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 409 nodes · 646 edges · 28 communities (16 shown, 12 thin omitted)
-- Extraction: 95% EXTRACTED · 5% INFERRED · 0% AMBIGUOUS · INFERRED: 33 edges (avg confidence: 0.76)
-- Token cost: 95,000 input · 16,000 output
+- 427 nodes · 649 edges · 32 communities (16 shown, 16 thin omitted)
+- Extraction: 91% EXTRACTED · 8% INFERRED · 0% AMBIGUOUS · INFERRED: 55 edges (avg confidence: 0.81)
+- Token cost: 105,000 input · 14,000 output
 
 ## Community Hubs (Navigation)
+- [[_COMMUNITY_Design System and Doctrine|Design System and Doctrine]]
 - [[_COMMUNITY_ASCII Animation Text|ASCII Animation Text]]
-- [[_COMMUNITY_Design System and Product Doctrine|Design System and Product Doctrine]]
+- [[_COMMUNITY_Map Container and Chrome|Map Container and Chrome]]
 - [[_COMMUNITY_Angular Build Targets|Angular Build Targets]]
-- [[_COMMUNITY_Dev Toolchain Dependencies|Dev Toolchain Dependencies]]
+- [[_COMMUNITY_Runtime Dependencies|Runtime Dependencies]]
 - [[_COMMUNITY_City Config and Map Enums|City Config and Map Enums]]
-- [[_COMMUNITY_Spot Data and Map Renderer|Spot Data and Map Renderer]]
-- [[_COMMUNITY_Angular Workspace Schematics|Angular Workspace Schematics]]
-- [[_COMMUNITY_App Bootstrap and Map Factory|App Bootstrap and Map Factory]]
-- [[_COMMUNITY_App Shell and Intro Sequence|App Shell and Intro Sequence]]
 - [[_COMMUNITY_Terminal Basemap Style|Terminal Basemap Style]]
+- [[_COMMUNITY_Angular Workspace Schematics|Angular Workspace Schematics]]
+- [[_COMMUNITY_App Shell and Intro Sequence|App Shell and Intro Sequence]]
 - [[_COMMUNITY_Map Test Doubles|Map Test Doubles]]
 - [[_COMMUNITY_Map Container State Machine|Map Container State Machine]]
-- [[_COMMUNITY_Runtime Dependencies|Runtime Dependencies]]
+- [[_COMMUNITY_Dev Toolchain Dependencies|Dev Toolchain Dependencies]]
+- [[_COMMUNITY_App Bootstrap and Map Factory|App Bootstrap and Map Factory]]
 - [[_COMMUNITY_Dev Server Worker Check|Dev Server Worker Check]]
-- [[_COMMUNITY_Build Worker Asset Check|Build Worker Asset Check]]
+- [[_COMMUNITY_Spot Photo Gallery|Spot Photo Gallery]]
+- [[_COMMUNITY_Build Worker Asset Guard|Build Worker Asset Guard]]
+- [[_COMMUNITY_Worker Guard Tests|Worker Guard Tests]]
 - [[_COMMUNITY_Brand Marks|Brand Marks]]
+- [[_COMMUNITY_Dev Server Guard Tests|Dev Server Guard Tests]]
 - [[_COMMUNITY_Deploy and Repo Conventions|Deploy and Repo Conventions]]
-- [[_COMMUNITY_Restraint as Signal|Restraint as Signal]]
-- [[_COMMUNITY_Design Positioning|Design Positioning]]
-- [[_COMMUNITY_Bloom Budget Rule|Bloom Budget Rule]]
-- [[_COMMUNITY_Glow as Depth Rule|Glow as Depth Rule]]
-- [[_COMMUNITY_One Grid Rule|One Grid Rule]]
-- [[_COMMUNITY_Restrained Caps Rule|Restrained Caps Rule]]
-- [[_COMMUNITY_Two Phosphor Rule|Two Phosphor Rule]]
+- [[_COMMUNITY_Anti-references|Anti-references]]
+- [[_COMMUNITY_Brand Personality|Brand Personality]]
 - [[_COMMUNITY_Archive With Weight|Archive With Weight]]
 - [[_COMMUNITY_Map Is The Point|Map Is The Point]]
 - [[_COMMUNITY_Sarcastic But Caring|Sarcastic But Caring]]
+- [[_COMMUNITY_Time Travel Not Dark Mode|Time Travel Not Dark Mode]]
 - [[_COMMUNITY_Spotmap Product Definition|Spotmap Product Definition]]
+- [[_COMMUNITY_Two-Renderer Constraint|Two-Renderer Constraint]]
+- [[_COMMUNITY_ASCII Animation Template|ASCII Animation Template]]
+- [[_COMMUNITY_Google Embed Template|Google Embed Template]]
+- [[_COMMUNITY_Spot Map Template|Spot Map Template]]
+- [[_COMMUNITY_Spot Gallery Template|Spot Gallery Template]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `FakeMap` - 25 edges
 2. `AsciiAnimationTextComponent` - 18 edges
-3. `AppComponent` - 16 edges
-4. `CityEnum` - 16 edges
-5. `SpotMapComponent` - 16 edges
-6. `MapContainerComponent` - 14 edges
-7. `LoadingBarComponent` - 12 edges
-8. `MapComponent` - 12 edges
-9. `scripts` - 11 edges
-10. `GlitchTextDirective` - 11 edges
+3. `SpotMapComponent` - 17 edges
+4. `AppComponent` - 16 edges
+5. `Design System: Spotmap Compendium (DESIGN.md)` - 14 edges
+6. `On-Device Checklist — MapLibre Vienna Pilot` - 13 edges
+7. `CityEnum` - 12 edges
+8. `LoadingBarComponent` - 12 edges
+9. `MapContainerComponent` - 12 edges
+10. `MapComponent` - 12 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `Design Principle: Insider, not exclusive` --semantically_similar_to--> `The Rarity Rule (amber ≤10% of any screen)`  [INFERRED] [semantically similar]
+- `Task 4: Photo Gallery Rendering` --references--> `SpotPhotoGalleryComponent`  [AMBIGUOUS]
+  docs/maplibre-vienna-pilot/on-device-checklist.md → spotmap-website/src/app/modules/components/spot-photo-gallery/spot-photo-gallery.component.ts
+- `Task 8: The Spot Map Itself` --references--> `SpotMapComponent`  [AMBIGUOUS]
+  docs/maplibre-vienna-pilot/on-device-checklist.md → spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts
+- `Design Principle: Insider, not exclusive` --semantically_similar_to--> `The Rarity Rule`  [INFERRED] [semantically similar]
   PRODUCT.md → DESIGN.md
-- `Task 2: Spot data on the real map` --conceptually_related_to--> `Map Surface (signature — Vienna) spec`  [INFERRED]
+- `Task 2: Spot Data on the Real Map` --references--> `Map Surface (signature — Vienna)`  [INFERRED]
   docs/maplibre-vienna-pilot/on-device-checklist.md → DESIGN.md
-- `Constraint: two map renderers coexist until full migration` --conceptually_related_to--> `Map Surface (signature — Vienna) spec`  [INFERRED]
-  PRODUCT.md → DESIGN.md
-- `Constraint: two map renderers coexist until full migration` --references--> `MapContainerComponent template`  [INFERRED]
-  PRODUCT.md → spotmap-website/src/app/modules/components/map-container/map-container.component.html
-- `Task 7: Real map factory registered` --references--> `SpotMapComponent template`  [INFERRED]
-  docs/maplibre-vienna-pilot/on-device-checklist.md → spotmap-website/src/app/modules/components/spot-map/spot-map.component.html
+- `Task 6: Terminal Basemap Style` --references--> `Map Surface (signature — Vienna)`  [INFERRED]
+  docs/maplibre-vienna-pilot/on-device-checklist.md → DESIGN.md
 
 ## Import Cycles
 - None detected.
 
 ## Hyperedges (group relationships)
+- **Vienna MapLibre Map Surface Realized End-to-End** — design_map_surface, docs_maplibre_vienna_pilot_on_device_checklist_task_10_turn_vienna_on, spotmap_website_src_app_modules_components_map_container_map_container_component_template, spotmap_website_src_app_modules_components_spot_popup_spot_popup_component_template [INFERRED 0.85]
+- **No-White Rule Enforced Across Map Frame and Map Surface** — design_no_white_rule, design_map_frame, design_map_surface, docs_maplibre_vienna_pilot_on_device_checklist_task_11_map_surface_matches_docs [INFERRED 0.85]
+- **Directions Link Preserves the Archive Tab** — design_directions, spotmap_website_src_app_modules_components_spot_popup_spot_popup_component_template, docs_maplibre_vienna_pilot_on_device_checklist_geo_uri_limitation, docs_maplibre_vienna_pilot_on_device_checklist_branch_review_round_2 [INFERRED 0.85]
 - **App Root Composition Shell (Nav Bar + Intro Animation)** — spotmap_website_src_app_app_component_appcomponent, spotmap_website_src_app_modules_components_ascii_animation_text_ascii_animation_text_component_asciianimationtextcomponent, spotmap_website_src_app_modules_components_nav_bar_nav_bar_component_navbarcomponent [INFERRED 0.80]
 - **Signal-Driven @if/@for Control Flow Templates** — spotmap_website_src_app_app_component_appcomponent, spotmap_website_src_app_modules_components_map_container_map_container_component_mapcontainercomponent, spotmap_website_src_app_modules_components_nav_bar_nav_bar_component_navbarcomponent [INFERRED 0.70]
-- **Vienna MapLibre render/composition pipeline** — spotmap_website_src_app_modules_components_map_container_map_container_component_template, spotmap_website_src_app_modules_components_spot_map_spot_map_component_template, spotmap_website_src_app_modules_components_spot_popup_spot_popup_component_template, spotmap_website_src_app_modules_components_spot_photo_gallery_spot_photo_gallery_component_template [INFERRED 0.85]
-- **No-White Rule enforcement across map UI and QA checklist** — design_no_white_rule, spotmap_website_src_app_modules_components_map_container_map_container_component_template, spotmap_website_src_app_modules_components_spot_popup_spot_popup_component_template, docs_maplibre_vienna_pilot_on_device_checklist_task11_map_surface_matches_docs [EXTRACTED 1.00]
-- **Dual-renderer abstraction (Google Maps embed vs MapLibre)** — product_two_renderer_constraint, spotmap_website_src_app_modules_components_map_container_map_container_component_template, spotmap_website_src_app_modules_components_gmaps_embed_gmaps_embed_component_template, spotmap_website_src_app_modules_components_spot_map_spot_map_component_template [INFERRED 0.85]
 
-## Communities (28 total, 12 thin omitted)
+## Communities (32 total, 16 thin omitted)
 
-### Community 0 - "ASCII Animation Text"
+### Community 0 - "Design System and Doctrine"
+Cohesion: 0.10
+Nodes (40): Design System: Spotmap Compendium (DESIGN.md), ASCII Animation (signature), The Bloom-Budget Rule, Directions Link Mechanism, The Glow-Is-The-Shadow Rule, Google My Maps Embed (temporary anachronism), Map Frame (signature), Map Surface (signature — Vienna) (+32 more)
+
+### Community 1 - "ASCII Animation Text"
 Cohesion: 0.09
 Nodes (5): AsciiAnimationTextComponent, LoadingBarComponent, GlitchTextDirective, HostComponent, prefersReducedMotion()
 
-### Community 1 - "Design System and Product Doctrine"
+### Community 2 - "Map Container and Chrome"
 Cohesion: 0.08
-Nodes (35): ASCII Animation (signature) spec, Map Frame component spec (signature), Map Surface (signature — Vienna) spec, Matrix Radar Loader (signature) spec, The No-White Rule, "The Phosphor Archive" creative north star, Commit 016d6a7 (PRODUCT.md / DESIGN.md doc update), Commit 01797e6 (Vienna renders through MapLibre) (+27 more)
+Nodes (10): CameraMove, COLLECTION, create(), FakePopup, tap(), tapOn(), SPOT_LAYERS, SpotMapComponent (+2 more)
 
-### Community 2 - "Angular Build Targets"
+### Community 3 - "Angular Build Targets"
 Cohesion: 0.07
 Nodes (35): build, extract-i18n, serve, test, builder, configurations, defaultConfiguration, options (+27 more)
 
-### Community 3 - "Dev Toolchain Dependencies"
+### Community 4 - "Runtime Dependencies"
 Cohesion: 0.06
-Nodes (33): devDependencies, @angular/cli, @angular/compiler-cli, @angular-devkit/build-angular, istanbul-lib-instrument, jasmine-core, karma, karma-chrome-launcher (+25 more)
+Nodes (33): dependencies, @angular/animations, @angular/cdk, @angular/common, @angular/compiler, @angular/core, @angular/forms, @angular/material (+25 more)
 
-### Community 4 - "City Config and Map Enums"
-Cohesion: 0.19
-Nodes (12): SUPPORTED_CITIES, MapItem, CityEnum, CountryCodeEnum, CountryEnum, MapFailureReason, MapRendererEnum, GmapsEmbedComponent (+4 more)
+### Community 5 - "City Config and Map Enums"
+Cohesion: 0.16
+Nodes (14): SUPPORTED_CITIES, MapItem, CityEnum, CountryCodeEnum, CountryEnum, MapFailureReason, MapRendererEnum, SpotCollection (+6 more)
 
-### Community 5 - "Spot Data and Map Renderer"
-Cohesion: 0.11
-Nodes (9): SpotCollection, SpotFeature, SpotProperties, SpotStatus, SpotMapComponent, create(), SpotPhotoGalleryComponent, create() (+1 more)
+### Community 6 - "Terminal Basemap Style"
+Cohesion: 0.09
+Nodes (24): buildTerminalStyle(), CASED_TIERS, casingRamp(), classFilter(), HIDDEN_BRUNNELS, ROAD_TIERS, ROAD_ZOOMS, roadLayer() (+16 more)
 
-### Community 6 - "Angular Workspace Schematics"
+### Community 7 - "Angular Workspace Schematics"
 Cohesion: 0.07
 Nodes (27): newProjectRoot, projects, spotmap-website, $schema, schematics, type, type, typeSeparator (+19 more)
-
-### Community 7 - "App Bootstrap and Map Factory"
-Cohesion: 0.10
-Nodes (12): appConfig, routes, createMapLibreMap(), MAP_FACTORY, MapFactory, PopupFactory, CameraMove, COLLECTION (+4 more)
 
 ### Community 8 - "App Shell and Intro Sequence"
 Cohesion: 0.11
 Nodes (9): AppComponent, Skippable Intro Animation Pattern, Glitch Text Hover Directive (appGlitchText), NavBarComponent, NavBarLink, HostComponent, StubPageComponent, AboutComponent (+1 more)
 
-### Community 9 - "Terminal Basemap Style"
+### Community 11 - "Dev Toolchain Dependencies"
 Cohesion: 0.12
-Nodes (22): buildTerminalStyle(), CASED_TIERS, casingRamp(), classFilter(), classFilterWithout(), ROAD_TIERS, ROAD_ZOOMS, roadLayer() (+14 more)
+Nodes (16): devDependencies, @angular/cli, @angular/compiler-cli, @angular-devkit/build-angular, istanbul-lib-instrument, jasmine-core, karma, karma-chrome-launcher (+8 more)
 
-### Community 11 - "Map Container State Machine"
-Cohesion: 0.20
-Nodes (3): MapContainerComponent, create(), MapComponent
-
-### Community 12 - "Runtime Dependencies"
-Cohesion: 0.13
-Nodes (15): dependencies, @angular/animations, @angular/cdk, @angular/common, @angular/compiler, @angular/core, @angular/forms, @angular/material (+7 more)
+### Community 12 - "App Bootstrap and Map Factory"
+Cohesion: 0.26
+Nodes (7): appConfig, routes, createMapLibreMap(), MAP_FACTORY, MapFactory, POPUP_FACTORY, PopupFactory
 
 ### Community 13 - "Dev Server Worker Check"
-Cohesion: 0.31
-Nodes (9): bodyOf(), fail(), findModuleBuildingTheWorkerUrl(), port, projectDir, server, statusOf(), waitForServer() (+1 more)
+Cohesion: 0.36
+Nodes (8): bodyOf(), fail(), findModuleBuildingTheWorkerUrl(), port, projectDir, statusOf(), waitForServer(), workerModuleUrls()
 
-### Community 14 - "Build Worker Asset Check"
+### Community 15 - "Build Worker Asset Guard"
+Cohesion: 0.48
+Nodes (6): applicationModules(), chunks, entryScripts(), fail(), requireSiblingModule(), root
+
+### Community 16 - "Worker Guard Tests"
 Cohesion: 0.40
-Nodes (4): chunks, fail(), requireSiblingModule(), root
+Nodes (4): buildOutput(), guard, mapChunk(), workDir
 
-### Community 15 - "Brand Marks"
+### Community 17 - "Brand Marks"
 Cohesion: 0.83
 Nodes (4): Spotmap App Brand/Visual Identity, icon2.png - Pixel-Art Blue Map-Pin Favicon, Blue Pixel-Art Map-Pin App Icon (icon3.png), Skateboard Map-Pin Favicon (Red/Black)
 
-### Community 16 - "Deploy and Repo Conventions"
+### Community 19 - "Deploy and Repo Conventions"
 Cohesion: 0.67
 Nodes (3): Deploy Angular App to GitHub Pages (CI workflow), Graphify update-in-the-same-change discipline, spotmap-website project instructions (CLAUDE.md)
 
 ## Ambiguous Edges - Review These
+- `SpotPhotoGalleryComponent` → `Task 4: Photo Gallery Rendering`  [AMBIGUOUS]
+  docs/maplibre-vienna-pilot/on-device-checklist.md · relation: references
 - `HomeComponent` → `MapComponent`  [AMBIGUOUS]
   spotmap-website/src/app/modules/pages/home/home.component.html · relation: references
+- `SpotMapComponent` → `Task 8: The Spot Map Itself`  [AMBIGUOUS]
+  docs/maplibre-vienna-pilot/on-device-checklist.md · relation: references
 
 ## Knowledge Gaps
-- **105 isolated node(s):** `$schema`, `version`, `newProjectRoot`, `projectType`, `schematics` (+100 more)
+- **113 isolated node(s):** `SpotStatus`, `SpotProperties`, `SpotFeature`, `StubPageComponent`, `HostComponent` (+108 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **12 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **16 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
+- **What is the exact relationship between `SpotPhotoGalleryComponent` and `Task 4: Photo Gallery Rendering`?**
+  _Edge tagged AMBIGUOUS (relation: references) - confidence is low._
 - **What is the exact relationship between `HomeComponent` and `MapComponent`?**
   _Edge tagged AMBIGUOUS (relation: references) - confidence is low._
-- **Why does `FakeMap` connect `Map Test Doubles` to `App Bootstrap and Map Factory`?**
-  _High betweenness centrality (0.060) - this node is a cross-community bridge._
-- **Why does `MapComponent` connect `Map Container State Machine` to `App Shell and Intro Sequence`, `ASCII Animation Text`, `City Config and Map Enums`?**
-  _High betweenness centrality (0.044) - this node is a cross-community bridge._
-- **Why does `AppComponent` connect `App Shell and Intro Sequence` to `ASCII Animation Text`, `Map Container State Machine`, `App Bootstrap and Map Factory`?**
-  _High betweenness centrality (0.040) - this node is a cross-community bridge._
+- **What is the exact relationship between `SpotMapComponent` and `Task 8: The Spot Map Itself`?**
+  _Edge tagged AMBIGUOUS (relation: references) - confidence is low._
+- **Why does `SpotMapComponent` connect `Map Container and Chrome` to `Design System and Doctrine`, `City Config and Map Enums`?**
+  _High betweenness centrality (0.173) - this node is a cross-community bridge._
+- **Why does `Task 8: The Spot Map Itself` connect `Design System and Doctrine` to `Map Container and Chrome`?**
+  _High betweenness centrality (0.115) - this node is a cross-community bridge._
 - **Are the 3 inferred relationships involving `AppComponent` (e.g. with `AboutComponent` and `HomeComponent`) actually correct?**
   _`AppComponent` has 3 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `$schema`, `version`, `newProjectRoot` to the rest of the system?**
-  _119 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `ASCII Animation Text` be split into smaller, more focused modules?**
-  _Cohesion score 0.08771929824561403 - nodes in this community are weakly interconnected._
+- **What connects `SpotStatus`, `SpotProperties`, `SpotFeature` to the rest of the system?**
+  _124 weakly-connected nodes found - possible documentation gaps or missing edges._
