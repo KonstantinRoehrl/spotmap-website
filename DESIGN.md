@@ -117,6 +117,8 @@ A single-hue phosphor system: one saturated green carries ~95% of every screen a
 
 **The No-White Rule.** `#ffffff` (and near-white grays) are banned on every surface, the basemap included now that the site draws it. White is the failure signature: nothing on screen is white, every empty/loading/error state falls back to `surface`, and the map chrome that arrives white (MapLibre's popup box, its tip, the attribution control) is repainted in the palette rather than left as shipped.
 
+*Ruled 2026-09-13, so a sweep does not re-raise it:* `--color-phosphor-bright` (`#b6ffb6`) is the lightest colour the site paints — it tops the phosphor ramp and lights the gallery arrow on hover and focus. It is a pale mint at full green saturation, not a near-white gray, and the rule does not reach it. An on-device sweep of every visible element plus every pixel of the map's drawing buffer found nothing else above it, and no pixel with all three channels above 200.
+
 **The Rarity Rule.** Amber covers ≤10% of any screen. If a screen has amber in more than one role at once, cut it back to the single most-earnest one.
 
 ## 3. Typography
