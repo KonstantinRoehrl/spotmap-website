@@ -194,7 +194,13 @@ describe('MapContainerComponent', () => {
     rendererFailed(c, 'unsupported');
     fixture.detectChanges();
     expect(failure(c)).toBe('unsupported');
-    expect(fixture.nativeElement.textContent).toContain('NO RENDERER');
+    // The condition is a browser without WebGL 2, which is what MapLibre needs — so the line may
+    // not claim the browser has no WebGL at all: an iOS 14 Safari, the browser this path exists
+    // for, has WebGL 1 and would be told something false. It says what the reader can act on
+    // instead of a version number they cannot.
+    expect(fixture.nativeElement.textContent).toContain(
+      '> NO RENDERER // THIS BROWSER IS TOO OLD FOR THIS MAP',
+    );
     expect(fixture.nativeElement.querySelector('.map-error__retry')).toBeNull();
     fixture.destroy();
   });

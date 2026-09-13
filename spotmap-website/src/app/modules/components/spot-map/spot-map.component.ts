@@ -250,13 +250,18 @@ export class SpotMapComponent {
         // Attribution is a licence condition of the OSM-derived tiles, never optional.
         attributionControl: { compact: true },
       });
-    } catch {
+    } catch (error) {
       // Either maplibre-gl's lazy chunk never arrived — after a redeploy a client holding a
       // cached index.html asks for a hashed chunk that is gone — or the `Map` constructor threw
       // because the GPU would not give it a context the probe just held. Both are a build that
       // failed rather than a browser that can never render, so RETRY is worth offering. Saying
       // so here is the only way it gets said at all: `build()` is launched with `void`, so an
       // escaping rejection leaves the container on its spinner until the watchdog gives up.
+      // Logging it is the other half of that: catching the rejection is what took the browser's
+      // own unhandled-rejection report away, and no map exists to fire the `error` event that
+      // reports every other failure below, so without this the console never names what went
+      // missing — a chunk load, or the GPU refusing a context.
+      console.error(error);
       this.fail('unreachable', generation);
       return;
     }

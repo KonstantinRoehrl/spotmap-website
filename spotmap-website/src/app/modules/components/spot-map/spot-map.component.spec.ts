@@ -694,6 +694,28 @@ describe('SpotMapComponent', () => {
     expect(failed).toHaveBeenCalledWith('unreachable');
   });
 
+  it('logs the reason a map that never got a renderer went down', async () => {
+    // The factory is the one failure with nothing else to name it: `> SIGNAL LOST // MAP
+    // UNREACHABLE` is all the user sees, no MapLibre `error` event ever fires because no map was
+    // built, and the network tab shows a 404 without saying what asked for it. Swallowing the
+    // rejection also took away the unhandled-rejection report the browser used to print, since
+    // `build()` is launched with `void`.
+    mapFactory.and.callFake(() =>
+      Promise.reject(new Error('map chunk failed to load')),
+    );
+    fixture = TestBed.createComponent(SpotMapComponent);
+    fixture.componentRef.setInput('city', CityEnum.Vienna);
+    fixture.componentRef.setInput('retryToken', 0);
+    const logged = spyOn(console, 'error');
+    fixture.detectChanges();
+    httpMock.expectOne('spots/vienna.geojson').flush(COLLECTION);
+    await fixture.whenStable();
+    expect(logged).toHaveBeenCalled();
+    expect(logged.calls.mostRecent().args.join(' ')).toContain(
+      'map chunk failed to load',
+    );
+  });
+
   it('reports a map the GPU refused to build as unreachable, not unsupported', async () => {
     // `new Map(...)` throwing `GPUInitializationError` inside the async factory
     // (maplibre-gl-dev.mjs:24123-24128) even though the probe just held a WebGL2 context: the
