@@ -27,7 +27,20 @@ const port = Number(process.argv[2] ?? 4271);
 const origin = `http://localhost:${port}/`;
 const projectDir = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
-const server = spawn(
+/** Set once the port is known to be free — `fail` can run before there is a server to kill. */
+let server;
+
+// Whatever answers on this port gets walked as if this check had started it, and whatever that
+// server happens to serve becomes a verdict about maplibre — so the port has to be ours.
+if ((await statusOf(origin)) !== 0) {
+  fail(
+    `port ${port} is already in use — something else answers on ${origin}, and this check cannot ` +
+      `tell it apart from the dev server it starts itself. Stop that server, or run this against a ` +
+      `free port: npm run verify:dev-map-worker -- <port>.`,
+  );
+}
+
+server = spawn(
   resolve(projectDir, 'node_modules/.bin/ng'),
   ['serve', '--port', String(port)],
   {
@@ -110,6 +123,12 @@ async function findModuleBuildingTheWorkerUrl() {
 async function waitForServer() {
   const deadline = Date.now() + READY_TIMEOUT_MS;
   while (Date.now() < deadline) {
+    if (server.exitCode !== null) {
+      fail(
+        `the dev server exited with code ${server.exitCode} before it answered on ${origin} — its ` +
+          `output above says why.`,
+      );
+    }
     if ((await statusOf(origin)) === 200) return;
     await new Promise((done) => setTimeout(done, 500));
   }
@@ -133,6 +152,6 @@ async function bodyOf(url) {
 
 function fail(message) {
   console.error(`dev server maplibre worker check failed: ${message}`);
-  server.kill();
+  server?.kill();
   process.exit(1);
 }

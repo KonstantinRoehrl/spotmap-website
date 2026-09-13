@@ -5,11 +5,12 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
-    "build:pages": "ng build --configuration production --output-path=../dist/spotmap-website --base-href /spotmap-website/ && npm run verify:map-worker-assets",
+    "build:pages": "npm run test:tools && ng build --configuration production --output-path=../dist/spotmap-website --base-href /spotmap-website/ && npm run verify:map-worker-assets",
     "verify:map-worker-assets": "node tools/verify-map-worker-assets.mjs ../dist/spotmap-website/browser",
     "verify:dev-map-worker": "node tools/verify-dev-server-map-worker.mjs",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
+    "test:tools": "node --test \"tools/*.test.mjs\"",
     "format": "prettier --write \"src/**/*.{ts,html,css,scss}\"",
     "format:check": "prettier --check \"src/**/*.{ts,html,css,scss}\""
   },
