@@ -292,9 +292,11 @@ a fresh sweep now that the rule has no exception left.
       tapped pin has.)
       Where: Vienna city page  ·  How to get there: tap around the map and compare an unclassified
       spot's pin against a clearly-active one
-- [ ] A demolished spot's popup shows a `> DEMOLISHED` line in amber under the spot name; a standing
-      spot's popup has no such line. (Task 9's and Task 10's popup items already cover the frame,
-      close button and tip — this is the one popup element neither has walked.)
+- [ ] A demolished spot's popup shows a `> DEMOLISHED` line under the spot name, in unlit
+      phosphor-dim with no glow; a standing spot's popup has no such line. (Task 9's and Task 10's
+      popup items already cover the frame, close button and tip — this is the one popup element
+      neither has walked. Branch review moved this line off amber, so an amber `> DEMOLISHED` is now
+      a failure, not a pass.)
       Where: Vienna city page, popup body  ·  How to get there: tap a demolished spot's pin, then
       compare against a standing spot's popup
 - [ ] The photo gallery panel itself reads as dark terminal chrome rather than a bare image well: a
@@ -309,3 +311,71 @@ a fresh sweep now that the rule has no exception left.
       overlays (`SIGNAL LOST // MAP UNREACHABLE` and `NO RENDERER // THIS BROWSER HAS NO WEBGL`).
       Where: Vienna city page  ·  How to get there: open a popup, throttle/block the network as in
       Tasks 6, 8 and 9's overlay items, and tap the attribution control's compact toggle along the way
+
+## Branch review fixes (round 1)
+
+Nine fixes landed after the whole-branch review, and between them they change what a walkthrough
+has to look at. Two are load-bearing enough to do FIRST: before the worker fix, the map never
+finished loading in either a built or a dev-served app, so every rendered item in every section
+above was unreachable on a real device. Confirm the map paints at all, then walk the rest.
+
+- [ ] The map actually finishes loading and paints tiles under `ng serve` on the phone — pins over a
+      real basemap, no `> SIGNAL LOST // MAP UNREACHABLE` after the watchdog. Before this fix the
+      worker module 404'd and this always failed.
+      Where: Vienna city page  ·  How to get there: `npm start` in spotmap-website/, open the dev
+      server's LAN address on the phone, let the map settle for 20 seconds
+- [ ] The same holds for the production build served under its deploy path — the artifact users
+      actually get, not just the dev server.
+      Where: Vienna city page  ·  How to get there: `npm run build:pages`, serve
+      `dist/spotmap-website/browser` under a `/spotmap-website/` prefix, open it on the phone
+- [ ] Two fingers dragged straight up or down together never tilt the map — the ground stays flat,
+      buildings and labels never skew into perspective. This is one asymmetric grip away from the
+      pinch the user meant, so try it deliberately and sloppily.
+      Where: Vienna city page  ·  How to get there: pinch-zoom normally first, then drag two fingers
+      vertically without spreading them
+- [ ] Two fingers twisted never rotate the map — north stays up — and one finger still pans while
+      two fingers still pinch-zoom the map rather than the page.
+      Where: Vienna city page  ·  How to get there: twist, then pan one-handed, then pinch
+- [ ] With a hardware keyboard attached, arrow keys pan and `+`/`-` zoom, while `Shift`+arrow does
+      nothing at all.
+      Where: Vienna city page  ·  How to get there: pair a keyboard, focus the map canvas, try each
+- [ ] Donaupark, the Prater, the Stadtpark and Schönbrunn read as a raised green-black against plain
+      black ground — and the two blacks are still distinguishable outdoors in daylight, not just on a
+      desk. Before this fix no park rendered at all.
+      Where: Vienna city page  ·  How to get there: pan to Donaupark (a pilot spot), then the Prater
+- [ ] The green does not read as busy or noisy at z14 in dense districts — the centre alone carries
+      several hundred grass polygons.
+      Where: Vienna city page  ·  How to get there: zoom to street level in the 1st district
+- [ ] The four road tiers separate on a phone in sunlight: motorway and trunk brightest, down to
+      service and track dimmest, with two of the four steps carried by opacity rather than hue.
+      Where: Vienna city page  ·  How to get there: find a motorway, a main road and a side street in
+      one screen, outdoors
+- [ ] Footways, steps, cycleways, plazas and piers read as a dashed texture and tram/rail as dotted
+      hairlines — there to navigate by, never mistaken for streets — at z14 through z16.
+      Where: Vienna city page  ·  How to get there: zoom into a pedestrian zone and a tram corridor
+- [ ] The casing under the major roads helps them read rather than muddying the wireframe at z12–z14.
+      Where: Vienna city page  ·  How to get there: zoom out to city level
+- [ ] On a browser profile with WebGL 2 disabled, `> NO RENDERER // THIS BROWSER HAS NO WEBGL`
+      appears immediately with no RETRY — not a 15-second spinner followed by a retry that cannot
+      work.
+      Where: Vienna city page  ·  How to get there: disable WebGL 2 in the browser's flags, reload
+- [ ] With the maplibre chunk blocked, `> SIGNAL LOST // MAP UNREACHABLE` and `> RETRY` appear
+      promptly rather than only after the watchdog elapses.
+      Where: Vienna city page  ·  How to get there: block the maplibre chunk in devtools, reload
+- [ ] With the glyph endpoint blocked, the labels vanish but the map still paints — and the error is
+      visible in the console rather than silently swallowed.
+      Where: Vienna city page  ·  How to get there: block `tiles.openfreemap.org/fonts/*`, reload,
+      watch the console
+- [ ] A tapped demolished pin shows amber in exactly one role on screen — the selection ring — and
+      the unlit `> DEMOLISHED` line is still legible in sunlight despite having no glow.
+      Where: Vienna city page, popup body  ·  How to get there: tap one of the four demolished pins,
+      outdoors
+- [ ] `> DIRECTIONS` opens the device's maps app on BOTH iOS Safari and Android Chrome, landing on
+      the right spot. The previous `geo:` link did nothing on iOS, so test iOS specifically.
+      Where: spot popup  ·  How to get there: tap a pin, then `> DIRECTIONS`, on each platform
+- [ ] With the system "Reduce Motion" setting on, the opening view cuts straight to the spots instead
+      of easing into place over about half a second.
+      Where: Vienna city page  ·  How to get there: enable Reduce Motion in system settings, reload
+- [ ] The About page reads true: Vienna's map is the site's own, the other cities still run on the
+      Google embed, and the voice still sounds like the rest of the page.
+      Where: About page  ·  How to get there: `ⓘ About` from the nav
