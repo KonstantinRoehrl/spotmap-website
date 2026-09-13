@@ -254,9 +254,18 @@ export class SpotMapComponent {
     }
     this.map = map;
 
-    // Rotation and pitch are off: a two-finger gesture may only pan and zoom.
+    // Rotation and pitch are off: the map stays flat and north-up whatever the gesture. Four
+    // handlers can move those two degrees of freedom and each needs its own switch — MapLibre
+    // wires them separately (maplibre-gl-dev.mjs:22512-22561) and skips only the ones reporting
+    // `isEnabled() === false` (`:22363`). `dragRotate.disable()` reaches the mouse trio alone
+    // (`:22064-22068`) and `touchZoomRotate.disableRotation()` the two-finger twist alone
+    // (`:22188-22191`), which leaves the two-finger tilt and Shift+Arrow live by default
+    // (`:23927-23930`). Keyboard pan and zoom stay: `disableRotation()` zeroes only the bearing
+    // and pitch steps (`:21529-21531`), and arrow keys are the only pointer-free way to move.
     map.dragRotate.disable();
     map.touchZoomRotate.disableRotation();
+    map.touchPitch.disable();
+    map.keyboard.disableRotation();
 
     map.on('sourcedata', (event) => {
       // No generation guard: the set belongs to this build, and only this build's own error

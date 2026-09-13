@@ -16,10 +16,44 @@ class FakeMap {
   readonly layers: { id: string }[] = [];
   readonly featureStates: Record<string, Record<string, unknown>> = {};
   readonly canvas = document.createElement('canvas');
-  readonly dragRotate = { disable: jasmine.createSpy('dragRotate.disable') };
-  readonly touchZoomRotate = {
-    disableRotation: jasmine.createSpy('disableRotation'),
+  /**
+   * The four handlers that can tilt or turn the map, each gated on the one call that actually
+   * switches it off. MapLibre wires them as separate handlers in `_addDefaultHandlers`
+   * (maplibre-gl-dev.mjs:22512-22561) and skips any reporting `isEnabled() === false`
+   * (`:22363`), so turning one off leaves the other three answering gestures.
+   */
+  readonly dragRotate = {
+    /** The mouse rotate/pitch/roll trio, and nothing touch or keyboard (`:22064-22068`). */
+    disable: jasmine.createSpy('dragRotate.disable').and.callFake(() => {
+      this.mouseRotatePitch = false;
+    }),
   };
+  readonly touchZoomRotate = {
+    /** Only the two-finger twist; pinch-zoom and two-finger pitch survive (`:22188-22191`). */
+    disableRotation: jasmine.createSpy('disableRotation').and.callFake(() => {
+      this.twoFingerRotate = false;
+    }),
+  };
+  readonly touchPitch = {
+    /** The two-finger tilt handler has no partial off switch — pitch is all it does. */
+    disable: jasmine.createSpy('touchPitch.disable').and.callFake(() => {
+      this.twoFingerPitch = false;
+    }),
+  };
+  readonly keyboard = {
+    /** Zeroes the bearing and pitch steps, leaving the arrow-key pan and zoom (`:21529-21531`). */
+    disableRotation: jasmine
+      .createSpy('keyboard.disableRotation')
+      .and.callFake(() => {
+        this.keyboardRotatePitch = false;
+      }),
+  };
+  pitch = 0;
+  bearing = 0;
+  private mouseRotatePitch = true;
+  private twoFingerRotate = true;
+  private twoFingerPitch = true;
+  private keyboardRotatePitch = true;
   /**
    * Drives `isStyleLoaded()`, and is flipped to `true` by `failBasemapSource()` on purpose:
    * MapLibre reports the style loaded the instant a source errors. `VectorTileSource.load()`'s
@@ -92,6 +126,55 @@ class FakeMap {
   }
   remove() {
     this.removed = true;
+  }
+
+  /**
+   * Two fingers dragged up or down together, each moving at least 2 px: the pitch handler reads
+   * that as vertical (maplibre-gl-dev.mjs:21359-21372) and returns
+   * `pitchDelta = mean(travel.y) * -0.5` (`:21357`), which the manager adds to the camera's
+   * pitch (`:11963`). `travel` is each finger's vertical travel in px, negative dragging up.
+   */
+  twoFingerVerticalDrag(travel: number) {
+    if (!this.twoFingerPitch) {
+      return;
+    }
+    this.tilt(travel * -0.5);
+  }
+
+  /** Two fingers twisted: the rotate handler's bearing delta, in degrees (`:21302-21310`). */
+  twoFingerTwist(degrees: number) {
+    if (!this.twoFingerRotate) {
+      return;
+    }
+    this.bearing += degrees;
+  }
+
+  /**
+   * A right-button drag, MapLibre's mouse rotate and pitch pair: `bearingDelta = travel.x * 0.8`
+   * (`:21031`, rate `:23951`) and `pitchDelta = travel.y * -0.5` (`:21039`, rate `:23952`).
+   */
+  rightButtonDrag(travel: { x: number; y: number }) {
+    if (!this.mouseRotatePitch) {
+      return;
+    }
+    this.bearing += travel.x * 0.8;
+    this.tilt(travel.y * -0.5);
+  }
+
+  /**
+   * Shift with an arrow key, which the keyboard handler turns into a 15° bearing step or a 10°
+   * pitch step (`:21443-21456`, `:21470-21471`, steps `:21377-21379`).
+   */
+  shiftArrowUp() {
+    if (!this.keyboardRotatePitch) {
+      return;
+    }
+    this.tilt(10);
+  }
+
+  /** Pitch is clamped to the map's own 0–60° range (`:9967-9968`, defaults `:23899-23900`). */
+  private tilt(degrees: number) {
+    this.pitch = Math.min(Math.max(this.pitch + degrees, 0), 60);
   }
 
   /** The source the component's own style declares; MapLibre tags its events with that id. */
@@ -312,6 +395,18 @@ describe('SpotMapComponent', () => {
     await create();
     expect(fake.dragRotate.disable).toHaveBeenCalled();
     expect(fake.touchZoomRotate.disableRotation).toHaveBeenCalled();
+  });
+
+  it('stays flat and north-up through every gesture that could tilt or turn it', async () => {
+    await create();
+    // A 100 px two-finger drag upwards is ~50° of tilt on a map that still listens for it, and
+    // nothing in this app can undo a tilt: there is no compass, no reset, no `setPitch` call.
+    fake.twoFingerVerticalDrag(-100);
+    fake.shiftArrowUp();
+    fake.rightButtonDrag({ x: 80, y: -100 });
+    fake.twoFingerTwist(45);
+    expect(fake.pitch).toBe(0);
+    expect(fake.bearing).toBe(0);
   });
 
   it('adds the spot source and its pin layers', async () => {
