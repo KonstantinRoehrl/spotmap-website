@@ -502,6 +502,36 @@ describe('SpotMapComponent', () => {
     expect(ready).toHaveBeenCalled();
   });
 
+  it('logs an error it paints through instead of swallowing it', async () => {
+    const c = await create();
+    const failed = jasmine.createSpy('failed');
+    c.failed.subscribe(failed);
+    fake.emit('load');
+    // Attaching an `error` listener took MapLibre's own logging away: `Evented.fire` writes an
+    // error to the console only while nothing listens for it (maplibre-gl-shared-dev.mjs:3149,
+    // :3163). A dead glyph endpoint drops every label off a map that still paints, and without
+    // this the only diagnostic left for that is the raw network tab.
+    const logged = spyOn(console, 'error');
+    fake.failOneResource();
+    expect(failed).not.toHaveBeenCalled();
+    expect(logged).toHaveBeenCalled();
+    expect(logged.calls.mostRecent().args.join(' ')).toContain(
+      'one tile failed to load',
+    );
+  });
+
+  it('logs the error behind a map it gives up on', async () => {
+    // `> SIGNAL LOST // MAP UNREACHABLE` is all the user gets; without this the console never
+    // says which resource took the map down.
+    await create();
+    const logged = spyOn(console, 'error');
+    fake.failBasemapSource();
+    expect(logged).toHaveBeenCalled();
+    expect(logged.calls.mostRecent().args.join(' ')).toContain(
+      'https://tiles.openfreemap.org/planet',
+    );
+  });
+
   it('never reports ready for a map it has already given up on', async () => {
     const c = await create();
     const failed = jasmine.createSpy('failed');
@@ -550,6 +580,71 @@ describe('SpotMapComponent', () => {
     await fixture.whenStable();
     expect(failed).toHaveBeenCalledWith('unsupported');
     httpMock.expectNone('spots/vienna.geojson');
+  });
+
+  it('fails as unsupported on a browser whose WebGL stops at version 1', async () => {
+    // maplibre-gl v6 asks for one context and one only: `Map._setupPainter()` requests `webgl2`
+    // and throws `GPUInitializationError` — "WebGL2 is required to display this map" — the
+    // moment it comes back null (maplibre-gl-dev.mjs:27022-27023, :20164-20167), and the `Map`
+    // constructor rethrows it after cleanup (`:24123-24128`). So a browser that answers
+    // `getContext('webgl')` but not `getContext('webgl2')` — iOS 14, older Android WebViews, a
+    // GPU blocklist that stops at WebGL2 — cannot draw this map at all.
+    getContext.and.callFake((contextId: string) =>
+      contextId === 'webgl2'
+        ? null
+        : ({
+            getExtension: () => ({ loseContext }),
+          } as unknown as WebGLRenderingContext),
+    );
+    fixture = TestBed.createComponent(SpotMapComponent);
+    fixture.componentRef.setInput('city', CityEnum.Vienna);
+    fixture.componentRef.setInput('retryToken', 0);
+    const failed = jasmine.createSpy('failed');
+    fixture.componentInstance.failed.subscribe(failed);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(failed).toHaveBeenCalledWith('unsupported');
+    expect(mapFactory).not.toHaveBeenCalled();
+    httpMock.expectNone('spots/vienna.geojson');
+  });
+
+  it('reports a map whose renderer never arrives as unreachable', async () => {
+    // The lazy maplibre-gl chunk failing to load: after a redeploy a client holding a cached
+    // index.html asks for a hashed chunk that is gone, so `import('maplibre-gl')` rejects and
+    // the factory rejects with it. Unreported, the container hears nothing at all and sits on
+    // the spinner until its own 15 s watchdog guesses.
+    mapFactory.and.callFake(() =>
+      Promise.reject(new Error('map chunk failed to load')),
+    );
+    fixture = TestBed.createComponent(SpotMapComponent);
+    fixture.componentRef.setInput('city', CityEnum.Vienna);
+    fixture.componentRef.setInput('retryToken', 0);
+    const failed = jasmine.createSpy('failed');
+    fixture.componentInstance.failed.subscribe(failed);
+    fixture.detectChanges();
+    httpMock.expectOne('spots/vienna.geojson').flush(COLLECTION);
+    await fixture.whenStable();
+    expect(failed).toHaveBeenCalledWith('unreachable');
+  });
+
+  it('reports a map the GPU refused to build as unreachable, not unsupported', async () => {
+    // `new Map(...)` throwing `GPUInitializationError` inside the async factory
+    // (maplibre-gl-dev.mjs:24123-24128) even though the probe just held a WebGL2 context: the
+    // context could not be created *this time* — one live context too many, a driver that
+    // dropped out. The probe already turned away the browsers that can never render, so this is
+    // a build that failed rather than a browser that is out, and RETRY may well get a context.
+    const gpuError = new Error('WebGL2 is required to display this map.');
+    gpuError.name = 'GPUInitializationError';
+    mapFactory.and.callFake(() => Promise.reject(gpuError));
+    fixture = TestBed.createComponent(SpotMapComponent);
+    fixture.componentRef.setInput('city', CityEnum.Vienna);
+    fixture.componentRef.setInput('retryToken', 0);
+    const failed = jasmine.createSpy('failed');
+    fixture.componentInstance.failed.subscribe(failed);
+    fixture.detectChanges();
+    httpMock.expectOne('spots/vienna.geojson').flush(COLLECTION);
+    await fixture.whenStable();
+    expect(failed).toHaveBeenCalledWith('unreachable');
   });
 
   it('reports a spot fetch failure as unreachable', async () => {

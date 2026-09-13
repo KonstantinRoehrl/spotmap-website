@@ -242,12 +242,24 @@ export class SpotMapComponent {
     // built, so they cannot drift from it.
     const sourcesAwaitingMetadata = new Set(Object.keys(style.sources));
 
-    const map = await this.mapFactory({
-      container: this.canvasHost().nativeElement,
-      style,
-      // Attribution is a licence condition of the OSM-derived tiles, never optional.
-      attributionControl: { compact: true },
-    });
+    let map: MapLibreMap;
+    try {
+      map = await this.mapFactory({
+        container: this.canvasHost().nativeElement,
+        style,
+        // Attribution is a licence condition of the OSM-derived tiles, never optional.
+        attributionControl: { compact: true },
+      });
+    } catch {
+      // Either maplibre-gl's lazy chunk never arrived — after a redeploy a client holding a
+      // cached index.html asks for a hashed chunk that is gone — or the `Map` constructor threw
+      // because the GPU would not give it a context the probe just held. Both are a build that
+      // failed rather than a browser that can never render, so RETRY is worth offering. Saying
+      // so here is the only way it gets said at all: `build()` is launched with `void`, so an
+      // escaping rejection leaves the container on its spinner until the watchdog gives up.
+      this.fail('unreachable', generation);
+      return;
+    }
     if (generation !== this.generation) {
       map.remove();
       return;
@@ -283,6 +295,12 @@ export class SpotMapComponent {
       if (generation !== this.generation) {
         return;
       }
+      // Attaching this listener took MapLibre's own logging away: `Evented.fire` writes an
+      // error to the console only while nothing listens for it
+      // (maplibre-gl-shared-dev.mjs:3149, :3163). Both outcomes below need it back — a fatal
+      // one shows the user four words, and a map that paints on without its glyphs shows
+      // nothing at all.
+      console.error(event.error);
       if (namesAnUnusableSource(event, sourcesAwaitingMetadata)) {
         this.fail('unreachable', generation);
       }
@@ -471,12 +489,20 @@ export class SpotMapComponent {
   }
 
   /**
-   * Whether this browser can draw the map at all. The probe's own context is handed straight
-   * back: this runs on every build, and the browser caps how many contexts may be alive (QC6).
+   * Whether this browser can draw the map at all. `webgl2` and nothing else: maplibre-gl v6
+   * requests exactly that one context in `Map._setupPainter()` and throws
+   * `GPUInitializationError` — "WebGL2 is required to display this map" — when it comes back
+   * null (maplibre-gl-dev.mjs:27022-27023), which the `Map` constructor rethrows
+   * (`:24123-24128`). A WebGL1 fallback here would wave through the very browsers the
+   * renderer cannot run on — iOS 14, older Android WebViews — and they would reach the
+   * factory only to have it throw.
+   *
+   * The probe's own context is handed straight back: this runs on every build, and the browser
+   * caps how many contexts may be alive (QC6).
    */
   private hasWebGl(): boolean {
     const probe = document.createElement('canvas');
-    const context = probe.getContext('webgl2') ?? probe.getContext('webgl');
+    const context = probe.getContext('webgl2');
     context?.getExtension('WEBGL_lose_context')?.loseContext();
     return !!context;
   }
