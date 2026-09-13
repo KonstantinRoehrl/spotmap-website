@@ -9,6 +9,12 @@ import { CityEnum } from '../../../models/enums/map-enum';
 import { MAP_FACTORY, POPUP_FACTORY } from './map-factory.token';
 import { SpotMapComponent } from './spot-map.component';
 
+/** One camera move the component asked for, trimmed to the option that decides its motion. */
+interface CameraMove {
+  method: string;
+  options: { duration?: number };
+}
+
 /** Records everything the component asks of a map, without being one. */
 class FakeMap {
   readonly handlers = new Map<string, ((e?: unknown) => void)[]>();
@@ -66,6 +72,14 @@ class FakeMap {
   styleLoaded = false;
   removed = false;
   lastFitBounds?: { padding: number; duration: number; maxZoom: number };
+  /**
+   * Every camera move this map was asked to make, with the option bag it was asked with, so the
+   * reduced-motion spec can assert about all of them rather than about the one call site that
+   * exists today. `easeTo` and `flyTo` are recorded although nothing calls them yet: MapLibre
+   * animates both unless the caller passes `duration: 0`, so an unguarded one added later is
+   * exactly the regression that spec is here to catch.
+   */
+  readonly cameraMoves: CameraMove[] = [];
   /** The style the component handed the factory — where the basemap's source id comes from. */
   style?: { sources: Record<string, unknown> };
 
@@ -97,6 +111,13 @@ class FakeMap {
     options: { padding: number; duration: number; maxZoom: number },
   ) {
     this.lastFitBounds = options;
+    this.cameraMoves.push({ method: 'fitBounds', options });
+  }
+  easeTo(options: CameraMove['options']) {
+    this.cameraMoves.push({ method: 'easeTo', options });
+  }
+  flyTo(options: CameraMove['options']) {
+    this.cameraMoves.push({ method: 'flyTo', options });
   }
   addControl() {
     return this;
@@ -309,6 +330,27 @@ const COLLECTION = {
   ],
 };
 
+/**
+ * Answers the media query `prefersReducedMotion()` asks — the same `window.matchMedia` fake the
+ * ascii-animation-text spec drives its reduced-motion branch with. Call before `create()`: the
+ * preference is read while the map draws.
+ */
+function requestReducedMotion(reduce: boolean) {
+  spyOn(window, 'matchMedia').and.callFake(
+    (query: string) =>
+      ({
+        matches: reduce && query.includes('prefers-reduced-motion'),
+        media: query,
+        onchange: null,
+        addListener: () => {},
+        removeListener: () => {},
+        addEventListener: () => {},
+        removeEventListener: () => {},
+        dispatchEvent: () => false,
+      }) as MediaQueryList,
+  );
+}
+
 /** The shape MapLibre hands a layer click handler, trimmed to what the component reads. */
 function tapOn(id: string) {
   return { features: [{ id, properties: { id } }] };
@@ -432,6 +474,31 @@ describe('SpotMapComponent', () => {
     fake.emit('load');
     expect(fake.lastFitBounds).toBeDefined();
     expect(fake.lastFitBounds!.maxZoom).toBeLessThanOrEqual(16);
+  });
+
+  it('moves the camera without animating it when reduced motion is asked for', async () => {
+    // The map's only motion concession in JS. CSS cannot reach a MapLibre camera ease, so the
+    // app-wide `prefers-reduced-motion` block in styles.css does nothing for this one.
+    requestReducedMotion(true);
+    await create();
+    fake.emit('load');
+    expect(fake.cameraMoves.length)
+      .withContext('the map framed the spots at all')
+      .toBeGreaterThan(0);
+    expect(fake.cameraMoves.filter((move) => move.options.duration !== 0))
+      .withContext('camera moves that would still animate under reduced motion')
+      .toEqual([]);
+  });
+
+  it('eases the camera when reduced motion is not asked for', async () => {
+    // The other half of the same branch: the concession is made for the users who asked for it,
+    // and for nobody else. The duration itself is a tuning value, so only the ease is pinned.
+    requestReducedMotion(false);
+    await create();
+    fake.emit('load');
+    expect(fake.lastFitBounds?.duration)
+      .withContext('the opening fit eases into place instead of cutting')
+      .toBeGreaterThan(0);
   });
 
   it('emits ready once the map reports load', async () => {
