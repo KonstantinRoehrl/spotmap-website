@@ -1,10 +1,12 @@
 # On-device checklist — MapLibre Vienna pilot
 
-Plan: `docs/superpowers/plans/2026-09-12-maplibre-vienna-pilot-plan.md`
 Branch: `feat/maplibre-vienna-pilot`
 
-Generated mid-wave, from the rendered outcomes tasks 2 and 4 reported. Items are added as
-later waves produce rendered changes; the walkthrough happens at the `on-device` stage.
+What a person has to confirm on real hardware before this phase is done, because a unit test
+cannot: gestures, legibility outdoors, and whether the map paints at all on a real device.
+Items were added as each wave produced a rendered change, and again after branch review. The
+task numbers in the section headings refer to the working plan the phase was built from, which
+is not tracked in the repo.
 
 **Reachability note — the gate is open.** Items here were gated on two things:
 `SpotPhotoGalleryComponent` (task 4) becoming reachable through the spot popup in Task 9, and
