@@ -1,3 +1,5 @@
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import {
   ComponentFixture,
   TestBed,
@@ -7,28 +9,50 @@ import {
 
 import { CityEnum, MapFailureReason } from '../../../models/enums/map-enum';
 import { GmapsEmbedComponent } from '../gmaps-embed/gmaps-embed.component';
+import { MAP_FACTORY, POPUP_FACTORY } from '../spot-map/map-factory.token';
+import { SpotMapComponent } from '../spot-map/spot-map.component';
 import { MapContainerComponent } from './map-container.component';
 
 // Mirror the private timing constants in map-container.component.ts.
 const LOAD_TIMEOUT_MS = 15_000;
 const REVEAL_DELAY_MS = 700;
 
+/**
+ * SpotMapComponent injects both maplibre factories the moment it is constructed. These
+ * tests never let it call either one (the spot request below is never flushed), so a
+ * never-resolving stub is enough — and providing them keeps the ESM-only maplibre-gl out
+ * of the karma bundle, which is why neither token carries a default (map-factory.token.ts).
+ */
+const neverResolves = () => new Promise<never>(() => {});
+
 describe('MapContainerComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [MapContainerComponent],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: MAP_FACTORY, useValue: neverResolves },
+        { provide: POPUP_FACTORY, useValue: neverResolves },
+      ],
     }).compileComponents();
 
     // The container owns the state machine, not the embed. Blank the renderer's
     // template so these tests never open a live Google iframe; the embed's own
     // markup is covered by gmaps-embed.component.spec.ts.
     TestBed.overrideComponent(GmapsEmbedComponent, { set: { template: '' } });
+    // Same for the MapLibre renderer: no WebGL context is built here either, and its
+    // own markup is covered by spot-map.component.spec.ts.
+    TestBed.overrideComponent(SpotMapComponent, { set: { template: '' } });
   });
 
   /** Create + bind the required input. Pass `render` to also run change detection. */
-  function create(render = false): ComponentFixture<MapContainerComponent> {
+  function create(
+    render = false,
+    city: CityEnum = CityEnum.Vienna,
+  ): ComponentFixture<MapContainerComponent> {
     const fixture = TestBed.createComponent(MapContainerComponent);
-    fixture.componentRef.setInput('city', CityEnum.Vienna);
+    fixture.componentRef.setInput('city', city);
     if (render) {
       fixture.detectChanges();
     }
@@ -57,9 +81,17 @@ describe('MapContainerComponent', () => {
     fixture.destroy();
   });
 
+  it('renders the maplibre renderer for a city configured to use it', () => {
+    const fixture = create(true, CityEnum.Vienna);
+    expect(fixture.nativeElement.querySelector('app-spot-map')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('app-gmaps-embed')).toBeNull();
+    fixture.destroy();
+  });
+
   it('renders the google embed for a city configured to use it', () => {
-    const fixture = create(true);
+    const fixture = create(true, CityEnum.Graz);
     expect(fixture.nativeElement.querySelector('app-gmaps-embed')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('app-spot-map')).toBeNull();
     fixture.destroy();
   });
 

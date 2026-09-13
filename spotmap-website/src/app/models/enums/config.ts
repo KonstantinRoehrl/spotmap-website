@@ -11,7 +11,7 @@ export const SUPPORTED_CITIES: Record<CityEnum, MapItem> = {
     city: CityEnum.Vienna,
     country: CountryEnum.Austria,
     countryCode: CountryCodeEnum.Austria,
-    renderer: MapRendererEnum.GoogleMyMaps,
+    renderer: MapRendererEnum.MapLibre,
     mapLink:
       'https://www.google.com/maps/d/u/0/embed?mid=13c9hk1PqIRE5jgjTAr1pf4sP_9GNiIg&ehbc=2E312F&noprof=1',
   },

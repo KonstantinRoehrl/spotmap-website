@@ -12,6 +12,7 @@ import { SUPPORTED_CITIES } from '../../../models/enums/config';
 import { CityEnum, MapFailureReason } from '../../../models/enums/map-enum';
 import { GmapsEmbedComponent } from '../gmaps-embed/gmaps-embed.component';
 import { LoadingBarComponent } from '../loading-bar/loading-bar.component';
+import { SpotMapComponent } from '../spot-map/spot-map.component';
 
 /** How long to wait for the renderer to report first paint before declaring the map unreachable. */
 const LOAD_TIMEOUT_MS = 15_000;
@@ -21,7 +22,7 @@ const REVEAL_DELAY_MS = 700;
 
 @Component({
   selector: 'app-map-container',
-  imports: [LoadingBarComponent, GmapsEmbedComponent],
+  imports: [LoadingBarComponent, GmapsEmbedComponent, SpotMapComponent],
   templateUrl: './map-container.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: './map-container.component.css',

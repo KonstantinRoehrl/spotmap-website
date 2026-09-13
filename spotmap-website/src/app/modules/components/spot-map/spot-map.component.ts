@@ -9,7 +9,6 @@ import {
   ElementRef,
   EnvironmentInjector,
   inject,
-  InjectionToken,
   input,
   output,
   untracked,
@@ -30,7 +29,7 @@ import {
   SPOT_POPUP_FRAME_CLASS,
   SpotPopupComponent,
 } from '../spot-popup/spot-popup.component';
-import { MAP_FACTORY } from './map-factory.token';
+import { MAP_FACTORY, POPUP_FACTORY } from './map-factory.token';
 import {
   buildTerminalStyle,
   SPOT_BODY_LAYER_ID,
@@ -40,28 +39,6 @@ import {
   SPOT_SOURCE_ID,
   TERMINAL_PALETTE,
 } from './terminal-map-style';
-
-/** Builds the MapLibre popup that frames a tapped spot's details. */
-export type PopupFactory = (options: {
-  closeButton: boolean;
-  maxWidth: string;
-  className: string;
-}) => Promise<MapLibrePopup>;
-
-/**
- * Injected for the same reason the map itself is: a spec that reached maplibre-gl's ESM build
- * would drag it into the karma bundle. Unlike {@link MAP_FACTORY} this one carries its own
- * default, because nothing has to be registered for a popup to work — the dynamic import keeps
- * maplibre-gl out of the initial chunk and is already resolved by the time a pin can be tapped,
- * since the map had to load for one to exist.
- */
-export const POPUP_FACTORY = new InjectionToken<PopupFactory>('POPUP_FACTORY', {
-  providedIn: 'root',
-  factory: () => async (options) => {
-    const { Popup } = await import('maplibre-gl');
-    return new Popup(options);
-  },
-});
 
 /** Padding, in pixels, around the fitted spot bounds. */
 const FIT_PADDING_PX = 48;

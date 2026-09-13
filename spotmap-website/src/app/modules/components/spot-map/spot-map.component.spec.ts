@@ -6,8 +6,8 @@ import {
 import { ApplicationRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CityEnum } from '../../../models/enums/map-enum';
-import { MAP_FACTORY } from './map-factory.token';
-import { POPUP_FACTORY, SpotMapComponent } from './spot-map.component';
+import { MAP_FACTORY, POPUP_FACTORY } from './map-factory.token';
+import { SpotMapComponent } from './spot-map.component';
 
 /** Records everything the component asks of a map, without being one. */
 class FakeMap {
