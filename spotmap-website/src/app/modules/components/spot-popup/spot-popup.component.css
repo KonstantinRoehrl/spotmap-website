@@ -18,7 +18,9 @@
   text-shadow: var(--glow-text-rest);
 }
 
-/* Dim and unlit, the text form of the ghosted pin: on the record, but gone. Amber belongs to the
+/* Unlit and a step down from the name: on the record, but gone. It says what the ghosted pin
+   says without matching its colour — phosphor-deep is the pin, and at this size it would fail
+   contrast, so the line carries phosphor-dim and drops the bloom instead. Amber belongs to the
    selection ring alone, so no screen carries it in two roles at once. */
 .spot-popup__status {
   margin: 0;

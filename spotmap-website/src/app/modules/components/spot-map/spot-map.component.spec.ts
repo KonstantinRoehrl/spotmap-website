@@ -73,11 +73,12 @@ class FakeMap {
   removed = false;
   lastFitBounds?: { padding: number; duration: number; maxZoom: number };
   /**
-   * Every camera move this map was asked to make, with the option bag it was asked with, so the
+   * Every camera move *the component* asked for, with the option bag it asked with, so the
    * reduced-motion spec can assert about all of them rather than about the one call site that
-   * exists today. `easeTo` and `flyTo` are recorded although nothing calls them yet: MapLibre
-   * animates both unless the caller passes `duration: 0`, so an unguarded one added later is
-   * exactly the regression that spec is here to catch.
+   * exists today. Moves MapLibre starts by itself — the keyboard ease, drag-pan inertia — never
+   * reach this fake, so nothing here can speak for them. `easeTo` and `flyTo` are recorded
+   * although the component calls neither today: MapLibre animates both unless the caller passes
+   * `duration: 0`, so an unguarded one added later is exactly the regression that spec catches.
    */
   readonly cameraMoves: CameraMove[] = [];
   /** The style the component handed the factory — where the basemap's source id comes from. */
@@ -476,9 +477,21 @@ describe('SpotMapComponent', () => {
     expect(fake.lastFitBounds!.maxZoom).toBeLessThanOrEqual(16);
   });
 
-  it('moves the camera without animating it when reduced motion is asked for', async () => {
+  it('asks for no animation on the camera moves it makes when reduced motion is asked for', async () => {
     // The map's only motion concession in JS. CSS cannot reach a MapLibre camera ease, so the
     // app-wide `prefers-reduced-motion` block in styles.css does nothing for this one.
+    //
+    // What this covers is the option bags the component hands the map, and only those — the rest
+    // of the map's motion is MapLibre's to guard, and 6.9.0 does guard most of it: `Camera`
+    // zeroes its own duration when the media query matches and the move is not marked
+    // `essential` (maplibre-gl-dev.mjs:23085 for `easeTo`, `:23254` for `flyTo`, reading
+    // `browser.prefersReducedMotion` at `:78-83`), which covers the keyboard handler's 300 ms
+    // ease on every arrow press (`:21463-21474`), drag-pan inertia (`:22789`) and `fitBounds`,
+    // which routes through both (`:23023`, `:23032`). One animation stays unguarded: scroll zoom
+    // smooths each wheel notch over 200 ms in its own render loop, with no reduced-motion check
+    // (`:21716-21731`), and 6.9.0 offers no option for it — the handler takes zoom rates, not
+    // durations (`:21584`, `:21596`) — short of `scrollZoom.disable()`, which would cost the user
+    // who asked for less motion their wheel zoom. It is left open knowingly.
     requestReducedMotion(true);
     await create();
     fake.emit('load');
@@ -486,7 +499,9 @@ describe('SpotMapComponent', () => {
       .withContext('the map framed the spots at all')
       .toBeGreaterThan(0);
     expect(fake.cameraMoves.filter((move) => move.options.duration !== 0))
-      .withContext('camera moves that would still animate under reduced motion')
+      .withContext(
+        'camera moves the component asked for that would still animate',
+      )
       .toEqual([]);
   });
 

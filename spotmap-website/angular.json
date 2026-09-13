@@ -55,6 +55,27 @@
                   "type": "anyComponentStyle",
                   "maximumWarning": "3kB",
                   "maximumError": "4kB"
+                },
+                // The two lazy chunks the map's first view pulls, each sized to the build that
+                // was measured when the ceiling was set — maplibre-gl 1.07 MB, map-component
+                // 245.48 kB — so growth warns instead of a round number never being reached.
+                // `minimumWarning` guards the budget itself: a renamed chunk matches nothing,
+                // reads 0 bytes and would otherwise pass in silence. The worker's copy of
+                // maplibre-gl-shared.mjs is a copied asset, not a bundler output, and budgets
+                // are computed from .js and .css outputs alone, so no budget can watch it.
+                {
+                  "type": "bundle",
+                  "name": "maplibre-gl",
+                  "maximumWarning": "1100kB",
+                  "maximumError": "1250kB",
+                  "minimumWarning": "700kB"
+                },
+                {
+                  "type": "bundle",
+                  "name": "map-component",
+                  "maximumWarning": "265kB",
+                  "maximumError": "320kB",
+                  "minimumWarning": "120kB"
                 }
               ],
               "outputHashing": "all"
