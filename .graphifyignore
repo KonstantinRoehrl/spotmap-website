@@ -9,3 +9,12 @@
 
 # Don't let graphify ingest its own output
 graphify-out/
+
+# devcycle working state (ledger, reports, findings, evidence) — local only, never committed
+.devcycle/
+
+# Planning artifacts — specs, plans and brainstorm notes stay local and untracked
+docs/superpowers/
+
+# Spot photos are content, not architecture; the scope's image entry is public/icon*.png
+spotmap-website/public/spots/
