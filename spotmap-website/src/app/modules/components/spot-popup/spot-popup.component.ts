@@ -32,9 +32,12 @@ export class SpotPopupComponent {
 
   /**
    * A Google Maps URL rather than a `geo:` URI: iOS registers no handler for `geo:`, so that
-   * link was dead in Safari. This form hands off to the maps app on both phones that have it
-   * and falls back to the maps site where they don't. The destination stays coordinates — the
-   * spot's name would be geocoded to whatever it matches, which is not where the spot is.
+   * link was dead in Safari. This is the only single URL that reaches a native maps app on both
+   * phone platforms, and where no app claims it the browser still lands on a usable route. That
+   * fallback is a real top-level navigation, so the template opens the link in a new browsing
+   * context — an unhandled hand-off must never take the archive's map, selection and popup down
+   * with it. The destination stays coordinates — the spot's name would be geocoded to whatever
+   * it matches, which is not where the spot is.
    */
   protected readonly directionsHref = computed(() => {
     const [lng, lat] = this.spot().geometry.coordinates;

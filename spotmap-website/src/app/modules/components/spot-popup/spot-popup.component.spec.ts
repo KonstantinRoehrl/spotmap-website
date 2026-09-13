@@ -99,6 +99,18 @@ describe('SpotPopupComponent', () => {
     );
   });
 
+  it('leaves the archive open when the maps hand-off is followed', () => {
+    const link = create(spot()).querySelector('a');
+    expect(link?.getAttribute('target')).toBe('_blank');
+  });
+
+  it('gives the maps tab no handle on the archive it came from', () => {
+    const rel = create(spot()).querySelector('a')?.getAttribute('rel') ?? '';
+    expect(rel.split(/\s+/)).toEqual(
+      jasmine.arrayContaining(['noopener', 'noreferrer']),
+    );
+  });
+
   it('omits the gallery for a spot with no photos', () => {
     const el = create(spot({ photos: [] }));
     expect(el.querySelector('app-spot-photo-gallery')).toBeNull();
