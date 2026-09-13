@@ -85,9 +85,9 @@
     "semantic_hash": "567072a4e13d2b03844962f1797bd6ba"
   },
   "spotmap-website/src/app/modules/components/map-container/map-container.component.spec.ts": {
-    "mtime": 1789293574.5320742,
-    "ast_hash": "2ac2f89ebd502df62508f938ba8220e9",
-    "semantic_hash": "2ac2f89ebd502df62508f938ba8220e9"
+    "mtime": 1789296583.518149,
+    "ast_hash": "dd945b65700255d02a53b516cbd111eb",
+    "semantic_hash": "dd945b65700255d02a53b516cbd111eb"
   },
   "spotmap-website/src/app/modules/components/map-container/map-container.component.ts": {
     "mtime": 1789283231.9712985,
@@ -175,9 +175,9 @@
     "semantic_hash": "6e8955bd6a153964976117c70fc83b8a"
   },
   "DESIGN.md": {
-    "mtime": 1789294539.0043728,
-    "ast_hash": "bc3f0317c3eec9141b3224240cf67b74",
-    "semantic_hash": "bc3f0317c3eec9141b3224240cf67b74"
+    "mtime": 1789296583.518875,
+    "ast_hash": "98cb46abad3539772882e1e9d69fcb40",
+    "semantic_hash": "98cb46abad3539772882e1e9d69fcb40"
   },
   "PRODUCT.md": {
     "mtime": 1789286309.9684315,
@@ -210,9 +210,9 @@
     "semantic_hash": "a5e99450c23ab7213c03b210f7965af9"
   },
   "spotmap-website/src/app/modules/components/map-container/map-container.component.html": {
-    "mtime": 1789293625.257483,
-    "ast_hash": "95afac54c721e3698f374137bb715b39",
-    "semantic_hash": "95afac54c721e3698f374137bb715b39"
+    "mtime": 1789296583.5177863,
+    "ast_hash": "6cd3843a6c15ed9f0269e4ad870281dd",
+    "semantic_hash": "6cd3843a6c15ed9f0269e4ad870281dd"
   },
   "spotmap-website/src/app/modules/components/nav-bar/nav-bar.component.html": {
     "mtime": 1783580761.6196249,
@@ -310,9 +310,9 @@
     "semantic_hash": "747f6f0b85922ea10d19f88251a42700"
   },
   "docs/maplibre-vienna-pilot/on-device-checklist.md": {
-    "mtime": 1789294496.5774798,
-    "ast_hash": "e77fa984b2a1a43a6bafbdd8ac2c4a1d",
-    "semantic_hash": "e77fa984b2a1a43a6bafbdd8ac2c4a1d"
+    "mtime": 1789296583.5184875,
+    "ast_hash": "00983dddd9591c3c8a876430536827b8",
+    "semantic_hash": "00983dddd9591c3c8a876430536827b8"
   },
   "spotmap-website/src/app/modules/components/gmaps-embed/gmaps-embed.component.html": {
     "mtime": 1789241869.4569023,

@@ -1,13 +1,13 @@
 # Graph Report - .  (2026-09-13)
 
 ## Corpus Check
-- 18 files · ~140,466 words
+- 4 files · ~140,474 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 427 nodes · 649 edges · 32 communities (16 shown, 16 thin omitted)
-- Extraction: 91% EXTRACTED · 8% INFERRED · 0% AMBIGUOUS · INFERRED: 55 edges (avg confidence: 0.81)
-- Token cost: 105,000 input · 14,000 output
+- 427 nodes · 647 edges · 33 communities (17 shown, 16 thin omitted)
+- Extraction: 91% EXTRACTED · 9% INFERRED · 0% AMBIGUOUS · INFERRED: 55 edges (avg confidence: 0.81)
+- Token cost: 95,000 input · 9,000 output
 
 ## Community Hubs (Navigation)
 - [[_COMMUNITY_Design System and Doctrine|Design System and Doctrine]]
@@ -30,7 +30,6 @@
 - [[_COMMUNITY_Brand Marks|Brand Marks]]
 - [[_COMMUNITY_Dev Server Guard Tests|Dev Server Guard Tests]]
 - [[_COMMUNITY_Deploy and Repo Conventions|Deploy and Repo Conventions]]
-- [[_COMMUNITY_Anti-references|Anti-references]]
 - [[_COMMUNITY_Brand Personality|Brand Personality]]
 - [[_COMMUNITY_Archive With Weight|Archive With Weight]]
 - [[_COMMUNITY_Map Is The Point|Map Is The Point]]
@@ -42,12 +41,13 @@
 - [[_COMMUNITY_Google Embed Template|Google Embed Template]]
 - [[_COMMUNITY_Spot Map Template|Spot Map Template]]
 - [[_COMMUNITY_Spot Gallery Template|Spot Gallery Template]]
+- [[_COMMUNITY_Community 32|Community 32]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `FakeMap` - 25 edges
 2. `AsciiAnimationTextComponent` - 18 edges
-3. `SpotMapComponent` - 17 edges
-4. `AppComponent` - 16 edges
+3. `AppComponent` - 16 edges
+4. `SpotMapComponent` - 16 edges
 5. `Design System: Spotmap Compendium (DESIGN.md)` - 14 edges
 6. `On-Device Checklist — MapLibre Vienna Pilot` - 13 edges
 7. `CityEnum` - 12 edges
@@ -71,13 +71,10 @@
 - None detected.
 
 ## Hyperedges (group relationships)
-- **Vienna MapLibre Map Surface Realized End-to-End** — design_map_surface, docs_maplibre_vienna_pilot_on_device_checklist_task_10_turn_vienna_on, spotmap_website_src_app_modules_components_map_container_map_container_component_template, spotmap_website_src_app_modules_components_spot_popup_spot_popup_component_template [INFERRED 0.85]
-- **No-White Rule Enforced Across Map Frame and Map Surface** — design_no_white_rule, design_map_frame, design_map_surface, docs_maplibre_vienna_pilot_on_device_checklist_task_11_map_surface_matches_docs [INFERRED 0.85]
-- **Directions Link Preserves the Archive Tab** — design_directions, spotmap_website_src_app_modules_components_spot_popup_spot_popup_component_template, docs_maplibre_vienna_pilot_on_device_checklist_geo_uri_limitation, docs_maplibre_vienna_pilot_on_device_checklist_branch_review_round_2 [INFERRED 0.85]
 - **App Root Composition Shell (Nav Bar + Intro Animation)** — spotmap_website_src_app_app_component_appcomponent, spotmap_website_src_app_modules_components_ascii_animation_text_ascii_animation_text_component_asciianimationtextcomponent, spotmap_website_src_app_modules_components_nav_bar_nav_bar_component_navbarcomponent [INFERRED 0.80]
 - **Signal-Driven @if/@for Control Flow Templates** — spotmap_website_src_app_app_component_appcomponent, spotmap_website_src_app_modules_components_map_container_map_container_component_mapcontainercomponent, spotmap_website_src_app_modules_components_nav_bar_nav_bar_component_navbarcomponent [INFERRED 0.70]
 
-## Communities (32 total, 16 thin omitted)
+## Communities (33 total, 16 thin omitted)
 
 ### Community 0 - "Design System and Doctrine"
 Cohesion: 0.10
@@ -88,16 +85,16 @@ Cohesion: 0.09
 Nodes (5): AsciiAnimationTextComponent, LoadingBarComponent, GlitchTextDirective, HostComponent, prefersReducedMotion()
 
 ### Community 2 - "Map Container and Chrome"
-Cohesion: 0.08
-Nodes (10): CameraMove, COLLECTION, create(), FakePopup, tap(), tapOn(), SPOT_LAYERS, SpotMapComponent (+2 more)
-
-### Community 3 - "Angular Build Targets"
 Cohesion: 0.07
 Nodes (35): build, extract-i18n, serve, test, builder, configurations, defaultConfiguration, options (+27 more)
 
-### Community 4 - "Runtime Dependencies"
+### Community 3 - "Angular Build Targets"
 Cohesion: 0.06
-Nodes (33): dependencies, @angular/animations, @angular/cdk, @angular/common, @angular/compiler, @angular/core, @angular/forms, @angular/material (+25 more)
+Nodes (34): devDependencies, @angular/cli, @angular/compiler-cli, @angular-devkit/build-angular, istanbul-lib-instrument, jasmine-core, karma, karma-chrome-launcher (+26 more)
+
+### Community 4 - "Runtime Dependencies"
+Cohesion: 0.08
+Nodes (10): CameraMove, COLLECTION, create(), FakePopup, tap(), tapOn(), SPOT_LAYERS, SpotMapComponent (+2 more)
 
 ### Community 5 - "City Config and Map Enums"
 Cohesion: 0.16
@@ -116,8 +113,8 @@ Cohesion: 0.11
 Nodes (9): AppComponent, Skippable Intro Animation Pattern, Glitch Text Hover Directive (appGlitchText), NavBarComponent, NavBarLink, HostComponent, StubPageComponent, AboutComponent (+1 more)
 
 ### Community 11 - "Dev Toolchain Dependencies"
-Cohesion: 0.12
-Nodes (16): devDependencies, @angular/cli, @angular/compiler-cli, @angular-devkit/build-angular, istanbul-lib-instrument, jasmine-core, karma, karma-chrome-launcher (+8 more)
+Cohesion: 0.13
+Nodes (15): dependencies, @angular/animations, @angular/cdk, @angular/common, @angular/compiler, @angular/core, @angular/forms, @angular/material (+7 more)
 
 ### Community 12 - "App Bootstrap and Map Factory"
 Cohesion: 0.26
@@ -165,10 +162,10 @@ _Questions this graph is uniquely positioned to answer:_
   _Edge tagged AMBIGUOUS (relation: references) - confidence is low._
 - **What is the exact relationship between `SpotMapComponent` and `Task 8: The Spot Map Itself`?**
   _Edge tagged AMBIGUOUS (relation: references) - confidence is low._
-- **Why does `SpotMapComponent` connect `Map Container and Chrome` to `Design System and Doctrine`, `City Config and Map Enums`?**
-  _High betweenness centrality (0.173) - this node is a cross-community bridge._
-- **Why does `Task 8: The Spot Map Itself` connect `Design System and Doctrine` to `Map Container and Chrome`?**
-  _High betweenness centrality (0.115) - this node is a cross-community bridge._
+- **Why does `SpotMapComponent` connect `Runtime Dependencies` to `Design System and Doctrine`, `City Config and Map Enums`?**
+  _High betweenness centrality (0.168) - this node is a cross-community bridge._
+- **Why does `Task 8: The Spot Map Itself` connect `Design System and Doctrine` to `Runtime Dependencies`?**
+  _High betweenness centrality (0.113) - this node is a cross-community bridge._
 - **Are the 3 inferred relationships involving `AppComponent` (e.g. with `AboutComponent` and `HomeComponent`) actually correct?**
   _`AppComponent` has 3 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `SpotStatus`, `SpotProperties`, `SpotFeature` to the rest of the system?**
