@@ -17,11 +17,15 @@ const WORKER_FILENAME = 'maplibre-gl-worker.mjs';
 
 const outputDir = process.argv[2];
 if (!outputDir) {
-  fail(`usage: node ${relative(process.cwd(), process.argv[1])} <browser-output-dir>`);
+  fail(
+    `usage: node ${relative(process.cwd(), process.argv[1])} <browser-output-dir>`,
+  );
 }
 
 const root = resolve(outputDir);
-const chunks = jsFilesIn(root).filter((file) => readFileSync(file, 'utf8').includes(WORKER_FILENAME));
+const chunks = jsFilesIn(root).filter((file) =>
+  readFileSync(file, 'utf8').includes(WORKER_FILENAME),
+);
 
 if (chunks.length === 0) {
   fail(
@@ -67,7 +71,9 @@ function jsFilesIn(dir) {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     const path = join(dir, entry.name);
     if (entry.isDirectory()) return jsFilesIn(path);
-    return entry.isFile() && (path.endsWith('.js') || path.endsWith('.mjs')) ? [path] : [];
+    return entry.isFile() && (path.endsWith('.js') || path.endsWith('.mjs'))
+      ? [path]
+      : [];
   });
 }
 

@@ -69,6 +69,11 @@
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "prebundle": {
+              "exclude": ["maplibre-gl"]
+            }
+          },
           "configurations": {
             "production": {
               "buildTarget": "spotmap-website:build:production"
