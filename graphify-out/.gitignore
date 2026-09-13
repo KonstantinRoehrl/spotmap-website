@@ -16,3 +16,7 @@
 
 # Machine-specific file-stat index for --update change detection (regenerated)
 cache/stat-index.json
+
+# Dated run archives graphify writes beside the current outputs — local history of
+# past builds, not the graph itself. The committed graph is the top-level one.
+20[0-9][0-9]-[0-9][0-9]-[0-9][0-9]/
