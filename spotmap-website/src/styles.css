@@ -2,8 +2,14 @@
 
 /* ============================================================
    Self-hosted IBM Plex Mono — the terminal face
-   OFL-licensed .woff2 files live in public/fonts/ibm-plex-mono/
-   (served at /fonts/... via angular.json's public/ assets glob).
+   OFL-licensed .woff2 files live in src/fonts/ibm-plex-mono/,
+   not public/, so the bundler resolves these paths, emits the
+   files hashed under media/ and rewrites the url() relative to
+   the built stylesheet. That relative form is the point: a CSS
+   url() resolves against this file, never against index.html's
+   <base href>, so a root-absolute /fonts/... 404s under the
+   /spotmap-website/ deploy prefix and drops every page to a
+   fallback monospace. tools/verify-css-asset-urls.mjs guards it.
    Weights 400/500/600 back the --font-mono token below.
    ============================================================ */
 @font-face {
@@ -11,7 +17,7 @@
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url('/fonts/ibm-plex-mono/ibm-plex-mono-latin-400-normal.woff2')
+  src: url('fonts/ibm-plex-mono/ibm-plex-mono-latin-400-normal.woff2')
     format('woff2');
 }
 @font-face {
@@ -19,7 +25,7 @@
   font-style: normal;
   font-weight: 500;
   font-display: swap;
-  src: url('/fonts/ibm-plex-mono/ibm-plex-mono-latin-500-normal.woff2')
+  src: url('fonts/ibm-plex-mono/ibm-plex-mono-latin-500-normal.woff2')
     format('woff2');
 }
 @font-face {
@@ -27,7 +33,7 @@
   font-style: normal;
   font-weight: 600;
   font-display: swap;
-  src: url('/fonts/ibm-plex-mono/ibm-plex-mono-latin-600-normal.woff2')
+  src: url('fonts/ibm-plex-mono/ibm-plex-mono-latin-600-normal.woff2')
     format('woff2');
 }
 

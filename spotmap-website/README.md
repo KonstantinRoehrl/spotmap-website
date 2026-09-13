@@ -10,7 +10,7 @@ shell so a blank embed never flashes white.
 - **Angular 22** — standalone components, signals (`input()`/`output()`/`signal()`/`computed()`), OnPush change detection, `@for`/`@if` control flow.
 - **Angular Material 22** — a custom M3 "green terminal" theme (`src/theme.scss`) via `--mat-sys-*` system tokens.
 - **Tailwind CSS v4** — CSS-first `@theme` design tokens in `src/styles.css`.
-- **IBM Plex Mono** — self-hosted (`public/fonts/`); the whole UI is one monospace character grid.
+- **IBM Plex Mono** — self-hosted (`src/fonts/`, emitted hashed under `media/`); the whole UI is one monospace character grid.
 - **Karma + Jasmine** — unit tests.
 - **TypeScript 6**, **Zone.js** (change detection is OnPush, Zone retained).
 
@@ -38,8 +38,11 @@ src/
     app.routes.ts   # home · map · about · '' → home · ** → home
   styles.css        # Tailwind + @theme design tokens (OKLCH colors, glow, motion, radius)
   theme.scss        # Angular Material M3 green-terminal theme
+  fonts/            # self-hosted IBM Plex Mono (woff2) — under src/, not public/,
+                    # so the bundler emits them hashed and rewrites the url()
+                    # relative; a root-absolute /fonts/... 404s under the deploy
+                    # prefix (tools/verify-css-asset-urls.mjs guards it)
   index.html
-public/fonts/        # self-hosted IBM Plex Mono (woff2)
 ```
 
 ## Design system
