@@ -10,7 +10,7 @@ Street skaters — the underground/DIY end of the culture, both **locals** who w
 
 ## Product Purpose
 
-A matrix/terminal-themed **compendium of skate spots across European cities** (Vienna, Graz, Prague, Barcelona, …). You pick a city and get its Google My Maps of spots.
+A matrix/terminal-themed **compendium of skate spots across European cities** (Vienna, Graz, Prague, Barcelona, …). You pick a city and get its map of spots.
 
 Two jobs, in priority order:
 1. **Primary (utility):** help a skater **find and go skate a spot** — new ones, or older/forgotten/lost ones worth resurfacing. Fast city-switching, fast map access, works on mobile outdoors.
@@ -25,7 +25,7 @@ A blend of three, held in tension on purpose:
 - **Cryptic / insider** — the terminal/matrix texture is an in-group signal; it rewards the in-the-know and frames spots as knowledge you're being let in on.
 - **Sarcastic / self-aware** — the voice jokes and doesn't take itself seriously (existing copy: "CAN SOMEONE BRING WAX?", "SKATEVIDEOS > INSTAGRAM"), **but leaves room for earnest respect/safety notes** ("RESPECT THE LOCALS", and e.g. "TAKE CARE OF PEDESTRIANS"). Careless in tone, careful about the culture.
 
-Guiding metaphor: **time travel back to earlier days.** Everything the site controls should feel like an earlier computing era — typewriter, terminal, matrix, CRT glow. (The embedded Google My Maps is the one modern element we can't currently replace; treat it as the single deliberate anachronism the retro shell wraps around.)
+Guiding metaphor: **time travel back to earlier days.** Everything the site controls should feel like an earlier computing era — typewriter, terminal, matrix, CRT glow. (Vienna's map is drawn by the site itself now, styled to the same terminal system as the shell around it. The remaining cities still embed Google My Maps until the later migration phases reach them — a temporary anachronism the retro shell wraps around, not a fixture.)
 
 ## Anti-references
 
@@ -33,7 +33,7 @@ Guiding metaphor: **time travel back to earlier days.** Everything the site cont
 - **Mainstream fitness / social apps** — Strava / Instagram / Komoot: rounded friendly cards, engagement feeds, gradients.
 - **Over-gamified / cutesy** — badges, mascots, confetti, bubbly rounded everything. Too toy-like for an archive.
 - **Generic dark-mode SaaS template** — "dark theme + one accent + card grid." Dark ≠ the matrix aesthetic; the difference is the retro-computing intent, not just low brightness.
-- **Constraint:** the Google My Maps iframe stays for now (can't be removed) — don't design as if it will go away; design the retro shell *around* it.
+- **Constraint:** two renderers coexist until every city is migrated — Vienna is drawn by the site, the other cities still embed Google My Maps. Design for both: the retro shell has to hold our own map *and* still wrap around the embed it hasn't replaced yet.
 
 ## Design Principles
 

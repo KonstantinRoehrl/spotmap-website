@@ -80,7 +80,7 @@ This is a green-phosphor CRT terminal that happens to be a skate-spot archive. E
 
 The system is disciplined to two phosphors. **Green** is the voice of the archive — every spot name, city, label, and body line. **Amber** is the rare second channel, reserved for the moments the culture is being earnest: respect-the-locals and safety notices, and the one thing you've currently selected. That restraint is the point; if amber shows up everywhere it stops meaning "pay attention." It explicitly rejects the things PRODUCT.md names: corporate/Google-Maps neutrality, Strava/Instagram social polish, cutesy gamification, and — most importantly — the "modern dark-mode SaaS" look. Dark is not the same as this. The difference is retro-computing *intent*: sharp corners, monospace everything, scanline-and-glitch motion, a true-black ground, and zero rounded friendly gradients.
 
-The one modern intrusion is the embedded Google My Maps iframe, which we can't currently replace. Treat it as the single deliberate anachronism the terminal wraps around — framed in a glowing green border, sitting on a dark surface, never allowed to flash raw white.
+Vienna's map is drawn by the site itself, in the same two phosphors as everything around it — the basemap is ours, not someone else's map recoloured from the outside. The cities still waiting on the migration show the embedded Google My Maps instead; treat that embed as the temporary anachronism the terminal wraps around — framed in a glowing green border, sitting on a dark surface, never allowed to flash raw white.
 
 **Key Characteristics:**
 - **True-black ground, phosphor-green ink**, amber as the rare second phosphor.
@@ -115,7 +115,7 @@ A single-hue phosphor system: one saturated green carries ~95% of every screen a
 ### Named Rules
 **The Two-Phosphor Rule.** Only green and amber are voices. Green is the default; amber is earnest/selected. Everything else (surfaces, lines) is a near-black tint of green. Any third decorative color is forbidden.
 
-**The No-White Rule.** `#ffffff` (and near-white grays) are banned on every surface the site controls. White is the failure signature — the only white on screen should be map tiles inside the Google iframe, and even the iframe's empty/loading/error state must fall back to `surface`, never raw white.
+**The No-White Rule.** `#ffffff` (and near-white grays) are banned on every surface, the basemap included now that the site draws it. White is the failure signature: nothing on screen is white, every empty/loading/error state falls back to `surface`, and the map chrome that arrives white (MapLibre's popup box, its tip, the attribution control) is repainted in the palette rather than left as shipped.
 
 **The Rarity Rule.** Amber covers ≤10% of any screen. If a screen has amber in more than one role at once, cut it back to the single most-earnest one.
 
@@ -176,9 +176,23 @@ This system has **no conventional shadows.** Depth is carried entirely by **phos
 
 ### Map Frame (signature)
 - **Corner Style:** 4px radius, `overflow: hidden`.
-- **Background:** `surface` (near-black) — this is the placeholder the iframe sits on, so a blank/slow/failed embed reads black-green, **never white**.
+- **Background:** `surface` (near-black) — the backing both renderers sit on, so a blank/slow/failed map reads black-green, **never white**.
 - **Glow Strategy:** `box-shadow: 0 0 24px rgba(0,255,0,0.35)` frame halo.
-- **Loading:** the matrix-radar spinner (green ASCII rotor) over `surface`. **Error/timeout:** a phosphor "SIGNAL LOST // MAP UNREACHABLE" terminal message on `surface`, with a retry — not a white void.
+- **Loading:** the matrix-radar spinner (green ASCII rotor) over `surface`, with the renderer held at `opacity: 0` and faded in only once it reports a first paint.
+- **Error/timeout:** an opaque `surface` overlay carrying the phosphor line `> SIGNAL LOST // MAP UNREACHABLE` and a `> RETRY` button (phosphor on a phosphor-deep border, hot glow on hover/focus) — not a white void. A browser with no WebGL gets `> NO RENDERER // THIS BROWSER HAS NO WEBGL` and **no** retry, because retrying cannot help it.
+
+### Map Surface (signature — Vienna)
+The site's own map, drawn from OpenFreeMap vector tiles in the palette above. Everything here is the terminal system, not a theme layered over a street map.
+
+- **Basemap:** a phosphor wireframe of the city. True-black ground; water in `surface`; parks/grass/wood in `surface-raised`; buildings filled black with `line` hairline outlines that thicken with zoom. Roads are the only bright geometry — phosphor-deep for the casing and minor/service streets, phosphor-dim for motorway/trunk/primary/secondary — scaled by zoom so the grid reads at city level and at street level.
+- **Basemap labels:** street names in phosphor-dim, place names in phosphor, both UPPERCASE with `0.12em` tracking and a black halo so they stay legible over road strokes.
+- **Pins:** three stacked circles per spot — a 6px body, a blurred 14px phosphor bloom behind it (glow is depth, here too), and an invisible 22px hit circle so the thumb target is thumb-sized while the dot stays small. A standing spot (`active`, and the still-`unclassified` ones) is phosphor green at full bloom; a `demolished` spot drops to phosphor-deep with the bloom at 0.15 — present but receding, the archive's "this one is gone" state.
+- **Selected pin:** a 2px **amber** ring around the tapped pin, one at a time. This is amber's only role on the map (the care/selection channel), and it clears when the popup closes.
+- **Popup:** MapLibre's own box, repainted — `surface` fill, `line` 1px border, 2px radius, the frame glow halo, and the anchor tip recoloured on every side. Max width 320px; the close button is a 44px phosphor-dim glyph that brightens to phosphor. Inside, in order: the photo gallery (only when the spot has photos), the spot name as an UPPERCASE phosphor label, `> DEMOLISHED` in amber for a lost spot, and a `> DIRECTIONS` link.
+- **Directions:** a `geo:` URI, so the phone opens whichever maps app the skater actually has — the archive never hands them off to a hosted map.
+- **Photo gallery:** a 4:3 `surface` panel with a `line` border. With more than one photo it gains `‹` / `›` phosphor nav buttons (44px, translucent `surface` fill, phosphor-deep border) and a phosphor-dim `[n/N]` counter bottom-right; a horizontal swipe does the same thing on touch.
+- **Gestures:** pan and zoom only — rotation and pitch are off, so the grid never tilts off true north. `touch-action: none` is scoped to the map canvas alone, so every touch on the map belongs to the map while the rest of the page keeps native pinch-zoom.
+- **Attribution:** the OSM / OpenMapTiles credit stays on screen — it is a licence condition, so it is restyled, never hidden: compact, phosphor-dim mono on `surface`, with MapLibre's info glyph refilled in phosphor-dim.
 
 ### ASCII Animation (signature)
 - The typewriter/glitch/collapse phosphor headline. Display type, hot-glow on the active char/cursor. Its timing is brand-critical and preserved; it must expose a `prefers-reduced-motion` path (render final text statically, no per-frame glitch).
@@ -194,10 +208,10 @@ This system has **no conventional shadows.** Depth is carried entirely by **phos
 - **Do** express all depth as phosphor **glow** (green, or amber for care), per the Glow-Is-The-Shadow Rule.
 - **Do** set everything in IBM Plex Mono (self-hosted); keep the whole UI on one character grid.
 - **Do** keep corners sharp (0–4px) and give every heavy animation a `prefers-reduced-motion` fallback.
-- **Do** frame the Google map in `surface` + green glow so a blank embed reads black, never white.
+- **Do** frame the map — the site's own or the remaining Google embed — in `surface` + green glow so a blank frame reads black, never white.
 
 ### Don't:
-- **Don't** ship **white** or near-white surfaces anywhere the site controls (the No-White Rule). White is only ever real map tiles inside the iframe.
+- **Don't** ship **white** or near-white surfaces anywhere (the No-White Rule) — the map has no carve-out any more: its basemap is phosphor-on-black like every other surface.
 - **Don't** drift into **corporate / Google-Maps polish**, **Strava/Instagram social** cards and gradients, **over-gamified/cutesy** badges, or a **generic dark-mode SaaS template** — all named anti-references in PRODUCT.md. Dark ≠ this; retro-computing intent is the difference.
 - **Don't** use gray/black drop-shadows, frosted glassmorphism, rounded pill shapes, or proportional (non-mono) fonts.
 - **Don't** introduce a third decorative color, or let amber sprawl past the care/selection role.
