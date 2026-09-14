@@ -13,6 +13,11 @@ github_*
 .devcycle/
 docs/superpowers/
 
+# Per-session devcycle on-device verification output (checklist + results per
+# feature) — working state from a single verify run, not a deliverable.
+docs/*/on-device-checklist.md
+docs/*/on-device-results.md
+
 # personal, machine-specific Claude Code settings (never shared)
 .claude/settings.local.json
 .claude/scheduled_tasks.lock

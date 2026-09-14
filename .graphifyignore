@@ -16,5 +16,9 @@ graphify-out/
 # Planning artifacts — specs, plans and brainstorm notes stay local and untracked
 docs/superpowers/
 
+# Per-session devcycle on-device verification output — local scratch, never committed
+docs/*/on-device-checklist.md
+docs/*/on-device-results.md
+
 # Spot photos are content, not architecture; the scope's image entry is public/icon*.png
 spotmap-website/public/spots/
