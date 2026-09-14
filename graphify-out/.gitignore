@@ -1,6 +1,10 @@
 # The knowledge graph itself IS committed (graph.json, graph.html, GRAPH_REPORT.md,
-# manifest.json, cost.json, cache/) — see ../CLAUDE.md. Only machine-specific or
-# regenerated sidecars are ignored so the committed graph stays portable.
+# manifest.json, cost.json) — see ../CLAUDE.md. Only machine-specific or regenerated
+# sidecars are ignored so the committed graph stays portable.
+#
+# NOTE: cache/ is ignored below per PR #1 review feedback, which contradicts ../CLAUDE.md's
+# current text (still says cache/ is committed). Flagged as a follow-up to reconcile the
+# doc, not resolved here.
 
 # Absolute, per-machine pointers written on each run
 .graphify_python
@@ -14,8 +18,8 @@
 .graphify_*.tmp
 .needs_update
 
-# Machine-specific file-stat index for --update change detection (regenerated)
-cache/stat-index.json
+# Regenerated AST/analysis cache — not part of the portable graph output
+cache/
 
 # Dated run archives graphify writes beside the current outputs — local history of
 # past builds, not the graph itself. The committed graph is the top-level one.
