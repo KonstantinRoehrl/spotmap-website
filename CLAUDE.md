@@ -5,22 +5,18 @@ commands (`npm`, `ng`, tests) from there; run graphify from the repo root.
 
 ## Knowledge graph (graphify)
 
-This repo keeps a **committed** graphify knowledge graph in `graphify-out/`
-(`graph.json`, `graph.html`, `GRAPH_REPORT.md`, `manifest.json`, `cache/`). It is
-version-controlled on purpose:
+This repo generates a graphify knowledge graph in `graphify-out/` (`graph.json`,
+`graph.html`, `GRAPH_REPORT.md`, `manifest.json`, `cache/`), but it is **not
+version-controlled**: the whole directory is gitignored, generated locally, and
+never committed.
 
-- **Do not gitignore the graph.** Only the machine-specific sidecars are ignored
-  (see `graphify-out/.gitignore`); the graph outputs are tracked.
-- **Reuse it.** Answer questions about the codebase from the existing graph
+- **Reuse it.** Answer questions about the codebase from the existing local graph
   (`/graphify query "…"`) instead of rebuilding from scratch.
-
-**Keep it up to date.** After any substantial code change — multi-file edits,
-adding/removing components, refactors — regenerate the graph and commit it **in the
-same change** so it never goes stale:
-
-1. `/graphify . --update` from the repo root (re-extracts only changed files; a full
-   `/graphify .` is fine if no graph exists yet).
-2. `git add graphify-out/ && git commit` together with the code change.
+- **Keep it up to date locally.** After any substantial code change — multi-file
+  edits, adding/removing components, refactors — regenerate it so it doesn't go
+  stale: `/graphify . --update` from the repo root (re-extracts only changed files;
+  a full `/graphify .` is fine if no graph exists yet). Do not `git add` or commit
+  `graphify-out/`.
 
 Notes:
 - **Scope is locked** by `.graphifyignore`: the graph covers the Angular app plus the
