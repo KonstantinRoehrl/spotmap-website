@@ -1,0 +1,23 @@
+<div class="spot-popup">
+  @if (properties().photos.length > 0) {
+    <app-spot-photo-gallery
+      [photos]="properties().photos"
+      [spotName]="properties().name"
+    />
+  }
+
+  <p class="spot-popup__name">{{ properties().name }}</p>
+
+  @if (isDemolished()) {
+    <p class="spot-popup__status">&gt; DEMOLISHED</p>
+  }
+
+  <a
+    class="spot-popup__directions"
+    [href]="directionsHref()"
+    target="_blank"
+    rel="noopener noreferrer"
+    [attr.aria-label]="'Directions to ' + properties().name"
+    >&gt; DIRECTIONS</a
+  >
+</div>

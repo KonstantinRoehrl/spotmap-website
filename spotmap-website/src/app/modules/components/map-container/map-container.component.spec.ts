@@ -1,3 +1,5 @@
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import {
   ComponentFixture,
   TestBed,
@@ -5,35 +7,73 @@ import {
   tick,
 } from '@angular/core/testing';
 
-import { CityEnum } from '../../../models/enums/map-enum';
+import { CityEnum, MapFailureReason } from '../../../models/enums/map-enum';
+import { GmapsEmbedComponent } from '../gmaps-embed/gmaps-embed.component';
+import { MAP_FACTORY, POPUP_FACTORY } from '../spot-map/map-factory.token';
+import { SpotMapComponent } from '../spot-map/spot-map.component';
 import { MapContainerComponent } from './map-container.component';
 
 // Mirror the private timing constants in map-container.component.ts.
 const LOAD_TIMEOUT_MS = 15_000;
 const REVEAL_DELAY_MS = 700;
 
+/**
+ * SpotMapComponent injects both maplibre factories the moment it is constructed. These
+ * tests never let it call either one (the spot request below is never flushed), so a
+ * never-resolving stub is enough — and providing them keeps the ESM-only maplibre-gl out
+ * of the karma bundle, which is why neither token carries a default (map-factory.token.ts).
+ */
+const neverResolves = () => new Promise<never>(() => {});
+
 describe('MapContainerComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [MapContainerComponent],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: MAP_FACTORY, useValue: neverResolves },
+        { provide: POPUP_FACTORY, useValue: neverResolves },
+      ],
     }).compileComponents();
+
+    // The container owns the state machine, not the embed. Blank the renderer's
+    // template so these tests never open a live Google iframe; the embed's own
+    // markup is covered by gmaps-embed.component.spec.ts.
+    TestBed.overrideComponent(GmapsEmbedComponent, { set: { template: '' } });
+    // Same for the MapLibre renderer: no WebGL context is built here either, and its
+    // own markup is covered by spot-map.component.spec.ts.
+    TestBed.overrideComponent(SpotMapComponent, { set: { template: '' } });
   });
 
   /** Create + bind the required input. Pass `render` to also run change detection. */
-  function create(render = false): ComponentFixture<MapContainerComponent> {
+  function create(
+    render = false,
+    city: CityEnum = CityEnum.Vienna,
+  ): ComponentFixture<MapContainerComponent> {
     const fixture = TestBed.createComponent(MapContainerComponent);
-    fixture.componentRef.setInput('city', CityEnum.Vienna);
+    fixture.componentRef.setInput('city', city);
     if (render) {
       fixture.detectChanges();
     }
     return fixture;
   }
 
-  // The state signals are protected; read them through a cast in tests only.
-  const errorShown = (c: MapContainerComponent) =>
-    (c as unknown as { loadError: () => boolean }).loadError();
+  // The state signals and renderer callbacks are protected; reach them through a
+  // cast in tests only.
+  const failure = (c: MapContainerComponent) =>
+    (
+      c as unknown as { failureReason: () => MapFailureReason | null }
+    ).failureReason();
+  const errorShown = (c: MapContainerComponent) => failure(c) !== null;
   const mapShown = (c: MapContainerComponent) =>
-    (c as unknown as { iframeLoaded: () => boolean }).iframeLoaded();
+    (c as unknown as { mapReady: () => boolean }).mapReady();
+  const rendererReady = (c: MapContainerComponent) =>
+    (c as unknown as { onRendererReady: () => void }).onRendererReady();
+  const rendererFailed = (c: MapContainerComponent, reason: MapFailureReason) =>
+    (
+      c as unknown as { onRendererFailed: (reason: MapFailureReason) => void }
+    ).onRendererFailed(reason);
 
   it('should create', () => {
     const fixture = create(true);
@@ -41,9 +81,17 @@ describe('MapContainerComponent', () => {
     fixture.destroy();
   });
 
-  it('exposes a sanitized url for the selected city', () => {
-    const fixture = create(true);
-    expect(fixture.componentInstance.safeUrl()).toBeTruthy();
+  it('renders the maplibre renderer for a city configured to use it', () => {
+    const fixture = create(true, CityEnum.Vienna);
+    expect(fixture.nativeElement.querySelector('app-spot-map')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('app-gmaps-embed')).toBeNull();
+    fixture.destroy();
+  });
+
+  it('renders the google embed for a city configured to use it', () => {
+    const fixture = create(true, CityEnum.Graz);
+    expect(fixture.nativeElement.querySelector('app-gmaps-embed')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('app-spot-map')).toBeNull();
     fixture.destroy();
   });
 
@@ -53,6 +101,7 @@ describe('MapContainerComponent', () => {
     expect(errorShown(c)).toBe(false);
     tick(LOAD_TIMEOUT_MS);
     expect(errorShown(c)).toBe(true);
+    expect(failure(c)).toBe('unreachable');
     expect(mapShown(c)).toBe(false);
     fixture.destroy();
   }));
@@ -60,7 +109,7 @@ describe('MapContainerComponent', () => {
   it('cancels the unreachable timeout on load, then reveals the map', fakeAsync(() => {
     const fixture = create();
     const c = fixture.componentInstance;
-    c.onIframeLoad();
+    rendererReady(c);
     tick(LOAD_TIMEOUT_MS); // well past both the (cancelled) timeout and the reveal delay
     expect(errorShown(c)).toBe(false);
     expect(mapShown(c)).toBe(true);
@@ -73,8 +122,8 @@ describe('MapContainerComponent', () => {
     // 1. original navigation never loads -> SIGNAL LOST
     tick(LOAD_TIMEOUT_MS);
     expect(errorShown(c)).toBe(true);
-    // 2. the slow original iframe finally fires load, scheduling a reveal...
-    c.onIframeLoad();
+    // 2. the slow original renderer finally reports ready, scheduling a reveal...
+    rendererReady(c);
     // 3. ...but the user hits RETRY within the reveal window
     c.retry();
     expect(errorShown(c)).toBe(false);
@@ -90,7 +139,7 @@ describe('MapContainerComponent', () => {
 
   it('re-arms the loading/error/timeout state machine when the city changes', fakeAsync(() => {
     // Empty template so detectChanges() flushes the city effect without a real
-    // (network-loading) iframe interfering with the virtual clock.
+    // (network-loading) renderer interfering with the virtual clock.
     TestBed.overrideComponent(MapContainerComponent, { set: { template: '' } });
     const fixture = TestBed.createComponent(MapContainerComponent);
     fixture.componentRef.setInput('city', CityEnum.Vienna);
@@ -98,7 +147,7 @@ describe('MapContainerComponent', () => {
     const c = fixture.componentInstance;
 
     // First city loads and reveals.
-    c.onIframeLoad();
+    rendererReady(c);
     tick(REVEAL_DELAY_MS);
     expect(mapShown(c)).toBe(true);
     expect(errorShown(c)).toBe(false);
@@ -120,10 +169,39 @@ describe('MapContainerComponent', () => {
   it('cancels pending timers on destroy', fakeAsync(() => {
     const fixture = create();
     const c = fixture.componentInstance;
-    c.onIframeLoad(); // schedules a reveal
+    rendererReady(c); // schedules a reveal
     fixture.destroy();
     tick(LOAD_TIMEOUT_MS + REVEAL_DELAY_MS); // nothing should fire post-destroy
     expect(errorShown(c)).toBe(false);
     expect(mapShown(c)).toBe(false);
   }));
+
+  it('offers RETRY for an unreachable failure', () => {
+    const fixture = create(true);
+    const c = fixture.componentInstance;
+    rendererFailed(c, 'unreachable');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('SIGNAL LOST');
+    expect(
+      fixture.nativeElement.querySelector('.map-error__retry'),
+    ).toBeTruthy();
+    fixture.destroy();
+  });
+
+  it('withholds RETRY for an unsupported renderer', () => {
+    const fixture = create(true);
+    const c = fixture.componentInstance;
+    rendererFailed(c, 'unsupported');
+    fixture.detectChanges();
+    expect(failure(c)).toBe('unsupported');
+    // The condition is a browser without WebGL 2, which is what MapLibre needs — so the line may
+    // not claim the browser has no WebGL at all: an iOS 14 Safari, the browser this path exists
+    // for, has WebGL 1 and would be told something false. It says what the reader can act on
+    // instead of a version number they cannot.
+    expect(fixture.nativeElement.textContent).toContain(
+      '> NO RENDERER // THIS BROWSER CANNOT DRAW THE MAP',
+    );
+    expect(fixture.nativeElement.querySelector('.map-error__retry')).toBeNull();
+    fixture.destroy();
+  });
 });

@@ -20,14 +20,14 @@
     "semantic_hash": "5a70b3d3763f6628c8083d7b033b98b8"
   },
   "spotmap-website/angular.json": {
-    "mtime": 1783580761.6111503,
-    "ast_hash": "80106f9f439f3a3c5de9725f1c6f5a94",
-    "semantic_hash": "80106f9f439f3a3c5de9725f1c6f5a94"
+    "mtime": 1789294509.528299,
+    "ast_hash": "87fd1d0b09aadac41ab74f27001b53da",
+    "semantic_hash": "87fd1d0b09aadac41ab74f27001b53da"
   },
   "spotmap-website/package.json": {
-    "mtime": 1783580761.612935,
-    "ast_hash": "fc5ea75c294f1e788fb9e0bf31e97003",
-    "semantic_hash": "fc5ea75c294f1e788fb9e0bf31e97003"
+    "mtime": 1789312692.4588404,
+    "ast_hash": "163faee97e3b88efb7bfdc38804c3529",
+    "semantic_hash": ""
   },
   "spotmap-website/src/app/app.component.spec.ts": {
     "mtime": 1783580761.6143868,
@@ -40,9 +40,9 @@
     "semantic_hash": "a8393d2b204cebcce2ab83c6b08b254d"
   },
   "spotmap-website/src/app/app.config.ts": {
-    "mtime": 1783580761.6148195,
-    "ast_hash": "7704ca212be182fcd7f2db8b7ebda539",
-    "semantic_hash": "7704ca212be182fcd7f2db8b7ebda539"
+    "mtime": 1789283284.3783069,
+    "ast_hash": "2f478b2e57d886811a41452c03b44a3e",
+    "semantic_hash": "2f478b2e57d886811a41452c03b44a3e"
   },
   "spotmap-website/src/app/app.routes.ts": {
     "mtime": 1783580761.614968,
@@ -50,19 +50,19 @@
     "semantic_hash": "34fc46c9ae698b67c3e0018868aa6bbd"
   },
   "spotmap-website/src/app/models/enums/config.ts": {
-    "mtime": 1783580761.615304,
-    "ast_hash": "bd32ffa6f9322c64cb35f11b89c6aafc",
-    "semantic_hash": "bd32ffa6f9322c64cb35f11b89c6aafc"
+    "mtime": 1789283231.9708755,
+    "ast_hash": "6d1f4d91b86d8d1de3bb75d532b57290",
+    "semantic_hash": "6d1f4d91b86d8d1de3bb75d532b57290"
   },
   "spotmap-website/src/app/models/enums/interfaces/map-item-interface.ts": {
-    "mtime": 1783580761.6155617,
-    "ast_hash": "5eb7b1a63b7e05b4f7a166b440f8ccd6",
-    "semantic_hash": "5eb7b1a63b7e05b4f7a166b440f8ccd6"
+    "mtime": 1789241857.6434016,
+    "ast_hash": "a7310d7f9aa850ff3c3e04dcecebeacf",
+    "semantic_hash": "a7310d7f9aa850ff3c3e04dcecebeacf"
   },
   "spotmap-website/src/app/models/enums/map-enum.ts": {
-    "mtime": 1783580761.6157265,
-    "ast_hash": "da342227314190b2088f684f1c665213",
-    "semantic_hash": "da342227314190b2088f684f1c665213"
+    "mtime": 1789241857.6432567,
+    "ast_hash": "aeaaaea636b480eeb4f9e43c9ed37980",
+    "semantic_hash": "aeaaaea636b480eeb4f9e43c9ed37980"
   },
   "spotmap-website/src/app/modules/components/ascii-animation-text/ascii-animation-text.component.spec.ts": {
     "mtime": 1783580761.616574,
@@ -85,14 +85,14 @@
     "semantic_hash": "567072a4e13d2b03844962f1797bd6ba"
   },
   "spotmap-website/src/app/modules/components/map-container/map-container.component.spec.ts": {
-    "mtime": 1783580761.6189215,
-    "ast_hash": "73e95fdc0a9dedaa512366d3af028198",
-    "semantic_hash": "73e95fdc0a9dedaa512366d3af028198"
+    "mtime": 1789296583.518149,
+    "ast_hash": "dd945b65700255d02a53b516cbd111eb",
+    "semantic_hash": "dd945b65700255d02a53b516cbd111eb"
   },
   "spotmap-website/src/app/modules/components/map-container/map-container.component.ts": {
-    "mtime": 1783580761.6191459,
-    "ast_hash": "07e7d9ae1e0d7ef8d0d667ae9fe6b2c9",
-    "semantic_hash": "07e7d9ae1e0d7ef8d0d667ae9fe6b2c9"
+    "mtime": 1789283231.9712985,
+    "ast_hash": "c01ee27825be908d1d9ef3e10fd1e4c4",
+    "semantic_hash": "c01ee27825be908d1d9ef3e10fd1e4c4"
   },
   "spotmap-website/src/app/modules/components/nav-bar/nav-bar.component.spec.ts": {
     "mtime": 1783580761.6199214,
@@ -135,9 +135,9 @@
     "semantic_hash": "dd4d314b86bfa4308ae7b78c39635269"
   },
   "spotmap-website/src/app/modules/pages/map/map.component.spec.ts": {
-    "mtime": 1783580761.6227226,
-    "ast_hash": "87398caf5d69af11eee428632acb6d00",
-    "semantic_hash": "87398caf5d69af11eee428632acb6d00"
+    "mtime": 1789283960.3513386,
+    "ast_hash": "dd935e380ab397b31d7a408a92c552c3",
+    "semantic_hash": "dd935e380ab397b31d7a408a92c552c3"
   },
   "spotmap-website/src/app/modules/pages/map/map.component.ts": {
     "mtime": 1783580761.622856,
@@ -170,64 +170,29 @@
     "semantic_hash": "ca9db05584071e35b6fbf01c5bde5f9c"
   },
   ".github/workflows/deploy-angular.yml": {
-    "mtime": 1783425252.4806943,
-    "ast_hash": "ba86b8fdab75d7a132fb19994971f49f",
-    "semantic_hash": "ba86b8fdab75d7a132fb19994971f49f"
+    "mtime": 1783602605.102584,
+    "ast_hash": "6e8955bd6a153964976117c70fc83b8a",
+    "semantic_hash": "6e8955bd6a153964976117c70fc83b8a"
   },
   "DESIGN.md": {
-    "mtime": 1783498849.2404494,
-    "ast_hash": "5d4066f46ccd4e2ae0f277d95ef93bbc",
-    "semantic_hash": "5d4066f46ccd4e2ae0f277d95ef93bbc"
+    "mtime": 1789312079.9578013,
+    "ast_hash": "09cde946a14f6060e6070d57159ce5f5",
+    "semantic_hash": ""
   },
   "PRODUCT.md": {
-    "mtime": 1783498085.5355446,
-    "ast_hash": "aab650cebbe5841a8095a88b5b2381ea",
-    "semantic_hash": "aab650cebbe5841a8095a88b5b2381ea"
+    "mtime": 1789286309.9684315,
+    "ast_hash": "22261a8dc47dbfdaa4a1883c2247ec40",
+    "semantic_hash": "22261a8dc47dbfdaa4a1883c2247ec40"
   },
   "README.md": {
     "mtime": 1783425252.4808917,
     "ast_hash": "f70c2be7083c2c093e155b1e2e0e5b74",
     "semantic_hash": "f70c2be7083c2c093e155b1e2e0e5b74"
   },
-  "docs/superpowers/plans/2026-07-07-spotmap-audit-refactor.md": {
-    "mtime": 1783454091.5038328,
-    "ast_hash": "0e00a537390871b8d3193d1d6bab3e0b",
-    "semantic_hash": "0e00a537390871b8d3193d1d6bab3e0b"
-  },
-  "docs/superpowers/plans/2026-07-07-spotmap-stage1-platform-upgrade.md": {
-    "mtime": 1783459273.020621,
-    "ast_hash": "677f91d0ada9b0629a9091116a4afdc0",
-    "semantic_hash": "677f91d0ada9b0629a9091116a4afdc0"
-  },
-  "docs/superpowers/plans/2026-07-08-spotmap-stage4-drop-bootstrap.md": {
-    "mtime": 1783501411.247519,
-    "ast_hash": "4691c4c61a890d666408cf058da4e61d",
-    "semantic_hash": "4691c4c61a890d666408cf058da4e61d"
-  },
-  "docs/superpowers/plans/2026-07-08-spotmap-stage5-material-theme.md": {
-    "mtime": 1783502419.8240407,
-    "ast_hash": "29522b8854b4f36074abc665ced1ae7a",
-    "semantic_hash": "29522b8854b4f36074abc665ced1ae7a"
-  },
-  "docs/superpowers/plans/2026-07-08-spotmap-stage6-architecture.md": {
-    "mtime": 1783519220.5398517,
-    "ast_hash": "2d604d28971bbcd03f5f67e4cbed901c",
-    "semantic_hash": "2d604d28971bbcd03f5f67e4cbed901c"
-  },
-  "docs/superpowers/plans/2026-07-08-spotmap-stage7-cleanup.md": {
-    "mtime": 1783542171.124298,
-    "ast_hash": "cce524a42d6450d52390e8f002fbae66",
-    "semantic_hash": "cce524a42d6450d52390e8f002fbae66"
-  },
-  "docs/superpowers/plans/2026-07-08-spotmap-stage8-a11y-ux.md": {
-    "mtime": 1783544169.4517653,
-    "ast_hash": "55ee67be30e48a781c9a13f3f4e3022d",
-    "semantic_hash": "55ee67be30e48a781c9a13f3f4e3022d"
-  },
   "spotmap-website/README.md": {
-    "mtime": 1783580761.6108873,
-    "ast_hash": "0b9a0a0f019ba7c5a3d019378c0b5a39",
-    "semantic_hash": "0b9a0a0f019ba7c5a3d019378c0b5a39"
+    "mtime": 1789312679.078516,
+    "ast_hash": "f05ee8ea35b8aa35f7829c174ebb2725",
+    "semantic_hash": ""
   },
   "spotmap-website/src/app/app.component.html": {
     "mtime": 1783580761.6142,
@@ -245,9 +210,9 @@
     "semantic_hash": "a5e99450c23ab7213c03b210f7965af9"
   },
   "spotmap-website/src/app/modules/components/map-container/map-container.component.html": {
-    "mtime": 1783580761.618704,
-    "ast_hash": "183f84e04ff4bc8ce74f2d443e6c62a4",
-    "semantic_hash": "183f84e04ff4bc8ce74f2d443e6c62a4"
+    "mtime": 1789296583.5177863,
+    "ast_hash": "6cd3843a6c15ed9f0269e4ad870281dd",
+    "semantic_hash": "6cd3843a6c15ed9f0269e4ad870281dd"
   },
   "spotmap-website/src/app/modules/components/nav-bar/nav-bar.component.html": {
     "mtime": 1783580761.6196249,
@@ -255,9 +220,9 @@
     "semantic_hash": "b3023b0dbc4ce22552ef8c1a9abbca95"
   },
   "spotmap-website/src/app/modules/pages/about/about.component.html": {
-    "mtime": 1783580761.621018,
-    "ast_hash": "87d0ff1b7f5cc62b8856a46d27a5b986",
-    "semantic_hash": "87d0ff1b7f5cc62b8856a46d27a5b986"
+    "mtime": 1789293637.4052956,
+    "ast_hash": "e2f2547764005f0a60b66f8df739e726",
+    "semantic_hash": "e2f2547764005f0a60b66f8df739e726"
   },
   "spotmap-website/src/app/modules/pages/home/home.component.html": {
     "mtime": 1783580761.621752,
@@ -288,5 +253,155 @@
     "mtime": 1783425252.4925416,
     "ast_hash": "337969341fd0d279928e30c7f6fa3e3a",
     "semantic_hash": "337969341fd0d279928e30c7f6fa3e3a"
+  },
+  "CLAUDE.md": {
+    "mtime": 1783600380.3022046,
+    "ast_hash": "60d5774113bf9b2184e0821476f5f2d2",
+    "semantic_hash": "60d5774113bf9b2184e0821476f5f2d2"
+  },
+  "spotmap-website/src/app/models/spots/spot.ts": {
+    "mtime": 1789220493.025825,
+    "ast_hash": "16c3484988000afc327e829219effbd3",
+    "semantic_hash": "16c3484988000afc327e829219effbd3"
+  },
+  "spotmap-website/src/app/models/spots/vienna-spots.spec.ts": {
+    "mtime": 1789220955.0316732,
+    "ast_hash": "197d7297308b311d236a61219324a37b",
+    "semantic_hash": "197d7297308b311d236a61219324a37b"
+  },
+  "spotmap-website/src/app/modules/components/gmaps-embed/gmaps-embed.component.spec.ts": {
+    "mtime": 1789241882.652803,
+    "ast_hash": "a27cc41612099fea1b7d4a6537fe5bfb",
+    "semantic_hash": "a27cc41612099fea1b7d4a6537fe5bfb"
+  },
+  "spotmap-website/src/app/modules/components/gmaps-embed/gmaps-embed.component.ts": {
+    "mtime": 1789241869.4547923,
+    "ast_hash": "3257b1774ce854cea99d2e6eae11c6cd",
+    "semantic_hash": "3257b1774ce854cea99d2e6eae11c6cd"
+  },
+  "spotmap-website/src/app/modules/components/spot-map/map-factory.token.ts": {
+    "mtime": 1789283284.377548,
+    "ast_hash": "2d2a617ae140c983eb63300af5652ed0",
+    "semantic_hash": "2d2a617ae140c983eb63300af5652ed0"
+  },
+  "spotmap-website/src/app/modules/components/spot-map/map-factory.ts": {
+    "mtime": 1789220401.341101,
+    "ast_hash": "ab7bdadec32a3f782979129a0bcf613f",
+    "semantic_hash": "ab7bdadec32a3f782979129a0bcf613f"
+  },
+  "spotmap-website/src/app/modules/components/spot-photo-gallery/spot-photo-gallery.component.spec.ts": {
+    "mtime": 1789220629.9377172,
+    "ast_hash": "73dd059b2e88f72b8ae711b64bcf3c06",
+    "semantic_hash": "73dd059b2e88f72b8ae711b64bcf3c06"
+  },
+  "spotmap-website/src/app/modules/components/spot-photo-gallery/spot-photo-gallery.component.ts": {
+    "mtime": 1789220832.800112,
+    "ast_hash": "02678c885b91775c0553e9554fcfbe46",
+    "semantic_hash": "02678c885b91775c0553e9554fcfbe46"
+  },
+  "spotmap-website/src/app/services/spots.service.spec.ts": {
+    "mtime": 1789241373.0878568,
+    "ast_hash": "9e6b824014addc0971a47d4c4ed53efe",
+    "semantic_hash": "9e6b824014addc0971a47d4c4ed53efe"
+  },
+  "spotmap-website/src/app/services/spots.service.ts": {
+    "mtime": 1789241348.95636,
+    "ast_hash": "747f6f0b85922ea10d19f88251a42700",
+    "semantic_hash": "747f6f0b85922ea10d19f88251a42700"
+  },
+  "docs/maplibre-vienna-pilot/on-device-checklist.md": {
+    "mtime": 1789312098.5218527,
+    "ast_hash": "7a82957a5907cf472359410c559d0484",
+    "semantic_hash": ""
+  },
+  "spotmap-website/src/app/modules/components/gmaps-embed/gmaps-embed.component.html": {
+    "mtime": 1789241869.4569023,
+    "ast_hash": "9c47b94047ebb6b6abc41bba1b0a5e6c",
+    "semantic_hash": "9c47b94047ebb6b6abc41bba1b0a5e6c"
+  },
+  "spotmap-website/src/app/modules/components/spot-photo-gallery/spot-photo-gallery.component.html": {
+    "mtime": 1789220629.925525,
+    "ast_hash": "496be2066f27f304e8e9ffc3be32bc0c",
+    "semantic_hash": "496be2066f27f304e8e9ffc3be32bc0c"
+  },
+  "spotmap-website/src/app/app.config.spec.ts": {
+    "mtime": 1789251460.0256603,
+    "ast_hash": "634903f9f95e964c959abcad7ef1aa15",
+    "semantic_hash": "634903f9f95e964c959abcad7ef1aa15"
+  },
+  "spotmap-website/src/app/modules/components/spot-map/terminal-map-style.spec.ts": {
+    "mtime": 1789293370.221258,
+    "ast_hash": "256d1fe1a6079527523160ee4e594120",
+    "semantic_hash": "256d1fe1a6079527523160ee4e594120"
+  },
+  "spotmap-website/src/app/modules/components/spot-map/terminal-map-style.ts": {
+    "mtime": 1789293427.788335,
+    "ast_hash": "a042f6d1306d4c39dacc545d9fc20c76",
+    "semantic_hash": "a042f6d1306d4c39dacc545d9fc20c76"
+  },
+  "spotmap-website/src/app/modules/components/spot-map/spot-map.component.spec.ts": {
+    "mtime": 1789294556.4535933,
+    "ast_hash": "e07cdc451d3c58a69f289982a73266c5",
+    "semantic_hash": "e07cdc451d3c58a69f289982a73266c5"
+  },
+  "spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts": {
+    "mtime": 1789294407.1322017,
+    "ast_hash": "a0adae11bdd98656e8881dace5ee434e",
+    "semantic_hash": "a0adae11bdd98656e8881dace5ee434e"
+  },
+  "spotmap-website/src/app/modules/components/spot-map/spot-map.component.html": {
+    "mtime": 1789250359.3439386,
+    "ast_hash": "926c524f4414c40ae3a09b58662f6e55",
+    "semantic_hash": "926c524f4414c40ae3a09b58662f6e55"
+  },
+  "spotmap-website/src/app/modules/components/spot-popup/spot-popup.component.spec.ts": {
+    "mtime": 1789311784.1377196,
+    "ast_hash": "a0b38bf5b247c1950efa23875e070117",
+    "semantic_hash": ""
+  },
+  "spotmap-website/src/app/modules/components/spot-popup/spot-popup.component.ts": {
+    "mtime": 1789293242.9068165,
+    "ast_hash": "bb53cc30e992f3ee61986812eefcc67a",
+    "semantic_hash": "bb53cc30e992f3ee61986812eefcc67a"
+  },
+  "spotmap-website/src/app/modules/components/spot-popup/spot-popup.component.html": {
+    "mtime": 1789293242.9066114,
+    "ast_hash": "1927b038d64f41a2bd8a9001f86ac683",
+    "semantic_hash": "1927b038d64f41a2bd8a9001f86ac683"
+  },
+  "spotmap-website/tools/verify-dev-server-map-worker.mjs": {
+    "mtime": 1789294169.4594085,
+    "ast_hash": "4a57cccab4c48be3ac23fcfec9dd1321",
+    "semantic_hash": "4a57cccab4c48be3ac23fcfec9dd1321"
+  },
+  "spotmap-website/tools/verify-map-worker-assets.mjs": {
+    "mtime": 1789294242.5747154,
+    "ast_hash": "3e21efc6e9be66daa3f612587e7e3aeb",
+    "semantic_hash": "3e21efc6e9be66daa3f612587e7e3aeb"
+  },
+  "spotmap-website/tools/verify-dev-server-map-worker.test.mjs": {
+    "mtime": 1789294137.125007,
+    "ast_hash": "af81acdbf7cc09da36ebb9b47c524ac3",
+    "semantic_hash": "af81acdbf7cc09da36ebb9b47c524ac3"
+  },
+  "spotmap-website/tools/verify-map-worker-assets.test.mjs": {
+    "mtime": 1789294231.9280279,
+    "ast_hash": "bc8a7b84c0376ed6ce90bf07e5edfe00",
+    "semantic_hash": "bc8a7b84c0376ed6ce90bf07e5edfe00"
+  },
+  "spotmap-website/tools/verify-css-asset-urls.mjs": {
+    "mtime": 1789312685.5712411,
+    "ast_hash": "6afda773fda0a4ad3a33a9da9e6aabf0",
+    "semantic_hash": ""
+  },
+  "spotmap-website/tools/verify-css-asset-urls.test.mjs": {
+    "mtime": 1789311887.4991956,
+    "ast_hash": "d4235d6544c587ead49014148f45b57d",
+    "semantic_hash": ""
+  },
+  "docs/maplibre-vienna-pilot/on-device-results.md": {
+    "mtime": 1789311677.9759066,
+    "ast_hash": "c97663e027335dadc56ab080b3c86630",
+    "semantic_hash": ""
   }
 }

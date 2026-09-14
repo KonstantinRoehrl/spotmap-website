@@ -3,3 +3,21 @@ dist/*
 .DS_Store
 
 github_*
+
+# Execution scaffolding and planning artifacts — local-only working state
+# (ledgers, task briefs, reviewer findings, evidence captures, brainstorm
+# transcripts) plus the specs and plans they were written from. None of it is
+# part of the deliverable, so none of it is tracked.
+.superpowers/
+.impeccable/
+.devcycle/
+docs/superpowers/
+
+# Per-session devcycle on-device verification output (checklist + results per
+# feature) — working state from a single verify run, not a deliverable.
+docs/*/on-device-checklist.md
+docs/*/on-device-results.md
+
+# personal, machine-specific Claude Code settings (never shared)
+.claude/settings.local.json
+.claude/scheduled_tasks.lock

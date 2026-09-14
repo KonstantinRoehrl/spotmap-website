@@ -8,20 +8,21 @@ import {
   signal,
   ChangeDetectionStrategy,
 } from '@angular/core';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { SUPPORTED_CITIES } from '../../../models/enums/config';
-import { CityEnum } from '../../../models/enums/map-enum';
+import { CityEnum, MapFailureReason } from '../../../models/enums/map-enum';
+import { GmapsEmbedComponent } from '../gmaps-embed/gmaps-embed.component';
 import { LoadingBarComponent } from '../loading-bar/loading-bar.component';
+import { SpotMapComponent } from '../spot-map/spot-map.component';
 
-/** How long to wait for the iframe `load` event before declaring the map unreachable. */
+/** How long to wait for the renderer to report first paint before declaring the map unreachable. */
 const LOAD_TIMEOUT_MS = 15_000;
 
-/** Delay between the iframe reporting `load` and revealing it (preserves the fade-in cadence). */
+/** Delay between the renderer reporting ready and revealing it (preserves the fade-in cadence). */
 const REVEAL_DELAY_MS = 700;
 
 @Component({
   selector: 'app-map-container',
-  imports: [LoadingBarComponent],
+  imports: [LoadingBarComponent, GmapsEmbedComponent, SpotMapComponent],
   templateUrl: './map-container.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: './map-container.component.css',
@@ -29,33 +30,30 @@ const REVEAL_DELAY_MS = 700;
 export class MapContainerComponent {
   city = input.required<CityEnum>();
 
-  /** Bumped on each retry to cache-bust the embed src and force a fresh fetch. */
-  private readonly reloadNonce = signal(0);
+  /** Which renderer draws the selected city. */
+  protected readonly renderer = computed(
+    () => SUPPORTED_CITIES[this.city()].renderer,
+  );
 
-  readonly safeUrl = computed<SafeResourceUrl>(() => {
-    const base = SUPPORTED_CITIES[this.city()].mapLink;
-    const nonce = this.reloadNonce();
-    // Preserve the exact original URL on first load; append a cache-buster only on retry.
-    const url = nonce === 0 ? base : `${base}&_r=${nonce}`;
-    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
-  });
+  /** Bumped on each retry so the active renderer re-attempts from scratch. */
+  protected readonly retryToken = signal(0);
 
-  protected iframeLoaded = signal(false);
-  protected loadError = signal(false);
+  protected readonly failureReason = signal<MapFailureReason | null>(null);
+  protected readonly mapReady = signal(false);
 
   private timeoutId?: number;
   private revealTimeoutId?: number;
 
-  constructor(private sanitizer: DomSanitizer) {
+  constructor() {
     inject(DestroyRef).onDestroy(() => this.clearAllTimers());
     this.startTimer();
 
     // The component instance is reused across dropdown selections (only the
     // `city` input changes, the component is not recreated). Re-arm the
     // reveal/error/timeout state machine on every city change AFTER the first,
-    // so a newly selected embed shows the loading overlay again instead of a
+    // so a newly selected map shows the loading overlay again instead of a
     // stale "loaded" frame (no white flash) and gets its own watchdog — without
-    // it, switching cities after a successful load leaves iframeLoaded=true and
+    // it, switching cities after a successful load leaves mapReady=true and
     // no timeout, so a hung/failed new city never surfaces SIGNAL LOST/RETRY.
     // The first run (initial city) is skipped: the constructor armed it above.
     let firstCity = true;
@@ -72,48 +70,51 @@ export class MapContainerComponent {
   /** Reset the reveal/error/timeout state machine for a freshly selected city. */
   private resetForNewCity() {
     this.clearAllTimers();
-    this.iframeLoaded.set(false);
-    this.loadError.set(false);
-    this.reloadNonce.set(0);
+    this.mapReady.set(false);
+    this.failureReason.set(null);
+    this.retryToken.set(0);
     this.startTimer();
   }
 
-  onIframeLoad() {
-    // Cancel the unreachable-timeout the instant load fires, so a slow-but-successful
-    // load in the final window before LOAD_TIMEOUT_MS can't flash "SIGNAL LOST".
+  /** A renderer reported first paint. */
+  protected onRendererReady(): void {
+    // Cancel the unreachable-timeout the instant the renderer reports ready, so a
+    // slow-but-successful load in the final window before LOAD_TIMEOUT_MS can't
+    // flash "SIGNAL LOST".
     this.clearTimer();
-    // Guard against a stacked reveal if `load` somehow fires twice before the reveal lands.
+    // Guard against a stacked reveal if `ready` somehow fires twice before the reveal lands.
     this.clearRevealTimer();
-    // Preserve the existing fade-in cadence: reveal shortly after the embed reports ready.
-    // Tracked so retry()/error/destroy can cancel it — otherwise a stale reveal from a
-    // pre-retry navigation could flip iframeLoaded=true over unloaded content.
+    // Preserve the existing fade-in cadence: reveal shortly after the renderer reports ready.
+    // Tracked so retry()/failure/destroy can cancel it — otherwise a stale reveal from a
+    // pre-retry navigation could flip mapReady=true over unloaded content.
     this.revealTimeoutId = window.setTimeout(() => {
       this.revealTimeoutId = undefined;
-      this.loadError.set(false);
-      this.iframeLoaded.set(true);
+      this.failureReason.set(null);
+      this.mapReady.set(true);
     }, REVEAL_DELAY_MS);
   }
 
-  onIframeError() {
+  /** A renderer gave up. `unsupported` is terminal — the template withholds RETRY for it. */
+  protected onRendererFailed(reason: MapFailureReason): void {
     this.clearAllTimers();
-    this.iframeLoaded.set(false);
-    this.loadError.set(true);
+    this.mapReady.set(false);
+    this.failureReason.set(reason);
   }
 
-  /** Re-attempt the embed: reset state, restart the timer, and re-point the iframe. */
+  /** Re-attempt the map: reset state, restart the timer, and re-arm the renderer. */
   retry() {
     this.clearAllTimers();
-    this.iframeLoaded.set(false);
-    this.loadError.set(false);
-    this.reloadNonce.update((n) => n + 1);
+    this.mapReady.set(false);
+    this.failureReason.set(null);
+    this.retryToken.update((n) => n + 1);
     this.startTimer();
   }
 
   private startTimer() {
     this.clearTimer();
     this.timeoutId = window.setTimeout(() => {
-      if (!this.iframeLoaded()) {
-        this.loadError.set(true);
+      if (!this.mapReady()) {
+        this.failureReason.set('unreachable');
       }
     }, LOAD_TIMEOUT_MS);
   }

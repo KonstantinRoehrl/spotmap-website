@@ -1,0 +1,55 @@
+:host {
+  display: block;
+}
+
+.spot-popup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-family: var(--font-mono);
+  color: var(--color-phosphor);
+}
+
+.spot-popup__name {
+  margin: 0;
+  font-size: 0.875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-shadow: var(--glow-text-rest);
+}
+
+/* Unlit and a step down from the name: on the record, but gone. It says what the ghosted pin
+   says without matching its colour — phosphor-deep is the pin, and at this size it would fail
+   contrast, so the line carries phosphor-dim and drops the bloom instead. Amber belongs to the
+   selection ring alone, so no screen carries it in two roles at once. */
+.spot-popup__status {
+  margin: 0;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  color: var(--color-phosphor-dim);
+  /* Inherited from the popup's own div, so dropping the bloom takes saying so. */
+  text-shadow: none;
+}
+
+.spot-popup__directions {
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 4px;
+  font-size: 0.8125rem;
+  letter-spacing: 0.08em;
+  color: var(--color-phosphor);
+  text-decoration: none;
+  text-shadow: var(--glow-text-rest);
+}
+
+.spot-popup__directions:hover {
+  color: var(--color-phosphor-bright);
+  text-shadow: var(--glow-text-hot);
+}
+
+.spot-popup__directions:focus-visible {
+  outline: 1px solid var(--color-phosphor);
+  outline-offset: 2px;
+}

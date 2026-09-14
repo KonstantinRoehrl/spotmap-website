@@ -1,0 +1,33 @@
+<div
+  class="gallery"
+  (touchstart)="onTouchStart($event)"
+  (touchend)="onTouchEnd($event)"
+>
+  <img
+    class="gallery__photo"
+    [src]="current()"
+    [alt]="altText()"
+    loading="lazy"
+    decoding="async"
+  />
+
+  @if (hasMany()) {
+    <button
+      type="button"
+      class="gallery__nav gallery__nav--prev"
+      aria-label="Previous photo"
+      (click)="previous()"
+    >
+      ‹
+    </button>
+    <button
+      type="button"
+      class="gallery__nav gallery__nav--next"
+      aria-label="Next photo"
+      (click)="next()"
+    >
+      ›
+    </button>
+    <span class="gallery__counter" aria-hidden="true">{{ counter() }}</span>
+  }
+</div>

@@ -5,9 +5,13 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
-    "build:pages": "ng build --configuration production --output-path=../dist/spotmap-website --base-href /spotmap-website/",
+    "build:pages": "npm run test:tools && ng build --configuration production --output-path=../dist/spotmap-website --base-href /spotmap-website/ && npm run verify:map-worker-assets && npm run verify:css-asset-urls",
+    "verify:map-worker-assets": "node tools/verify-map-worker-assets.mjs ../dist/spotmap-website/browser",
+    "verify:css-asset-urls": "node tools/verify-css-asset-urls.mjs ../dist/spotmap-website/browser",
+    "verify:dev-map-worker": "node tools/verify-dev-server-map-worker.mjs",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
+    "test:tools": "node --test \"tools/*.test.mjs\"",
     "format": "prettier --write \"src/**/*.{ts,html,css,scss}\"",
     "format:check": "prettier --check \"src/**/*.{ts,html,css,scss}\""
   },
@@ -27,6 +31,7 @@
     "@angular/platform-browser": "^22.0.5",
     "@angular/platform-browser-dynamic": "^22.0.5",
     "@angular/router": "^22.0.5",
+    "maplibre-gl": "^6.9.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.1"
