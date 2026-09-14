@@ -1,0 +1,40 @@
+version: 2
+
+updates:
+  # Keeps the SHA-pinned actions current: Dependabot rewrites the pinned SHA and its
+  # trailing version comment together, so pinning does not mean going unpatched.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    # Dependabot's default subject ("Bump X from A to B") is not a Conventional Commit,
+    # which would make the change invisible to version-calculation tooling.
+    commit-message:
+      prefix: ci
+      include: scope
+    groups:
+      # Minor and patch updates arrive as one PR; majors fall outside the group and get
+      # their own PR, so a major is read on its own rather than buried in a batch.
+      github-actions-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+
+  # The Angular app is nested; package.json does not live at the repository root.
+  - package-ecosystem: npm
+    directory: /spotmap-website
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: chore
+      prefix-development: chore
+      include: scope
+    groups:
+      npm-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
