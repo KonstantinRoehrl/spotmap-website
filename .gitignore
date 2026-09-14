@@ -21,3 +21,7 @@ docs/*/on-device-results.md
 # personal, machine-specific Claude Code settings (never shared)
 .claude/settings.local.json
 .claude/scheduled_tasks.lock
+
+# graphify knowledge graph — generated locally for graph-first queries, not
+# version-controlled. Regenerate with `/graphify . --update`; see CLAUDE.md.
+graphify-out/

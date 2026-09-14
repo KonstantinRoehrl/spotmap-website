@@ -1,0 +1,114 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+      - dev
+
+# No job in this workflow writes anything, so nothing is elevated below.
+permissions:
+  contents: read
+
+# A new push to the pull request supersedes its own in-flight run.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  format:
+    name: Prettier formatting
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: spotmap-website
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Node.js (version from .nvmrc) + npm cache
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version-file: spotmap-website/.nvmrc
+          cache: 'npm'
+          cache-dependency-path: spotmap-website/package-lock.json
+
+      - name: Install dependencies (npm ci — clean, from lockfile)
+        run: npm ci
+
+      - name: Check source formatting with Prettier
+        run: npm run format:check
+
+  build:
+    name: Production build + tool tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: spotmap-website
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Node.js (version from .nvmrc) + npm cache
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version-file: spotmap-website/.nvmrc
+          cache: 'npm'
+          cache-dependency-path: spotmap-website/package-lock.json
+
+      - name: Install dependencies (npm ci — clean, from lockfile)
+        run: npm ci
+
+      # build:pages chains the tools/ test suite, the production build, and both
+      # deploy-artifact verifiers, so this one step gates the artifact main deploys.
+      - name: Build the deploy artifact (tool tests, production build, asset verifiers)
+        run: npm run build:pages
+
+  test:
+    name: Unit tests (Karma, headless Chrome)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: spotmap-website
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Node.js (version from .nvmrc) + npm cache
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version-file: spotmap-website/.nvmrc
+          cache: 'npm'
+          cache-dependency-path: spotmap-website/package-lock.json
+
+      - name: Install dependencies (npm ci — clean, from lockfile)
+        run: npm ci
+
+      - name: Run unit tests once in headless Chrome
+        run: npm test -- --no-watch --no-progress --browsers=ChromeHeadless
+
+  secrets:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository (full history — gitleaks scans every commit)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      # The MIT-licensed binary, not gitleaks-action, which is license-gated for
+      # organization accounts. Bump GITLEAKS_VERSION and GITLEAKS_SHA256 together;
+      # Dependabot cannot see a version pinned inside a run block.
+      - name: Install gitleaks (pinned release, checksum-verified)
+        env:
+          GITLEAKS_VERSION: 8.30.1
+          GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+        run: |
+          curl --silent --show-error --fail --location --output gitleaks.tar.gz \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          echo "${GITLEAKS_SHA256}  gitleaks.tar.gz" | sha256sum --check --strict -
+          tar -xzf gitleaks.tar.gz gitleaks
+          sudo install -m 0755 gitleaks /usr/local/bin/gitleaks
+
+      - name: Scan full history for committed secrets
+        run: gitleaks git . --no-banner --redact
