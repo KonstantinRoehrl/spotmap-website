@@ -15,7 +15,6 @@ import {
   viewChild,
 } from '@angular/core';
 import type {
-  CircleLayerSpecification,
   Map as MapLibreMap,
   MapLayerMouseEvent,
   Popup as MapLibrePopup,
@@ -29,15 +28,18 @@ import {
   SPOT_POPUP_FRAME_CLASS,
   SpotPopupComponent,
 } from '../spot-popup/spot-popup.component';
-import { MAP_FACTORY, POPUP_FACTORY } from './map-factory.token';
+import type { ElevationTiles } from './elevation';
+import { startLockOn } from './lock-on-pulse';
 import {
+  ELEVATION_LOADER,
+  MAP_FACTORY,
+  POPUP_FACTORY,
+} from './map-factory.token';
+import { SPOT_HIT_LAYER_ID, SPOT_LAYERS, SPOT_SOURCE_ID } from './spot-layers';
+import {
+  BASEMAP_SOURCE_ID,
+  buildElevationAdditions,
   buildTerminalStyle,
-  SPOT_BODY_LAYER_ID,
-  SPOT_GLOW_LAYER_ID,
-  SPOT_HIT_LAYER_ID,
-  SPOT_SELECTED_LAYER_ID,
-  SPOT_SOURCE_ID,
-  TERMINAL_PALETTE,
 } from './terminal-map-style';
 
 /** Padding, in pixels, around the fitted spot bounds. */
@@ -81,72 +83,6 @@ function namesAnUnusableSource(
   );
 }
 
-/**
- * The spot pins, drawn in paint order. The hit layer comes first so its 22 px transparent
- * circle is the thumb target while the visible pin stays 6 px.
- */
-const SPOT_LAYERS: CircleLayerSpecification[] = [
-  {
-    id: SPOT_HIT_LAYER_ID,
-    type: 'circle',
-    source: SPOT_SOURCE_ID,
-    paint: {
-      'circle-radius': 22,
-      'circle-color': TERMINAL_PALETTE.bg,
-      'circle-opacity': 0,
-    },
-  },
-  {
-    id: SPOT_GLOW_LAYER_ID,
-    type: 'circle',
-    source: SPOT_SOURCE_ID,
-    paint: {
-      'circle-radius': 14,
-      'circle-blur': 1,
-      'circle-color': TERMINAL_PALETTE.phosphor,
-      'circle-opacity': [
-        'case',
-        ['==', ['get', 'status'], 'demolished'],
-        0.15,
-        0.5,
-      ],
-    },
-  },
-  {
-    id: SPOT_BODY_LAYER_ID,
-    type: 'circle',
-    source: SPOT_SOURCE_ID,
-    paint: {
-      'circle-radius': 6,
-      'circle-color': [
-        'case',
-        ['==', ['get', 'status'], 'demolished'],
-        TERMINAL_PALETTE.phosphorDeep,
-        TERMINAL_PALETTE.phosphor,
-      ],
-      'circle-stroke-width': 1,
-      'circle-stroke-color': TERMINAL_PALETTE.bg,
-    },
-  },
-  {
-    id: SPOT_SELECTED_LAYER_ID,
-    type: 'circle',
-    source: SPOT_SOURCE_ID,
-    paint: {
-      'circle-radius': 11,
-      'circle-color': 'rgba(0,0,0,0)',
-      'circle-stroke-width': 2,
-      'circle-stroke-color': TERMINAL_PALETTE.amber,
-      'circle-stroke-opacity': [
-        'case',
-        ['boolean', ['feature-state', 'selected'], false],
-        1,
-        0,
-      ],
-    },
-  },
-];
-
 /** Draws a city's spots on a MapLibre map. The container owns the loading and failure chrome. */
 @Component({
   selector: 'app-spot-map',
@@ -169,6 +105,7 @@ export class SpotMapComponent {
   private readonly spots = inject(SpotsService);
   private readonly mapFactory = inject(MAP_FACTORY);
   private readonly popupFactory = inject(POPUP_FACTORY);
+  private readonly loadElevation = inject(ELEVATION_LOADER);
   private readonly environment = inject(EnvironmentInjector);
   private readonly applicationRef = inject(ApplicationRef);
 
@@ -184,6 +121,11 @@ export class SpotMapComponent {
   private popup?: MapLibrePopup;
   private popupRef?: ComponentRef<SpotPopupComponent>;
   private selectedId?: string;
+  /**
+   * Stops the selected pin's lock-on pulse and puts its ring to rest; set while a pin is
+   * selected.
+   */
+  private cancelLockOn?: () => void;
 
   /**
    * Bumped by every teardown. A build whose await resolves against a stale generation lost its
@@ -217,6 +159,14 @@ export class SpotMapComponent {
       return;
     }
 
+    // Elevation is decoration, so nothing waits on it. This call only warms the loader: it starts
+    // the terrain library imports alongside the spot fetch and the map's own chunk, and its result
+    // is ignored. The result that counts comes from a second call after `load`, so the loader's
+    // timeout bounds how long after `load` relief may still be added rather than how long after
+    // the build began — a phone whose map paints late would otherwise lose relief the library
+    // already had ready. The loader memoises its setup, so that second call reuses these imports.
+    void this.loadElevation();
+
     let collection: SpotCollection;
     try {
       collection = await firstValueFrom(this.spots.loadSpots(city));
@@ -237,10 +187,10 @@ export class SpotMapComponent {
     }
 
     const style = buildTerminalStyle();
-    // Each of these owes the map its metadata — the TileJSON, for the vector basemap — before
-    // anything can be drawn from it. The ids are read back out of the style this component just
-    // built, so they cannot drift from it.
-    const sourcesAwaitingMetadata = new Set(Object.keys(style.sources));
+    // The basemap owes the map its metadata — the TileJSON — before anything can be drawn from
+    // it, and it is the one source the map cannot paint without. A DEM or contour source that
+    // never comes up costs the relief, not the map: its error is logged and nothing more.
+    const sourcesAwaitingMetadata = new Set([BASEMAP_SOURCE_ID]);
 
     let map: MapLibreMap;
     try {
@@ -318,6 +268,11 @@ export class SpotMapComponent {
       this.outcome = 'painted';
       this.drawSpots(map, collection);
       this.ready.emit();
+      // Only now: `load` waits on every visible source's tiles, so terrain in the opening style
+      // would hold the pins back behind the slowest DEM tile.
+      // A missing terrain library resolves `null` — the loader never rejects — and leaves the map
+      // flat.
+      void this.addElevation(map, this.loadElevation(), generation);
     });
 
     map.on('click', SPOT_HIT_LAYER_ID, (event: MapLayerMouseEvent) => {
@@ -358,6 +313,9 @@ export class SpotMapComponent {
     const id = spot.properties.id;
     map.setFeatureState({ source: SPOT_SOURCE_ID, id }, { selected: true });
     this.selectedId = id;
+    this.cancelLockOn = startLockOn(map, id, {
+      reducedMotion: prefersReducedMotion(),
+    });
 
     const content = createComponent(SpotPopupComponent, {
       environmentInjector: this.environment,
@@ -410,8 +368,9 @@ export class SpotMapComponent {
   }
 
   /**
-   * Closes the open popup, destroys the component inside it and drops the pin's selected state.
-   * One popup is created per pin tap, so anything left behind here leaks on every tap (QC6).
+   * Closes the open popup, destroys the component inside it, stops the lock-on pulse and drops the
+   * pin's selected state. One popup is created per pin tap, so anything left behind here leaks on
+   * every tap (QC6).
    */
   private clearSelection(): void {
     const popup = this.popup;
@@ -423,6 +382,9 @@ export class SpotMapComponent {
     if (ref && !ref.hostView.destroyed) {
       ref.destroy();
     }
+
+    this.cancelLockOn?.();
+    this.cancelLockOn = undefined;
 
     const id = this.selectedId;
     this.selectedId = undefined;
@@ -466,6 +428,37 @@ export class SpotMapComponent {
         maxZoom: FIT_MAX_ZOOM,
         duration: prefersReducedMotion() ? 0 : FIT_DURATION_MS,
       });
+    }
+  }
+
+  /**
+   * Adds the relief and contours to a map that has already painted, once `pending` — a terrain
+   * loader call made after `load` — resolves; a `null` result leaves the map flat. Terrain is
+   * decoration, so a failure to add it is logged and never fails the map.
+   */
+  private async addElevation(
+    map: MapLibreMap,
+    pending: Promise<ElevationTiles | null>,
+    generation: number,
+  ): Promise<void> {
+    const elevation = await pending;
+    // A city switch, a retry or destruction may have replaced or released this map meanwhile.
+    if (generation !== this.generation || this.map !== map) {
+      return;
+    }
+    if (elevation === null) {
+      return;
+    }
+    try {
+      const additions = buildElevationAdditions(elevation);
+      for (const [id, source] of Object.entries(additions.sources)) {
+        map.addSource(id, source);
+      }
+      for (const { layer, beforeId } of additions.layers) {
+        map.addLayer(layer, beforeId);
+      }
+    } catch (error) {
+      console.error(error);
     }
   }
 

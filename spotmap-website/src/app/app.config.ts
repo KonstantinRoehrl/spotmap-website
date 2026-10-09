@@ -4,8 +4,12 @@ import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
-import { createMapLibreMap } from './modules/components/spot-map/map-factory';
 import {
+  createMapLibreMap,
+  loadElevation,
+} from './modules/components/spot-map/map-factory';
+import {
+  ELEVATION_LOADER,
   MAP_FACTORY,
   POPUP_FACTORY,
   PopupFactory,
@@ -17,6 +21,7 @@ const createMapLibrePopup: PopupFactory = async (options) => {
   return new Popup(options);
 };
 
+/** The app's root providers, including the real maplibre factories and the elevation loader. */
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
@@ -25,5 +30,6 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(),
     { provide: MAP_FACTORY, useValue: createMapLibreMap },
     { provide: POPUP_FACTORY, useValue: createMapLibrePopup },
+    { provide: ELEVATION_LOADER, useValue: loadElevation },
   ],
 };

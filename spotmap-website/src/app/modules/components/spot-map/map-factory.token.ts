@@ -4,6 +4,7 @@ import type {
   MapOptions,
   Popup as MapLibrePopup,
 } from 'maplibre-gl';
+import type { ElevationLoader } from './elevation';
 
 /** Builds the MapLibre instance for {@link SpotMapComponent}. */
 export type MapFactory = (options: MapOptions) => Promise<MapLibreMap>;
@@ -25,3 +26,11 @@ export const MAP_FACTORY = new InjectionToken<MapFactory>('MAP_FACTORY');
 
 /** Declared without a default for the same reason as {@link MAP_FACTORY}. */
 export const POPUP_FACTORY = new InjectionToken<PopupFactory>('POPUP_FACTORY');
+
+/**
+ * Declared without a default for the same reason as {@link MAP_FACTORY}: the real loader imports
+ * maplibre-contour and maplibre-gl. Registered in app.config.ts; specs provide a fake.
+ */
+export const ELEVATION_LOADER = new InjectionToken<ElevationLoader>(
+  'ELEVATION_LOADER',
+);

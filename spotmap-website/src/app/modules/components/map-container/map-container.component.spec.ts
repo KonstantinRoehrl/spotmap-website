@@ -9,7 +9,11 @@ import {
 
 import { CityEnum, MapFailureReason } from '../../../models/enums/map-enum';
 import { GmapsEmbedComponent } from '../gmaps-embed/gmaps-embed.component';
-import { MAP_FACTORY, POPUP_FACTORY } from '../spot-map/map-factory.token';
+import {
+  ELEVATION_LOADER,
+  MAP_FACTORY,
+  POPUP_FACTORY,
+} from '../spot-map/map-factory.token';
 import { SpotMapComponent } from '../spot-map/spot-map.component';
 import { MapContainerComponent } from './map-container.component';
 
@@ -18,10 +22,11 @@ const LOAD_TIMEOUT_MS = 15_000;
 const REVEAL_DELAY_MS = 700;
 
 /**
- * SpotMapComponent injects both maplibre factories the moment it is constructed. These
- * tests never let it call either one (the spot request below is never flushed), so a
- * never-resolving stub is enough — and providing them keeps the ESM-only maplibre-gl out
- * of the karma bundle, which is why neither token carries a default (map-factory.token.ts).
+ * SpotMapComponent injects both maplibre factories and the elevation loader the moment it is
+ * constructed. These tests never let it call any of them (the spot request below is never
+ * flushed), so a never-resolving stub is enough — and providing them keeps the ESM-only
+ * maplibre-gl and maplibre-contour out of the karma bundle, which is why none of the three
+ * tokens carries a default (map-factory.token.ts).
  */
 const neverResolves = () => new Promise<never>(() => {});
 
@@ -34,6 +39,7 @@ describe('MapContainerComponent', () => {
         provideHttpClientTesting(),
         { provide: MAP_FACTORY, useValue: neverResolves },
         { provide: POPUP_FACTORY, useValue: neverResolves },
+        { provide: ELEVATION_LOADER, useValue: neverResolves },
       ],
     }).compileComponents();
 

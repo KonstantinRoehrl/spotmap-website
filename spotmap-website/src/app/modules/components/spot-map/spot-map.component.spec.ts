@@ -6,8 +6,15 @@ import {
 import { ApplicationRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CityEnum } from '../../../models/enums/map-enum';
-import { MAP_FACTORY, POPUP_FACTORY } from './map-factory.token';
+import type { ElevationTiles } from './elevation';
+import {
+  ELEVATION_LOADER,
+  MAP_FACTORY,
+  POPUP_FACTORY,
+} from './map-factory.token';
+import { LOCK_ON_AT_REST_FILTER } from './spot-layers';
 import { SpotMapComponent } from './spot-map.component';
+import { BASEMAP_SOURCE_ID } from './terminal-map-style';
 
 /** One camera move the component asked for, trimmed to the option that decides its motion. */
 interface CameraMove {
@@ -15,11 +22,30 @@ interface CameraMove {
   options: { duration?: number };
 }
 
+/** Stand-in tile URLs in the shape maplibre-contour hands out. */
+const ELEVATION_TILES: ElevationTiles = {
+  demTiles: 'dem-shared://{z}/{x}/{y}',
+  contourTiles: 'dem-contour://{z}/{x}/{y}?thresholds=11*50*100',
+};
+
+/** The terrain layers, each with the basemap layer it belongs under (spec §3.2). */
+const ELEVATION_LAYERS = [
+  { id: 'hillshade', beforeId: 'landcover' },
+  { id: 'contour-minor', beforeId: 'plaza' },
+  { id: 'contour-major', beforeId: 'plaza' },
+  { id: 'contour-label', beforeId: 'water-label' },
+];
+
 /** Records everything the component asks of a map, without being one. */
 class FakeMap {
   readonly handlers = new Map<string, ((e?: unknown) => void)[]>();
   readonly sources: Record<string, unknown> = {};
   readonly layers: { id: string }[] = [];
+  /**
+   * Every `addLayer` call, with the layer it was asked to go beneath — `undefined` for a layer
+   * added on top of everything, as the pins are.
+   */
+  readonly addedLayers: { id: string; beforeId?: string }[] = [];
   readonly featureStates: Record<string, Record<string, unknown>> = {};
   readonly canvas = document.createElement('canvas');
   /**
@@ -81,7 +107,7 @@ class FakeMap {
    * `duration: 0`, so an unguarded one added later is exactly the regression that spec catches.
    */
   readonly cameraMoves: CameraMove[] = [];
-  /** The style the component handed the factory — where the basemap's source id comes from. */
+  /** The style the component handed the factory. */
   style?: { sources: Record<string, unknown> };
 
   on(event: string, layerOrFn: unknown, maybeFn?: unknown) {
@@ -104,8 +130,13 @@ class FakeMap {
   addSource(id: string, source: unknown) {
     this.sources[id] = source;
   }
-  addLayer(layer: { id: string }) {
+  addLayer(layer: { id: string }, beforeId?: string) {
     this.layers.push(layer);
+    this.addedLayers.push({ id: layer.id, beforeId });
+  }
+  /** The terrain layers the component added, in the order it added them. */
+  terrainLayers() {
+    return this.addedLayers.filter((added) => !added.id.startsWith('spots-'));
   }
   fitBounds(
     _bounds: unknown,
@@ -148,6 +179,54 @@ class FakeMap {
   }
   remove() {
     this.removed = true;
+  }
+  /**
+   * Every paint property the component set on the live map, in order — the lock-on pulse's
+   * frames among them.
+   */
+  readonly paintCalls: { layer: string; property: string; value: unknown }[] =
+    [];
+  /**
+   * Every paint property the component set after `remove()`, kept apart from `paintCalls`: a
+   * removed MapLibre map has no style left to paint, so none of these would ever reach the screen.
+   */
+  readonly paintCallsAfterRemoval: {
+    layer: string;
+    property: string;
+    value: unknown;
+  }[] = [];
+  setPaintProperty(layer: string, property: string, value: unknown) {
+    (this.removed ? this.paintCallsAfterRemoval : this.paintCalls).push({
+      layer,
+      property,
+      value,
+    });
+    return this;
+  }
+  /** The last value the component set for one of the lock-on ring's properties. */
+  lastLockOnPaint(property: string): unknown {
+    return [...this.paintCalls]
+      .reverse()
+      .find(
+        (call) => call.layer === 'spots-lock-on' && call.property === property,
+      )?.value;
+  }
+  /** Every layer filter the component set on the live map, in order. */
+  readonly filterCalls: { layer: string; filter: unknown }[] = [];
+  /** Every layer filter set after `remove()`, kept apart for the same reason as paint calls. */
+  readonly filterCallsAfterRemoval: { layer: string; filter: unknown }[] = [];
+  setFilter(layer: string, filter: unknown) {
+    (this.removed ? this.filterCallsAfterRemoval : this.filterCalls).push({
+      layer,
+      filter,
+    });
+    return this;
+  }
+  /** The last filter the component set on the lock-on ring. */
+  lastLockOnFilter(): unknown {
+    return [...this.filterCalls]
+      .reverse()
+      .find((call) => call.layer === 'spots-lock-on')?.filter;
   }
 
   /**
@@ -199,15 +278,6 @@ class FakeMap {
     this.pitch = Math.min(Math.max(this.pitch + degrees, 0), 60);
   }
 
-  /** The source the component's own style declares; MapLibre tags its events with that id. */
-  private get basemapSourceId(): string {
-    const [id] = Object.keys(this.style?.sources ?? {});
-    if (!id) {
-      throw new Error('the map factory was handed no style with a source');
-    }
-    return id;
-  }
-
   /**
    * The basemap's TileJSON arriving: the source fires `data`/`metadata`
    * (maplibre-gl-dev.mjs:2871), the tile manager bubbles it carrying its `sourceId`
@@ -215,7 +285,7 @@ class FakeMap {
    */
   loadBasemapMetadata() {
     this.emit('sourcedata', {
-      sourceId: this.basemapSourceId,
+      sourceId: BASEMAP_SOURCE_ID,
       sourceDataType: 'metadata',
       isSourceLoaded: true,
     });
@@ -230,7 +300,18 @@ class FakeMap {
     this.styleLoaded = true;
     this.emit('error', {
       error: new Error('Failed to fetch https://tiles.openfreemap.org/planet'),
-      sourceId: this.basemapSourceId,
+      sourceId: BASEMAP_SOURCE_ID,
+    });
+  }
+
+  /**
+   * A terrain source never coming up: the same error shape as a dead basemap — no tile, no
+   * metadata ever — naming its own source.
+   */
+  failTerrainSource(sourceId: 'dem' | 'contours') {
+    this.emit('error', {
+      error: new Error(`Failed to load the ${sourceId} tiles`),
+      sourceId,
     });
   }
 
@@ -243,7 +324,7 @@ class FakeMap {
   failOneResource() {
     this.emit('error', {
       error: new Error('one tile failed to load'),
-      sourceId: this.basemapSourceId,
+      sourceId: BASEMAP_SOURCE_ID,
       tile: { tileID: { key: '14/8936/5681' } },
     });
   }
@@ -352,6 +433,21 @@ function requestReducedMotion(reduce: boolean) {
   );
 }
 
+/**
+ * Holds every animation frame the component asks for, so the lock-on pulse stays on the frame
+ * it paints synchronously and a spec can read it without racing the real clock.
+ */
+function holdAnimationFrames() {
+  spyOn(window, 'requestAnimationFrame').and.returnValue(1);
+  return spyOn(window, 'cancelAnimationFrame');
+}
+
+/** The lock-on's resting stroke opacity: nothing. */
+const LOCK_ON_AT_REST = 0;
+
+/** The lock-on filter that picks out the one spot with this id. */
+const onlySpot = (id: string) => ['==', ['get', 'id'], id];
+
 /** The shape MapLibre hands a layer click handler, trimmed to what the component reads. */
 function tapOn(id: string) {
   return { features: [{ id, properties: { id } }] };
@@ -366,8 +462,13 @@ describe('SpotMapComponent', () => {
   let loseContext: jasmine.Spy;
   let mapFactory: jasmine.Spy;
   let popupFactoryRejects: boolean;
+  let elevation: ElevationTiles | null;
+  /** What the fake `ELEVATION_LOADER` hands back; resolves `elevation` unless a spec holds it. */
+  let loadElevation: () => Promise<ElevationTiles | null>;
 
   beforeEach(async () => {
+    elevation = null;
+    loadElevation = () => Promise.resolve(elevation);
     fake = new FakeMap();
     popups = [];
     popupFactoryRejects = false;
@@ -404,6 +505,10 @@ describe('SpotMapComponent', () => {
             return Promise.resolve(popup);
           },
         },
+        {
+          provide: ELEVATION_LOADER,
+          useValue: () => loadElevation(),
+        },
       ],
     }).compileComponents();
     httpMock = TestBed.inject(HttpTestingController);
@@ -427,6 +532,19 @@ describe('SpotMapComponent', () => {
     fixture.detectChanges();
     httpMock.expectOne('spots/vienna.geojson').flush(COLLECTION);
     await fixture.whenStable();
+  }
+
+  /**
+   * Holds the terrain loader pending until the spec resolves it by hand, so the map can load — or
+   * be replaced, or destroyed — while the relief is still on its way.
+   */
+  function holdElevation() {
+    let resolve!: (tiles: ElevationTiles | null) => void;
+    const pending = new Promise<ElevationTiles | null>((settle) => {
+      resolve = settle;
+    });
+    loadElevation = () => pending;
+    return resolve;
   }
 
   async function tap(id: string) {
@@ -456,11 +574,15 @@ describe('SpotMapComponent', () => {
     await create();
     fake.emit('load');
     expect(fake.sources['spots']).toBeDefined();
-    const ids = fake.layers.map((l) => l.id);
-    expect(ids).toContain('spots-hit');
-    expect(ids).toContain('spots-glow');
-    expect(ids).toContain('spots-body');
-    expect(ids).toContain('spots-selected');
+    expect(fake.layers.map((l) => l.id)).toEqual([
+      'spots-hit',
+      'spots-glow',
+      'spots-selected-gap',
+      'spots-selected',
+      'spots-lock-on',
+      'spots-body',
+      'spots-demolished-mark',
+    ]);
   });
 
   it('draws the thumb target under the visible pin, not over it', async () => {
@@ -876,5 +998,263 @@ describe('SpotMapComponent', () => {
     expect(fake.canvas.style.cursor).toBe('pointer');
     fake.emit('mouseleave', undefined, 'spots-hit');
     expect(fake.canvas.style.cursor).toBe('');
+  });
+
+  it('builds and paints a flat map when elevation is unavailable', async () => {
+    elevation = null;
+    const c = await create();
+    const ready = jasmine.createSpy('ready');
+    c.ready.subscribe(ready);
+    expect(Object.keys(fake.style?.sources ?? {})).toEqual(['openmaptiles']);
+    fake.emit('load');
+    expect(ready).toHaveBeenCalled();
+  });
+
+  it('opens on the flat city and adds the terrain once the map has loaded', async () => {
+    // MapLibre fires `load` only once every source in the style has its visible tiles, so terrain
+    // in the opening style would hold the pins back behind the slowest DEM tile.
+    elevation = ELEVATION_TILES;
+    await create();
+    expect(Object.keys(fake.style?.sources ?? {})).toEqual(['openmaptiles']);
+    fake.emit('load');
+    await fixture.whenStable();
+    expect(Object.keys(fake.sources)).toEqual(['spots', 'dem', 'contours']);
+  });
+
+  it('paints the pins and reports ready while the terrain is still loading', async () => {
+    holdElevation();
+    const c = await create();
+    const ready = jasmine.createSpy('ready');
+    c.ready.subscribe(ready);
+    fake.emit('load');
+    expect(ready).toHaveBeenCalled();
+    expect(fake.sources['spots'])
+      .withContext('the pins are drawn')
+      .toBeDefined();
+    expect(fake.lastFitBounds)
+      .withContext('the spots are framed')
+      .toBeDefined();
+  });
+
+  it('slots the terrain under the basemap layers the design sets once it arrives', async () => {
+    const resolveElevation = holdElevation();
+    await create();
+    fake.emit('load');
+    expect(fake.terrainLayers())
+      .withContext('no terrain before the loader resolves')
+      .toEqual([]);
+    resolveElevation(ELEVATION_TILES);
+    await fixture.whenStable();
+    expect(Object.keys(fake.sources)).toEqual(['spots', 'dem', 'contours']);
+    expect(fake.terrainLayers()).toEqual(ELEVATION_LAYERS);
+  });
+
+  it('gives the terrain a fresh time box from the map load, not from the build start', async () => {
+    // The early call only warms the loader; on a slow phone its time box has run out by the time
+    // `load` arrives, so the relief rides on a second call made after `load`.
+    const calls: string[] = [];
+    loadElevation = () => {
+      calls.push(calls.length === 0 ? 'early' : 'after load');
+      return Promise.resolve(calls.length === 1 ? null : ELEVATION_TILES);
+    };
+    await create();
+    expect(calls)
+      .withContext('only the warm-up before load')
+      .toEqual(['early']);
+    fake.emit('load');
+    await fixture.whenStable();
+    expect(calls).toEqual(['early', 'after load']);
+    expect(Object.keys(fake.sources)).toEqual(['spots', 'dem', 'contours']);
+    expect(fake.terrainLayers()).toEqual(ELEVATION_LAYERS);
+  });
+
+  it('stays flat when the terrain loader resolves to nothing', async () => {
+    const resolveElevation = holdElevation();
+    await create();
+    fake.emit('load');
+    resolveElevation(null);
+    await fixture.whenStable();
+    expect(Object.keys(fake.sources)).toEqual(['spots']);
+    expect(fake.terrainLayers()).toEqual([]);
+  });
+
+  it('adds no terrain to a map a city switch replaced while the terrain was loading', async () => {
+    const resolveElevation = holdElevation();
+    await create();
+    fake.emit('load');
+    const replaced = fake;
+    fake = new FakeMap();
+    fixture.componentRef.setInput('city', CityEnum.Graz);
+    fixture.detectChanges();
+    httpMock.expectOne('spots/graz.geojson').flush(COLLECTION);
+    await fixture.whenStable();
+    fake.emit('load');
+    resolveElevation(ELEVATION_TILES);
+    await fixture.whenStable();
+    expect(replaced.removed)
+      .withContext('the switch released the old map')
+      .toBe(true);
+    expect(Object.keys(replaced.sources)).toEqual(['spots']);
+    expect(replaced.terrainLayers()).toEqual([]);
+    expect(fake.terrainLayers())
+      .withContext('the map that replaced it gets the terrain')
+      .toEqual(ELEVATION_LAYERS);
+  });
+
+  it('adds no terrain to a map destroyed while the terrain was loading', async () => {
+    const resolveElevation = holdElevation();
+    await create();
+    fake.emit('load');
+    fixture.destroy();
+    resolveElevation(ELEVATION_TILES);
+    await fixture.whenStable();
+    expect(fake.removed).withContext('the map was released').toBe(true);
+    expect(Object.keys(fake.sources)).toEqual(['spots']);
+    expect(fake.terrainLayers()).toEqual([]);
+  });
+
+  it('logs terrain it cannot add, and keeps the painted map', async () => {
+    const resolveElevation = holdElevation();
+    const c = await create();
+    const failed = jasmine.createSpy('failed');
+    c.failed.subscribe(failed);
+    fake.emit('load');
+    const addSource = fake.addSource.bind(fake);
+    spyOn(fake, 'addSource').and.callFake((id: string, source: unknown) => {
+      if (id === 'dem') {
+        throw new Error('There is already a source with ID "dem"');
+      }
+      addSource(id, source);
+    });
+    const logged = spyOn(console, 'error');
+    resolveElevation(ELEVATION_TILES);
+    await fixture.whenStable();
+    expect(logged).toHaveBeenCalled();
+    expect(logged.calls.mostRecent().args.join(' ')).toContain(
+      'already a source with ID "dem"',
+    );
+    expect(failed).not.toHaveBeenCalled();
+    expect(fake.removed).toBe(false);
+  });
+
+  it('paints on through a terrain source that never comes up, and says so', async () => {
+    elevation = ELEVATION_TILES;
+    const c = await create();
+    const failed = jasmine.createSpy('failed');
+    const ready = jasmine.createSpy('ready');
+    c.failed.subscribe(failed);
+    c.ready.subscribe(ready);
+    fake.emit('load');
+    await fixture.whenStable();
+    expect(fake.sources['dem'])
+      .withContext('the terrain was added')
+      .toBeDefined();
+    const logged = spyOn(console, 'error');
+    fake.failTerrainSource('dem');
+    fake.failTerrainSource('contours');
+    expect(failed).not.toHaveBeenCalled();
+    expect(ready).toHaveBeenCalled();
+    expect(logged).toHaveBeenCalledTimes(2);
+  });
+
+  it('still gives up on a basemap that never comes up beside the terrain', async () => {
+    elevation = ELEVATION_TILES;
+    const c = await create();
+    const failed = jasmine.createSpy('failed');
+    c.failed.subscribe(failed);
+    fake.failBasemapSource();
+    expect(failed).toHaveBeenCalledWith('unreachable');
+  });
+
+  it('pulses a lock-on onto the pin it selects', async () => {
+    requestReducedMotion(false);
+    holdAnimationFrames();
+    await create();
+    fake.emit('load');
+    await tap('a');
+    expect(fake.lastLockOnFilter())
+      .withContext('the ring is on the tapped pin alone')
+      .toEqual(onlySpot('a'));
+    expect(fake.lastLockOnPaint('circle-radius'))
+      .withContext('the ring starts wide of the pin')
+      .toBe(34);
+    expect(fake.lastLockOnPaint('circle-stroke-opacity')).toBe(1);
+  });
+
+  it('starts a fresh lock-on when the selection moves to another pin', async () => {
+    requestReducedMotion(false);
+    const cancelFrame = holdAnimationFrames();
+    await create();
+    fake.emit('load');
+    await tap('a');
+    const before = fake.paintCalls.length;
+    await tap('b');
+    const moved = fake.paintCalls
+      .slice(before)
+      .filter((call) => call.layer === 'spots-lock-on');
+    expect(cancelFrame)
+      .withContext('the first pulse was stopped')
+      .toHaveBeenCalled();
+    expect(moved.map((call) => call.value))
+      .withContext('the first pulse was put to rest before the second began')
+      .toContain(LOCK_ON_AT_REST);
+    expect(fake.lastLockOnPaint('circle-radius')).toBe(34);
+    expect(fake.lastLockOnFilter())
+      .withContext('the ring moved to the newly tapped pin')
+      .toEqual(onlySpot('b'));
+  });
+
+  it('stops the lock-on when the popup closes', async () => {
+    requestReducedMotion(false);
+    const cancelFrame = holdAnimationFrames();
+    await create();
+    fake.emit('load');
+    await tap('a');
+    popups[0]?.remove();
+    expect(cancelFrame).toHaveBeenCalled();
+    expect(fake.lastLockOnPaint('circle-radius')).toBe(11.5);
+    expect(fake.lastLockOnPaint('circle-stroke-opacity')).toEqual(
+      LOCK_ON_AT_REST,
+    );
+    expect(fake.lastLockOnFilter())
+      .withContext('the resting ring matches no pin')
+      .toBe(LOCK_ON_AT_REST_FILTER);
+  });
+
+  it('stops the lock-on before the map is torn down', async () => {
+    requestReducedMotion(false);
+    const cancelFrame = holdAnimationFrames();
+    await create();
+    fake.emit('load');
+    await tap('a');
+    fixture.destroy();
+    expect(cancelFrame).toHaveBeenCalled();
+    expect(fake.paintCallsAfterRemoval)
+      .withContext('the ring was put to rest on a map already removed')
+      .toEqual([]);
+    expect(fake.filterCallsAfterRemoval)
+      .withContext('the ring was unfiltered on a map already removed')
+      .toEqual([]);
+    expect(fake.lastLockOnPaint('circle-stroke-opacity')).toEqual(
+      LOCK_ON_AT_REST,
+    );
+    expect(fake.lastLockOnFilter()).toBe(LOCK_ON_AT_REST_FILTER);
+    expect(fake.removed).toBe(true);
+  });
+
+  it('skips the lock-on under reduced motion, keeping the ring', async () => {
+    requestReducedMotion(true);
+    holdAnimationFrames();
+    await create();
+    fake.emit('load');
+    await tap('a');
+    // The paint record is the witness, not `requestAnimationFrame`: Angular's change-detection
+    // scheduler asks for frames of its own on every tap. lock-on-pulse.spec.ts pins the pulse
+    // itself asking for none.
+    expect(
+      fake.paintCalls.filter((call) => call.layer === 'spots-lock-on'),
+    ).toEqual([]);
+    expect(fake.filterCalls).toEqual([]);
+    expect(fake.featureStates['a']?.['selected']).toBe(true);
   });
 });
