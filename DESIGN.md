@@ -175,7 +175,7 @@ A city map needs more voices than two phosphors can give: road classes, water, g
 - **Label** (500, `0.8125rem`, `+0.08em` tracking, UPPERCASE): Nav, field labels, terminal chrome ("City", "ACCESS GRANTED").
 
 ### Named Rules
-**The One-Grid Rule.** Everything is monospace. No proportional font enters the interface — not for "friendly" body copy, not for headings. The grid is the brand.
+**The One-Grid Rule.** Everything is monospace. No proportional font enters the interface — not for "friendly" body copy, not for headings. The grid is the brand. The one documented exception is the map: the basemap and pin labels the map renderer draws are set in Noto Sans (Regular, Bold, Italic), because the keyless OpenFreeMap glyph server serves no monospace font. The exception covers those renderer-drawn labels only, never UI chrome.
 
 **The Restrained-Caps Rule.** UPPERCASE + tracking is for labels and terminal system-copy only, not for body prose (long uppercase runs kill the sunlight read).
 
@@ -254,7 +254,7 @@ The site's own map, drawn from OpenFreeMap vector tiles in the palette above. Ev
 ### Don't:
 - **Don't** ship **white** or near-white surfaces anywhere (the No-White Rule) — the map has no carve-out: its basemap is drawn on true black like every other surface, and no Map Palette colour reaches white.
 - **Don't** drift into **corporate / Google-Maps polish**, **Strava/Instagram social** cards and gradients, **over-gamified/cutesy** badges, or a **generic dark-mode SaaS template** — all named anti-references in PRODUCT.md. Dark ≠ this; retro-computing intent is the difference.
-- **Don't** use gray/black drop-shadows, frosted glassmorphism, rounded pill shapes, or proportional (non-mono) fonts.
+- **Don't** use gray/black drop-shadows, frosted glassmorphism, rounded pill shapes, or proportional (non-mono) fonts (the map renderer's Noto Sans basemap and pin labels are the one exception, see the One-Grid Rule).
 - **Don't** introduce a third decorative color into the UI chrome (the Vienna basemap's Map Palette is the one documented exception), or let amber sprawl past the care/selection role.
 - **Don't** use full-color emoji as UI icons — render terminal glyphs in phosphor instead.
 - **Don't** let glow smear text legibility; resting text glow stays ≤6px so it survives sunlight on a phone.

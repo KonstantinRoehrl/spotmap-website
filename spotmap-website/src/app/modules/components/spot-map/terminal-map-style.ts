@@ -444,7 +444,8 @@ export function buildTerminalStyle(): StyleSpecification {
         paint: {
           'line-color': MAP_PALETTE.rail,
           'line-opacity': 0.8,
-          'line-width': zoomRamp(13, 0.4, 18, 1.2),
+          // Under the service tier at every zoom (spec test), so rail reads as a line, not a road.
+          'line-width': zoomRamp(13, 0.3, 18, 1.2),
         },
       },
       {
@@ -456,7 +457,8 @@ export function buildTerminalStyle(): StyleSpecification {
         filter: PATH_FILTER,
         paint: {
           'line-color': MAP_PALETTE.path,
-          'line-width': zoomRamp(14, 0.5, 18, 1.4),
+          // Under the service tier at every zoom, and never thinner than rail from z14 up.
+          'line-width': zoomRamp(14, 0.48, 18, 1.28),
         },
       },
       {

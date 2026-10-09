@@ -741,9 +741,10 @@ describe('buildTerminalStyle road hierarchy', () => {
     }
   });
 
-  it('keeps paths, piers and track thinner than a residential street', () => {
+  it('keeps paths, piers and track thinner than a service road, and still visible', () => {
     // Brightness no longer ranks them: path and rail are brighter than a service road by
-    // design, so that they read as their own thing. Width still keeps them below the streets.
+    // design, so that they read as their own thing. Width still keeps them below the quietest
+    // road tier at every zoom the ramps interpolate through, not only at whole zoom levels.
     const quiet: TileFeature[] = [
       { class: 'path', subclass: 'cycleway' },
       { class: 'path', subclass: 'pedestrian' },
@@ -751,13 +752,20 @@ describe('buildTerminalStyle road hierarchy', () => {
       { class: 'rail', subclass: 'rail' },
       { class: 'transit', subclass: 'tram' },
     ];
+    const MIN_VISIBLE_WIDTH = 0.3;
     for (const feature of quiet) {
-      for (const zoom of [14, 16, 18]) {
-        expect(drawnWidth(feature, zoom))
+      for (let zoom = 13; zoom <= 18; zoom += 0.25) {
+        const width = drawnWidth(feature, zoom);
+        expect(width)
           .withContext(
-            `${label(feature)} is thinner than a residential street at z${zoom}`,
+            `${label(feature)} is thinner than a service road at z${zoom}`,
           )
-          .toBeLessThan(drawnWidth({ class: 'minor' }, zoom));
+          .toBeLessThan(drawnWidth({ class: 'service' }, zoom));
+        if (width > 0) {
+          expect(width)
+            .withContext(`${label(feature)} stays visible at z${zoom}`)
+            .toBeGreaterThanOrEqual(MIN_VISIBLE_WIDTH);
+        }
       }
     }
   });
