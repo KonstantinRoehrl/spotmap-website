@@ -28,6 +28,7 @@ import {
   SPOT_POPUP_FRAME_CLASS,
   SpotPopupComponent,
 } from '../spot-popup/spot-popup.component';
+import type { ElevationTiles } from './elevation';
 import { startLockOn } from './lock-on-pulse';
 import {
   ELEVATION_LOADER,
@@ -35,7 +36,11 @@ import {
   POPUP_FACTORY,
 } from './map-factory.token';
 import { SPOT_HIT_LAYER_ID, SPOT_LAYERS, SPOT_SOURCE_ID } from './spot-layers';
-import { BASEMAP_SOURCE_ID, buildTerminalStyle } from './terminal-map-style';
+import {
+  BASEMAP_SOURCE_ID,
+  buildElevationAdditions,
+  buildTerminalStyle,
+} from './terminal-map-style';
 
 /** Padding, in pixels, around the fitted spot bounds. */
 const FIT_PADDING_PX = 48;
@@ -154,6 +159,11 @@ export class SpotMapComponent {
       return;
     }
 
+    // Elevation is decoration, so nothing waits on it: the loader runs alongside the spot fetch
+    // and the map's own chunk, and the terrain is added after `load`. A missing terrain library
+    // resolves `null` — the loader never rejects — and leaves the map flat.
+    const elevation = this.loadElevation();
+
     let collection: SpotCollection;
     try {
       collection = await firstValueFrom(this.spots.loadSpots(city));
@@ -173,15 +183,7 @@ export class SpotMapComponent {
       return;
     }
 
-    // Elevation is decoration: the loader never rejects, and resolves null — at the latest after
-    // its timeout — when the terrain library or its provider is unavailable, so the map then
-    // draws flat rather than not at all.
-    const elevation = await this.loadElevation();
-    if (generation !== this.generation) {
-      return;
-    }
-
-    const style = buildTerminalStyle(elevation);
+    const style = buildTerminalStyle();
     // The basemap owes the map its metadata — the TileJSON — before anything can be drawn from
     // it, and it is the one source the map cannot paint without. A DEM or contour source that
     // never comes up costs the relief, not the map: its error is logged and nothing more.
@@ -263,6 +265,9 @@ export class SpotMapComponent {
       this.outcome = 'painted';
       this.drawSpots(map, collection);
       this.ready.emit();
+      // Only now: `load` waits on every visible source's tiles, so terrain in the opening style
+      // would hold the pins back behind the slowest DEM tile.
+      void this.addElevation(map, elevation, generation);
     });
 
     map.on('click', SPOT_HIT_LAYER_ID, (event: MapLayerMouseEvent) => {
@@ -418,6 +423,37 @@ export class SpotMapComponent {
         maxZoom: FIT_MAX_ZOOM,
         duration: prefersReducedMotion() ? 0 : FIT_DURATION_MS,
       });
+    }
+  }
+
+  /**
+   * Adds the relief and contours to a map that has already painted, once the terrain loader
+   * resolves; a `null` result leaves the map flat. Terrain is decoration, so a failure to add it is
+   * logged and never fails the map.
+   */
+  private async addElevation(
+    map: MapLibreMap,
+    pending: Promise<ElevationTiles | null>,
+    generation: number,
+  ): Promise<void> {
+    const elevation = await pending;
+    // A city switch, a retry or destruction may have replaced or released this map meanwhile.
+    if (generation !== this.generation || this.map !== map) {
+      return;
+    }
+    if (elevation === null) {
+      return;
+    }
+    try {
+      const additions = buildElevationAdditions(elevation);
+      for (const [id, source] of Object.entries(additions.sources)) {
+        map.addSource(id, source);
+      }
+      for (const { layer, beforeId } of additions.layers) {
+        map.addLayer(layer, beforeId);
+      }
+    } catch (error) {
+      console.error(error);
     }
   }
 

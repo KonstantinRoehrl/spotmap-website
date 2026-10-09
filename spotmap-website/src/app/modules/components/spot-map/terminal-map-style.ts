@@ -1,6 +1,7 @@
 import type {
   ExpressionSpecification,
   HillshadeLayerSpecification,
+  LayerSpecification,
   LineLayerSpecification,
   SourceSpecification,
   StyleSpecification,
@@ -313,20 +314,55 @@ function contourLabelLayer(): SymbolLayerSpecification {
   };
 }
 
+/** One terrain layer, and the basemap layer it is drawn directly beneath. */
+export interface ElevationLayer {
+  /** The layer to add. */
+  readonly layer: LayerSpecification;
+  /** The basemap layer id it goes under, as `map.addLayer(layer, beforeId)` takes it. */
+  readonly beforeId: string;
+}
+
+/**
+ * Everything elevation adds to a map that already shows the flat city: the two terrain sources,
+ * and the four terrain layers in the order they are to be added.
+ */
+export interface ElevationAdditions {
+  /** The DEM and contour sources, keyed by source id. */
+  readonly sources: Readonly<Record<string, SourceSpecification>>;
+  /** The terrain layers, each paired with the basemap layer it slots in under. */
+  readonly layers: readonly ElevationLayer[];
+}
+
+/**
+ * The relief and contours for the given terrain tiles, to be added to the flat city once it has
+ * loaded. Adding the layers in this order, each before its `beforeId`, draws them exactly where
+ * the design places them: the hillshade under the green space, both contour weights under the
+ * rail, and the contour heights under the water labels.
+ */
+export function buildElevationAdditions(
+  elevation: ElevationTiles,
+): ElevationAdditions {
+  return {
+    sources: elevationSources(elevation),
+    layers: [
+      { layer: hillshadeLayer(), beforeId: 'landcover' },
+      ...contourLineLayers().map((layer) => ({ layer, beforeId: 'rail' })),
+      { layer: contourLabelLayer(), beforeId: 'water-label' },
+    ],
+  };
+}
+
 /**
  * The basemap: the city in the Map Palette — radar-phosphor roads and labels over 3279
- * blue-violet water, with dim fills, relief and contours as decoration. Elevation is drawn only
- * when `elevation` arrives; without it the map is the same city, flat.
+ * blue-violet water, with dim fills as decoration. It is drawn flat: relief and contours are
+ * added later, from {@link buildElevationAdditions}, so the map never waits on the terrain.
  */
-export function buildTerminalStyle(
-  elevation: ElevationTiles | null,
-): StyleSpecification {
+export function buildTerminalStyle(): StyleSpecification {
   return {
     version: 8,
     glyphs: OPENFREEMAP_GLYPHS,
     sources: {
       [BASEMAP_SOURCE_ID]: { type: 'vector', url: OPENFREEMAP_TILES },
-      ...(elevation ? elevationSources(elevation) : {}),
     },
     layers: [
       {
@@ -334,7 +370,6 @@ export function buildTerminalStyle(
         type: 'background',
         paint: { 'background-color': MAP_PALETTE.ground },
       },
-      ...(elevation ? [hillshadeLayer()] : []),
       {
         // Parks, woods and grass live in `landcover`, not `landuse` (which is the built
         // environment): OpenMapTiles files park, garden and meadow under class `grass`.
@@ -396,7 +431,6 @@ export function buildTerminalStyle(
           'line-width': zoomRamp(16, 0.5, 18, 1),
         },
       },
-      ...(elevation ? contourLineLayers() : []),
       {
         // Track a skater crosses or steers by: the tram in the roadway, surface rail, and the
         // U-Bahn wherever it runs in the open — at grade or up on a viaduct, which is a
@@ -439,7 +473,6 @@ export function buildTerminalStyle(
         },
       },
       ...[...ROAD_TIERS].reverse().map(roadLayer),
-      ...(elevation ? [contourLabelLayer()] : []),
       {
         id: 'water-label',
         type: 'symbol',

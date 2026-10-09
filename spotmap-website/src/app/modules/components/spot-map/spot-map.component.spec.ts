@@ -28,11 +28,24 @@ const ELEVATION_TILES: ElevationTiles = {
   contourTiles: 'dem-contour://{z}/{x}/{y}?thresholds=11*50*100',
 };
 
+/** The terrain layers, each with the basemap layer it belongs under (spec §3.2). */
+const ELEVATION_LAYERS = [
+  { id: 'hillshade', beforeId: 'landcover' },
+  { id: 'contour-minor', beforeId: 'rail' },
+  { id: 'contour-major', beforeId: 'rail' },
+  { id: 'contour-label', beforeId: 'water-label' },
+];
+
 /** Records everything the component asks of a map, without being one. */
 class FakeMap {
   readonly handlers = new Map<string, ((e?: unknown) => void)[]>();
   readonly sources: Record<string, unknown> = {};
   readonly layers: { id: string }[] = [];
+  /**
+   * Every `addLayer` call, with the layer it was asked to go beneath — `undefined` for a layer
+   * added on top of everything, as the pins are.
+   */
+  readonly addedLayers: { id: string; beforeId?: string }[] = [];
   readonly featureStates: Record<string, Record<string, unknown>> = {};
   readonly canvas = document.createElement('canvas');
   /**
@@ -117,8 +130,13 @@ class FakeMap {
   addSource(id: string, source: unknown) {
     this.sources[id] = source;
   }
-  addLayer(layer: { id: string }) {
+  addLayer(layer: { id: string }, beforeId?: string) {
     this.layers.push(layer);
+    this.addedLayers.push({ id: layer.id, beforeId });
+  }
+  /** The terrain layers the component added, in the order it added them. */
+  terrainLayers() {
+    return this.addedLayers.filter((added) => !added.id.startsWith('spots-'));
   }
   fitBounds(
     _bounds: unknown,
@@ -445,9 +463,12 @@ describe('SpotMapComponent', () => {
   let mapFactory: jasmine.Spy;
   let popupFactoryRejects: boolean;
   let elevation: ElevationTiles | null;
+  /** What the fake `ELEVATION_LOADER` hands back; resolves `elevation` unless a spec holds it. */
+  let loadElevation: () => Promise<ElevationTiles | null>;
 
   beforeEach(async () => {
     elevation = null;
+    loadElevation = () => Promise.resolve(elevation);
     fake = new FakeMap();
     popups = [];
     popupFactoryRejects = false;
@@ -486,7 +507,7 @@ describe('SpotMapComponent', () => {
         },
         {
           provide: ELEVATION_LOADER,
-          useValue: () => Promise.resolve(elevation),
+          useValue: () => loadElevation(),
         },
       ],
     }).compileComponents();
@@ -511,6 +532,19 @@ describe('SpotMapComponent', () => {
     fixture.detectChanges();
     httpMock.expectOne('spots/vienna.geojson').flush(COLLECTION);
     await fixture.whenStable();
+  }
+
+  /**
+   * Holds the terrain loader pending until the spec resolves it by hand, so the map can load — or
+   * be replaced, or destroyed — while the relief is still on its way.
+   */
+  function holdElevation() {
+    let resolve!: (tiles: ElevationTiles | null) => void;
+    const pending = new Promise<ElevationTiles | null>((settle) => {
+      resolve = settle;
+    });
+    loadElevation = () => pending;
+    return resolve;
   }
 
   async function tap(id: string) {
@@ -976,14 +1010,112 @@ describe('SpotMapComponent', () => {
     expect(ready).toHaveBeenCalled();
   });
 
-  it('hands the elevation tiles to the style when they arrive', async () => {
+  it('opens on the flat city and adds the terrain once the map has loaded', async () => {
+    // MapLibre fires `load` only once every source in the style has its visible tiles, so terrain
+    // in the opening style would hold the pins back behind the slowest DEM tile.
     elevation = ELEVATION_TILES;
     await create();
-    expect(Object.keys(fake.style?.sources ?? {})).toEqual([
-      'openmaptiles',
-      'dem',
-      'contours',
-    ]);
+    expect(Object.keys(fake.style?.sources ?? {})).toEqual(['openmaptiles']);
+    fake.emit('load');
+    await fixture.whenStable();
+    expect(Object.keys(fake.sources)).toEqual(['spots', 'dem', 'contours']);
+  });
+
+  it('paints the pins and reports ready while the terrain is still loading', async () => {
+    holdElevation();
+    const c = await create();
+    const ready = jasmine.createSpy('ready');
+    c.ready.subscribe(ready);
+    fake.emit('load');
+    expect(ready).toHaveBeenCalled();
+    expect(fake.sources['spots'])
+      .withContext('the pins are drawn')
+      .toBeDefined();
+    expect(fake.lastFitBounds)
+      .withContext('the spots are framed')
+      .toBeDefined();
+  });
+
+  it('slots the terrain under the basemap layers the design sets once it arrives', async () => {
+    const resolveElevation = holdElevation();
+    await create();
+    fake.emit('load');
+    expect(fake.terrainLayers())
+      .withContext('no terrain before the loader resolves')
+      .toEqual([]);
+    resolveElevation(ELEVATION_TILES);
+    await fixture.whenStable();
+    expect(Object.keys(fake.sources)).toEqual(['spots', 'dem', 'contours']);
+    expect(fake.terrainLayers()).toEqual(ELEVATION_LAYERS);
+  });
+
+  it('stays flat when the terrain loader resolves to nothing', async () => {
+    const resolveElevation = holdElevation();
+    await create();
+    fake.emit('load');
+    resolveElevation(null);
+    await fixture.whenStable();
+    expect(Object.keys(fake.sources)).toEqual(['spots']);
+    expect(fake.terrainLayers()).toEqual([]);
+  });
+
+  it('adds no terrain to a map a city switch replaced while the terrain was loading', async () => {
+    const resolveElevation = holdElevation();
+    await create();
+    fake.emit('load');
+    const replaced = fake;
+    fake = new FakeMap();
+    fixture.componentRef.setInput('city', CityEnum.Graz);
+    fixture.detectChanges();
+    httpMock.expectOne('spots/graz.geojson').flush(COLLECTION);
+    await fixture.whenStable();
+    fake.emit('load');
+    resolveElevation(ELEVATION_TILES);
+    await fixture.whenStable();
+    expect(replaced.removed)
+      .withContext('the switch released the old map')
+      .toBe(true);
+    expect(Object.keys(replaced.sources)).toEqual(['spots']);
+    expect(replaced.terrainLayers()).toEqual([]);
+    expect(fake.terrainLayers())
+      .withContext('the map that replaced it gets the terrain')
+      .toEqual(ELEVATION_LAYERS);
+  });
+
+  it('adds no terrain to a map destroyed while the terrain was loading', async () => {
+    const resolveElevation = holdElevation();
+    await create();
+    fake.emit('load');
+    fixture.destroy();
+    resolveElevation(ELEVATION_TILES);
+    await fixture.whenStable();
+    expect(fake.removed).withContext('the map was released').toBe(true);
+    expect(Object.keys(fake.sources)).toEqual(['spots']);
+    expect(fake.terrainLayers()).toEqual([]);
+  });
+
+  it('logs terrain it cannot add, and keeps the painted map', async () => {
+    const resolveElevation = holdElevation();
+    const c = await create();
+    const failed = jasmine.createSpy('failed');
+    c.failed.subscribe(failed);
+    fake.emit('load');
+    const addSource = fake.addSource.bind(fake);
+    spyOn(fake, 'addSource').and.callFake((id: string, source: unknown) => {
+      if (id === 'dem') {
+        throw new Error('There is already a source with ID "dem"');
+      }
+      addSource(id, source);
+    });
+    const logged = spyOn(console, 'error');
+    resolveElevation(ELEVATION_TILES);
+    await fixture.whenStable();
+    expect(logged).toHaveBeenCalled();
+    expect(logged.calls.mostRecent().args.join(' ')).toContain(
+      'already a source with ID "dem"',
+    );
+    expect(failed).not.toHaveBeenCalled();
+    expect(fake.removed).toBe(false);
   });
 
   it('paints on through a terrain source that never comes up, and says so', async () => {
@@ -993,10 +1125,14 @@ describe('SpotMapComponent', () => {
     const ready = jasmine.createSpy('ready');
     c.failed.subscribe(failed);
     c.ready.subscribe(ready);
+    fake.emit('load');
+    await fixture.whenStable();
+    expect(fake.sources['dem'])
+      .withContext('the terrain was added')
+      .toBeDefined();
     const logged = spyOn(console, 'error');
     fake.failTerrainSource('dem');
     fake.failTerrainSource('contours');
-    fake.emit('load');
     expect(failed).not.toHaveBeenCalled();
     expect(ready).toHaveBeenCalled();
     expect(logged).toHaveBeenCalledTimes(2);

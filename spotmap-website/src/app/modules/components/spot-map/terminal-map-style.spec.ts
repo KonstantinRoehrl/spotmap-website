@@ -1,7 +1,10 @@
+import type { StyleSpecification } from 'maplibre-gl';
 import { MAPTERHORN_DEM, type ElevationTiles } from './elevation';
 import { MAP_PALETTE, TERMINAL_PALETTE } from './map-palette';
 import {
+  buildElevationAdditions,
   buildTerminalStyle,
+  type ElevationAdditions,
   OPENFREEMAP_GLYPHS,
   OPENFREEMAP_TILES,
 } from './terminal-map-style';
@@ -12,7 +15,7 @@ const ELEVATION: ElevationTiles = {
   contourTiles: 'dem-contour://{z}/{x}/{y}?thresholds=11*50*100',
 };
 
-/** Every layer id, in draw order, of the style built with elevation (spec §3.2). */
+/** Every layer id, in draw order, of the basemap once elevation is added to it (spec §3.2). */
 const DRAW_ORDER = [
   'background',
   'hillshade',
@@ -37,13 +40,47 @@ const DRAW_ORDER = [
   'place-label',
 ];
 
-/** The layers drawn only when elevation arrives. */
+/** The layers drawn only once elevation is added. */
 const ELEVATION_LAYERS = [
   'hillshade',
   'contour-minor',
   'contour-major',
   'contour-label',
 ];
+
+/**
+ * The style as the map holds it once elevation is added: the terrain sources merged in, and each
+ * terrain layer inserted before its `beforeId` the way `map.addLayer(layer, beforeId)` does. A
+ * `beforeId` the basemap does not draw throws, where MapLibre would drop the layer with an error.
+ */
+function withElevation(
+  style: StyleSpecification,
+  additions: ElevationAdditions,
+): StyleSpecification {
+  const layers = [...style.layers];
+  for (const { layer, beforeId } of additions.layers) {
+    const at = layers.findIndex((l) => l.id === beforeId);
+    if (at === -1) {
+      throw new Error(
+        `no basemap layer "${beforeId}" to put ${layer.id} under`,
+      );
+    }
+    layers.splice(at, 0, layer);
+  }
+  return {
+    ...style,
+    sources: { ...style.sources, ...additions.sources },
+    layers,
+  };
+}
+
+/** The basemap with elevation added, the way a map ends up holding it once relief arrives. */
+function elevatedStyle(): StyleSpecification {
+  return withElevation(
+    buildTerminalStyle(),
+    buildElevationAdditions(ELEVATION),
+  );
+}
 
 /**
  * The class values OpenFreeMap actually serves, decoded from the real z14 tiles over Vienna
@@ -312,7 +349,9 @@ function brightnessOf(layer: StyleLayer): number {
 }
 
 describe('buildTerminalStyle', () => {
-  const style = buildTerminalStyle(ELEVATION);
+  // Most cases judge the whole map — basemap and terrain together — so a colour or a dash on a
+  // terrain layer is held to the same rules as the rest.
+  const style = elevatedStyle();
 
   it('sources vector tiles from OpenFreeMap and declares no sprite', () => {
     expect(style.sources['openmaptiles']).toEqual({
@@ -435,16 +474,30 @@ describe('buildTerminalStyle', () => {
     expect(label.layout['symbol-placement']).toBe('line');
   });
 
-  it('draws the layers in the order the design sets', () => {
+  it('draws the layers in the order the design sets once elevation is added', () => {
     expect(style.layers.map((l) => l.id)).toEqual(DRAW_ORDER);
   });
 
-  it('keeps every terrain source and layer out of a style built without elevation', () => {
-    const flat = buildTerminalStyle(null);
+  it('builds the flat city, with no terrain source or layer, for the map to open on', () => {
+    const flat = buildTerminalStyle();
     expect(Object.keys(flat.sources)).toEqual(['openmaptiles']);
     expect(flat.layers.map((l) => l.id)).toEqual(
       DRAW_ORDER.filter((id) => !ELEVATION_LAYERS.includes(id)),
     );
+    expect(flat.layers.length).toBe(17);
+  });
+
+  it('slots each terrain layer under the basemap layer the design sets', () => {
+    const additions = buildElevationAdditions(ELEVATION);
+    expect(Object.keys(additions.sources)).toEqual(['dem', 'contours']);
+    expect(
+      additions.layers.map(({ layer, beforeId }) => [layer.id, beforeId]),
+    ).toEqual([
+      ['hillshade', 'landcover'],
+      ['contour-minor', 'rail'],
+      ['contour-major', 'rail'],
+      ['contour-label', 'water-label'],
+    ]);
   });
 
   it('reads the DEM and contour tiles from the elevation it is handed', () => {
@@ -558,7 +611,7 @@ describe('buildTerminalStyle', () => {
 });
 
 describe('buildTerminalStyle road hierarchy', () => {
-  const style = buildTerminalStyle(null);
+  const style = buildTerminalStyle();
   const transportLayers = style.layers.filter(
     (l) =>
       (l as StyleLayer).type === 'line' &&
@@ -859,9 +912,9 @@ describe('buildTerminalStyle road hierarchy', () => {
 
   it('stays inside the small-style budget the spec sets', () => {
     // Raised from 16 when elevation arrived: hillshade, two contour weights and contour labels,
-    // with plazas, the shoreline and water labels, bring the full style to 21 of these 24. The
-    // spot layers are added at runtime and are not counted here.
-    expect(buildTerminalStyle(ELEVATION).layers.length).toBeLessThanOrEqual(24);
+    // with plazas, the shoreline and water labels, bring the basemap to 21 of these 24 once the
+    // terrain is added. The spot layers are added at runtime too, and are not counted here.
+    expect(elevatedStyle().layers.length).toBeLessThanOrEqual(24);
   });
 });
 
@@ -869,8 +922,7 @@ describe('buildTerminalStyle sun legibility', () => {
   // Direct sun on a glossy phone screen washes out anything dimmer than about #00b800, so every
   // line that carries meaning has to clear WCAG's non-text 3 : 1 against the black ground and
   // every label the text 4.5 : 1. Area fills, contour lines and relief are decoration, exempt.
-  const layers = buildTerminalStyle(ELEVATION)
-    .layers as unknown as StyleLayer[];
+  const layers = elevatedStyle().layers as unknown as StyleLayer[];
   const paintOf = (id: string): Record<string, unknown> => {
     const layer = layers.find((l) => l.id === id);
     expect(layer).withContext(`${id} exists`).toBeDefined();
