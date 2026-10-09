@@ -6,6 +6,7 @@ import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { SUPPORTED_CITIES } from '../../../models/enums/config';
 import { CityEnum } from '../../../models/enums/map-enum';
 import {
+  ELEVATION_LOADER,
   MAP_FACTORY,
   POPUP_FACTORY,
 } from '../../components/spot-map/map-factory.token';
@@ -14,12 +15,13 @@ import { MapComponent } from './map.component';
 
 /**
  * Vienna — the city this page defaults to — renders through SpotMapComponent, which injects
- * both maplibre factories as soon as it is constructed. These tests never let it call either
- * one, so never-resolving stubs are enough; providing them is also what keeps the ESM-only
- * maplibre-gl out of the karma bundle, the reason neither token carries a default
- * (map-factory.token.ts). The HTTP testing backend below belongs to the same seal: a browser
- * that does report WebGL would let the renderer start loading a city's spots, and these tests
- * are about the page's city selection, not about that request.
+ * both maplibre factories and the elevation loader as soon as it is constructed. These tests
+ * never let it call any of them, so never-resolving stubs are enough; providing them is also
+ * what keeps the ESM-only maplibre-gl and maplibre-contour out of the karma bundle, the reason
+ * none of the three tokens carries a default (map-factory.token.ts). The HTTP testing backend
+ * below belongs to the same seal: a browser that does report WebGL would let the renderer start
+ * loading a city's spots, and these tests are about the page's city selection, not about that
+ * request.
  */
 const neverResolves = () => new Promise<never>(() => {});
 
@@ -36,6 +38,7 @@ describe('MapComponent', () => {
         provideHttpClientTesting(),
         { provide: MAP_FACTORY, useValue: neverResolves },
         { provide: POPUP_FACTORY, useValue: neverResolves },
+        { provide: ELEVATION_LOADER, useValue: neverResolves },
       ],
     }).compileComponents();
 

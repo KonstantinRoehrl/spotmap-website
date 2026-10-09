@@ -15,7 +15,6 @@ import {
   viewChild,
 } from '@angular/core';
 import type {
-  CircleLayerSpecification,
   Map as MapLibreMap,
   MapLayerMouseEvent,
   Popup as MapLibrePopup,
@@ -29,16 +28,14 @@ import {
   SPOT_POPUP_FRAME_CLASS,
   SpotPopupComponent,
 } from '../spot-popup/spot-popup.component';
-import { MAP_FACTORY, POPUP_FACTORY } from './map-factory.token';
-import { TERMINAL_PALETTE } from './map-palette';
+import { startLockOn } from './lock-on-pulse';
 import {
-  buildTerminalStyle,
-  SPOT_BODY_LAYER_ID,
-  SPOT_GLOW_LAYER_ID,
-  SPOT_HIT_LAYER_ID,
-  SPOT_SELECTED_LAYER_ID,
-  SPOT_SOURCE_ID,
-} from './terminal-map-style';
+  ELEVATION_LOADER,
+  MAP_FACTORY,
+  POPUP_FACTORY,
+} from './map-factory.token';
+import { SPOT_HIT_LAYER_ID, SPOT_LAYERS, SPOT_SOURCE_ID } from './spot-layers';
+import { BASEMAP_SOURCE_ID, buildTerminalStyle } from './terminal-map-style';
 
 /** Padding, in pixels, around the fitted spot bounds. */
 const FIT_PADDING_PX = 48;
@@ -81,72 +78,6 @@ function namesAnUnusableSource(
   );
 }
 
-/**
- * The spot pins, drawn in paint order. The hit layer comes first so its 22 px transparent
- * circle is the thumb target while the visible pin stays 6 px.
- */
-const SPOT_LAYERS: CircleLayerSpecification[] = [
-  {
-    id: SPOT_HIT_LAYER_ID,
-    type: 'circle',
-    source: SPOT_SOURCE_ID,
-    paint: {
-      'circle-radius': 22,
-      'circle-color': TERMINAL_PALETTE.bg,
-      'circle-opacity': 0,
-    },
-  },
-  {
-    id: SPOT_GLOW_LAYER_ID,
-    type: 'circle',
-    source: SPOT_SOURCE_ID,
-    paint: {
-      'circle-radius': 14,
-      'circle-blur': 1,
-      'circle-color': TERMINAL_PALETTE.phosphor,
-      'circle-opacity': [
-        'case',
-        ['==', ['get', 'status'], 'demolished'],
-        0.15,
-        0.5,
-      ],
-    },
-  },
-  {
-    id: SPOT_BODY_LAYER_ID,
-    type: 'circle',
-    source: SPOT_SOURCE_ID,
-    paint: {
-      'circle-radius': 6,
-      'circle-color': [
-        'case',
-        ['==', ['get', 'status'], 'demolished'],
-        TERMINAL_PALETTE.phosphorDeep,
-        TERMINAL_PALETTE.phosphor,
-      ],
-      'circle-stroke-width': 1,
-      'circle-stroke-color': TERMINAL_PALETTE.bg,
-    },
-  },
-  {
-    id: SPOT_SELECTED_LAYER_ID,
-    type: 'circle',
-    source: SPOT_SOURCE_ID,
-    paint: {
-      'circle-radius': 11,
-      'circle-color': 'rgba(0,0,0,0)',
-      'circle-stroke-width': 2,
-      'circle-stroke-color': TERMINAL_PALETTE.amber,
-      'circle-stroke-opacity': [
-        'case',
-        ['boolean', ['feature-state', 'selected'], false],
-        1,
-        0,
-      ],
-    },
-  },
-];
-
 /** Draws a city's spots on a MapLibre map. The container owns the loading and failure chrome. */
 @Component({
   selector: 'app-spot-map',
@@ -169,6 +100,7 @@ export class SpotMapComponent {
   private readonly spots = inject(SpotsService);
   private readonly mapFactory = inject(MAP_FACTORY);
   private readonly popupFactory = inject(POPUP_FACTORY);
+  private readonly loadElevation = inject(ELEVATION_LOADER);
   private readonly environment = inject(EnvironmentInjector);
   private readonly applicationRef = inject(ApplicationRef);
 
@@ -184,6 +116,11 @@ export class SpotMapComponent {
   private popup?: MapLibrePopup;
   private popupRef?: ComponentRef<SpotPopupComponent>;
   private selectedId?: string;
+  /**
+   * Stops the selected pin's lock-on pulse and puts its ring to rest; set while a pin is
+   * selected.
+   */
+  private cancelLockOn?: () => void;
 
   /**
    * Bumped by every teardown. A build whose await resolves against a stale generation lost its
@@ -236,11 +173,19 @@ export class SpotMapComponent {
       return;
     }
 
-    const style = buildTerminalStyle(null);
-    // Each of these owes the map its metadata — the TileJSON, for the vector basemap — before
-    // anything can be drawn from it. The ids are read back out of the style this component just
-    // built, so they cannot drift from it.
-    const sourcesAwaitingMetadata = new Set(Object.keys(style.sources));
+    // Elevation is decoration: the loader never rejects, and resolves null — at the latest after
+    // its timeout — when the terrain library or its provider is unavailable, so the map then
+    // draws flat rather than not at all.
+    const elevation = await this.loadElevation();
+    if (generation !== this.generation) {
+      return;
+    }
+
+    const style = buildTerminalStyle(elevation);
+    // The basemap owes the map its metadata — the TileJSON — before anything can be drawn from
+    // it, and it is the one source the map cannot paint without. A DEM or contour source that
+    // never comes up costs the relief, not the map: its error is logged and nothing more.
+    const sourcesAwaitingMetadata = new Set([BASEMAP_SOURCE_ID]);
 
     let map: MapLibreMap;
     try {
@@ -358,6 +303,9 @@ export class SpotMapComponent {
     const id = spot.properties.id;
     map.setFeatureState({ source: SPOT_SOURCE_ID, id }, { selected: true });
     this.selectedId = id;
+    this.cancelLockOn = startLockOn(map, {
+      reducedMotion: prefersReducedMotion(),
+    });
 
     const content = createComponent(SpotPopupComponent, {
       environmentInjector: this.environment,
@@ -410,8 +358,9 @@ export class SpotMapComponent {
   }
 
   /**
-   * Closes the open popup, destroys the component inside it and drops the pin's selected state.
-   * One popup is created per pin tap, so anything left behind here leaks on every tap (QC6).
+   * Closes the open popup, destroys the component inside it, stops the lock-on pulse and drops the
+   * pin's selected state. One popup is created per pin tap, so anything left behind here leaks on
+   * every tap (QC6).
    */
   private clearSelection(): void {
     const popup = this.popup;
@@ -423,6 +372,9 @@ export class SpotMapComponent {
     if (ref && !ref.hostView.destroyed) {
       ref.destroy();
     }
+
+    this.cancelLockOn?.();
+    this.cancelLockOn = undefined;
 
     const id = this.selectedId;
     this.selectedId = undefined;

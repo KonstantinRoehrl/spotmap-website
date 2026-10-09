@@ -22,12 +22,6 @@ export const OPENFREEMAP_TILES = 'https://tiles.openfreemap.org/planet';
 export const OPENFREEMAP_GLYPHS =
   'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf';
 
-export const SPOT_SOURCE_ID = 'spots';
-export const SPOT_HIT_LAYER_ID = 'spots-hit';
-export const SPOT_GLOW_LAYER_ID = 'spots-glow';
-export const SPOT_BODY_LAYER_ID = 'spots-body';
-export const SPOT_SELECTED_LAYER_ID = 'spots-selected';
-
 /**
  * The vector source the OpenFreeMap tiles arrive on; every basemap layer draws from it. It is the
  * one source the map cannot paint without — terrain is decoration — so SpotMapComponent fails the
