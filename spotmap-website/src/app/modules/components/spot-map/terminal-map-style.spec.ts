@@ -1,9 +1,49 @@
-import { TERMINAL_PALETTE } from './map-palette';
+import { MAPTERHORN_DEM, type ElevationTiles } from './elevation';
+import { MAP_PALETTE, TERMINAL_PALETTE } from './map-palette';
 import {
   buildTerminalStyle,
   OPENFREEMAP_GLYPHS,
   OPENFREEMAP_TILES,
 } from './terminal-map-style';
+
+/** Stand-in tile URLs in the shape maplibre-contour hands out. */
+const ELEVATION: ElevationTiles = {
+  demTiles: 'dem-shared://{z}/{x}/{y}',
+  contourTiles: 'dem-contour://{z}/{x}/{y}?thresholds=11*50*100',
+};
+
+/** Every layer id, in draw order, of the style built with elevation (spec §3.2). */
+const DRAW_ORDER = [
+  'background',
+  'hillshade',
+  'landcover',
+  'plaza',
+  'water',
+  'water-line',
+  'building',
+  'building-outline',
+  'contour-minor',
+  'contour-major',
+  'rail',
+  'path',
+  'road-casing',
+  'road-service',
+  'road-local',
+  'road-arterial',
+  'road-major',
+  'contour-label',
+  'water-label',
+  'street-label',
+  'place-label',
+];
+
+/** The layers drawn only when elevation arrives. */
+const ELEVATION_LAYERS = [
+  'hillshade',
+  'contour-minor',
+  'contour-major',
+  'contour-label',
+];
 
 /**
  * The class values OpenFreeMap actually serves, decoded from the real z14 tiles over Vienna
@@ -99,6 +139,7 @@ const SERVED_BRUNNELS: readonly string[] = ['bridge', 'ford', 'tunnel'];
 /** A basemap layer, seen through the handful of fields these tests reason about. */
 interface StyleLayer {
   id: string;
+  type: string;
   minzoom?: number;
   'source-layer'?: string;
   filter?: unknown;
@@ -110,69 +151,99 @@ interface TileFeature {
   class: string;
   subclass?: string;
   brunnel?: string;
+  surface?: string;
+  /** How the tile encodes the feature; ways arrive as lines unless a test says otherwise. */
+  geometry?: 'LineString' | 'Polygon';
 }
 
 /**
- * The values a filter admits and rejects for one property, walking through the `all` and `!`
- * wrappers a two-property filter needs. `['in', ['get', p], ['literal', [...]]]` under a `!`
- * rejects; anywhere else it admits.
+ * Evaluates the slice of MapLibre's expression language these filters use — `all`, `any`, `!`,
+ * `in`, `==`, `!=`, `get`, `literal` and `geometry-type` — against one tile feature, and throws on
+ * anything else, so a filter that grows a new operator cannot pass by being misread. A missing
+ * property reads `null`, as in MapLibre: `in` never finds it and `!=` always holds.
  */
-function filterValues(
-  layer: unknown,
-  property: string,
-): { admits: string[]; rejects: string[] } {
-  const admits: string[] = [];
-  const rejects: string[] = [];
-  const walk = (node: unknown, negated: boolean): void => {
+function evaluate(expression: unknown, feature: TileFeature): unknown {
+  if (!Array.isArray(expression)) return expression;
+  const [operator, ...args] = expression as unknown[];
+  switch (operator) {
+    case 'all':
+      return args.every((arg) => evaluate(arg, feature) === true);
+    case 'any':
+      return args.some((arg) => evaluate(arg, feature) === true);
+    case '!':
+      return evaluate(args[0], feature) !== true;
+    case 'in':
+      return (evaluate(args[1], feature) as unknown[]).includes(
+        evaluate(args[0], feature),
+      );
+    case '==':
+      return evaluate(args[0], feature) === evaluate(args[1], feature);
+    case '!=':
+      return evaluate(args[0], feature) !== evaluate(args[1], feature);
+    case 'get':
+      return feature[args[0] as keyof TileFeature] ?? null;
+    case 'literal':
+      return args[0];
+    case 'geometry-type':
+      return feature.geometry ?? 'LineString';
+    default:
+      throw new Error(
+        `unsupported filter operator: ${JSON.stringify(operator)}`,
+      );
+  }
+}
+
+/** Whether a layer paints this feature. A layer with no filter paints all of them. */
+function draws(layer: StyleLayer, feature: TileFeature): boolean {
+  return layer.filter === undefined || evaluate(layer.filter, feature) === true;
+}
+
+/**
+ * Every value a layer's filter compares one property against — through `in` with a literal list,
+ * or `==` / `!=` with a single value — wherever in the filter it sits.
+ */
+function filterValues(layer: unknown, property: string): string[] {
+  const values: string[] = [];
+  const reads = (node: unknown) =>
+    Array.isArray(node) && node[0] === 'get' && node[1] === property;
+  const walk = (node: unknown): void => {
     if (!Array.isArray(node)) return;
-    const [operator, ...operands] = node as unknown[];
-    if (operator === '!') {
-      for (const operand of operands) walk(operand, !negated);
-      return;
-    }
-    const [target, literal] = operands;
+    const [operator, target, operand] = node as unknown[];
     if (
       operator === 'in' &&
-      Array.isArray(target) &&
-      target[0] === 'get' &&
-      target[1] === property &&
-      Array.isArray(literal) &&
-      literal[0] === 'literal'
+      reads(target) &&
+      Array.isArray(operand) &&
+      operand[0] === 'literal'
     ) {
-      (negated ? rejects : admits).push(...(literal[1] as string[]));
-      return;
+      values.push(...(operand[1] as string[]));
+    } else if (
+      (operator === '==' || operator === '!=') &&
+      reads(target) &&
+      typeof operand === 'string'
+    ) {
+      values.push(operand);
     }
-    for (const operand of operands) walk(operand, negated);
+    for (const child of node) walk(child);
   };
-  walk((layer as StyleLayer).filter, false);
-  return { admits, rejects };
+  walk((layer as StyleLayer).filter);
+  return values;
 }
 
-/** The values an `['in', ['get', 'class'], ['literal', [...]]]` filter matches on. */
-function filteredClasses(layer: unknown): readonly string[] {
-  return filterValues(layer, 'class').admits;
+/** WCAG relative luminance of a hex colour drawn at this opacity over true black. */
+function luminanceOf(hex: string, opacity = 1): number {
+  const [r, g, b] = [1, 3, 5].map((i) => {
+    // Over `#000000`, compositing at an opacity just scales each channel.
+    const channel = (parseInt(hex.slice(i, i + 2), 16) / 255) * opacity;
+    return channel <= 0.04045
+      ? channel / 12.92
+      : ((channel + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
-/**
- * Whether one tile property gets a feature past a layer's filter: a listed value is admitted, a
- * rejected one is dropped, and a filter that lists nothing for the property admits everything.
- */
-function passes(
-  layer: StyleLayer,
-  property: string,
-  value: string | undefined,
-): boolean {
-  const { admits, rejects } = filterValues(layer, property);
-  // A missing property is `null`, which MapLibre's `in` never finds in a literal list.
-  if (admits.length > 0 && !admits.includes(value ?? '')) return false;
-  return value === undefined || !rejects.includes(value);
-}
-
-/** Whether a layer paints this feature. A layer with no class filter paints all of them. */
-function draws(layer: StyleLayer, feature: TileFeature): boolean {
-  return (['class', 'subclass', 'brunnel'] as const).every((property) =>
-    passes(layer, property, feature[property]),
-  );
+/** The WCAG contrast ratio of that colour against the black ground. */
+function contrastOnBlack(hex: string, opacity = 1): number {
+  return (luminanceOf(hex, opacity) + 0.05) / 0.05;
 }
 
 /** One stop of a zoom ramp: a width, or a width chosen per class. */
@@ -241,7 +312,7 @@ function brightnessOf(layer: StyleLayer): number {
 }
 
 describe('buildTerminalStyle', () => {
-  const style = buildTerminalStyle();
+  const style = buildTerminalStyle(ELEVATION);
 
   it('sources vector tiles from OpenFreeMap and declares no sprite', () => {
     expect(style.sources['openmaptiles']).toEqual({
@@ -286,34 +357,35 @@ describe('buildTerminalStyle', () => {
       'transportation',
       'transportation_name',
       'place',
+      'water_name',
     ]) {
       expect(sourceLayers).toContain(expected);
     }
   });
 
-  it('paints parks, woods and grass in surface-raised', () => {
+  it('paints parks, woods and grass in the green-space fill', () => {
     const green = style.layers.find((l) => l.id === 'landcover') as {
       'source-layer'?: string;
       paint: Record<string, unknown>;
     };
     expect(green).toBeDefined();
     expect(green['source-layer']).toBe('landcover');
-    expect(filteredClasses(green)).toEqual(['grass', 'wood']);
-    expect(green.paint['fill-color']).toBe(TERMINAL_PALETTE.surfaceRaised);
+    expect(filterValues(green, 'class')).toEqual(['grass', 'wood']);
+    expect(green.paint['fill-color']).toBe(MAP_PALETTE.greenSpace);
   });
 
   it('filters green space only on classes the tiles actually serve', () => {
     const greenFills = style.layers.filter(
       (l) =>
         (l as { paint?: Record<string, unknown> }).paint?.['fill-color'] ===
-        TERMINAL_PALETTE.surfaceRaised,
+        MAP_PALETTE.greenSpace,
     );
     expect(greenFills.length).toBeGreaterThan(0);
     for (const layer of greenFills) {
       const sourceLayer =
         (layer as { 'source-layer'?: string })['source-layer'] ?? '';
       const served = SERVED_CLASSES[sourceLayer] ?? [];
-      const filtered = filteredClasses(layer);
+      const filtered = filterValues(layer, 'class');
       expect(filtered.length)
         .withContext(`${layer.id} matches every feature in ${sourceLayer}`)
         .toBeGreaterThan(0);
@@ -325,10 +397,10 @@ describe('buildTerminalStyle', () => {
     }
   });
 
-  it('draws green space above water and below the buildings', () => {
+  it('draws green space under the water, and both under the buildings', () => {
     const order = style.layers.map((l) => l.id);
-    expect(order.indexOf('landcover')).toBeGreaterThan(order.indexOf('water'));
-    expect(order.indexOf('landcover')).toBeLessThan(order.indexOf('building'));
+    expect(order.indexOf('landcover')).toBeLessThan(order.indexOf('water'));
+    expect(order.indexOf('water')).toBeLessThan(order.indexOf('building'));
   });
 
   it('labels in an uppercase, letterspaced treatment', () => {
@@ -339,12 +411,158 @@ describe('buildTerminalStyle', () => {
     expect(label.layout['text-letter-spacing']).toBeGreaterThan(0);
     expect(label.layout['text-font']).toEqual(['Noto Sans Regular']);
   });
+
+  it('cuts every basemap label out of the strokes with a black halo', () => {
+    for (const id of ['water-label', 'street-label', 'place-label']) {
+      const label = style.layers.find((l) => l.id === id) as {
+        layout: Record<string, unknown>;
+        paint: Record<string, unknown>;
+      };
+      expect(label).withContext(id).toBeDefined();
+      expect(label.layout['text-transform']).withContext(id).toBe('uppercase');
+      expect(label.layout['text-letter-spacing'])
+        .withContext(id)
+        .toBeGreaterThan(0);
+      expect(label.paint['text-halo-color']).withContext(id).toBe('#000000');
+      expect(label.paint['text-halo-width']).withContext(id).toBe(1.5);
+    }
+  });
+
+  it('runs street names along their street', () => {
+    const label = style.layers.find((l) => l.id === 'street-label') as {
+      layout: Record<string, unknown>;
+    };
+    expect(label.layout['symbol-placement']).toBe('line');
+  });
+
+  it('draws the layers in the order the design sets', () => {
+    expect(style.layers.map((l) => l.id)).toEqual(DRAW_ORDER);
+  });
+
+  it('keeps every terrain source and layer out of a style built without elevation', () => {
+    const flat = buildTerminalStyle(null);
+    expect(Object.keys(flat.sources)).toEqual(['openmaptiles']);
+    expect(flat.layers.map((l) => l.id)).toEqual(
+      DRAW_ORDER.filter((id) => !ELEVATION_LAYERS.includes(id)),
+    );
+  });
+
+  it('reads the DEM and contour tiles from the elevation it is handed', () => {
+    expect(style.sources['dem']).toEqual({
+      type: 'raster-dem',
+      tiles: [ELEVATION.demTiles],
+      tileSize: 512,
+      encoding: 'terrarium',
+      maxzoom: 14,
+      attribution: MAPTERHORN_DEM.attribution,
+    });
+    expect(style.sources['contours']).toEqual({
+      type: 'vector',
+      tiles: [ELEVATION.contourTiles],
+      maxzoom: 15,
+    });
+  });
+
+  it('credits Mapterhorn, BEV and Copernicus wherever terrain is drawn', () => {
+    for (const credit of ['Mapterhorn', 'BEV', 'Copernicus GLO-30']) {
+      expect(MAPTERHORN_DEM.attribution).toContain(credit);
+    }
+  });
+
+  it('fades buildings in by zoom, and their outlines in a zoom later', () => {
+    const fill = style.layers.find(
+      (l) => l.id === 'building',
+    ) as unknown as StyleLayer;
+    const outline = style.layers.find(
+      (l) => l.id === 'building-outline',
+    ) as unknown as StyleLayer;
+    expect(fill.minzoom).toBe(14.5);
+    expect(fill.paint?.['fill-opacity']).toEqual([
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      14.5,
+      0,
+      15.2,
+      1,
+    ]);
+    expect(outline.minzoom).toBe(15.5);
+    expect(outline.paint?.['line-opacity']).toEqual([
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      15.5,
+      0,
+      16.3,
+      1,
+    ]);
+    expect(outline.paint?.['line-width']).toEqual([
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      16,
+      0.5,
+      18,
+      1,
+    ]);
+  });
+
+  it('draws no line dashed or dotted', () => {
+    for (const layer of style.layers as unknown as StyleLayer[]) {
+      expect(layer.paint?.['line-dasharray'])
+        .withContext(`${layer.id} is broken up`)
+        .toBeUndefined();
+    }
+  });
+
+  it('fills squares and piers mapped as areas, and never outlines them', () => {
+    const plaza = style.layers.find(
+      (l) => l.id === 'plaza',
+    ) as unknown as StyleLayer;
+    const areas: [TileFeature, boolean][] = [
+      [{ class: 'path', subclass: 'pedestrian', geometry: 'Polygon' }, true],
+      [{ class: 'path', subclass: 'footway', geometry: 'Polygon' }, true],
+      [{ class: 'pier', geometry: 'Polygon' }, true],
+      [{ class: 'path', subclass: 'pedestrian' }, false],
+      [{ class: 'path', subclass: 'cycleway', geometry: 'Polygon' }, false],
+      [
+        {
+          class: 'path',
+          subclass: 'pedestrian',
+          geometry: 'Polygon',
+          brunnel: 'tunnel',
+        },
+        false,
+      ],
+    ];
+    for (const [feature, filled] of areas) {
+      expect(draws(plaza, feature))
+        .withContext(JSON.stringify(feature))
+        .toBe(filled);
+    }
+    expect(Object.keys(plaza.paint ?? {})).toEqual(['fill-color']);
+  });
+
+  it('paints no colour with all three channels above 200', () => {
+    const hexes = [...JSON.stringify(style).matchAll(/#[0-9a-f]{6}/gi)].map(
+      (match) => match[0],
+    );
+    hexes.push(...Object.values(MAP_PALETTE));
+    for (const hex of hexes) {
+      const channels = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+      expect(channels.every((channel) => channel > 200))
+        .withContext(`${hex} reads as white`)
+        .toBeFalse();
+    }
+  });
 });
 
 describe('buildTerminalStyle road hierarchy', () => {
-  const style = buildTerminalStyle();
+  const style = buildTerminalStyle(null);
   const transportLayers = style.layers.filter(
-    (l) => (l as StyleLayer)['source-layer'] === 'transportation',
+    (l) =>
+      (l as StyleLayer).type === 'line' &&
+      (l as StyleLayer)['source-layer'] === 'transportation',
   ) as unknown as StyleLayer[];
   const CASING_ID = 'road-casing';
 
@@ -396,24 +614,22 @@ describe('buildTerminalStyle road hierarchy', () => {
     expect(transportLayers.length).toBeGreaterThan(0);
     for (const layer of transportLayers) {
       const classes = filterValues(layer, 'class');
-      expect(classes.admits.length)
+      expect(classes.length)
         .withContext(`${layer.id} draws the whole transportation layer`)
         .toBeGreaterThan(0);
-      for (const cls of [...classes.admits, ...classes.rejects]) {
+      for (const cls of classes) {
         expect(SERVED_CLASSES['transportation'])
           .withContext(`${layer.id} filters transportation.class on "${cls}"`)
           .toContain(cls);
       }
-      const subclasses = filterValues(layer, 'subclass');
-      for (const sub of [...subclasses.admits, ...subclasses.rejects]) {
+      for (const sub of filterValues(layer, 'subclass')) {
         expect(SERVED_SUBCLASSES)
           .withContext(
             `${layer.id} filters transportation.subclass on "${sub}"`,
           )
           .toContain(sub);
       }
-      const brunnels = filterValues(layer, 'brunnel');
-      for (const brunnel of [...brunnels.admits, ...brunnels.rejects]) {
+      for (const brunnel of filterValues(layer, 'brunnel')) {
         expect(SERVED_BRUNNELS)
           .withContext(
             `${layer.id} filters transportation.brunnel on "${brunnel}"`,
@@ -472,10 +688,10 @@ describe('buildTerminalStyle road hierarchy', () => {
     }
   });
 
-  it('keeps footways, steps, piers and tram tracks below street weight', () => {
+  it('keeps paths, piers and track thinner than a residential street', () => {
+    // Brightness no longer ranks them: path and rail are brighter than a service road by
+    // design, so that they read as their own thing. Width still keeps them below the streets.
     const quiet: TileFeature[] = [
-      { class: 'path', subclass: 'footway' },
-      { class: 'path', subclass: 'steps' },
       { class: 'path', subclass: 'cycleway' },
       { class: 'path', subclass: 'pedestrian' },
       { class: 'pier' },
@@ -483,30 +699,44 @@ describe('buildTerminalStyle road hierarchy', () => {
       { class: 'transit', subclass: 'tram' },
     ];
     for (const feature of quiet) {
-      expect(drawnWidth(feature, 14))
-        .withContext(
-          `${label(feature)} is thinner than a residential street at z14`,
-        )
-        .toBeLessThan(drawnWidth({ class: 'minor' }, 14));
-      expect(drawnBrightness(feature))
-        .withContext(`${label(feature)} is dimmer than a service road`)
-        .toBeLessThan(drawnBrightness({ class: 'service' }));
+      for (const zoom of [14, 16, 18]) {
+        expect(drawnWidth(feature, zoom))
+          .withContext(
+            `${label(feature)} is thinner than a residential street at z${zoom}`,
+          )
+          .toBeLessThan(drawnWidth({ class: 'minor' }, zoom));
+      }
     }
   });
 
-  it('draws footways, steps and plazas, which are terrain a skater reads', () => {
-    for (const subclass of [
-      'footway',
-      'steps',
-      'cycleway',
-      'pedestrian',
-      'path',
-    ]) {
-      expect(isDrawn({ class: 'path', subclass }))
-        .withContext(`path/${subclass} is on the map`)
+  it('draws paved cycleways, pedestrian streets and piers, and no other path', () => {
+    const rolled: TileFeature[] = [
+      { class: 'path', subclass: 'cycleway' },
+      { class: 'path', subclass: 'pedestrian' },
+      { class: 'pier' },
+      { class: 'path', subclass: 'cycleway', surface: 'paved' },
+    ];
+    for (const feature of rolled) {
+      expect(isDrawn(feature))
+        .withContext(`${label(feature)} is on the map`)
         .toBe(true);
     }
-    expect(isDrawn({ class: 'pier' })).toBe(true);
+    const crowding: TileFeature[] = [
+      { class: 'path', subclass: 'footway' },
+      { class: 'path', subclass: 'steps' },
+      { class: 'path', subclass: 'path' },
+      { class: 'path', subclass: 'bridleway' },
+      { class: 'path', subclass: 'cycleway', surface: 'unpaved' },
+      { class: 'pier', surface: 'unpaved' },
+      { class: 'path', subclass: 'pedestrian', geometry: 'Polygon' },
+    ];
+    for (const feature of crowding) {
+      expect(isDrawn(feature))
+        .withContext(
+          `${label(feature)}${feature.surface ? ` (${feature.surface})` : ''}${feature.geometry ? ` as ${feature.geometry}` : ''} stays off the line layers`,
+        )
+        .toBe(false);
+    }
   });
 
   it('draws the rail a skater sees, at grade and up on the viaduct', () => {
@@ -534,8 +764,9 @@ describe('buildTerminalStyle road hierarchy', () => {
       { class: 'primary', brunnel: 'tunnel' },
       { class: 'minor', brunnel: 'tunnel' },
       { class: 'service', brunnel: 'tunnel' },
-      { class: 'path', subclass: 'footway', brunnel: 'tunnel' },
-      { class: 'path', subclass: 'steps', brunnel: 'tunnel' },
+      { class: 'path', subclass: 'cycleway', brunnel: 'tunnel' },
+      { class: 'path', subclass: 'pedestrian', brunnel: 'tunnel' },
+      { class: 'pier', brunnel: 'tunnel' },
     ];
     for (const feature of underground) {
       expect(isDrawn(feature))
@@ -551,8 +782,8 @@ describe('buildTerminalStyle road hierarchy', () => {
     const inTheOpen: TileFeature[] = [
       { class: 'motorway', brunnel: 'bridge' },
       { class: 'minor', brunnel: 'bridge' },
-      { class: 'path', subclass: 'footway', brunnel: 'bridge' },
-      { class: 'path', subclass: 'path', brunnel: 'ford' },
+      { class: 'path', subclass: 'pedestrian', brunnel: 'bridge' },
+      { class: 'path', subclass: 'cycleway', brunnel: 'ford' },
       { class: 'track', brunnel: 'ford' },
     ];
     for (const feature of inTheOpen) {
@@ -624,15 +855,64 @@ describe('buildTerminalStyle road hierarchy', () => {
         .withContext(`${layer.id} competes with the spot pins`)
         .not.toContain(layer.paint?.['line-color'] as string);
     }
-    for (const quiet of ['path', 'rail']) {
-      const layer = transportLayers.find((l) => l.id === quiet);
-      expect(layer?.paint?.['line-color'])
-        .withContext(`${quiet} is drawn as structure, not as road`)
-        .toBe(TERMINAL_PALETTE.line);
-    }
   });
 
   it('stays inside the small-style budget the spec sets', () => {
-    expect(style.layers.length).toBeLessThanOrEqual(16);
+    // Raised from 16 when elevation arrived: hillshade, two contour weights and contour labels,
+    // with plazas, the shoreline and water labels, bring the full style to 21 of these 24. The
+    // spot layers are added at runtime and are not counted here.
+    expect(buildTerminalStyle(ELEVATION).layers.length).toBeLessThanOrEqual(24);
+  });
+});
+
+describe('buildTerminalStyle sun legibility', () => {
+  // Direct sun on a glossy phone screen washes out anything dimmer than about #00b800, so every
+  // line that carries meaning has to clear WCAG's non-text 3 : 1 against the black ground and
+  // every label the text 4.5 : 1. Area fills, contour lines and relief are decoration, exempt.
+  const layers = buildTerminalStyle(ELEVATION)
+    .layers as unknown as StyleLayer[];
+  const paintOf = (id: string): Record<string, unknown> => {
+    const layer = layers.find((l) => l.id === id);
+    expect(layer).withContext(`${id} exists`).toBeDefined();
+    return layer?.paint ?? {};
+  };
+
+  it('draws every road, path, rail and shoreline at 3 : 1 or better', () => {
+    for (const id of [
+      'road-major',
+      'road-arterial',
+      'road-local',
+      'road-service',
+      'path',
+      'rail',
+      'water-line',
+    ]) {
+      const paint = paintOf(id);
+      const opacity = (paint['line-opacity'] as number | undefined) ?? 1;
+      expect(contrastOnBlack(paint['line-color'] as string, opacity))
+        .withContext(id)
+        .toBeGreaterThanOrEqual(3);
+    }
+  });
+
+  it('sets every label at 4.5 : 1 or better', () => {
+    for (const id of [
+      'street-label',
+      'place-label',
+      'water-label',
+      'contour-label',
+    ]) {
+      expect(contrastOnBlack(paintOf(id)['text-color'] as string))
+        .withContext(id)
+        .toBeGreaterThanOrEqual(4.5);
+    }
+  });
+
+  it('paints every pin colour at 3 : 1 or better', () => {
+    for (const role of ['pinActive', 'pinDemolished', 'selection'] as const) {
+      expect(contrastOnBlack(MAP_PALETTE[role]))
+        .withContext(role)
+        .toBeGreaterThanOrEqual(3);
+    }
   });
 });

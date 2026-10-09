@@ -236,7 +236,7 @@ export class SpotMapComponent {
       return;
     }
 
-    const style = buildTerminalStyle();
+    const style = buildTerminalStyle(null);
     // Each of these owes the map its metadata — the TileJSON, for the vector basemap — before
     // anything can be drawn from it. The ids are read back out of the style this component just
     // built, so they cannot drift from it.
