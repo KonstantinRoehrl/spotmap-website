@@ -1,12 +1,14 @@
 import { MAP_PALETTE } from './map-palette';
 import {
+  LOCK_ON_AT_REST_FILTER,
   SELECTED_RING_RADIUS,
   SPOT_LAYERS,
   SPOT_SOURCE_ID,
 } from './spot-layers';
 
-/** A spot as the pin layers see it: its status, and whether it is the selected one. */
+/** A spot as the pin layers see it: its id, its status, and whether it is the selected one. */
 interface Pin {
+  id: string;
   status: 'active' | 'unclassified' | 'demolished';
   selected: boolean;
 }
@@ -31,8 +33,10 @@ function evaluate(expression: unknown, pin: Pin): unknown {
       return evaluate(args[0], pin) !== evaluate(args[1], pin);
     case '!':
       return evaluate(args[0], pin) !== true;
-    case 'get':
-      return args[0] === 'status' ? pin.status : null;
+    case 'get': {
+      const key = args[0];
+      return key === 'status' || key === 'id' ? pin[key] : null;
+    }
     case 'feature-state':
       return args[0] === 'selected' ? pin.selected : null;
     case 'boolean': {
@@ -62,9 +66,9 @@ function drawsPin(id: string, pin: Pin): boolean {
   return filter === undefined || evaluate(filter, pin) === true;
 }
 
-const active: Pin = { status: 'active', selected: false };
-const unclassified: Pin = { status: 'unclassified', selected: false };
-const demolished: Pin = { status: 'demolished', selected: false };
+const active: Pin = { id: 'a', status: 'active', selected: false };
+const unclassified: Pin = { id: 'u', status: 'unclassified', selected: false };
+const demolished: Pin = { id: 'd', status: 'demolished', selected: false };
 const selected = (pin: Pin): Pin => ({ ...pin, selected: true });
 
 describe('SPOT_LAYERS', () => {
@@ -93,21 +97,43 @@ describe('SPOT_LAYERS', () => {
       .withContext('an unclassified dot is smaller than an active one')
       .toBeLessThan(paintFor('spots-body', 'circle-radius', active) as number);
     expect(paintFor('spots-body', 'circle-opacity', active)).toBe(1);
-    expect(paintFor('spots-body', 'circle-opacity', demolished))
-      .withContext('a demolished spot is a hollow ring')
-      .toBe(0);
+    expect(paintFor('spots-body', 'circle-color', active)).toBe(
+      MAP_PALETTE.pinActive,
+    );
     expect(paintFor('spots-body', 'circle-stroke-color', demolished)).toBe(
       MAP_PALETTE.pinDemolished,
     );
     expect(paintFor('spots-body', 'circle-stroke-width', demolished)).toBe(2);
     expect(drawsPin('spots-demolished-mark', demolished)).toBe(true);
     expect(drawsPin('spots-demolished-mark', active)).toBe(false);
+    for (const pin of [active, unclassified, selected(active)]) {
+      expect(drawsPin('spots-glow', pin)).withContext(pin.status).toBe(true);
+    }
     expect(drawsPin('spots-glow', demolished))
       .withContext('a demolished spot gets no bloom')
       .toBe(false);
+    expect(layer('spots-glow').filter as unknown)
+      .withContext('the glow reuses the one demolished test')
+      .toEqual(['!', ['==', ['get', 'status'], 'demolished']]);
     expect(paintFor('spots-glow', 'circle-opacity', unclassified))
       .withContext('an unclassified spot glows weaker than an active one')
       .toBeLessThan(paintFor('spots-glow', 'circle-opacity', active) as number);
+  });
+
+  it('cuts a demolished pin out of the roads with black, as the basemap labels are', () => {
+    expect(paintFor('spots-body', 'circle-opacity', demolished))
+      .withContext('the hollow ring is filled, so the road under it is masked')
+      .toBe(1);
+    expect(paintFor('spots-body', 'circle-color', demolished))
+      .withContext('filled with the ground, so it still reads as hollow')
+      .toBe(MAP_PALETTE.ground);
+    const mark = layer('spots-demolished-mark').paint as Record<
+      string,
+      unknown
+    >;
+    expect(mark['text-color']).toBe(MAP_PALETTE.pinDemolished);
+    expect(mark['text-halo-color']).toBe(MAP_PALETTE.ground);
+    expect(mark['text-halo-width']).toBe(1.5);
   });
 
   it('grows the selected pin a step', () => {
@@ -166,5 +192,13 @@ describe('SPOT_LAYERS', () => {
       duration: 0,
       delay: 0,
     });
+    for (const pin of [active, demolished, selected(active)]) {
+      expect(drawsPin('spots-lock-on', pin))
+        .withContext(`the resting ring draws no ${pin.status} pin`)
+        .toBe(false);
+    }
+    expect(layer('spots-lock-on').filter as unknown).toBe(
+      LOCK_ON_AT_REST_FILTER,
+    );
   });
 });

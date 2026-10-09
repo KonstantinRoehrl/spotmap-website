@@ -12,6 +12,7 @@ import {
   MAP_FACTORY,
   POPUP_FACTORY,
 } from './map-factory.token';
+import { LOCK_ON_AT_REST_FILTER } from './spot-layers';
 import { SpotMapComponent } from './spot-map.component';
 import { BASEMAP_SOURCE_ID } from './terminal-map-style';
 
@@ -191,6 +192,23 @@ class FakeMap {
       .find(
         (call) => call.layer === 'spots-lock-on' && call.property === property,
       )?.value;
+  }
+  /** Every layer filter the component set on the live map, in order. */
+  readonly filterCalls: { layer: string; filter: unknown }[] = [];
+  /** Every layer filter set after `remove()`, kept apart for the same reason as paint calls. */
+  readonly filterCallsAfterRemoval: { layer: string; filter: unknown }[] = [];
+  setFilter(layer: string, filter: unknown) {
+    (this.removed ? this.filterCallsAfterRemoval : this.filterCalls).push({
+      layer,
+      filter,
+    });
+    return this;
+  }
+  /** The last filter the component set on the lock-on ring. */
+  lastLockOnFilter(): unknown {
+    return [...this.filterCalls]
+      .reverse()
+      .find((call) => call.layer === 'spots-lock-on')?.filter;
   }
 
   /**
@@ -406,13 +424,11 @@ function holdAnimationFrames() {
   return spyOn(window, 'cancelAnimationFrame');
 }
 
-/** The lock-on's resting stroke opacity: nothing, on every pin. */
-const LOCK_ON_AT_REST = [
-  'case',
-  ['boolean', ['feature-state', 'selected'], false],
-  0,
-  0,
-];
+/** The lock-on's resting stroke opacity: nothing. */
+const LOCK_ON_AT_REST = 0;
+
+/** The lock-on filter that picks out the one spot with this id. */
+const onlySpot = (id: string) => ['==', ['get', 'id'], id];
 
 /** The shape MapLibre hands a layer click handler, trimmed to what the component reads. */
 function tapOn(id: string) {
@@ -1001,15 +1017,13 @@ describe('SpotMapComponent', () => {
     await create();
     fake.emit('load');
     await tap('a');
+    expect(fake.lastLockOnFilter())
+      .withContext('the ring is on the tapped pin alone')
+      .toEqual(onlySpot('a'));
     expect(fake.lastLockOnPaint('circle-radius'))
       .withContext('the ring starts wide of the pin')
       .toBe(34);
-    expect(fake.lastLockOnPaint('circle-stroke-opacity')).toEqual([
-      'case',
-      ['boolean', ['feature-state', 'selected'], false],
-      1,
-      0,
-    ]);
+    expect(fake.lastLockOnPaint('circle-stroke-opacity')).toBe(1);
   });
 
   it('starts a fresh lock-on when the selection moves to another pin', async () => {
@@ -1030,6 +1044,9 @@ describe('SpotMapComponent', () => {
       .withContext('the first pulse was put to rest before the second began')
       .toContain(LOCK_ON_AT_REST);
     expect(fake.lastLockOnPaint('circle-radius')).toBe(34);
+    expect(fake.lastLockOnFilter())
+      .withContext('the ring moved to the newly tapped pin')
+      .toEqual(onlySpot('b'));
   });
 
   it('stops the lock-on when the popup closes', async () => {
@@ -1044,6 +1061,9 @@ describe('SpotMapComponent', () => {
     expect(fake.lastLockOnPaint('circle-stroke-opacity')).toEqual(
       LOCK_ON_AT_REST,
     );
+    expect(fake.lastLockOnFilter())
+      .withContext('the resting ring matches no pin')
+      .toBe(LOCK_ON_AT_REST_FILTER);
   });
 
   it('stops the lock-on before the map is torn down', async () => {
@@ -1057,9 +1077,13 @@ describe('SpotMapComponent', () => {
     expect(fake.paintCallsAfterRemoval)
       .withContext('the ring was put to rest on a map already removed')
       .toEqual([]);
+    expect(fake.filterCallsAfterRemoval)
+      .withContext('the ring was unfiltered on a map already removed')
+      .toEqual([]);
     expect(fake.lastLockOnPaint('circle-stroke-opacity')).toEqual(
       LOCK_ON_AT_REST,
     );
+    expect(fake.lastLockOnFilter()).toBe(LOCK_ON_AT_REST_FILTER);
     expect(fake.removed).toBe(true);
   });
 
@@ -1075,6 +1099,7 @@ describe('SpotMapComponent', () => {
     expect(
       fake.paintCalls.filter((call) => call.layer === 'spots-lock-on'),
     ).toEqual([]);
+    expect(fake.filterCalls).toEqual([]);
     expect(fake.featureStates['a']?.['selected']).toBe(true);
   });
 });

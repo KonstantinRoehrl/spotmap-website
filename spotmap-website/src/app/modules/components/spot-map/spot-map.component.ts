@@ -303,7 +303,7 @@ export class SpotMapComponent {
     const id = spot.properties.id;
     map.setFeatureState({ source: SPOT_SOURCE_ID, id }, { selected: true });
     this.selectedId = id;
-    this.cancelLockOn = startLockOn(map, {
+    this.cancelLockOn = startLockOn(map, id, {
       reducedMotion: prefersReducedMotion(),
     });
 
