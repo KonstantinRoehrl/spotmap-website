@@ -159,10 +159,13 @@ export class SpotMapComponent {
       return;
     }
 
-    // Elevation is decoration, so nothing waits on it: the loader runs alongside the spot fetch
-    // and the map's own chunk, and the terrain is added after `load`. A missing terrain library
-    // resolves `null` — the loader never rejects — and leaves the map flat.
-    const elevation = this.loadElevation();
+    // Elevation is decoration, so nothing waits on it. This call only warms the loader: it starts
+    // the terrain library imports alongside the spot fetch and the map's own chunk, and its result
+    // is ignored. The result that counts comes from a second call after `load`, so the loader's
+    // timeout bounds how long after `load` relief may still be added rather than how long after
+    // the build began — a phone whose map paints late would otherwise lose relief the library
+    // already had ready. The loader memoises its setup, so that second call reuses these imports.
+    void this.loadElevation();
 
     let collection: SpotCollection;
     try {
@@ -267,7 +270,9 @@ export class SpotMapComponent {
       this.ready.emit();
       // Only now: `load` waits on every visible source's tiles, so terrain in the opening style
       // would hold the pins back behind the slowest DEM tile.
-      void this.addElevation(map, elevation, generation);
+      // A missing terrain library resolves `null` — the loader never rejects — and leaves the map
+      // flat.
+      void this.addElevation(map, this.loadElevation(), generation);
     });
 
     map.on('click', SPOT_HIT_LAYER_ID, (event: MapLayerMouseEvent) => {
@@ -427,9 +432,9 @@ export class SpotMapComponent {
   }
 
   /**
-   * Adds the relief and contours to a map that has already painted, once the terrain loader
-   * resolves; a `null` result leaves the map flat. Terrain is decoration, so a failure to add it is
-   * logged and never fails the map.
+   * Adds the relief and contours to a map that has already painted, once `pending` — a terrain
+   * loader call made after `load` — resolves; a `null` result leaves the map flat. Terrain is
+   * decoration, so a failure to add it is logged and never fails the map.
    */
   private async addElevation(
     map: MapLibreMap,

@@ -1049,6 +1049,25 @@ describe('SpotMapComponent', () => {
     expect(fake.terrainLayers()).toEqual(ELEVATION_LAYERS);
   });
 
+  it('gives the terrain a fresh time box from the map load, not from the build start', async () => {
+    // The early call only warms the loader; on a slow phone its time box has run out by the time
+    // `load` arrives, so the relief rides on a second call made after `load`.
+    const calls: string[] = [];
+    loadElevation = () => {
+      calls.push(calls.length === 0 ? 'early' : 'after load');
+      return Promise.resolve(calls.length === 1 ? null : ELEVATION_TILES);
+    };
+    await create();
+    expect(calls)
+      .withContext('only the warm-up before load')
+      .toEqual(['early']);
+    fake.emit('load');
+    await fixture.whenStable();
+    expect(calls).toEqual(['early', 'after load']);
+    expect(Object.keys(fake.sources)).toEqual(['spots', 'dem', 'contours']);
+    expect(fake.terrainLayers()).toEqual(ELEVATION_LAYERS);
+  });
+
   it('stays flat when the terrain loader resolves to nothing', async () => {
     const resolveElevation = holdElevation();
     await create();

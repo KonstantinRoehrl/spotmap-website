@@ -49,9 +49,11 @@ export function startLockOn(
     }
   };
   // A filter or a feature-state expression is data-driven, so changing either makes MapLibre
-  // re-lay-out every spot tile in its worker; it is set once per selection, never per frame.
+  // re-lay-out every spot tile in its worker; the filter is set at the start and again at rest,
+  // never per frame.
   map.setFilter(SPOT_LOCK_ON_LAYER_ID, ['==', ['get', 'id'], spotId]);
-  // Painted now rather than a frame from now, so the ring is out the instant the pin is tapped.
+  // Painted now rather than a frame from now. The filtered layer still needs one worker round
+  // trip before it draws, so the first frame or two can land on an empty layer.
   paintLockOn(map, 0);
   frame = requestAnimationFrame(step);
   return () => {
