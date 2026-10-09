@@ -13,6 +13,25 @@ colors:
   surface-raised: "#0d160d"
   line: "#0f3d17"
   danger: "#ff2e2e"
+  map-water: "#101a58"
+  map-water-line: "#5a8cff"
+  map-water-label: "#7aa2ff"
+  map-green-space: "#0b2a14"
+  map-plaza: "#1e2410"
+  map-building: "#0e1512"
+  map-building-line: "#3f6a50"
+  map-relief-highlight: "#0d2c44"
+  map-contour-minor: "#24402f"
+  map-contour-major: "#4f7f62"
+  map-contour-label: "#7fae92"
+  map-road-major: "#d8ff4d"
+  map-road-arterial: "#b0e63c"
+  map-road-local: "#7fbf34"
+  map-road-service: "#557f2a"
+  map-path: "#6ee7c8"
+  map-rail: "#8aa8a0"
+  map-street-label: "#c8f060"
+  map-place-label: "#e8ffb8"
 typography:
   display:
     fontFamily: "'IBM Plex Mono', 'Courier New', monospace"
@@ -80,7 +99,7 @@ This is a green-phosphor CRT terminal that happens to be a skate-spot archive. E
 
 The system is disciplined to two phosphors. **Green** is the voice of the archive — every spot name, city, label, and body line. **Amber** is the rare second channel, reserved for the moments the culture is being earnest: respect-the-locals and safety notices, and the one thing you've currently selected. That restraint is the point; if amber shows up everywhere it stops meaning "pay attention." It explicitly rejects the things PRODUCT.md names: corporate/Google-Maps neutrality, Strava/Instagram social polish, cutesy gamification, and — most importantly — the "modern dark-mode SaaS" look. Dark is not the same as this. The difference is retro-computing *intent*: sharp corners, monospace everything, scanline-and-glitch motion, a true-black ground, and zero rounded friendly gradients.
 
-Vienna's map is drawn by the site itself, in the same two phosphors as everything around it — the basemap is ours, not someone else's map recoloured from the outside. The cities still waiting on the migration show the embedded Google My Maps instead; treat that embed as the temporary anachronism the terminal wraps around — framed in a glowing green border, sitting on a dark surface, never allowed to flash raw white.
+Vienna's map is drawn by the site itself — the basemap is ours, not someone else's map recoloured from the outside — in the **Map Palette** (§2): radar-phosphor roads and labels and CRT blue-violet water, the one place a hue beyond the two phosphors is allowed, because a city map needs more distinct voices than two. The cities still waiting on the migration show the embedded Google My Maps instead; treat that embed as the temporary anachronism the terminal wraps around — framed in a glowing green border, sitting on a dark surface, never allowed to flash raw white.
 
 **Key Characteristics:**
 - **True-black ground, phosphor-green ink**, amber as the rare second phosphor.
@@ -91,7 +110,7 @@ Vienna's map is drawn by the site itself, in the same two phosphors as everythin
 
 ## 2. Colors
 
-A single-hue phosphor system: one saturated green carries ~95% of every screen against true black, with a period-accurate CRT amber as the only second voice. Canonical values are authored in **OKLCH** in the CSS layer; the frontmatter carries sRGB hex for tooling compatibility.
+A single-hue phosphor system for the UI chrome: one saturated green carries ~95% of every screen's chrome against true black, with a period-accurate CRT amber as the only second voice. The Vienna basemap is the one documented exception — see the Map Palette below. Canonical values are authored in **OKLCH** in the CSS layer; the frontmatter carries sRGB hex for tooling compatibility.
 
 ### Primary
 - **Phosphor Green** (`#00ff00` / `oklch(86.6% 0.2948 142.5)`): The archive's voice. All primary text, spot/city names, nav labels, borders-at-strength, and the glow itself. On true black this clears AA for body and large text comfortably.
@@ -112,12 +131,31 @@ A single-hue phosphor system: one saturated green carries ~95% of every screen a
 - **Surface Raised** (`#0d160d`): Active-tab and hover fills — the next step up, still nearly black.
 - **Line** (`#0f3d17`): Green-tinted hairline dividers and separators.
 
+### Map Palette (Vienna basemap only)
+A city map needs more voices than two phosphors can give: road classes, water, green space, relief and pins each have to read as their own thing at a glance on a phone in sunlight. So the map, and only the map, draws on two period sources — the **P7 radar phosphor**'s yellow-green afterglow for roads and labels, and the **IBM 3279** colour terminal's blue-violet for water. Direct sun on a glossy screen washes out anything dimmer than about `#00b800`, so the dim fills, contours and relief are decoration; meaning lives in line brightness, width, labels and pin shape. Every line that carries meaning clears 3 : 1 against black and every label 4.5 : 1, and every line is solid — width carries rank, never a dash. `terminal-map-style.spec.ts` asserts all three; `MAP_PALETTE` in `map-palette.ts` is the code mirror.
+
+| Role | Hex | Role | Hex |
+| --- | --- | --- | --- |
+| Water fill | `#101a58` | Motorway / trunk | `#d8ff4d` |
+| Water shoreline | `#5a8cff` | Primary / secondary | `#b0e63c` |
+| Water label | `#7aa2ff` | Tertiary / minor | `#7fbf34` |
+| Green space | `#0b2a14` | Service / track / busway | `#557f2a` |
+| Plaza / pier area | `#1e2410` | Path (cycleway, pedestrian street, pier) | `#6ee7c8` |
+| Building fill | `#0e1512` | Rail / tram / U-Bahn (at 0.8) | `#8aa8a0` |
+| Building outline | `#3f6a50` | Street label | `#c8f060` |
+| Relief highlight | `#0d2c44` | Place label | `#e8ffb8` |
+| Contour minor | `#24402f` | Ground, road casing, relief shadow | `bg` |
+| Contour major | `#4f7f62` | Pins | `phosphor`, `phosphor-dim` |
+| Contour label | `#7fae92` | Selection | `amber` |
+
 ### Named Rules
-**The Two-Phosphor Rule.** Only green and amber are voices. Green is the default; amber is earnest/selected. Everything else (surfaces, lines) is a near-black tint of green. Any third decorative color is forbidden.
+**The Two-Phosphor Rule.** In the UI chrome only green and amber are voices. Green is the default; amber is earnest/selected. Everything else (surfaces, lines) is a near-black tint of green, and any third decorative color is forbidden. The Vienna basemap's **Map Palette** is the single documented exception; on the map, amber remains the selection channel alone and the pins keep phosphor green.
 
 **The No-White Rule.** `#ffffff` (and near-white grays) are banned on every surface, the basemap included now that the site draws it. White is the failure signature: nothing on screen is white, every empty/loading/error state falls back to `surface`, and the map chrome that arrives white (MapLibre's popup box, its tip, the attribution control) is repainted in the palette rather than left as shipped.
 
 *Ruled 2026-09-13, so a sweep does not re-raise it:* `--color-phosphor-bright` (`#b6ffb6`) is the lightest colour the site paints — it tops the phosphor ramp and lights the gallery arrow on hover and focus. It is a pale mint at full green saturation, not a near-white gray, and the rule does not reach it. An on-device sweep of every visible element plus every pixel of the map's drawing buffer found nothing else above it, and no pixel with all three channels above 200.
+
+*Ruled 2026-10-09 for the Map Palette:* the lightest colours the site now paints are the map's place labels (`#e8ffb8`) and motorways (`#d8ff4d`), both above `#b6ffb6`. Neither has all three channels above 200, and no Map Palette colour does, so the rule holds; `terminal-map-style.spec.ts` asserts it for every colour in the style.
 
 **The Rarity Rule.** Amber covers ≤10% of any screen. If a screen has amber in more than one role at once, cut it back to the single most-earnest one.
 
@@ -186,15 +224,16 @@ This system has **no conventional shadows.** Depth is carried entirely by **phos
 ### Map Surface (signature — Vienna)
 The site's own map, drawn from OpenFreeMap vector tiles in the palette above. Everything here is the terminal system, not a theme layered over a street map.
 
-- **Basemap:** a phosphor wireframe of the city. True-black ground; water in `surface`; parks/grass/wood in `surface-raised`; buildings filled black with `line` hairline outlines that thicken with zoom. Roads are the only bright geometry, and they run four tiers by class — motorway and trunk brightest in phosphor-dim, primary and secondary the same green held back, tertiary and minor in phosphor-deep, service, track and busway dimmest — each scaled by zoom so the grid reads at city level and at street level. The ways a skater uses but does not drive — footways, steps, cycleways, plazas and piers — are drawn in the structural `line` token as dashed hairlines, and tram, rail and U-Bahn track gets the same token dotted, so they are there to navigate by without reading as streets. What decides whether a way is drawn at all is whether it can be seen from the street: everything in a tunnel drops out, road and rail alike, and what runs in the open stays — the U-Bahn on a viaduct is a landmark, and so is the same line at grade. Station platforms and indoor corridors are transit furniture and stay off.
-- **Basemap labels:** street names in phosphor-dim, place names in phosphor, both UPPERCASE with `0.12em` tracking and a black halo so they stay legible over road strokes.
-- **Pins:** three stacked circles per spot — a 6px body, a blurred 14px phosphor bloom behind it (glow is depth, here too), and an invisible 22px hit circle so the thumb target is thumb-sized while the dot stays small. A standing spot (`active`, and the still-`unclassified` ones) is phosphor green at full bloom; a `demolished` spot drops to phosphor-deep with the bloom at 0.15 — present but receding, the archive's "this one is gone" state.
-- **Selected pin:** a 2px **amber** ring around the tapped pin, one at a time. This is amber's only role on the map (the care/selection channel), and it clears when the popup closes.
+- **Basemap:** a radar-phosphor street map of the city in the Map Palette. True-black ground; water in 3279 blue-violet with a brighter shoreline; parks, grass and wood a dark green; pedestrian squares and piers mapped as areas a subtle olive fill with no outline. Buildings fade in from z14.5 as a mid-tone block and take a green outline from z15.5. Roads climb four tiers by class up the afterglow ladder — motorway and trunk brightest and widest, then primary and secondary, tertiary and minor, and service, track and busway dimmest and thinnest from z13 — each scaled by zoom, and the two widest tiers run on a black casing so parallel carriageways stay two lines. Cycleways, pedestrian streets and piers — the ways a skater rolls on but does not drive — are drawn in a cool teal, paved ones only; footways, steps and trails stay off, since they crowded Karlsplatz and a trail is no ground to skate. Tram, rail and U-Bahn track is a muted grey-green at 0.8. Every line is solid: width carries rank, never a dash. What decides whether a way is drawn at all is whether it can be seen from the street: everything in a tunnel drops out, road and rail alike, and what runs in the open stays — the U-Bahn on a viaduct is a landmark, and so is the same line at grade. Station platforms and indoor corridors are transit furniture and stay off.
+- **Basemap labels:** street names in pale radar-phosphor along the street, place names in the palest afterglow in Noto Sans Bold, water names in blue italic — all UPPERCASE and letterspaced (street `0.12em`, place `0.14em`, water `0.2em`) over a 1.5px black halo so they stay legible over the strokes beneath.
+- **Elevation:** a faint blue hillshade on the sunward slopes and medium-density contour lines — 50/100 m from z11, 25/100 m from z13, 10/50 m from z15 — with the major contours labelled `<height> M` from z13. The terrain is Mapterhorn's keyless DEM (BEV 1 m over Vienna) and it is decoration: if the provider is unreachable or slow, the map draws flat after at most 4 s rather than not at all.
+- **Pins:** status reads by shape, so it survives colour-blindness. An `active` spot is a filled 6px phosphor dot with a blurred 14px bloom behind it (glow is depth, here too); an `unclassified` one a smaller 4.5px dot with a weaker bloom; a `demolished` one a hollow phosphor-dim ring with a ×, and no bloom — present but receding, the archive's "this one is gone" state. An invisible 22px hit circle keeps the thumb target thumb-sized while the dot stays small.
+- **Selected pin:** the tapped pin grows a step, a black gap cuts it out, and a thick 3px **amber** ring sits over the bloom's outer edge. It reads by contrast, not hue — phosphor and amber collapse to the same ochre under deuteranopia, while black against amber holds about 11.5 : 1 under every colour-vision deficiency. Selecting a pin fires a one-shot 450ms lock-on: an amber ring closes in from 34px and fades out onto the ring (skipped under `prefers-reduced-motion`). One pin at a time; this is amber's only role on the map (the care/selection channel), and it clears when the popup closes.
 - **Popup:** MapLibre's own box, repainted — `surface` fill, `line` 1px border, 2px radius, the frame glow halo, and the anchor tip recoloured on every side. Max width 320px; the close button is a 44px phosphor-dim glyph that brightens to phosphor. Inside, in order: the photo gallery (only when the spot has photos), the spot name as an UPPERCASE phosphor label, `> DEMOLISHED` in phosphor-dim for a lost spot, and a `> DIRECTIONS` link. The status line carries no bloom — the text form of the ghosted pin — which also keeps amber to the selection ring alone.
 - **Directions:** a Google Maps URL (`maps/dir/?api=1&destination=<lat>,<lng>`) opened in a new browsing context (`target="_blank"`, `rel="noopener noreferrer"`). Where the Google Maps app claims the link it takes the coordinates and the phone switches apps; everywhere else — every desktop browser, an iPhone whose maps app is Apple Maps, an Android without Google Maps — the new tab lands on Google's maps site with the route ready. Either way the archive tab is left standing: the map, the selected pin and the open popup are still there to come back to, and the archive itself is never replaced by a hosted map. It is kept as the destination because it is the only single URL that reaches a native maps app on both phone platforms and degrades to a usable route rather than to nothing — a `geo:` URI is app-neutral and Android honours it, but iOS registers no handler, so it is a dead tap in Safari, and `maps.apple.com` deep-links on Apple's platforms alone.
 - **Photo gallery:** a 4:3 `surface` panel with a `line` border. With more than one photo it gains `‹` / `›` phosphor nav buttons (44px, translucent `surface` fill, phosphor-deep border) and a phosphor-dim `[n/N]` counter bottom-right; a horizontal swipe does the same thing on touch.
 - **Gestures:** pan and zoom only — rotation and pitch are off, so the grid never tilts off true north. `touch-action: none` is scoped to the map canvas alone, so every touch on the map belongs to the map while the rest of the page keeps native pinch-zoom.
-- **Attribution:** the OSM / OpenMapTiles credit stays on screen — it is a licence condition, so it is restyled, never hidden: compact, phosphor-dim mono on `surface`, with MapLibre's info glyph refilled in phosphor-dim.
+- **Attribution:** the OSM / OpenMapTiles credit stays on screen — it is a licence condition, so it is restyled, never hidden: compact, phosphor-dim mono on `surface`, with MapLibre's info glyph refilled in phosphor-dim. With terrain drawn it also credits © Mapterhorn (linked to its attribution page), DGM © BEV (CC BY 4.0), and Copernicus GLO-30 (© DLR e.V. 2010–2014, © Airbus Defence and Space GmbH 2014–2018, provided under COPERNICUS by the EU and ESA).
 
 ### ASCII Animation (signature)
 - The typewriter/glitch/collapse phosphor headline. Display type, hot-glow on the active char/cursor. Its timing is brand-critical and preserved; it must expose a `prefers-reduced-motion` path (render final text statically, no per-frame glitch).
@@ -213,9 +252,9 @@ The site's own map, drawn from OpenFreeMap vector tiles in the palette above. Ev
 - **Do** frame the map — the site's own or the remaining Google embed — in `surface` + green glow so a blank frame reads black, never white.
 
 ### Don't:
-- **Don't** ship **white** or near-white surfaces anywhere (the No-White Rule) — the map has no carve-out any more: its basemap is phosphor-on-black like every other surface.
+- **Don't** ship **white** or near-white surfaces anywhere (the No-White Rule) — the map has no carve-out: its basemap is drawn on true black like every other surface, and no Map Palette colour reaches white.
 - **Don't** drift into **corporate / Google-Maps polish**, **Strava/Instagram social** cards and gradients, **over-gamified/cutesy** badges, or a **generic dark-mode SaaS template** — all named anti-references in PRODUCT.md. Dark ≠ this; retro-computing intent is the difference.
 - **Don't** use gray/black drop-shadows, frosted glassmorphism, rounded pill shapes, or proportional (non-mono) fonts.
-- **Don't** introduce a third decorative color, or let amber sprawl past the care/selection role.
+- **Don't** introduce a third decorative color into the UI chrome (the Vienna basemap's Map Palette is the one documented exception), or let amber sprawl past the care/selection role.
 - **Don't** use full-color emoji as UI icons — render terminal glyphs in phosphor instead.
 - **Don't** let glow smear text legibility; resting text glow stays ≤6px so it survives sunlight on a phone.
