@@ -31,8 +31,8 @@ const ELEVATION_TILES: ElevationTiles = {
 /** The terrain layers, each with the basemap layer it belongs under (spec §3.2). */
 const ELEVATION_LAYERS = [
   { id: 'hillshade', beforeId: 'landcover' },
-  { id: 'contour-minor', beforeId: 'rail' },
-  { id: 'contour-major', beforeId: 'rail' },
+  { id: 'contour-minor', beforeId: 'plaza' },
+  { id: 'contour-major', beforeId: 'plaza' },
   { id: 'contour-label', beforeId: 'water-label' },
 ];
 

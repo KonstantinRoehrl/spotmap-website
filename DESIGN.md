@@ -23,13 +23,13 @@ colors:
   map-relief-highlight: "#0d2c44"
   map-contour-minor: "#24402f"
   map-contour-major: "#4f7f62"
-  map-contour-label: "#7fae92"
+  map-contour-label: "#8fc4a4"
   map-road-major: "#d8ff4d"
   map-road-arterial: "#b0e63c"
   map-road-local: "#7fbf34"
   map-road-service: "#557f2a"
   map-path: "#6ee7c8"
-  map-rail: "#8aa8a0"
+  map-rail: "#92b0a8"
   map-street-label: "#c8f060"
   map-place-label: "#e8ffb8"
 typography:
@@ -141,12 +141,12 @@ A city map needs more voices than two phosphors can give: road classes, water, g
 | Water label | `#7aa2ff` | Tertiary / minor | `#7fbf34` |
 | Green space | `#0b2a14` | Service / track / busway | `#557f2a` |
 | Plaza / pier area | `#1e2410` | Path (cycleway, pedestrian street, pier) | `#6ee7c8` |
-| Building fill | `#0e1512` | Rail / tram / U-Bahn (at 0.8) | `#8aa8a0` |
+| Building fill | `#0e1512` | Rail / tram / U-Bahn | `#92b0a8` |
 | Building outline | `#3f6a50` | Street label | `#c8f060` |
 | Relief highlight | `#0d2c44` | Place label | `#e8ffb8` |
 | Contour minor | `#24402f` | Ground, road casing, relief shadow | `bg` |
 | Contour major | `#4f7f62` | Pins | `phosphor`, `phosphor-dim` |
-| Contour label | `#7fae92` | Selection | `amber` |
+| Contour label | `#8fc4a4` | Selection | `amber` |
 
 ### Named Rules
 **The Two-Phosphor Rule.** In the UI chrome only green and amber are voices. Green is the default; amber is earnest/selected. Everything else (surfaces, lines) is a near-black tint of green, and any third decorative color is forbidden. The Vienna basemap's **Map Palette** is the single documented exception; on the map, amber remains the selection channel alone and the pins keep phosphor green.
@@ -224,9 +224,9 @@ This system has **no conventional shadows.** Depth is carried entirely by **phos
 ### Map Surface (signature — Vienna)
 The site's own map, drawn from OpenFreeMap vector tiles in the palette above. Everything here is the terminal system, not a theme layered over a street map.
 
-- **Basemap:** a radar-phosphor street map of the city in the Map Palette. True-black ground; water in 3279 blue-violet with a brighter shoreline; parks, grass and wood a dark green; pedestrian squares and piers mapped as areas a subtle olive fill with no outline. Buildings fade in from z14.5 as a mid-tone block and take a green outline from z15.5. Roads climb four tiers by class up the afterglow ladder — motorway and trunk brightest and widest, then primary and secondary, tertiary and minor, and service, track and busway dimmest and thinnest from z13 — each scaled by zoom, and the two widest tiers run on a black casing so parallel carriageways stay two lines. Cycleways, pedestrian streets and piers — the ways a skater rolls on but does not drive — are drawn in a cool teal, paved ones only; footways, steps and trails stay off, since they crowded Karlsplatz and a trail is no ground to skate. Tram, rail and U-Bahn track is a muted grey-green at 0.8. Every line is solid: width carries rank, never a dash. What decides whether a way is drawn at all is whether it can be seen from the street: everything in a tunnel drops out, road and rail alike, and what runs in the open stays — the U-Bahn on a viaduct is a landmark, and so is the same line at grade. Station platforms and indoor corridors are transit furniture and stay off.
+- **Basemap:** a radar-phosphor street map of the city in the Map Palette. True-black ground; water in 3279 blue-violet with a brighter shoreline; parks, grass and wood a dark green; pedestrian squares and piers mapped as areas a subtle olive fill with no outline. Buildings fade in from z14.5 as a mid-tone block and take a green outline from z15.5. Roads climb four tiers by class up the afterglow ladder — motorway and trunk brightest and widest, then primary and secondary, tertiary and minor, and service, track and busway dimmest and thinnest from z13 — each scaled by zoom, and the two widest tiers run on a black casing so parallel carriageways stay two lines. Cycleways, pedestrian streets and piers — the ways a skater rolls on but does not drive — are drawn in a cool teal, paved ones only; footways, steps and trails stay off, since they crowded Karlsplatz and a trail is no ground to skate. Tram, rail and U-Bahn track is a muted grey-green, drawn at full opacity and kept thinner than a service road. Every line is solid: width carries rank, never a dash. What decides whether a way is drawn at all is whether it can be seen from the street: everything in a tunnel drops out, road and rail alike, and what runs in the open stays — the U-Bahn on a viaduct is a landmark, and so is the same line at grade. Station platforms and indoor corridors are transit furniture and stay off.
 - **Basemap labels:** street names in pale radar-phosphor along the street, place names in the palest afterglow in Noto Sans Bold, water names in blue italic — all UPPERCASE and letterspaced (street `0.12em`, place `0.14em`, water `0.2em`) over a 1.5px black halo so they stay legible over the strokes beneath.
-- **Elevation:** a faint blue hillshade on the sunward slopes and medium-density contour lines — 50/100 m from z11, 25/100 m from z13, 10/50 m from z15 — with the major contours labelled `<height> M` from z13. The terrain is Mapterhorn's keyless DEM (BEV 1 m over Vienna) and it is decoration. The map and its pins never wait for relief. Relief is added after `load` once the terrain library is ready and appears as its tiles arrive, so a slow provider just means late relief. If the library fails to load, or is not ready within 4 s of the map painting, that build stays flat. An unreachable provider leaves the map flat and its tile errors are logged to the console.
+- **Elevation:** a faint blue hillshade on the sunward slopes and medium-density contour lines — 50/100 m from z11, 25/100 m from z13, 10/50 m from z15 — with the major contours labelled `<height> M` from z13 to z16. Contours sit under the plazas, water and buildings, so those cover them; the minor lines fade out by z16, the major ones ease back to 0.4 by z17.5, and the labels hide from z16 once the contours they sit on have gone. The terrain is Mapterhorn's keyless DEM (BEV 1 m over Vienna) and it is decoration. The map and its pins never wait for relief. Relief is added after `load` once the terrain library is ready and appears as its tiles arrive, so a slow provider just means late relief. If the library fails to load, or is not ready within 4 s of the map painting, that build stays flat. An unreachable provider leaves the map flat and its tile errors are logged to the console.
 - **Pins:** status reads by shape, so it survives colour-blindness. An `active` spot is a filled 6px phosphor dot with a blurred 14px bloom behind it (glow is depth, here too); an `unclassified` one a smaller 4.5px dot with a weaker bloom; a `demolished` one a hollow phosphor-dim ring with a ×, and no bloom (the ring is filled with the black ground and the × carries the labels' 1.5px black halo, so neither melts into a road it crosses) — present but receding, the archive's "this one is gone" state. An invisible 22px hit circle keeps the thumb target thumb-sized while the dot stays small.
 - **Selected pin:** the tapped pin grows a step, a black gap cuts it out, and a thick 3px **amber** ring sits over the bloom's outer edge. It reads by contrast, not hue — phosphor and amber collapse to the same ochre under deuteranopia, while black against amber holds about 11.5 : 1 under every colour-vision deficiency. Selecting a pin fires a one-shot 450ms lock-on: an amber ring closes in from 34px and fades out onto the ring (skipped under `prefers-reduced-motion`). One pin at a time; this is amber's only role on the map (the care/selection channel), and it clears when the popup closes.
 - **Popup:** MapLibre's own box, repainted — `surface` fill, `line` 1px border, 2px radius, the frame glow halo, and the anchor tip recoloured on every side. Max width 320px; the close button is a 44px phosphor-dim glyph that brightens to phosphor. Inside, in order: the photo gallery (only when the spot has photos), the spot name as an UPPERCASE phosphor label, `> DEMOLISHED` in phosphor-dim for a lost spot, and a `> DIRECTIONS` link. The status line carries no bloom — the text form of the ghosted pin — which also keeps amber to the selection ring alone.

@@ -20,13 +20,13 @@ const DRAW_ORDER = [
   'background',
   'hillshade',
   'landcover',
+  'contour-minor',
+  'contour-major',
   'plaza',
   'water',
   'water-line',
   'building',
   'building-outline',
-  'contour-minor',
-  'contour-major',
   'rail',
   'path',
   'road-casing',
@@ -494,10 +494,74 @@ describe('buildTerminalStyle', () => {
       additions.layers.map(({ layer, beforeId }) => [layer.id, beforeId]),
     ).toEqual([
       ['hillshade', 'landcover'],
-      ['contour-minor', 'rail'],
-      ['contour-major', 'rail'],
+      ['contour-minor', 'plaza'],
+      ['contour-major', 'plaza'],
       ['contour-label', 'water-label'],
     ]);
+  });
+
+  it('draws the contour lines under the plazas, water and buildings, which cover them', () => {
+    const order = style.layers.map((l) => l.id);
+    for (const contour of ['contour-minor', 'contour-major']) {
+      for (const cover of [
+        'plaza',
+        'water',
+        'water-line',
+        'building',
+        'building-outline',
+      ]) {
+        expect(order.indexOf(contour))
+          .withContext(`${contour} draws under ${cover}`)
+          .toBeLessThan(order.indexOf(cover));
+      }
+    }
+  });
+
+  it('fades the minor contours out by z16 and eases the major ones back by z17.5', () => {
+    const minor = style.layers.find(
+      (l) => l.id === 'contour-minor',
+    ) as unknown as StyleLayer;
+    const major = style.layers.find(
+      (l) => l.id === 'contour-major',
+    ) as unknown as StyleLayer;
+    expect(minor.paint?.['line-opacity']).toEqual([
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      14.5,
+      1,
+      16,
+      0,
+    ]);
+    expect(major.paint?.['line-opacity']).toEqual([
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      16,
+      1,
+      17.5,
+      0.4,
+    ]);
+    expect(minor.paint?.['line-width']).toBe(0.5);
+    expect(major.paint?.['line-width']).toBe(0.9);
+  });
+
+  it('sets the contour heights larger than a street name and hides them from z16', () => {
+    const label = style.layers.find((l) => l.id === 'contour-label') as {
+      minzoom?: number;
+      maxzoom?: number;
+      layout: Record<string, unknown>;
+    };
+    expect(label.minzoom).toBe(13);
+    expect(label.maxzoom).toBe(16);
+    expect(label.layout['text-size']).toBe(10.5);
+  });
+
+  it('keeps the contour heights dimmer than the street names, as decoration', () => {
+    const brightness = (hex: string) => luminanceOf(hex);
+    expect(brightness(MAP_PALETTE.contourLabel)).toBeLessThan(
+      brightness(MAP_PALETTE.streetLabel),
+    );
   });
 
   it('reads the DEM and contour tiles from the elevation it is handed', () => {
@@ -768,6 +832,14 @@ describe('buildTerminalStyle road hierarchy', () => {
         }
       }
     }
+  });
+
+  it('draws rail at full opacity, in a colour of its own, since it can only be as thin as a path', () => {
+    const rail = transportLayers.find((l) => l.id === 'rail') as StyleLayer;
+    const path = transportLayers.find((l) => l.id === 'path') as StyleLayer;
+    expect(rail.paint?.['line-opacity'] ?? 1).toBe(1);
+    expect(rail.paint?.['line-color']).toBe(MAP_PALETTE.rail);
+    expect(rail.paint?.['line-color']).not.toBe(path.paint?.['line-color']);
   });
 
   it('draws paved cycleways, pedestrian streets and piers, and no other path', () => {

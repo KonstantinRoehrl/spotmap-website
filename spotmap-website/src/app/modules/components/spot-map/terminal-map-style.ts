@@ -268,7 +268,11 @@ function hillshadeLayer(): HillshadeLayerSpecification {
   };
 }
 
-/** Minor and major contour lines, both solid: weight and brightness tell them apart. */
+/**
+ * Minor and major contour lines, both solid: weight and brightness tell them apart. They thin out
+ * with zoom so they stay a backdrop to the streets: the minor lines are gone by z16, and the major
+ * ones ease back to 0.4 by z17.5 instead of vanishing, so a hillside still reads at street level.
+ */
 function contourLineLayers(): LineLayerSpecification[] {
   return [
     {
@@ -277,7 +281,11 @@ function contourLineLayers(): LineLayerSpecification[] {
       source: CONTOUR_SOURCE_ID,
       'source-layer': CONTOUR_SOURCE_LAYER,
       filter: ['==', ['get', CONTOUR_LEVEL_KEY], 0],
-      paint: { 'line-color': MAP_PALETTE.contourMinor, 'line-width': 0.6 },
+      paint: {
+        'line-color': MAP_PALETTE.contourMinor,
+        'line-width': 0.5,
+        'line-opacity': zoomRamp(14.5, 1, 16, 0),
+      },
     },
     {
       id: 'contour-major',
@@ -285,12 +293,20 @@ function contourLineLayers(): LineLayerSpecification[] {
       source: CONTOUR_SOURCE_ID,
       'source-layer': CONTOUR_SOURCE_LAYER,
       filter: ['>=', ['get', CONTOUR_LEVEL_KEY], 1],
-      paint: { 'line-color': MAP_PALETTE.contourMajor, 'line-width': 1 },
+      paint: {
+        'line-color': MAP_PALETTE.contourMajor,
+        'line-width': 0.9,
+        'line-opacity': zoomRamp(16, 1, 17.5, 0.4),
+      },
     },
   ];
 }
 
-/** The height in metres along each major contour. */
+/**
+ * The height in metres along each major contour, from z13 up to the zoom (16) where the contours
+ * it labels have thinned out; it is set a little larger than the street names so it stays legible
+ * while its colour keeps it dimmer than they are.
+ */
 function contourLabelLayer(): SymbolLayerSpecification {
   return {
     id: 'contour-label',
@@ -298,6 +314,7 @@ function contourLabelLayer(): SymbolLayerSpecification {
     source: CONTOUR_SOURCE_ID,
     'source-layer': CONTOUR_SOURCE_LAYER,
     minzoom: 13,
+    maxzoom: 16,
     filter: ['>=', ['get', CONTOUR_LEVEL_KEY], 1],
     layout: {
       'symbol-placement': 'line',
@@ -307,7 +324,7 @@ function contourLabelLayer(): SymbolLayerSpecification {
         ' M',
       ],
       'text-font': ['Noto Sans Regular'],
-      'text-size': 9,
+      'text-size': 10.5,
       'text-letter-spacing': 0.1,
     },
     paint: labelPaint(MAP_PALETTE.contourLabel),
@@ -337,7 +354,8 @@ export interface ElevationAdditions {
  * The relief and contours for the given terrain tiles, to be added to the flat city once it has
  * loaded. Adding the layers in this order, each before its `beforeId`, draws them exactly where
  * the design places them: the hillshade under the green space, both contour weights under the
- * rail, and the contour heights under the water labels.
+ * plazas, water and buildings (which therefore cover them), and the contour heights under the
+ * water labels.
  */
 export function buildElevationAdditions(
   elevation: ElevationTiles,
@@ -346,7 +364,7 @@ export function buildElevationAdditions(
     sources: elevationSources(elevation),
     layers: [
       { layer: hillshadeLayer(), beforeId: 'landcover' },
-      ...contourLineLayers().map((layer) => ({ layer, beforeId: 'rail' })),
+      ...contourLineLayers().map((layer) => ({ layer, beforeId: 'plaza' })),
       { layer: contourLabelLayer(), beforeId: 'water-label' },
     ],
   };
@@ -443,7 +461,7 @@ export function buildTerminalStyle(): StyleSpecification {
         filter: visibleFilter(['rail', 'transit']),
         paint: {
           'line-color': MAP_PALETTE.rail,
-          'line-opacity': 0.8,
+          'line-opacity': 1,
           // Under the service tier at every zoom (spec test), so rail reads as a line, not a road.
           'line-width': zoomRamp(13, 0.3, 18, 1.2),
         },
