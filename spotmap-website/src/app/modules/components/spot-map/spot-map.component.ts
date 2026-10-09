@@ -30,6 +30,7 @@ import {
   SpotPopupComponent,
 } from '../spot-popup/spot-popup.component';
 import { MAP_FACTORY, POPUP_FACTORY } from './map-factory.token';
+import { TERMINAL_PALETTE } from './map-palette';
 import {
   buildTerminalStyle,
   SPOT_BODY_LAYER_ID,
@@ -37,7 +38,6 @@ import {
   SPOT_HIT_LAYER_ID,
   SPOT_SELECTED_LAYER_ID,
   SPOT_SOURCE_ID,
-  TERMINAL_PALETTE,
 } from './terminal-map-style';
 
 /** Padding, in pixels, around the fitted spot bounds. */

@@ -3,6 +3,7 @@ import type {
   LineLayerSpecification,
   StyleSpecification,
 } from 'maplibre-gl';
+import { TERMINAL_PALETTE } from './map-palette';
 
 export const OPENFREEMAP_TILES = 'https://tiles.openfreemap.org/planet';
 export const OPENFREEMAP_GLYPHS =
@@ -16,23 +17,6 @@ export const SPOT_SELECTED_LAYER_ID = 'spots-selected';
 
 /** The vector source the OpenFreeMap tiles arrive on; every basemap layer draws from it. */
 const BASEMAP_SOURCE_ID = 'openmaptiles';
-
-/**
- * Hex mirrors of the CSS custom properties in src/styles.css. A MapLibre style is plain JSON
- * and cannot read custom properties, so the two are kept in step by hand — the comment on each
- * line names the token it mirrors.
- */
-export const TERMINAL_PALETTE = {
-  bg: '#000000', // --color-bg
-  surface: '#0a0f0a', // --color-surface
-  surfaceRaised: '#0d160d', // --color-surface-raised
-  line: '#0f3d17', // --color-line
-  phosphor: '#00ff00', // --color-phosphor
-  phosphorBright: '#b6ffb6', // --color-phosphor-bright
-  phosphorDim: '#00b800', // --color-phosphor-dim
-  phosphorDeep: '#005a00', // --color-phosphor-deep
-  amber: '#ffb000', // --color-amber
-} as const;
 
 /** The zoom stops every road tier's width ramp runs through. */
 const ROAD_ZOOMS = [10, 12, 14, 16, 18];

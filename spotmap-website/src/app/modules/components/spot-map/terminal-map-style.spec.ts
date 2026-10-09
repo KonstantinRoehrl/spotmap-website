@@ -1,8 +1,8 @@
+import { TERMINAL_PALETTE } from './map-palette';
 import {
   buildTerminalStyle,
   OPENFREEMAP_GLYPHS,
   OPENFREEMAP_TILES,
-  TERMINAL_PALETTE,
 } from './terminal-map-style';
 
 /**
