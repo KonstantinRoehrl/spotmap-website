@@ -429,10 +429,16 @@ function sourceOf(map, { folder, description }) {
  *
  * - **newly dead** — a `photosDead` or `photosRecovered` entry, numbered within the previous run's
  *   link count of its spot on its map, that is not one of the previous report's entries in either
- *   list. When the spot has fewer links on that map than last run, removed links may have
- *   renumbered its later photos down by up to the difference, so an entry also counts as a
- *   previous one up to that many numbers above it, each previous entry standing for one entry
- *   only;
+ *   list. Removed or added links may have renumbered the spot's photos on that map, so the photos
+ *   written in both runs (same file) pin how far: between two of them, or past the first or last,
+ *   a photo moved by as much as either bound did, assuming links there were only removed or only
+ *   added. An entry counts as a previous one that sits in the same gap at a number that far off,
+ *   each previous entry standing for one entry only (see {@link unmatchedLostEntries} for which
+ *   entry is named when several could be). Known limits: a removed already-dead link can still
+ *   cancel out a newly dead photo in the same gap, and a link removed and another added in one
+ *   gap can make a still-dead photo there look newly dead. A spot whose GeoJSON and report do
+ *   not add up for either run is checked as one gap, renumbered down by at most its drop in link
+ *   count;
  * - **lost match** — every spot an extra map fed photos to last run that an ambiguous placemark or
  *   an unmerged conflict of that map names, and, while that map has an unmatched placemark this
  *   run (one that may be the feeding placemark renamed and moved), every spot it fed last run that
@@ -472,6 +478,38 @@ export function findNewlyDeadPhotos({
     legacyLinkCounts(previousCollection, previousReport, mainMap);
   const previousCount = (map, spotId) => linkCounts[map]?.[spotId] ?? 0;
   const excused = excusedSpots(previousCollection, collection);
+  const previousWritten = writtenPhotos(
+    previousCollection,
+    previousReport,
+    linkCounts,
+    mainMap,
+  );
+  const currentWritten = writtenPhotos(
+    collection,
+    report,
+    report.linkCounts ?? {},
+    mainMap,
+  );
+  const gapsOf = (map, spotId) => {
+    const before = previousCount(map, spotId);
+    const now = report.linkCounts?.[map]?.[spotId] ?? 0;
+    const writtenBefore = previousWritten.get(spotId);
+    const writtenNow = currentWritten.get(spotId);
+    if (writtenBefore === undefined || writtenNow === undefined) {
+      return [
+        {
+          previous: [0, Infinity],
+          current: [0, Infinity],
+          shifts: [0, Math.max(0, before - now)],
+        },
+      ];
+    }
+    return gapsBetween(
+      commonPhotos(writtenBefore.get(map) ?? [], writtenNow.get(map) ?? []),
+      before,
+      now,
+    );
+  };
   const newlyDead = unmatchedLostEntries(
     [...report.photosDead, ...report.photosRecovered].filter(
       ({ spotId, map, n }) =>
@@ -485,12 +523,8 @@ export function findNewlyDeadPhotos({
       map: entry.map ?? mainMap,
       n: entry.n ?? entry.index,
     })),
-    // Limitation: a removed already-dead link and a newly dead photo of one spot and map cancel out.
-    (map, spotId) =>
-      Math.max(
-        0,
-        previousCount(map, spotId) - (report.linkCounts?.[map]?.[spotId] ?? 0),
-      ),
+    previousCount,
+    gapsOf,
   ).map(({ spotId, map, n, reason }) => ({ spotId, map, n, reason }));
 
   const wasFed = ({ map, spotId }) =>
@@ -544,40 +578,256 @@ export function findNewlyDeadPhotos({
 }
 
 /**
- * The lost entries of this run that no previous lost entry accounts for. A previous entry of the
- * same spot and map accounts for an entry numbered `n` when its number lies in `n … n + shift`,
- * and for one entry only; entries are paired lowest number first, each with the lowest free
- * previous number, which pairs as many as any pairing can.
+ * The stretch of a spot's photos on one map between two photos written in both runs (or the
+ * list's start or end), with the photo numbers it spans in each run, both bounds exclusive.
+ *
+ * @typedef {object} PhotoGap
+ * @property {[number, number]} previous the previous run's bounding numbers
+ * @property {[number, number]} current this run's bounding numbers
+ * @property {[number, number]} shifts the lowest and highest a photo inside may have moved down,
+ *   previous number minus current
+ */
+
+/**
+ * The lost entries of this run that no previous lost entry accounts for. Within each gap, every
+ * entry is placed on a previous photo number its gap's shifts allow, each number taking one entry
+ * and in order: an entry placed on a previous lost entry is accounted for; one placed on a photo
+ * written last run, or on none, is not. The placement leaves the fewest unaccounted and, among
+ * those, prefers entries on previous photos to new dead links, then photos that kept their
+ * numbers, so that when nothing tells which photo died the likeliest one is named.
  *
  * @template {{ spotId: string, map: string, n: number }} Entry
  * @param {Entry[]} entries this run's lost entries to check, in report order
  * @param {{ spotId: string, map: string, n: number }[]} previousEntries the previous run's
- * @param {(map: string, spotId: string) => number} shiftOf how far removed links may have
- *   renumbered the spot's photos on that map
+ * @param {(map: string, spotId: string) => number} previousCount the spot's link count on that map
+ *   last run
+ * @param {(map: string, spotId: string) => PhotoGap[]} gapsOf the spot's gaps on that map
  * @returns {Entry[]} the unaccounted entries, in report order
  */
-function unmatchedLostEntries(entries, previousEntries, shiftOf) {
+function unmatchedLostEntries(entries, previousEntries, previousCount, gapsOf) {
   const groupKey = ({ spotId, map }) => `${spotId}#${map}`;
   const previousNumbers = Map.groupBy(previousEntries, groupKey);
   const unaccounted = new Set();
   for (const [key, group] of Map.groupBy(entries, groupKey)) {
-    const free = (previousNumbers.get(key) ?? [])
-      .map(({ n }) => n)
-      .sort((a, b) => a - b);
-    const shift = shiftOf(group[0].map, group[0].spotId);
-    let next = 0;
-    for (const entry of group.toSorted((a, b) => a.n - b.n)) {
-      while (next < free.length && free[next] < entry.n) {
-        next++;
-      }
-      if (next < free.length && free[next] <= entry.n + shift) {
-        next++;
-      } else {
+    const { map, spotId } = group[0];
+    const lost = new Set((previousNumbers.get(key) ?? []).map(({ n }) => n));
+    const count = previousCount(map, spotId);
+    for (const gap of gapsOf(map, spotId)) {
+      const inside = (n, [from, to]) => from < n && n < to;
+      const numbers = new Set(
+        [...Array.from({ length: count }, (_, i) => i + 1), ...lost].filter(
+          (n) => inside(n, gap.previous),
+        ),
+      );
+      const positions = [...numbers]
+        .sort((a, b) => a - b)
+        .map((n) => ({ n, lost: lost.has(n) }));
+      const gapEntries = group
+        .filter(({ n }) => inside(n, gap.current))
+        .sort((a, b) => a.n - b.n);
+      for (const entry of unplacedEntries(gapEntries, positions, gap.shifts)) {
         unaccounted.add(entry);
       }
     }
   }
   return entries.filter((entry) => unaccounted.has(entry));
+}
+
+/**
+ * The entries of one gap that cannot be placed on a previous lost entry: of all in-order
+ * placements within the shifts, the one leaving the fewest such entries, then placing the fewest
+ * on no previous photo (a new dead link), then moving photos the least in total.
+ *
+ * @template {{ n: number }} Entry
+ * @param {Entry[]} entries this run's lost entries in the gap, by number
+ * @param {{ n: number, lost: boolean }[]} positions the previous run's photo numbers in the gap,
+ *   by number, each marked when it was a lost entry
+ * @param {[number, number]} shifts the gap's lowest and highest shift
+ * @returns {Entry[]}
+ */
+function unplacedEntries(entries, positions, [lowest, highest]) {
+  // best[i][j]: the best placement of the first i entries on the first j positions.
+  const best = Array.from({ length: entries.length + 1 }, () =>
+    Array.from({ length: positions.length + 1 }),
+  );
+  const offer = (i, j, candidate) => {
+    const current = best[i][j];
+    if (
+      current === undefined ||
+      candidate.unplaced.length < current.unplaced.length ||
+      (candidate.unplaced.length === current.unplaced.length &&
+        (candidate.added < current.added ||
+          (candidate.added === current.added &&
+            candidate.moved < current.moved)))
+    ) {
+      best[i][j] = candidate;
+    }
+  };
+  for (let i = 0; i <= entries.length; i++) {
+    for (let j = 0; j <= positions.length; j++) {
+      if (i === 0 && j === 0) {
+        best[0][0] = { unplaced: [], added: 0, moved: 0 };
+        continue;
+      }
+      if (j > 0) {
+        offer(i, j, best[i][j - 1]);
+      }
+      if (i === 0) {
+        continue;
+      }
+      const entry = entries[i - 1];
+      const before = best[i - 1][j];
+      offer(i, j, {
+        ...before,
+        unplaced: [...before.unplaced, entry],
+        added: before.added + 1,
+      });
+      if (j > 0) {
+        const position = positions[j - 1];
+        const shift = position.n - entry.n;
+        if (lowest <= shift && shift <= highest) {
+          const placed = best[i - 1][j - 1];
+          offer(i, j, {
+            unplaced: position.lost
+              ? placed.unplaced
+              : [...placed.unplaced, entry],
+            added: placed.added,
+            moved: placed.moved + Math.abs(shift),
+          });
+        }
+      }
+    }
+  }
+  return best[entries.length][positions.length].unplaced;
+}
+
+/**
+ * A spot's gaps on one map, between the photos written in both runs. A gap's shifts span those
+ * of its two bounds, which assumes links were only removed, or only added, inside it.
+ *
+ * @param {{ previous: number, current: number }[]} common the photos written in both runs, in
+ *   order, by their numbers in each
+ * @param {number} previousCount the spot's link count on that map last run
+ * @param {number} currentCount the spot's link count on that map this run
+ * @returns {PhotoGap[]}
+ */
+function gapsBetween(common, previousCount, currentCount) {
+  const bounds = [
+    { previous: 0, current: 0 },
+    ...common,
+    { previous: previousCount + 1, current: currentCount + 1 },
+  ];
+  return bounds.slice(1).map((end, i) => {
+    const start = bounds[i];
+    const shifts = [
+      start.previous - start.current,
+      end.previous - end.current,
+    ].sort((a, b) => a - b);
+    return {
+      previous: [start.previous, end.previous],
+      current: [start.current, end.current],
+      shifts,
+    };
+  });
+}
+
+/**
+ * The photos written in both runs, by file: the longest in-order run of shared files, so a
+ * reordered photo bounds no gap.
+ *
+ * @param {{ n: number, file: string }[]} before the previous run's written photos of a spot on
+ *   one map, by number
+ * @param {{ n: number, file: string }[]} now this run's, likewise
+ * @returns {{ previous: number, current: number }[]} in order
+ */
+function commonPhotos(before, now) {
+  // longest[i][j]: the longest common run of before[i…] and now[j…].
+  const longest = Array.from({ length: before.length + 1 }, () =>
+    new Array(now.length + 1).fill(0),
+  );
+  for (let i = before.length - 1; i >= 0; i--) {
+    for (let j = now.length - 1; j >= 0; j--) {
+      longest[i][j] =
+        before[i].file === now[j].file
+          ? longest[i + 1][j + 1] + 1
+          : Math.max(longest[i + 1][j], longest[i][j + 1]);
+    }
+  }
+  const common = [];
+  for (let i = 0, j = 0; i < before.length && j < now.length;) {
+    if (before[i].file === now[j].file) {
+      common.push({ previous: before[i].n, current: now[j].n });
+      i++;
+      j++;
+    } else if (longest[i + 1][j] >= longest[i][j + 1]) {
+      i++;
+    } else {
+      j++;
+    }
+  }
+  return common;
+}
+
+/**
+ * Each spot's written photos per map, with their numbers: a run's GeoJSON lists them in source
+ * order, main map first, then each extra map in `linkCounts` order, and every number its report
+ * lists as dead, recovered, duplicate or near-duplicate was not written. A spot whose GeoJSON and
+ * report do not add up is left out, so the guard falls back to link counts alone for it.
+ *
+ * @param {object} collection the run's GeoJSON
+ * @param {object} report the run's report; entries without `map` are main-map ones numbered by
+ *   `index`
+ * @param {Record<string, Record<string, number>>} counts the run's link counts by map, then spot
+ * @param {string} mainMap the main map's slug
+ * @returns {Map<string, Map<string, { n: number, file: string }[]>>} by spot id, then map
+ */
+function writtenPhotos(collection, report, counts, mainMap) {
+  const notWritten = Map.groupBy(
+    [
+      ...(report.photosDead ?? []),
+      ...(report.photosRecovered ?? []),
+      ...(report.photosDuplicate ?? []),
+      ...(report.photosNearDuplicate ?? []),
+    ],
+    (entry) => `${entry.spotId}#${entry.map ?? mainMap}`,
+  );
+  const maps = [
+    mainMap,
+    ...Object.keys(counts).filter((map) => map !== mainMap),
+  ];
+  const written = new Map();
+  for (const { properties } of collection.features) {
+    const files = [...properties.photos];
+    const byMap = new Map();
+    let addsUp = true;
+    for (const map of maps) {
+      const count = counts[map]?.[properties.id] ?? 0;
+      const listed = (notWritten.get(`${properties.id}#${map}`) ?? []).map(
+        (entry) => entry.n ?? entry.index,
+      );
+      const skipped = new Set(listed);
+      if (
+        !Number.isInteger(count) ||
+        skipped.size !== listed.length ||
+        listed.some((n) => !Number.isInteger(n) || n < 1 || n > count) ||
+        count - skipped.size > files.length
+      ) {
+        addsUp = false;
+        break;
+      }
+      const photos = [];
+      for (let n = 1; n <= count; n++) {
+        if (!skipped.has(n)) {
+          photos.push({ n, file: files.shift() });
+        }
+      }
+      byMap.set(map, photos);
+    }
+    if (addsUp && files.length === 0) {
+      written.set(properties.id, byMap);
+    }
+  }
+  return written;
 }
 
 /**

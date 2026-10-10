@@ -227,11 +227,14 @@ previous run:
 
 A spot whose GeoJSON still lists every photo file it listed before lost nothing
 and is excused from both, as is a spot that left the main map. A dead link that
-is new or was already dead last run is only reported. When a spot has fewer
-links on a map than last run, removed links may have renumbered its later
-photos, so a dead photo also counts as already dead when the previous run listed
-one of that spot and map up to that many numbers above it, each previous entry
-standing for one photo only. A newly dead photo fails the city until a re-run
+is new or was already dead last run is only reported. Removed or added links
+may have renumbered a spot's photos on a map; the photos downloaded in both runs
+show by how much, so a dead photo also counts as already dead when the previous
+run listed one of that spot and map between the same two of those photos, as far
+off as the links around it moved, each previous entry standing for one photo
+only. A removed dead link can still hide a photo that dies next to it, and
+removing one link while adding another next to a dead photo can fail the city
+needlessly. A newly dead photo fails the city until a re-run
 downloads it again or the link is removed in My Maps. A first run has nothing to
 compare. A previous report from before extra maps (without `linkCounts`) is
 still read: only main-map photos are checked, against the spot's written, dead

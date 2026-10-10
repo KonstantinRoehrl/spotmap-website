@@ -616,6 +616,82 @@ test('a written photo that dies as an earlier link is removed is still newly dea
   assert.deepEqual(result, { newlyDead: [dead('balkan', 1)], lostMatches: [] });
 });
 
+test('a still-dead photo renumbered by a removal and an addition is not newly dead', () => {
+  // Last run: a, b written, #3 dead. Now a is removed and c appended: b is #1, the dead one #2.
+  const result = findNewlyDeadPhotos({
+    ...previousCurrent({
+      files: { [S]: ['a.webp', 'b.webp'] },
+      linkCounts: { vienna: { [S]: 3 } },
+      photosDead: [dead('vienna', 3)],
+    }),
+    ...current({
+      files: { [S]: ['b.webp', 'c.webp'] },
+      photosDead: [dead('vienna', 2)],
+      linkCounts: { vienna: { [S]: 3 } },
+    }),
+  });
+  assert.deepEqual(result, NONE);
+});
+
+test('a written photo that dies while a link is swapped is still newly dead, and named', () => {
+  // Last run: a, b, d written, #4 dead. Now a is removed, c appended and b dies:
+  // b (now #1) is newly dead; the still-dead photo, now #3, is not.
+  const result = findNewlyDeadPhotos({
+    ...previousCurrent({
+      files: { [S]: ['a.webp', 'b.webp', 'd.webp'] },
+      linkCounts: { vienna: { [S]: 4 } },
+      photosDead: [dead('vienna', 4)],
+    }),
+    ...current({
+      files: { [S]: ['d.webp', 'c.webp'] },
+      photosDead: [dead('vienna', 1), dead('vienna', 3)],
+      linkCounts: { vienna: { [S]: 4 } },
+    }),
+  });
+  assert.deepEqual(result, { newlyDead: [dead('vienna', 1)], lostMatches: [] });
+});
+
+test('the photo named newly dead is the one that was written last run', () => {
+  const run = ({ before, after }) =>
+    findNewlyDeadPhotos({
+      ...previousCurrent({
+        files: { [S]: before.files },
+        linkCounts: { vienna: { [S]: before.count } },
+        photosDead: before.dead.map((n) => dead('vienna', n)),
+      }),
+      ...current({
+        files: { [S]: after.files },
+        photosDead: after.dead.map((n) => dead('vienna', n)),
+        linkCounts: { vienna: { [S]: after.count } },
+      }),
+    }).newlyDead;
+  // a, b (dead), c: c is removed and a dies. Nothing tells this from "a removed, c dies", so the
+  // pairing that moves photos least wins: a (#1) is named, not the already-dead b (#2).
+  assert.deepEqual(
+    run({
+      before: { files: ['a.webp', 'c.webp'], count: 3, dead: [2] },
+      after: { files: [], count: 2, dead: [1, 2] },
+    }),
+    [dead('vienna', 1)],
+  );
+  // a, b (dead), c, d: d is removed and a dies. c still sits at #3, so a must be #1.
+  assert.deepEqual(
+    run({
+      before: { files: ['a.webp', 'c.webp', 'd.webp'], count: 4, dead: [2] },
+      after: { files: ['c.webp'], count: 3, dead: [1, 2] },
+    }),
+    [dead('vienna', 1)],
+  );
+  // a, b, X (dead), e: a is removed, c appended and e dies. b moved down one, so X is #2 and e #3.
+  assert.deepEqual(
+    run({
+      before: { files: ['a.webp', 'b.webp', 'e.webp'], count: 4, dead: [3] },
+      after: { files: ['b.webp', 'c.webp'], count: 4, dead: [2, 3] },
+    }),
+    [dead('vienna', 3)],
+  );
+});
+
 test('legacy: map-less dead entries match this run’s main-map entries by index', () => {
   const result = findNewlyDeadPhotos({
     ...previousRun({
