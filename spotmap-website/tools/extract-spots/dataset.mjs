@@ -424,29 +424,88 @@ function sourceOf(map, { folder, description }) {
 }
 
 /**
- * Finds the dead photos that were written on the previous run, so the CLI can refuse to wipe them
- * when Google wrongly answers 403 or HTML for photos that are fine. A dead photo is newly dead when
- * its spot was in the previous GeoJSON, its position is within that spot's previous link count
- * (its written photos plus its dead and duplicate positions — a duplicate was written too), and
- * the previous report did not list it as dead already. A link that was already dead, or a position
- * the previous run did not have, is not newly dead. Only the main map's photos are checked.
+ * Finds what the CLI must refuse to overwrite, so a wrong 403 or a moved placemark cannot wipe
+ * good photos:
+ *
+ * - **newly dead** — a `photosDead` or `photosRecovered` entry that the previous report listed in
+ *   neither list, numbered within the previous run's link count of its spot on its map;
+ * - **lost match** — an ambiguous placemark (each candidate) or an unmerged conflict of an extra
+ *   map naming a spot that map fed photos to last run.
+ *
+ * A spot whose new GeoJSON still lists every photo file it listed before lost nothing and is
+ * excused from both. A previous report without `linkCounts` predates extra maps: only main-map
+ * entries are checked, its link count is the spot's written photos plus its dead and duplicate
+ * entries, and its entries without `map` are main-map ones numbered by `index`.
  *
  * @param {object} input
  * @param {object} [input.previousCollection] the previous run's GeoJSON; absent on a first run
  * @param {object} [input.previousReport] the previous run's report; absent on a first run
+ * @param {object} input.collection the new GeoJSON from {@link buildCity}
  * @param {object} input.report the new report from {@link buildCity}
- * @returns {{ spotId: string, map: string, n: number, reason: string }[]} the newly dead entries of
- *   `report.photosDead`, in KML order; none when either previous output is absent
+ * @returns {{ newlyDead: { spotId: string, map: string, n: number, reason: string }[], lostMatches: { map: string, spotId: string, ordinal: number, name: string }[] }}
+ *   both empty when either previous output is absent; `newlyDead` lists the `photosDead` entries
+ *   first, then the `photosRecovered` ones (without `from`), each in report order
  */
 export function findNewlyDeadPhotos({
   previousCollection,
   previousReport,
+  collection,
   report,
 }) {
   if (!previousCollection || !previousReport) {
-    return [];
+    return { newlyDead: [], lostMatches: [] };
   }
-  const previousLinkCounts = new Map(
+  const mainMap = report.map;
+  const linkCounts =
+    previousReport.linkCounts ??
+    legacyLinkCounts(previousCollection, previousReport, mainMap);
+  const previousCount = (map, spotId) => linkCounts[map]?.[spotId] ?? 0;
+  const previouslyLost = new Set(
+    [
+      ...previousReport.photosDead,
+      ...(previousReport.photosRecovered ?? []),
+    ].map((entry) =>
+      photoKey(entry.spotId, entry.map ?? mainMap, entry.n ?? entry.index),
+    ),
+  );
+  const excused = excusedSpots(previousCollection, collection);
+  const newlyDead = [...report.photosDead, ...report.photosRecovered]
+    .filter(
+      ({ spotId, map, n }) =>
+        !excused.has(spotId) &&
+        n <= previousCount(map, spotId) &&
+        !previouslyLost.has(photoKey(spotId, map, n)),
+    )
+    .map(({ spotId, map, n, reason }) => ({ spotId, map, n, reason }));
+  const lostMatches = [
+    ...report.matches.ambiguous.flatMap(({ map, ordinal, name, candidates }) =>
+      candidates.map((spotId) => ({ map, spotId, ordinal, name })),
+    ),
+    ...report.matches.conflicts
+      .filter(({ merged }) => !merged)
+      .map(({ map, spotId, ordinal, name }) => ({
+        map,
+        spotId,
+        ordinal,
+        name,
+      })),
+  ].filter(
+    ({ map, spotId }) => !excused.has(spotId) && previousCount(map, spotId) > 0,
+  );
+  return { newlyDead, lostMatches };
+}
+
+/**
+ * The link counts a pre-`linkCounts` report implies: per spot, its written photos plus its dead
+ * and duplicate entries (a duplicate was written too), all on the main map.
+ *
+ * @param {object} previousCollection the previous run's GeoJSON
+ * @param {object} previousReport the previous run's report, without `linkCounts`
+ * @param {string} mainMap the main map's slug
+ * @returns {Record<string, Record<string, number>>} by map, then spot id; only `mainMap`
+ */
+function legacyLinkCounts(previousCollection, previousReport, mainMap) {
+  const counts = Object.fromEntries(
     previousCollection.features.map(({ properties }) => [
       properties.id,
       properties.photos.length,
@@ -456,21 +515,37 @@ export function findNewlyDeadPhotos({
     ...previousReport.photosDead,
     ...previousReport.photosDuplicate,
   ]) {
-    if (previousLinkCounts.has(spotId)) {
-      previousLinkCounts.set(spotId, previousLinkCounts.get(spotId) + 1);
+    if (Object.hasOwn(counts, spotId)) {
+      counts[spotId]++;
     }
   }
-  // A previous report written before photos were numbered per map lists `index` and no `map`.
-  const previouslyDead = new Set(
-    previousReport.photosDead.map((entry) =>
-      photoKey(entry.spotId, entry.map ?? report.map, entry.n ?? entry.index),
-    ),
+  return { [mainMap]: counts };
+}
+
+/**
+ * The spots that lost no photo: their new GeoJSON lists every photo file their previous one did.
+ *
+ * @param {object} previousCollection the previous run's GeoJSON
+ * @param {object} collection the new GeoJSON
+ * @returns {Set<string>} spot ids
+ */
+function excusedSpots(previousCollection, collection) {
+  const photosNow = new Map(
+    collection.features.map(({ properties }) => [
+      properties.id,
+      new Set(properties.photos),
+    ]),
   );
-  return report.photosDead.filter(
-    ({ spotId, map, n }) =>
-      map === report.map &&
-      n <= (previousLinkCounts.get(spotId) ?? 0) &&
-      !previouslyDead.has(photoKey(spotId, map, n)),
+  return new Set(
+    previousCollection.features
+      .filter(({ properties }) => {
+        const now = photosNow.get(properties.id);
+        return (
+          now !== undefined &&
+          properties.photos.every((photo) => now.has(photo))
+        );
+      })
+      .map(({ properties }) => properties.id),
   );
 }
 

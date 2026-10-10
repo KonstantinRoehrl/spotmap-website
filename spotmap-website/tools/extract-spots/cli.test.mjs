@@ -370,6 +370,27 @@ test('the guard error lists a handful of the newly dead photos and counts the re
   });
 });
 
+for (const [field, damaged] of [
+  ['photosRecovered', {}],
+  ['photosNearDuplicate', 'none'],
+  ['linkCounts', []],
+]) {
+  test(`a previous report whose ${field} is damaged fails the city and changes nothing`, async (t) => {
+    const ws = await workspace(t);
+    const web = fakeWeb({
+      [KML_URL]: kmlResponse(kmlWith([PHOTO_A])),
+      ...live(PHOTO_A),
+    });
+    await ws.run(web.fetch);
+    const report = JSON.parse(await readFile(ws.reportPath, 'utf8'));
+    await writeFile(ws.reportPath, toJsonText({ ...report, [field]: damaged }));
+    const before = await snapshot(ws);
+
+    await assert.rejects(ws.run(web.fetch), new RegExp(field));
+    assert.deepEqual(await snapshot(ws), before);
+  });
+}
+
 test('an unreadable previous report fails the city instead of skipping the guard', async (t) => {
   const ws = await workspace(t);
   const routes = {

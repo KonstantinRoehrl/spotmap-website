@@ -11,8 +11,8 @@
  * deletes no photo (new or re-encoded WebPs may already be on disk; the next successful run sweeps
  * what it no longer references); the run moves on and exits non-zero at the end, naming every
  * failed city. Dead photo links are not errors — they are listed in the report — except that a
- * photo written on the previous run that now comes back dead fails its city, so a wrong 403 from
- * Google cannot wipe good photos.
+ * photo written on the previous run that now comes back dead, or a spot an extra map fed last run
+ * that lost its match, fails its city, so a wrong 403 or a moved placemark cannot wipe good photos.
  */
 import { existsSync } from 'node:fs';
 import { mkdir, readdir, readFile, rm } from 'node:fs/promises';
@@ -42,7 +42,8 @@ const SPOTS_DIR = join(APP_ROOT, 'data', 'spots');
 const SOURCES_PATH = join(SPOTS_DIR, 'sources.json');
 const KML_CACHE_DIR = join(APP_ROOT, 'data', '.cache', 'kml');
 const KML_TIMEOUT_MS = 60_000;
-const MAX_LISTED_NEWLY_DEAD = 5;
+/** How many entries of each kind the guard error lists before counting the rest. */
+const MAX_LISTED_GUARD_ENTRIES = 5;
 
 /**
  * Reads the command line. No city arguments means every known city.
@@ -195,12 +196,13 @@ export async function extractCity(
     warnings,
     outcomes,
   });
-  const newlyDead = findNewlyDeadPhotos({
+  const { newlyDead, lostMatches } = findNewlyDeadPhotos({
     ...(await readPreviousOutputs(spotsDir, city)),
+    collection,
     report,
   });
-  if (newlyDead.length > 0) {
-    throw newlyDeadError(newlyDead);
+  if (newlyDead.length > 0 || lostMatches.length > 0) {
+    throw guardError(newlyDead, lostMatches);
   }
   assertNoUrls(collection);
   await writeFileAtomic(
@@ -230,8 +232,10 @@ export async function extractCity(
  * @param {string} city
  * @returns {Promise<{ previousCollection?: object, previousReport?: object }>} empty when either
  *   file is missing (a first run has nothing to compare)
- * @throws {Error} naming the file when one exists but cannot be read as the expected JSON, so a
- *   damaged file fails the city instead of silently switching the guard off
+ * @throws {Error} naming the file when one exists but cannot be read as the expected JSON — a
+ *   GeoJSON without a features list, or a report without photosDead or photosDuplicate lists, or
+ *   with a photosRecovered or photosNearDuplicate that is not a list or a linkCounts that is not
+ *   an object — so a damaged file fails the city instead of silently weakening the guard
  */
 async function readPreviousOutputs(spotsDir, city) {
   const geojsonPath = join(spotsDir, `${city}.geojson`);
@@ -250,6 +254,27 @@ async function readPreviousOutputs(spotsDir, city) {
   ) {
     throw new Error(
       `previous ${reportPath} has no photosDead or photosDuplicate list`,
+    );
+  }
+  for (const field of ['photosRecovered', 'photosNearDuplicate']) {
+    if (
+      previousReport[field] !== undefined &&
+      !Array.isArray(previousReport[field])
+    ) {
+      throw new Error(
+        `previous ${reportPath} has a ${field} that is not a list`,
+      );
+    }
+  }
+  const { linkCounts } = previousReport;
+  if (
+    linkCounts !== undefined &&
+    (linkCounts === null ||
+      typeof linkCounts !== 'object' ||
+      Array.isArray(linkCounts))
+  ) {
+    throw new Error(
+      `previous ${reportPath} has a linkCounts that is not an object`,
     );
   }
   return { previousCollection, previousReport };
@@ -271,31 +296,57 @@ async function readJson(path) {
 }
 
 /**
- * The error a city fails with when photos written last run now come back dead, listing the first
- * few by spot, map and number.
+ * The error a city fails with when the guard fires: photos written last run that now come back
+ * dead, and spots an extra map fed last run that lost their match, the first few of each listed.
  *
  * @param {{ spotId: string, map: string, n: number, reason: string }[]} newlyDead from
- *   {@link findNewlyDeadPhotos}, not empty
+ *   {@link findNewlyDeadPhotos}
+ * @param {{ map: string, spotId: string, ordinal: number, name: string }[]} lostMatches from
+ *   {@link findNewlyDeadPhotos}; at least one of the two is not empty
  * @returns {Error}
  */
-function newlyDeadError(newlyDead) {
-  const listed = newlyDead
-    .slice(0, MAX_LISTED_NEWLY_DEAD)
-    .map(({ spotId, map, n, reason }) => `${spotId} ${map}#${n}: ${reason}`);
-  const unlisted = newlyDead.length - listed.length;
-  if (unlisted > 0) {
-    listed.push(`and ${unlisted} more`);
+function guardError(newlyDead, lostMatches) {
+  const problems = [];
+  if (newlyDead.length > 0) {
+    const subject =
+      newlyDead.length === 1
+        ? '1 photo that was downloaded last run now comes back dead'
+        : `${newlyDead.length} photos that were downloaded last run now come back dead`;
+    problems.push(
+      `${subject} (${listFirst(newlyDead.map(({ spotId, map, n, reason }) => `${spotId} ${map}#${n}: ${reason}`))})`,
+    );
   }
-  const subject =
-    newlyDead.length === 1
-      ? '1 photo that was downloaded last run now comes back dead'
-      : `${newlyDead.length} photos that were downloaded last run now come back dead`;
+  if (lostMatches.length > 0) {
+    const subject =
+      lostMatches.length === 1
+        ? '1 spot an extra map fed last run lost its match'
+        : `${lostMatches.length} spots an extra map fed last run lost their match`;
+    problems.push(
+      `${subject} (${listFirst(lostMatches.map(({ spotId, map, ordinal, name }) => `${spotId} ← ${map} placemark #${ordinal} "${name}"`))})`,
+    );
+  }
   const advice =
-    newlyDead.length === 1
-      ? 'remove the link in My Maps if the photo is really gone'
-      : 'remove the links in My Maps if the photos are really gone';
+    lostMatches.length > 0
+      ? 'fix the placemarks or links in My Maps if the change is real'
+      : newlyDead.length === 1
+        ? 'remove the link in My Maps if the photo is really gone'
+        : 'remove the links in My Maps if the photos are really gone';
   return new Error(
-    `${subject} (${listed.join(', ')}); kept the previous files — re-run later, or ${advice}`,
+    `${problems.join('; ')}; kept the previous files — re-run later, or ${advice}`,
+  );
+}
+
+/**
+ * Joins the first {@link MAX_LISTED_GUARD_ENTRIES} items, then says how many more there are.
+ *
+ * @param {string[]} items
+ * @returns {string}
+ */
+function listFirst(items) {
+  const listed = items.slice(0, MAX_LISTED_GUARD_ENTRIES);
+  const unlisted = items.length - listed.length;
+  return [...listed, ...(unlisted > 0 ? [`and ${unlisted} more`] : [])].join(
+    ', ',
   );
 }
 

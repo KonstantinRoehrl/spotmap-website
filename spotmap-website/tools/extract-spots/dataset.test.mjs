@@ -242,7 +242,7 @@ test('a photo without an outcome is a bug, not a silent drop', () => {
   );
 });
 
-/** A previous run's GeoJSON and report, keeping only what the guard reads. */
+/** A previous run in the legacy shape (no `linkCounts`, map-less entries): GeoJSON and report. */
 function previousRun({ photoCounts, photosDead = [], photosDuplicate = [] }) {
   return {
     previousCollection: {
@@ -265,95 +265,221 @@ function previousRun({ photoCounts, photosDead = [], photosDuplicate = [] }) {
   };
 }
 
-test('without previous outputs no dead photo is newly dead', () => {
-  const report = {
-    map: 'vienna',
-    photosDead: [
-      { spotId: 'curbs-abc123', map: 'vienna', n: 1, reason: 'http 403' },
-    ],
-  };
-  assert.deepEqual(findNewlyDeadPhotos({ report }), []);
-});
-
-test('a photo that was already dead last run is not newly dead', () => {
-  const previous = previousRun({
-    photoCounts: { 'curbs-abc123': 1 },
-    photosDead: [{ spotId: 'curbs-abc123', index: 2, reason: 'http 404' }],
-  });
-  const report = {
-    map: 'vienna',
-    photosDead: [
-      { spotId: 'curbs-abc123', map: 'vienna', n: 2, reason: 'http 404' },
-    ],
-  };
-  assert.deepEqual(findNewlyDeadPhotos({ ...previous, report }), []);
-});
-
-test('a dead position beyond the previous link count is a new link, not newly dead', () => {
-  const previous = previousRun({ photoCounts: { 'curbs-abc123': 1 } });
-  const report = {
-    map: 'vienna',
-    photosDead: [
-      { spotId: 'curbs-abc123', map: 'vienna', n: 2, reason: 'http 404' },
-    ],
-  };
-  assert.deepEqual(findNewlyDeadPhotos({ ...previous, report }), []);
-});
-
-test('a dead photo of a spot the previous run did not have is not newly dead', () => {
-  const previous = previousRun({ photoCounts: { 'curbs-abc123': 1 } });
-  const report = {
-    map: 'vienna',
-    photosDead: [
-      { spotId: 'gap-def456', map: 'vienna', n: 1, reason: 'http 404' },
-    ],
-  };
-  assert.deepEqual(findNewlyDeadPhotos({ ...previous, report }), []);
-});
-
-test('a photo written last run that now comes back dead is newly dead, in KML order', () => {
-  const previous = previousRun({
-    photoCounts: { 'curbs-abc123': 2, 'gap-def456': 1 },
-    photosDead: [{ spotId: 'curbs-abc123', index: 3, reason: 'http 404' }],
-  });
-  const report = {
-    map: 'vienna',
-    photosDead: [
-      { spotId: 'curbs-abc123', map: 'vienna', n: 2, reason: 'http 403' },
-      { spotId: 'curbs-abc123', map: 'vienna', n: 3, reason: 'http 404' },
-      {
-        spotId: 'gap-def456',
-        map: 'vienna',
-        n: 1,
-        reason: 'content-type text/html',
-      },
-    ],
-  };
-  assert.deepEqual(findNewlyDeadPhotos({ ...previous, report }), [
-    { spotId: 'curbs-abc123', map: 'vienna', n: 2, reason: 'http 403' },
-    {
-      spotId: 'gap-def456',
-      map: 'vienna',
-      n: 1,
-      reason: 'content-type text/html',
+/** A previous run in the current shape: GeoJSON photo files per spot, plus report lists. */
+function previousCurrent({
+  files,
+  linkCounts,
+  photosDead = [],
+  photosRecovered = [],
+}) {
+  return {
+    previousCollection: {
+      type: 'FeatureCollection',
+      features: Object.entries(files).map(([id, photos]) => ({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [16.1, 48.1] },
+        properties: {
+          id,
+          name: id,
+          status: 'active',
+          photos,
+          sources: [{ map: 'vienna' }],
+        },
+      })),
     },
-  ]);
+    previousReport: {
+      photosDead,
+      photosRecovered,
+      photosDuplicate: [],
+      linkCounts,
+    },
+  };
+}
+
+/** A new run's GeoJSON photo files per spot and report, keeping only what the guard reads. */
+function current({
+  files,
+  photosDead = [],
+  photosRecovered = [],
+  ambiguous = [],
+  conflicts = [],
+}) {
+  return {
+    collection: {
+      type: 'FeatureCollection',
+      features: Object.entries(files).map(([id, photos]) => ({
+        properties: { id, photos },
+      })),
+    },
+    report: {
+      map: 'vienna',
+      photosDead,
+      photosRecovered,
+      matches: { conflicts, ambiguous, unmatched: [] },
+    },
+  };
+}
+
+/** The spot every guard case is about. */
+const S = 'curbs-abc123';
+/** A dead entry of {@link S}'s photo `n` on `map`. */
+const dead = (map, n) => ({ spotId: S, map, n, reason: 'http 403' });
+/** The guard's answer when nothing must be refused. */
+const NONE = { newlyDead: [], lostMatches: [] };
+
+test('without previous outputs nothing is newly dead', () => {
+  assert.deepEqual(
+    findNewlyDeadPhotos(
+      current({ files: { [S]: [] }, photosDead: [dead('vienna', 1)] }),
+    ),
+    NONE,
+  );
 });
 
-test('a position that was a duplicate last run counts as written, so its death is newly dead', () => {
-  const previous = previousRun({
-    photoCounts: { 'curbs-abc123': 1 },
-    photosDuplicate: [{ spotId: 'curbs-abc123', index: 2, sameAs: 1 }],
+test('a photo written last run that now comes back dead is newly dead', () => {
+  const result = findNewlyDeadPhotos({
+    ...previousCurrent({
+      files: { [S]: ['a.webp', 'b.webp'] },
+      linkCounts: { vienna: { [S]: 2 } },
+    }),
+    ...current({ files: { [S]: ['a.webp'] }, photosDead: [dead('vienna', 2)] }),
   });
-  const report = {
-    map: 'vienna',
-    photosDead: [
-      { spotId: 'curbs-abc123', map: 'vienna', n: 2, reason: 'http 403' },
-    ],
-  };
-  assert.deepEqual(findNewlyDeadPhotos({ ...previous, report }), [
-    { spotId: 'curbs-abc123', map: 'vienna', n: 2, reason: 'http 403' },
-  ]);
+  assert.deepEqual(result, { newlyDead: [dead('vienna', 2)], lostMatches: [] });
+});
+
+test('a recovered photo that was written last run counts as newly dead unless its file is still there', () => {
+  const previous = previousCurrent({
+    files: { [S]: ['a.webp'] },
+    linkCounts: { vienna: { [S]: 1 } },
+  });
+  const recovered = { ...dead('vienna', 1), from: ['balkan'] };
+  assert.deepEqual(
+    findNewlyDeadPhotos({
+      ...previous,
+      ...current({ files: { [S]: ['b.webp'] }, photosRecovered: [recovered] }),
+    }),
+    { newlyDead: [dead('vienna', 1)], lostMatches: [] },
+  );
+  assert.deepEqual(
+    findNewlyDeadPhotos({
+      ...previous,
+      ...current({
+        files: { [S]: ['a.webp', 'b.webp'] },
+        photosRecovered: [recovered],
+      }),
+    }),
+    NONE,
+  );
+});
+
+test('a photo already dead or recovered last run is not newly dead', () => {
+  const result = findNewlyDeadPhotos({
+    ...previousCurrent({
+      files: { [S]: ['a.webp'] },
+      linkCounts: { vienna: { [S]: 3 } },
+      photosDead: [dead('vienna', 2)],
+      photosRecovered: [{ ...dead('vienna', 3), from: ['balkan'] }],
+    }),
+    ...current({
+      files: { [S]: [] },
+      photosDead: [dead('vienna', 2), dead('vienna', 3)],
+    }),
+  });
+  assert.deepEqual(result, NONE);
+});
+
+test('a number beyond last run’s link count is a new link, not newly dead', () => {
+  const result = findNewlyDeadPhotos({
+    ...previousCurrent({
+      files: { [S]: ['a.webp'] },
+      linkCounts: { vienna: { [S]: 1 }, balkan: { [S]: 1 } },
+    }),
+    ...current({
+      files: { [S]: [] },
+      photosDead: [dead('vienna', 2), dead('balkan', 2)],
+    }),
+  });
+  assert.deepEqual(result, NONE);
+});
+
+test('an ambiguous or unmerged-conflict placemark naming a spot that map fed last run is a lost match', () => {
+  const previous = previousCurrent({
+    files: { [S]: ['b.webp'] },
+    linkCounts: { vienna: {}, balkan: { [S]: 2 } },
+  });
+  const ambiguous = [
+    {
+      map: 'balkan',
+      ordinal: 4,
+      name: 'Wien: Curbs',
+      candidates: [S, 'other-ffffff'],
+    },
+  ];
+  const conflicts = [
+    { map: 'balkan', spotId: S, ordinal: 5, name: 'Curbs', merged: false },
+  ];
+  assert.deepEqual(
+    findNewlyDeadPhotos({
+      ...previous,
+      ...current({ files: { [S]: [] }, ambiguous }),
+    }),
+    {
+      newlyDead: [],
+      lostMatches: [
+        { map: 'balkan', spotId: S, ordinal: 4, name: 'Wien: Curbs' },
+      ],
+    },
+  );
+  assert.deepEqual(
+    findNewlyDeadPhotos({
+      ...previous,
+      ...current({ files: { [S]: [] }, conflicts }),
+    }),
+    {
+      newlyDead: [],
+      lostMatches: [{ map: 'balkan', spotId: S, ordinal: 5, name: 'Curbs' }],
+    },
+  );
+  assert.deepEqual(
+    findNewlyDeadPhotos({
+      ...previous,
+      ...current({
+        files: { [S]: [] },
+        conflicts: [{ ...conflicts[0], merged: true }],
+      }),
+    }),
+    NONE,
+  );
+  assert.deepEqual(
+    findNewlyDeadPhotos({
+      ...previous,
+      ...current({ files: { [S]: ['b.webp'] }, ambiguous }),
+    }),
+    NONE,
+  );
+});
+
+test('legacy: map-less dead entries match this run’s main-map entries by index', () => {
+  const result = findNewlyDeadPhotos({
+    ...previousRun({
+      photoCounts: { [S]: 1 },
+      photosDead: [{ spotId: S, index: 2, reason: 'http 403' }],
+    }),
+    ...current({
+      files: { [S]: ['new.webp'] },
+      photosRecovered: [{ ...dead('vienna', 2), from: ['balkan'] }],
+      photosDead: [dead('balkan', 1)],
+    }),
+  });
+  assert.deepEqual(result, NONE);
+});
+
+test('legacy: a main-map photo written last run that now comes back dead is still caught', () => {
+  const result = findNewlyDeadPhotos({
+    ...previousRun({ photoCounts: { [S]: 1 } }),
+    ...current({ files: { [S]: [] }, photosDead: [dead('vienna', 1)] }),
+  });
+  assert.deepEqual(result, { newlyDead: [dead('vienna', 1)], lostMatches: [] });
 });
 
 test('JSON text is 2-space indented with a trailing newline', () => {
