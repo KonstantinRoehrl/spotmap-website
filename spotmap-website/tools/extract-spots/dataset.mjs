@@ -87,7 +87,8 @@ export function prepareSpots(placemarks, ownPrefixes) {
  * Builds a city's GeoJSON and run report. Written photos become base-relative paths
  * (`spots/<city>/<file>`, the `SpotProperties.photos` contract); dead ones are left out of the
  * GeoJSON and listed in the report by spot and position. A spot with no written photo is still
- * included.
+ * included. A written photo that resolves to the same file as an earlier photo of its spot is kept
+ * only once; each repeat is listed in the report's `photosDuplicate` with the position it repeats.
  *
  * @param {object} input
  * @param {string} input.city the `CityEnum` value
@@ -100,6 +101,7 @@ export function prepareSpots(placemarks, ownPrefixes) {
  */
 export function buildCity({ city, mid, spots, warnings, outcomes }) {
   const photosDead = [];
+  const photosDuplicate = [];
   const spotsWithoutPhotos = [];
   const statusCounts = { active: 0, demolished: 0, unclassified: 0 };
   let photosLinked = 0;
@@ -107,10 +109,18 @@ export function buildCity({ city, mid, spots, warnings, outcomes }) {
 
   const features = spots.map((spot) => {
     const photos = [];
+    const keptIndexByFile = new Map();
     for (const photo of spot.photos) {
       photosLinked++;
       const outcome = outcomes.get(photoKey(spot.id, photo.index));
-      if (outcome?.written) {
+      if (outcome?.written && keptIndexByFile.has(outcome.file)) {
+        photosDuplicate.push({
+          spotId: spot.id,
+          index: photo.index,
+          sameAs: keptIndexByFile.get(outcome.file),
+        });
+      } else if (outcome?.written) {
+        keptIndexByFile.set(outcome.file, photo.index);
         photos.push(`spots/${city}/${outcome.file}`);
         photosWritten++;
       } else if (outcome?.dead) {
@@ -146,6 +156,7 @@ export function buildCity({ city, mid, spots, warnings, outcomes }) {
       photosLinked,
       photosWritten,
       photosDead,
+      photosDuplicate,
       spotsWithoutPhotos,
       statusCounts,
       warnings,

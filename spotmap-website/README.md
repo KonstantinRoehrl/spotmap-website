@@ -69,7 +69,7 @@ still reads `public/spots/`; promoting a dataset there is a separate step.
 | --- | --- | --- |
 | `data/spots/sources.json` | yes | each city's My Maps `mid` and the name prefixes stripped from its spot names |
 | `data/spots/<city>.geojson` | yes | the city's spots; photo paths are base-relative (`spots/<city>/…`) |
-| `data/spots/<city>.report.json` | yes | counts, dead photos (by spot and position) and warnings from the last run |
+| `data/spots/<city>.report.json` | yes | counts, dead and repeated photos (by spot and position) and warnings from the last run |
 | `data/spots/<city>/*.webp` | no | the encoded photos |
 | `data/.cache/kml/` | no | the raw KML of each city's last successful fetch |
 

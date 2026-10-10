@@ -124,6 +124,7 @@ test('the report counts in KML order', () => {
     'photosLinked',
     'photosWritten',
     'photosDead',
+    'photosDuplicate',
     'spotsWithoutPhotos',
     'statusCounts',
     'warnings',
@@ -139,10 +140,45 @@ test('the report counts in KML order', () => {
       { spotId: spots[0].id, index: 2, reason: 'http 404' },
       { spotId: spots[2].id, index: 1, reason: 'http 404' },
     ],
+    photosDuplicate: [],
     spotsWithoutPhotos: [spots[1].id, spots[2].id],
     statusCounts: { active: 1, demolished: 1, unclassified: 1 },
     warnings: [],
   });
+});
+
+test('a photo a spot links twice is listed once and reported as a duplicate', () => {
+  // Only the outcomes decide which photos match; buildCity never reads the URLs.
+  const curbsPlacemark = {
+    ...PLACEMARKS[0],
+    mediaUrls: [MYMAPS_A, MYMAPS_A, MYMAPS_A],
+  };
+  const { spots, warnings } = prepareSpots([curbsPlacemark], PREFIXES);
+  const [curbs] = spots;
+  const first = `${curbs.id}-0a1b2c3d.webp`;
+  const second = `${curbs.id}-4e5f6a7b.webp`;
+  const outcomes = new Map([
+    [photoKey(curbs.id, 1), { written: true, file: first }],
+    [photoKey(curbs.id, 2), { written: true, file: second }],
+    [photoKey(curbs.id, 3), { written: true, file: first }],
+  ]);
+  const { collection, report } = buildCity({
+    city: 'vienna',
+    mid: 'MID',
+    spots,
+    warnings,
+    outcomes,
+  });
+  assert.deepEqual(collection.features[0].properties.photos, [
+    `spots/vienna/${first}`,
+    `spots/vienna/${second}`,
+  ]);
+  assert.equal(report.photosLinked, 3);
+  assert.equal(report.photosWritten, 2);
+  assert.deepEqual(report.photosDead, []);
+  assert.deepEqual(report.photosDuplicate, [
+    { spotId: curbs.id, index: 3, sameAs: 1 },
+  ]);
 });
 
 test('a photo without an outcome is a bug, not a silent drop', () => {

@@ -59,6 +59,7 @@ export function parseCliArgs(argv, knownCities) {
   };
 }
 
+/** Runs the extraction for the cities on the command line and prints a per-city summary. */
 async function main() {
   const sources = JSON.parse(await readFile(SOURCES_PATH, 'utf8'));
   let options;
@@ -79,8 +80,9 @@ async function main() {
         sources[city],
         options,
       );
+      const duplicates = report.photosDuplicate.length;
       console.log(
-        `${city}: ${report.spotsWritten} spots, ${report.photosWritten}/${report.photosLinked} photos (${downloaded} downloaded), ${report.photosDead.length} dead`,
+        `${city}: ${report.spotsWritten} spots, ${report.photosWritten}/${report.photosLinked} photos (${downloaded} downloaded), ${report.photosDead.length} dead${duplicates > 0 ? `, ${duplicates} duplicate` : ''}`,
       );
       summary.push({
         city,
