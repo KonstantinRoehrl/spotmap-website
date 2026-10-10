@@ -1,0 +1,34 @@
+{
+  "city": "vodice",
+  "map": "balkan",
+  "mid": "1IDO4AGmCsN_D-zcXPjpU1eXqwQYTh1A",
+  "placemarks": 4,
+  "spotsWritten": 4,
+  "photosLinked": 5,
+  "photosWritten": 5,
+  "photosDead": [],
+  "photosRecovered": [],
+  "photosDuplicate": [],
+  "photosNearDuplicate": [],
+  "spotsWithoutPhotos": [],
+  "statusCounts": {
+    "active": 4,
+    "demolished": 0,
+    "unclassified": 0
+  },
+  "extraMaps": [],
+  "matches": {
+    "conflicts": [],
+    "ambiguous": [],
+    "unmatched": []
+  },
+  "linkCounts": {
+    "balkan": {
+      "7-stair-daf680": 1,
+      "low-to-high-ledge-b9d825": 1,
+      "11-stair-c62a72": 2,
+      "8-stair-f38064": 1
+    }
+  },
+  "warnings": []
+}

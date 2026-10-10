@@ -1,0 +1,214 @@
+{
+  "city": "belgrade",
+  "map": "belgrade",
+  "mid": "1YvzcNEJYFSuU9VYLUM3Nt3DW5Ro5PC8",
+  "placemarks": 6,
+  "spotsWritten": 6,
+  "photosLinked": 36,
+  "photosWritten": 18,
+  "photosDead": [],
+  "photosRecovered": [],
+  "photosDuplicate": [
+    {
+      "spotId": "big-bank-6b49ed",
+      "map": "balkan",
+      "n": 1,
+      "sameAs": {
+        "map": "belgrade",
+        "n": 1
+      }
+    },
+    {
+      "spotId": "big-bank-6b49ed",
+      "map": "balkan",
+      "n": 2,
+      "sameAs": {
+        "map": "belgrade",
+        "n": 2
+      }
+    },
+    {
+      "spotId": "7-stair-and-curbs-3fb721",
+      "map": "balkan",
+      "n": 1,
+      "sameAs": {
+        "map": "belgrade",
+        "n": 1
+      }
+    },
+    {
+      "spotId": "7-stair-and-curbs-3fb721",
+      "map": "balkan",
+      "n": 2,
+      "sameAs": {
+        "map": "belgrade",
+        "n": 2
+      }
+    },
+    {
+      "spotId": "7-stair-and-curbs-3fb721",
+      "map": "balkan",
+      "n": 3,
+      "sameAs": {
+        "map": "belgrade",
+        "n": 3
+      }
+    },
+    {
+      "spotId": "7-stair-and-curbs-3fb721",
+      "map": "balkan",
+      "n": 4,
+      "sameAs": {
+        "map": "belgrade",
+        "n": 4
+      }
+    },
+    {
+      "spotId": "7-stair-and-curbs-3fb721",
+      "map": "balkan",
+      "n": 5,
+      "sameAs": {
+        "map": "belgrade",
+        "n": 5
+      }
+    },
+    {
+      "spotId": "7-stair-and-curbs-3fb721",
+      "map": "balkan",
+      "n": 6,
+      "sameAs": {
+        "map": "belgrade",
+        "n": 6
+      }
+    },
+    {
+      "spotId": "curbs-60a7d6",
+      "map": "balkan",
+      "n": 1,
+      "sameAs": {
+        "map": "belgrade",
+        "n": 1
+      }
+    },
+    {
+      "spotId": "curbs-60a7d6",
+      "map": "balkan",
+      "n": 2,
+      "sameAs": {
+        "map": "belgrade",
+        "n": 2
+      }
+    },
+    {
+      "spotId": "novi-sad-stairs-and-big-double-set-a4ca90",
+      "map": "balkan",
+      "n": 1,
+      "sameAs": {
+        "map": "belgrade",
+        "n": 1
+      }
+    },
+    {
+      "spotId": "novi-sad-stairs-and-big-double-set-a4ca90",
+      "map": "balkan",
+      "n": 2,
+      "sameAs": {
+        "map": "belgrade",
+        "n": 2
+      }
+    },
+    {
+      "spotId": "novi-sad-stairs-and-big-double-set-a4ca90",
+      "map": "balkan",
+      "n": 3,
+      "sameAs": {
+        "map": "belgrade",
+        "n": 3
+      }
+    },
+    {
+      "spotId": "novi-sad-stairs-and-big-double-set-a4ca90",
+      "map": "balkan",
+      "n": 4,
+      "sameAs": {
+        "map": "belgrade",
+        "n": 4
+      }
+    },
+    {
+      "spotId": "crusty-rail-531396",
+      "map": "balkan",
+      "n": 1,
+      "sameAs": {
+        "map": "belgrade",
+        "n": 1
+      }
+    },
+    {
+      "spotId": "crusty-rail-531396",
+      "map": "balkan",
+      "n": 2,
+      "sameAs": {
+        "map": "belgrade",
+        "n": 2
+      }
+    },
+    {
+      "spotId": "vulcano-a26f3a",
+      "map": "balkan",
+      "n": 1,
+      "sameAs": {
+        "map": "belgrade",
+        "n": 1
+      }
+    },
+    {
+      "spotId": "vulcano-a26f3a",
+      "map": "balkan",
+      "n": 2,
+      "sameAs": {
+        "map": "belgrade",
+        "n": 2
+      }
+    }
+  ],
+  "photosNearDuplicate": [],
+  "spotsWithoutPhotos": [],
+  "statusCounts": {
+    "active": 6,
+    "demolished": 0,
+    "unclassified": 0
+  },
+  "extraMaps": [
+    {
+      "map": "balkan",
+      "mid": "1IDO4AGmCsN_D-zcXPjpU1eXqwQYTh1A",
+      "placemarks": 140,
+      "matched": 6
+    }
+  ],
+  "matches": {
+    "conflicts": [],
+    "ambiguous": [],
+    "unmatched": []
+  },
+  "linkCounts": {
+    "belgrade": {
+      "big-bank-6b49ed": 2,
+      "7-stair-and-curbs-3fb721": 6,
+      "curbs-60a7d6": 2,
+      "novi-sad-stairs-and-big-double-set-a4ca90": 4,
+      "crusty-rail-531396": 2,
+      "vulcano-a26f3a": 2
+    },
+    "balkan": {
+      "big-bank-6b49ed": 2,
+      "7-stair-and-curbs-3fb721": 6,
+      "curbs-60a7d6": 2,
+      "novi-sad-stairs-and-big-double-set-a4ca90": 4,
+      "crusty-rail-531396": 2,
+      "vulcano-a26f3a": 2
+    }
+  },
+  "warnings": []
+}

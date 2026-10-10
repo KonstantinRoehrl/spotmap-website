@@ -1,0 +1,47 @@
+{
+  "city": "linz",
+  "map": "linz",
+  "mid": "1J7UzUWB930mEv319KPFKDUNCuMqbgGM",
+  "placemarks": 16,
+  "spotsWritten": 16,
+  "photosLinked": 31,
+  "photosWritten": 31,
+  "photosDead": [],
+  "photosRecovered": [],
+  "photosDuplicate": [],
+  "photosNearDuplicate": [],
+  "spotsWithoutPhotos": [
+    "wels-low-to-high-ledges-2bbc33",
+    "antispot-blumauergarage-01cdbd"
+  ],
+  "statusCounts": {
+    "active": 16,
+    "demolished": 0,
+    "unclassified": 0
+  },
+  "extraMaps": [],
+  "matches": {
+    "conflicts": [],
+    "ambiguous": [],
+    "unmatched": []
+  },
+  "linkCounts": {
+    "linz": {
+      "wels-12-stair-bank-gap-82db98": 3,
+      "tabakfabrik-stairs-7e5950": 3,
+      "musiktheater-curbs-64d106": 2,
+      "urfahr-wiesengap-c3a6c8": 2,
+      "irgendwo-pollham-kirche-59374b": 2,
+      "kepler-klinik-8-stair-a55d23": 1,
+      "irgendwo-htl-griesskirchen-1ae144": 3,
+      "griesskirchen-moebelhaendler-manny-pad-107548": 3,
+      "gallspach-volksschule-d6931c": 2,
+      "gallspach-courthouse-6d46b4": 2,
+      "wels-loadingdock-63eb2f": 1,
+      "wels-hauptschule-43603a": 2,
+      "wels-holzcurbs-81f80d": 1,
+      "wels-brg-wallererstrasse-f4886e": 4
+    }
+  },
+  "warnings": []
+}

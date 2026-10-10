@@ -1,0 +1,190 @@
+{
+  "city": "sarajevo",
+  "map": "sarajevo",
+  "mid": "1bQasamQ0CRfALwtB5BzXZCRPSMugK4w",
+  "placemarks": 4,
+  "spotsWritten": 4,
+  "photosLinked": 26,
+  "photosWritten": 13,
+  "photosDead": [],
+  "photosRecovered": [],
+  "photosDuplicate": [
+    {
+      "spotId": "curbs-9b74f4",
+      "map": "balkan",
+      "n": 1,
+      "sameAs": {
+        "map": "sarajevo",
+        "n": 1
+      }
+    },
+    {
+      "spotId": "curbs-9b74f4",
+      "map": "balkan",
+      "n": 2,
+      "sameAs": {
+        "map": "sarajevo",
+        "n": 2
+      }
+    },
+    {
+      "spotId": "curbs-9b74f4",
+      "map": "balkan",
+      "n": 3,
+      "sameAs": {
+        "map": "sarajevo",
+        "n": 3
+      }
+    },
+    {
+      "spotId": "curbs-9b74f4",
+      "map": "balkan",
+      "n": 4,
+      "sameAs": {
+        "map": "sarajevo",
+        "n": 4
+      }
+    },
+    {
+      "spotId": "curbs-9b74f4",
+      "map": "balkan",
+      "n": 5,
+      "sameAs": {
+        "map": "sarajevo",
+        "n": 5
+      }
+    },
+    {
+      "spotId": "art-academy-curbs-5ab6b8",
+      "map": "balkan",
+      "n": 1,
+      "sameAs": {
+        "map": "sarajevo",
+        "n": 1
+      }
+    },
+    {
+      "spotId": "art-academy-curbs-5ab6b8",
+      "map": "balkan",
+      "n": 2,
+      "sameAs": {
+        "map": "sarajevo",
+        "n": 2
+      }
+    },
+    {
+      "spotId": "plaza-b274ae",
+      "map": "balkan",
+      "n": 1,
+      "sameAs": {
+        "map": "sarajevo",
+        "n": 1
+      }
+    },
+    {
+      "spotId": "plaza-b274ae",
+      "map": "balkan",
+      "n": 2,
+      "sameAs": {
+        "map": "sarajevo",
+        "n": 2
+      }
+    },
+    {
+      "spotId": "plaza-b274ae",
+      "map": "balkan",
+      "n": 3,
+      "sameAs": {
+        "map": "sarajevo",
+        "n": 3
+      }
+    },
+    {
+      "spotId": "plaza-b274ae",
+      "map": "balkan",
+      "n": 4,
+      "sameAs": {
+        "map": "sarajevo",
+        "n": 4
+      }
+    },
+    {
+      "spotId": "rooftop-miniramp-beb4e4",
+      "map": "balkan",
+      "n": 1,
+      "sameAs": {
+        "map": "sarajevo",
+        "n": 1
+      }
+    },
+    {
+      "spotId": "rooftop-miniramp-beb4e4",
+      "map": "balkan",
+      "n": 2,
+      "sameAs": {
+        "map": "sarajevo",
+        "n": 2
+      }
+    }
+  ],
+  "photosNearDuplicate": [],
+  "spotsWithoutPhotos": [],
+  "statusCounts": {
+    "active": 4,
+    "demolished": 0,
+    "unclassified": 0
+  },
+  "extraMaps": [
+    {
+      "map": "balkan",
+      "mid": "1IDO4AGmCsN_D-zcXPjpU1eXqwQYTh1A",
+      "placemarks": 140,
+      "matched": 4
+    }
+  ],
+  "matches": {
+    "conflicts": [
+      {
+        "map": "balkan",
+        "spotId": "rooftop-miniramp-beb4e4",
+        "ordinal": 133,
+        "name": "Sarajevo: Rooftop Miniramp",
+        "position": [
+          18.3185214,
+          43.7571731
+        ],
+        "folder": "Balkan",
+        "photoLinks": 2,
+        "distanceM": 13215,
+        "merged": true,
+        "positions": {
+          "main": [
+            18.4141708,
+            43.853915
+          ],
+          "extra": [
+            18.3185214,
+            43.7571731
+          ]
+        }
+      }
+    ],
+    "ambiguous": [],
+    "unmatched": []
+  },
+  "linkCounts": {
+    "sarajevo": {
+      "curbs-9b74f4": 5,
+      "art-academy-curbs-5ab6b8": 2,
+      "plaza-b274ae": 4,
+      "rooftop-miniramp-beb4e4": 2
+    },
+    "balkan": {
+      "curbs-9b74f4": 5,
+      "art-academy-curbs-5ab6b8": 2,
+      "plaza-b274ae": 4,
+      "rooftop-miniramp-beb4e4": 2
+    }
+  },
+  "warnings": []
+}

@@ -1,0 +1,38 @@
+{
+  "city": "lisbon",
+  "map": "lisbon",
+  "mid": "1Yovquxft4XHZ9ZxQ0EEws6_6JbNzfeQ",
+  "placemarks": 8,
+  "spotsWritten": 8,
+  "photosLinked": 15,
+  "photosWritten": 15,
+  "photosDead": [],
+  "photosRecovered": [],
+  "photosDuplicate": [],
+  "photosNearDuplicate": [],
+  "spotsWithoutPhotos": [],
+  "statusCounts": {
+    "active": 8,
+    "demolished": 0,
+    "unclassified": 0
+  },
+  "extraMaps": [],
+  "matches": {
+    "conflicts": [],
+    "ambiguous": [],
+    "unmatched": []
+  },
+  "linkCounts": {
+    "lisbon": {
+      "round-fountain-1a519e": 1,
+      "cage-b1a840": 1,
+      "crust-curbs-c5b857": 1,
+      "bench-c620fc": 1,
+      "angelina-diy-58f07e": 7,
+      "bank-5c2954": 2,
+      "marble-curbs-019fcc": 1,
+      "curb-7b0a64": 1
+    }
+  },
+  "warnings": []
+}

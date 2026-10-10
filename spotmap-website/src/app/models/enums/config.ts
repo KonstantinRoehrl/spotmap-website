@@ -6,6 +6,14 @@ import {
   MapRendererEnum,
 } from './map-enum';
 
+/**
+ * The shared Spotmap Balkan My Maps embed. Zadar, Vodice and Sibenik have no map of their own;
+ * all three show this one.
+ */
+const BALKAN_MAP_LINK =
+  'https://www.google.com/maps/d/u/0/embed?mid=1IDO4AGmCsN_D-zcXPjpU1eXqwQYTh1A&ehbc=2E312F&noprof=1';
+
+/** Every city's picker entry and renderer; the picker lists them in this order, grouped by country. */
 export const SUPPORTED_CITIES: Record<CityEnum, MapItem> = {
   [CityEnum.Vienna]: {
     city: CityEnum.Vienna,
@@ -78,6 +86,27 @@ export const SUPPORTED_CITIES: Record<CityEnum, MapItem> = {
     renderer: MapRendererEnum.GoogleMyMaps,
     mapLink:
       'https://www.google.com/maps/d/u/0/embed?mid=1dgfVkXz-ruy1aoQePV7j2lhv5QzEfFw&ehbc=2E312F&noprof=1',
+  },
+  [CityEnum.Zadar]: {
+    city: CityEnum.Zadar,
+    country: CountryEnum.Croatia,
+    countryCode: CountryCodeEnum.Croatia,
+    renderer: MapRendererEnum.GoogleMyMaps,
+    mapLink: BALKAN_MAP_LINK,
+  },
+  [CityEnum.Vodice]: {
+    city: CityEnum.Vodice,
+    country: CountryEnum.Croatia,
+    countryCode: CountryCodeEnum.Croatia,
+    renderer: MapRendererEnum.GoogleMyMaps,
+    mapLink: BALKAN_MAP_LINK,
+  },
+  [CityEnum.Sibenik]: {
+    city: CityEnum.Sibenik,
+    country: CountryEnum.Croatia,
+    countryCode: CountryCodeEnum.Croatia,
+    renderer: MapRendererEnum.GoogleMyMaps,
+    mapLink: BALKAN_MAP_LINK,
   },
   [CityEnum.Belgrad]: {
     city: CityEnum.Belgrad,

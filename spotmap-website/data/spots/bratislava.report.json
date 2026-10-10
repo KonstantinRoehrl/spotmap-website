@@ -1,0 +1,41 @@
+{
+  "city": "bratislava",
+  "map": "bratislava",
+  "mid": "11v43r1GYNV0soxAefVXBRT1R-E_JAuI",
+  "placemarks": 11,
+  "spotsWritten": 11,
+  "photosLinked": 39,
+  "photosWritten": 39,
+  "photosDead": [],
+  "photosRecovered": [],
+  "photosDuplicate": [],
+  "photosNearDuplicate": [],
+  "spotsWithoutPhotos": [],
+  "statusCounts": {
+    "active": 11,
+    "demolished": 0,
+    "unclassified": 0
+  },
+  "extraMaps": [],
+  "matches": {
+    "conflicts": [],
+    "ambiguous": [],
+    "unmatched": []
+  },
+  "linkCounts": {
+    "bratislava": {
+      "diy-curbs-665c3e": 2,
+      "heavy-handrail-873315": 2,
+      "boat-gap-bd695b": 3,
+      "4-stair-manny-pad-a828f6": 2,
+      "curb-to-downhill-3c3dcd": 2,
+      "low-to-high-ledge-8c72d9": 3,
+      "handrail-51da27": 3,
+      "kicker-over-stairs-1a6dba": 4,
+      "vienna-gate-gap-5ed7ef": 3,
+      "a-lot-of-banks-f6369d": 8,
+      "opera-710d2e": 7
+    }
+  },
+  "warnings": []
+}

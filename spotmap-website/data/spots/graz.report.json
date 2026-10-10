@@ -1,0 +1,37 @@
+{
+  "city": "graz",
+  "map": "graz",
+  "mid": "12VL0aop2XkUVOdyqh8GadV6RJM4Oztg",
+  "placemarks": 7,
+  "spotsWritten": 7,
+  "photosLinked": 20,
+  "photosWritten": 20,
+  "photosDead": [],
+  "photosRecovered": [],
+  "photosDuplicate": [],
+  "photosNearDuplicate": [],
+  "spotsWithoutPhotos": [],
+  "statusCounts": {
+    "active": 7,
+    "demolished": 0,
+    "unclassified": 0
+  },
+  "extraMaps": [],
+  "matches": {
+    "conflicts": [],
+    "ambiguous": [],
+    "unmatched": []
+  },
+  "linkCounts": {
+    "graz": {
+      "11-stair-d9311e": 2,
+      "lendplatz-c07aa3": 1,
+      "unistairs-1087f2": 2,
+      "uni-gap-holzcurbs-462694": 5,
+      "minibankcurbs-14-stair-b3ed61": 3,
+      "gap-16f29f": 4,
+      "curbs-4ae93f": 3
+    }
+  },
+  "warnings": []
+}
