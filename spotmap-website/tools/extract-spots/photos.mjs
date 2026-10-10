@@ -88,6 +88,17 @@ export async function fetchPhoto(
   }
 }
 
+/**
+ * Makes one request and classifies the answer; never throws. A 2xx image is `ok`. A 2xx
+ * non-image or any 4xx other than 429 is `dead`. A 429, any other status (e.g. 5xx), a timeout or a
+ * network error returns a `retryReason` instead; only a 429 also sets `retryAfterMs`, from its
+ * `Retry-After` header, and leaves it `undefined` when that header is absent or unreadable.
+ *
+ * @param {string} url
+ * @param {typeof globalThis.fetch} fetch
+ * @param {number} timeoutMs aborts the request after this long
+ * @returns {Promise<{ ok: true, bytes: Buffer } | { dead: true, reason: string } | { retryReason: string, retryAfterMs?: number }>}
+ */
 async function attemptFetch(url, fetch, timeoutMs) {
   try {
     const response = await fetch(url, {
@@ -126,6 +137,14 @@ async function attemptFetch(url, fetch, timeoutMs) {
   }
 }
 
+/**
+ * Reads a `Retry-After` header as a wait in milliseconds. Accepts delay-seconds (`120`) or an
+ * HTTP date (a date already past waits 0).
+ *
+ * @param {string | null} header the raw header value, `null` when absent
+ * @returns {number | undefined} `undefined` when the header is absent or neither form, so the
+ *   caller falls back to its own backoff
+ */
 function parseRetryAfter(header) {
   if (header === null) {
     return undefined;

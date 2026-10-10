@@ -16,7 +16,8 @@ shell so a blank embed never flashes white.
 
 ## Getting started
 
-Requires **Node ≥ 22.22.3** (or ≥ 24.15 / ≥ 26) for the Angular 22 CLI.
+Requires **Node ≥ 26** (`engines` in `package.json`, `.nvmrc`); the spot extraction
+tool depends on it.
 
 ```bash
 npm ci            # install exact dependencies
@@ -45,7 +46,7 @@ src/
   index.html
 tools/
   extract-spots/    # npm run extract:spots — My Maps KML → data/spots/ (see below)
-  verify-*.mjs      # build guards run by build:pages
+  verify-*.mjs      # build:pages runs the dist guards; verify:dev-map-worker is manual
 data/
   spots/            # extracted per-city datasets (GeoJSON + run reports)
 ```
@@ -65,13 +66,13 @@ npm run extract:spots -- vienna --reencode  # download and encode existing photo
 The tool lives in `tools/extract-spots/` and writes to `data/`. The live map
 still reads `public/spots/`; promoting a dataset there is a separate step.
 
-| Path | Committed | Contents |
-| --- | --- | --- |
-| `data/spots/sources.json` | yes | each city's My Maps `mid` and the name prefixes stripped from its spot names |
-| `data/spots/<city>.geojson` | yes | the city's spots; photo paths are base-relative (`spots/<city>/…`) |
-| `data/spots/<city>.report.json` | yes | counts, dead and repeated photos (by spot and position) and warnings from the last run |
-| `data/spots/<city>/*.webp` | no | the encoded photos |
-| `data/.cache/kml/` | no | the raw KML of each city's last successful fetch |
+| Path                            | Committed | Contents                                                                               |
+| ------------------------------- | --------- | -------------------------------------------------------------------------------------- |
+| `data/spots/sources.json`       | yes       | each city's My Maps `mid` and the name prefixes stripped from its spot names           |
+| `data/spots/<city>.geojson`     | yes       | the city's spots; photo paths are base-relative (`spots/<city>/…`)                     |
+| `data/spots/<city>.report.json` | yes       | counts, dead and repeated photos (by spot and position) and warnings from the last run |
+| `data/spots/<city>/*.webp`      | no        | the encoded photos                                                                     |
+| `data/.cache/kml/`              | no        | the raw KML of each city's last successful fetch                                       |
 
 Photos are not committed: all cities together come to well over a thousand
 images, too heavy for git, and they get a real host later.
@@ -81,12 +82,18 @@ a fingerprint of its tiny 32px rendition and names the file after it. A re-run
 fetches that rendition for every photo (a few KB each) and downloads only photos
 that are new or changed; with unchanged maps it downloads no originals and the
 committed files stay identical. A city that fails keeps its previous files; the
-run carries on and exits non-zero, naming each failed city.
+run carries on and exits non-zero, naming each failed city. A city also fails
+when a photo it downloaded on the previous run now comes back dead: Google
+sometimes answers a good photo with an error, and failing is safer than
+deleting it.
 
 Some photo links (`lh3.googleusercontent.com/umsh/…` — every photo of Split and
 Prague) answer 404, even for the map's owner, and My Maps itself shows them as
 broken images. Those photos are lost at the source: the tool skips them and lists
-them under `photosDead` in the city's report.
+them under `photosDead` in the city's report. A dead link is only skipped when it
+is new or was already dead on the previous run. A photo that was downloaded before
+and now turns dead fails the city until a re-run downloads it again or the link
+is removed in My Maps.
 
 ## Design system
 

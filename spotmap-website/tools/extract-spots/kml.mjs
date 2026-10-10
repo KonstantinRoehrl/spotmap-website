@@ -59,6 +59,13 @@ export function parseKml(text) {
   return placemarks;
 }
 
+/**
+ * Gathers a container's raw placemarks: its own first, then each folder's, recursing into
+ * nested folders, so document order is kept.
+ *
+ * @param {object} container the parsed `<Document>` or a `<Folder>`
+ * @returns {object[]} the raw parsed `<Placemark>` nodes
+ */
 function collectPlacemarks(container) {
   return [
     ...(container.Placemark ?? []),
@@ -66,6 +73,15 @@ function collectPlacemarks(container) {
   ];
 }
 
+/**
+ * Turns one raw parsed `<Placemark>` into a {@link Placemark}. Only the first two numbers of
+ * the point are read (KML's `lng,lat[,alt]`); the photo links are every whitespace-separated
+ * URL in the `gx_media_links` fields.
+ *
+ * @param {object} placemark the raw parsed `<Placemark>` node
+ * @returns {Placemark}
+ * @throws {Error} naming the placemark when its point is missing or not two finite numbers
+ */
 function toPlacemark(placemark) {
   const name = String(placemark.name ?? '').trim();
   const rawCoordinates = placemark.Point?.coordinates;
