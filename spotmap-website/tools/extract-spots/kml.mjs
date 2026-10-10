@@ -26,9 +26,14 @@ import { XMLParser } from 'fast-xml-parser';
 // Tags that may occur once or many times; forcing lists keeps one code path for a map with a
 // single folder (15 of the 16) and one with several.
 const LIST_TAGS = new Set(['Folder', 'Placemark', 'Data']);
-// CDATA arrives under this key, undecoded; plain text arrives as a decoded string. Notes need to
-// know which one they hold to decode entities exactly once.
+// CDATA arrives under this key, undecoded; plain text arrives as a decoded string.
 const CDATA = '__cdata';
+// A `<description>` arrives as its raw inner markup, so its plain-text and CDATA runs can be read
+// in document order; the parser's own result lists all plain text before all CDATA.
+const DESCRIPTION_PATH = '*.description';
+// One CDATA section (its content captured) or one XML comment, in the raw markup.
+const CDATA_OR_COMMENT = /<!\[CDATA\[([\s\S]*?)\]\]>|<!--[\s\S]*?-->/g;
+const XML_ENTITIES = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" };
 const IMG_TAG = /<img\b[^>]*>/gi;
 const BR_TAG = /<br\s*\/?>/gi;
 const NAMED_ENTITIES = {
@@ -47,6 +52,7 @@ const parser = new XMLParser({
   // `<Data name="gx_media_links">` is told apart by its attribute.
   ignoreAttributes: false,
   cdataPropName: CDATA,
+  stopNodes: [DESCRIPTION_PATH],
 });
 
 /**
@@ -182,16 +188,67 @@ function textOf(node) {
 }
 
 /**
+ * Splits a `<description>`'s raw inner markup into its text runs in document order, marking which
+ * came from CDATA (undecoded) and which were plain text. Plain text gets the five XML entities
+ * decoded, as the parser does for other elements; comments are dropped.
+ *
+ * @param {unknown} node the parsed `<description>`: its raw markup as a string, `{ '#text' }`
+ *   when it carries attributes, or absent
+ * @returns {{ text: string, cdata: boolean }[]}
+ */
+function descriptionParts(node) {
+  const value =
+    typeof node === 'object' && node !== null ? node['#text'] : node;
+  if (value === undefined || value === null) {
+    return [];
+  }
+  const raw = String(value);
+  const parts = [];
+  let plainStart = 0;
+  for (const match of raw.matchAll(CDATA_OR_COMMENT)) {
+    parts.push({
+      text: decodeXmlEntities(raw.slice(plainStart, match.index)),
+      cdata: false,
+    });
+    if (match[1] !== undefined) {
+      parts.push({ text: match[1], cdata: true });
+    }
+    plainStart = match.index + match[0].length;
+  }
+  parts.push({
+    text: decodeXmlEntities(raw.slice(plainStart)),
+    cdata: false,
+  });
+  return parts;
+}
+
+/**
+ * Decodes the five predefined XML entities in one pass, so `&amp;lt;` becomes `&lt;`, never `<`.
+ * Character references stay as written, matching how the parser reads every other element.
+ *
+ * @param {string} text plain text from raw XML markup
+ * @returns {string}
+ */
+function decodeXmlEntities(text) {
+  return text.replace(
+    /&(amp|lt|gt|quot|apos);/g,
+    (_, name) => XML_ENTITIES[name],
+  );
+}
+
+/**
  * A placemark's `<description>` as plain text: `<img>` elements dropped (each repeats one of the
  * placemark's `gx_media_links` photos), `<br>` turned into a newline, entities decoded exactly
  * once, trailing spaces trimmed per line, three or more newlines collapsed to two, and the whole
  * trimmed. No other tag is stripped: the maps use none, and a note like `<3 spot` stays as typed.
  *
- * @param {unknown} node the parsed `<description>`
+ * Plain-text and CDATA runs are joined in document order.
+ *
+ * @param {unknown} node the parsed `<description>`, read as raw markup
  * @returns {string | undefined} `undefined` when nothing is left
  */
 function descriptionOf(node) {
-  const text = textParts(node)
+  const text = descriptionParts(node)
     .map(({ text: part, cdata }) => {
       const markupFree = part.replace(IMG_TAG, '').replace(BR_TAG, '\n');
       return cdata ? decodeEntities(markupFree) : markupFree;

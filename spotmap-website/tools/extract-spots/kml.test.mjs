@@ -118,3 +118,14 @@ test('decodes CDATA notes exactly once', () => {
 test('leaves the description out when nothing but images remains', () => {
   assert.equal('description' in described()[2], false);
 });
+
+test('keeps plain-text and CDATA runs of mixed notes in document order, each decoded once', () => {
+  const text =
+    '<kml><Document><Placemark><name>Wien: Mixed</name>' +
+    '<description>Police &amp;amp; <![CDATA[often &amp; <br>]]> here <![CDATA[</b> &lt;3]]> end</description>' +
+    '<Point><coordinates>16.1,48.1,0</coordinates></Point></Placemark></Document></kml>';
+  assert.equal(
+    parseKml(text)[0].description,
+    'Police &amp; often &\n here </b> <3 end',
+  );
+});
