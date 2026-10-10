@@ -1,5 +1,6 @@
 /**
- * Downloads My Maps photos, fingerprints them and re-encodes them to WebP.
+ * Downloads My Maps photos, fingerprints them and re-encodes them to WebP, and hashes encoded
+ * photos perceptually, so an extra map's re-encoded copy of a photo can be recognised.
  *
  * Google rotates every photo URL on each KML export, so a photo is recognised by a fingerprint of
  * its tiny `fife=s32` rendition (~1–3 KB, byte-stable across exports) rather than by its URL.
@@ -20,6 +21,8 @@ const RETRY_DELAYS_MS = [1000, 2000, 4000];
 const FINGERPRINT_RENDITION = 'fife=s32';
 const LONG_EDGE_PX = 1400;
 const WEBP_QUALITY = 72;
+/** Side of the greyscale square a photo is shrunk to before hashing; 16 × 16 gives 256 bits. */
+const HASH_EDGE_PX = 16;
 
 /**
  * Creates a limiter that runs at most `maxInFlight` tasks at once and queues the rest in order.
@@ -198,4 +201,59 @@ export async function encodePhoto(bytes, outPath) {
     .webp({ quality: WEBP_QUALITY })
     .toBuffer();
   await writeFileAtomic(outPath, webp);
+}
+
+/**
+ * A perceptual fingerprint of an encoded photo on disk: its 16×16 greyscale average hash as 64
+ * hex (256 bits, row by row, a bit set where the pixel is brighter than the mean). Two encodings
+ * of one shot differ in a few bits, two shots in many — which the byte fingerprint of
+ * {@link photoFingerprint} cannot tell apart.
+ *
+ * @param {string} path an image file, e.g. an encoded `.webp`
+ * @returns {Promise<string>}
+ */
+export async function averageHash(path) {
+  const pixels = await sharp(path)
+    .removeAlpha()
+    .greyscale()
+    .resize(HASH_EDGE_PX, HASH_EDGE_PX, { fit: 'fill' })
+    .raw()
+    .toBuffer();
+  const mean = pixels.reduce((sum, value) => sum + value, 0) / pixels.length;
+  let hex = '';
+  for (let i = 0; i < pixels.length; i += 4) {
+    let nibble = 0;
+    for (let bit = 0; bit < 4; bit++) {
+      nibble = (nibble << 1) | (pixels[i + bit] > mean ? 1 : 0);
+    }
+    hex += nibble.toString(16);
+  }
+  return hex;
+}
+
+/**
+ * Counts the bits two {@link averageHash} values differ in.
+ *
+ * @param {string} a hex hash
+ * @param {string} b hex hash of the same length
+ * @returns {number} 0 (same picture) to 4 × length
+ * @throws {Error} when the lengths differ
+ */
+export function hashDistance(a, b) {
+  if (a.length !== b.length) {
+    throw new Error(
+      `cannot compare hashes of different lengths (${a.length} and ${b.length})`,
+    );
+  }
+  let distance = 0;
+  for (let i = 0; i < a.length; i++) {
+    for (
+      let diff = Number.parseInt(a[i], 16) ^ Number.parseInt(b[i], 16);
+      diff > 0;
+      diff >>= 1
+    ) {
+      distance += diff & 1;
+    }
+  }
+  return distance;
 }

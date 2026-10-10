@@ -6,15 +6,18 @@
 import { strict as assert } from 'node:assert';
 import { createHash } from 'node:crypto';
 import { mkdtempSync, readdirSync, rmSync } from 'node:fs';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { after, test } from 'node:test';
 import sharp from 'sharp';
 import {
+  averageHash,
   createLimiter,
   encodePhoto,
   fetchPhoto,
   fingerprintUrl,
+  hashDistance,
   photoFingerprint,
 } from './photos.mjs';
 
@@ -190,4 +193,61 @@ test('encoding never enlarges a small image', async () => {
   const outPath = join(workDir, 'small.webp');
   await encodePhoto(source, outPath);
   assert.equal((await sharp(outPath).metadata()).width, 300);
+});
+
+/** Writes a 32×32 image, black on the left half and white on the right, in `format`. */
+async function halfImage(t, format) {
+  const dir = await mkdtemp(join(tmpdir(), 'extract-spots-hash-'));
+  t.after(() => rm(dir, { recursive: true, force: true }));
+  const pixels = Buffer.alloc(32 * 32 * 3);
+  for (let y = 0; y < 32; y++) {
+    for (let x = 16; x < 32; x++) {
+      pixels.fill(255, (y * 32 + x) * 3, (y * 32 + x) * 3 + 3);
+    }
+  }
+  const path = join(dir, `half.${format}`);
+  const image = sharp(pixels, { raw: { width: 32, height: 32, channels: 3 } });
+  await writeFile(
+    path,
+    format === 'png'
+      ? await image.png().toBuffer()
+      : await image.jpeg({ quality: 40 }).toBuffer(),
+  );
+  return path;
+}
+
+test('the average hash sets a bit for every pixel brighter than the mean, row by row', async (t) => {
+  assert.equal(await averageHash(await halfImage(t, 'png')), '00ff'.repeat(16));
+});
+
+test('a flat image hashes to all zeros', async (t) => {
+  const dir = await mkdtemp(join(tmpdir(), 'extract-spots-hash-'));
+  t.after(() => rm(dir, { recursive: true, force: true }));
+  const path = join(dir, 'flat.webp');
+  await sharp({
+    create: { width: 20, height: 10, channels: 4, background: '#cc000080' },
+  })
+    // Lossless, so the flat colour is not rippled by the codec's own noise.
+    .webp({ lossless: true })
+    .toFile(path);
+  assert.equal(await averageHash(path), '0'.repeat(64));
+});
+
+test('a lossy re-encoding of the same shot stays within a few bits', async (t) => {
+  const distance = hashDistance(
+    await averageHash(await halfImage(t, 'png')),
+    await averageHash(await halfImage(t, 'jpeg')),
+  );
+  assert.ok(distance <= 2, `distance ${distance}`);
+});
+
+test('the hash distance counts differing bits', () => {
+  assert.equal(hashDistance('00ff', '00ff'), 0);
+  assert.equal(hashDistance('0000', 'ffff'), 16);
+  assert.equal(hashDistance('0f', 'f0'), 8);
+  assert.equal(hashDistance('3ff', '000'), 10);
+  assert.throws(
+    () => hashDistance('00', '000'),
+    /different lengths \(2 and 3\)/,
+  );
 });
