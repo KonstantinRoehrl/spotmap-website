@@ -427,24 +427,35 @@ function sourceOf(map, { folder, description }) {
  * Finds what the CLI must refuse to overwrite, so a wrong 403 or a moved placemark cannot wipe
  * good photos:
  *
- * - **newly dead** — a `photosDead` or `photosRecovered` entry that the previous report listed in
- *   neither list, numbered within the previous run's link count of its spot on its map;
- * - **lost match** — an ambiguous placemark (each candidate) or an unmerged conflict of an extra
- *   map naming a spot that map fed photos to last run.
+ * - **newly dead** — a `photosDead` or `photosRecovered` entry, numbered within the previous run's
+ *   link count of its spot on its map, that is not one of the previous report's entries in either
+ *   list. When the spot has fewer links on that map than last run, removed links may have
+ *   renumbered its later photos down by up to the difference, so an entry also counts as a
+ *   previous one up to that many numbers above it, each previous entry standing for one entry
+ *   only;
+ * - **lost match** — every spot an extra map fed photos to last run that an ambiguous placemark or
+ *   an unmerged conflict of that map names, and, while that map has an unmatched placemark this
+ *   run (one that may be the feeding placemark renamed and moved), every spot it fed last run that
+ *   no placemark of it matches now. With nothing unmatched, a spot that lost its match had its
+ *   placemark deleted, which is a legitimate removal.
  *
  * A spot whose new GeoJSON still lists every photo file it listed before lost nothing and is
- * excused from both. A previous report without `linkCounts` predates extra maps: only main-map
- * entries are checked, its link count is the spot's written photos plus its dead and duplicate
- * entries, and its entries without `map` are main-map ones numbered by `index`.
+ * excused from both, as is a spot that left the main map. A previous report without `linkCounts`
+ * predates extra maps: only main-map entries are checked, its link count is the spot's written
+ * photos plus its dead and duplicate entries, and its entries without `map` are main-map ones
+ * numbered by `index`.
  *
  * @param {object} input
  * @param {object} [input.previousCollection] the previous run's GeoJSON; absent on a first run
  * @param {object} [input.previousReport] the previous run's report; absent on a first run
  * @param {object} input.collection the new GeoJSON from {@link buildCity}
  * @param {object} input.report the new report from {@link buildCity}
- * @returns {{ newlyDead: { spotId: string, map: string, n: number, reason: string }[], lostMatches: { map: string, spotId: string, ordinal: number, name: string }[] }}
+ * @returns {{ newlyDead: { spotId: string, map: string, n: number, reason: string }[], lostMatches: { map: string, spotId: string, ordinal?: number, name: string }[] }}
  *   both empty when either previous output is absent; `newlyDead` lists the `photosDead` entries
- *   first, then the `photosRecovered` ones (without `from`), each in report order
+ *   first, then the `photosRecovered` ones (without `from`), each in report order; `lostMatches`
+ *   lists the ambiguous and unmerged-conflict placemarks first (with their `ordinal` and `name`),
+ *   then each other spot that lost its match, once per map, named by its previous source record
+ *   of that map (no `ordinal`: which unmatched placemark it was cannot be told)
  */
 export function findNewlyDeadPhotos({
   previousCollection,
@@ -460,24 +471,31 @@ export function findNewlyDeadPhotos({
     previousReport.linkCounts ??
     legacyLinkCounts(previousCollection, previousReport, mainMap);
   const previousCount = (map, spotId) => linkCounts[map]?.[spotId] ?? 0;
-  const previouslyLost = new Set(
+  const excused = excusedSpots(previousCollection, collection);
+  const newlyDead = unmatchedLostEntries(
+    [...report.photosDead, ...report.photosRecovered].filter(
+      ({ spotId, map, n }) =>
+        !excused.has(spotId) && n <= previousCount(map, spotId),
+    ),
     [
       ...previousReport.photosDead,
       ...(previousReport.photosRecovered ?? []),
-    ].map((entry) =>
-      photoKey(entry.spotId, entry.map ?? mainMap, entry.n ?? entry.index),
-    ),
-  );
-  const excused = excusedSpots(previousCollection, collection);
-  const newlyDead = [...report.photosDead, ...report.photosRecovered]
-    .filter(
-      ({ spotId, map, n }) =>
-        !excused.has(spotId) &&
-        n <= previousCount(map, spotId) &&
-        !previouslyLost.has(photoKey(spotId, map, n)),
-    )
-    .map(({ spotId, map, n, reason }) => ({ spotId, map, n, reason }));
-  const lostMatches = [
+    ].map((entry) => ({
+      spotId: entry.spotId,
+      map: entry.map ?? mainMap,
+      n: entry.n ?? entry.index,
+    })),
+    // Limitation: a removed already-dead link and a newly dead photo of one spot and map cancel out.
+    (map, spotId) =>
+      Math.max(
+        0,
+        previousCount(map, spotId) - (report.linkCounts?.[map]?.[spotId] ?? 0),
+      ),
+  ).map(({ spotId, map, n, reason }) => ({ spotId, map, n, reason }));
+
+  const wasFed = ({ map, spotId }) =>
+    !excused.has(spotId) && previousCount(map, spotId) > 0;
+  const lostPlacemarks = [
     ...report.matches.ambiguous.flatMap(({ map, ordinal, name, candidates }) =>
       candidates.map((spotId) => ({ map, spotId, ordinal, name })),
     ),
@@ -489,10 +507,77 @@ export function findNewlyDeadPhotos({
         ordinal,
         name,
       })),
-  ].filter(
-    ({ map, spotId }) => !excused.has(spotId) && previousCount(map, spotId) > 0,
+  ].filter(wasFed);
+  const listed = new Set(
+    lostPlacemarks.map(({ map, spotId }) => `${spotId}#${map}`),
   );
-  return { newlyDead, lostMatches };
+  const previousById = new Map(
+    previousCollection.features.map(({ properties }) => [
+      properties.id,
+      properties,
+    ]),
+  );
+  const unmatchedMaps = new Set(report.matches.unmatched.map(({ map }) => map));
+  const extraMaps = Object.keys(linkCounts).filter(
+    (map) => map !== mainMap && unmatchedMaps.has(map),
+  );
+  const unmatchedSpots = collection.features.flatMap(({ properties }) => {
+    const previous = previousById.get(properties.id);
+    const matchedMaps = new Set(properties.sources.map(({ map }) => map));
+    return extraMaps
+      .filter(
+        (map) =>
+          previous !== undefined &&
+          !matchedMaps.has(map) &&
+          !listed.has(`${properties.id}#${map}`) &&
+          wasFed({ map, spotId: properties.id }),
+      )
+      .map((map) => ({
+        map,
+        spotId: properties.id,
+        name:
+          previous.sources.find((source) => source.map === map)?.name ??
+          previous.name,
+      }));
+  });
+  return { newlyDead, lostMatches: [...lostPlacemarks, ...unmatchedSpots] };
+}
+
+/**
+ * The lost entries of this run that no previous lost entry accounts for. A previous entry of the
+ * same spot and map accounts for an entry numbered `n` when its number lies in `n … n + shift`,
+ * and for one entry only; entries are paired lowest number first, each with the lowest free
+ * previous number, which pairs as many as any pairing can.
+ *
+ * @template {{ spotId: string, map: string, n: number }} Entry
+ * @param {Entry[]} entries this run's lost entries to check, in report order
+ * @param {{ spotId: string, map: string, n: number }[]} previousEntries the previous run's
+ * @param {(map: string, spotId: string) => number} shiftOf how far removed links may have
+ *   renumbered the spot's photos on that map
+ * @returns {Entry[]} the unaccounted entries, in report order
+ */
+function unmatchedLostEntries(entries, previousEntries, shiftOf) {
+  const groupKey = ({ spotId, map }) => `${spotId}#${map}`;
+  const previousNumbers = Map.groupBy(previousEntries, groupKey);
+  const unaccounted = new Set();
+  for (const [key, group] of Map.groupBy(entries, groupKey)) {
+    const free = (previousNumbers.get(key) ?? [])
+      .map(({ n }) => n)
+      .sort((a, b) => a - b);
+    const shift = shiftOf(group[0].map, group[0].spotId);
+    let next = 0;
+    for (const entry of group.toSorted((a, b) => a.n - b.n)) {
+      while (next < free.length && free[next] < entry.n) {
+        next++;
+      }
+      if (next < free.length && free[next] <= entry.n + shift) {
+        next++;
+      } else {
+        unaccounted.add(entry);
+      }
+    }
+  }
+  return entries.filter((entry) => unaccounted.has(entry));
 }
 
 /**

@@ -699,6 +699,80 @@ test('a spot an extra map fed last run that now loses its match fails the city a
   assert.deepEqual(await snapshot(outputs), before);
 });
 
+test('a spot whose Balkan placemark was renamed and moved off it fails the city and keeps its files', async (t) => {
+  const first = balkanWeb();
+  const { ws } = await runIn(t, ['split'], first.web);
+  const outputs = {
+    geojsonPath: join(ws.spotsDir, 'split.geojson'),
+    reportPath: join(ws.spotsDir, 'split.report.json'),
+    photoDir: join(ws.spotsDir, 'split'),
+  };
+  const before = await snapshot(outputs);
+  // Still prefixed, but neither its name nor its position (some 240 m off) matches Riva now.
+  const renamed = fakeWeb({
+    [SPLIT_URL]: kmlResponse(
+      kmlOf([
+        {
+          name: 'Split: Riva',
+          coordinates: RIVA,
+          urls: ['https://photos.test/dead?fife=s16383'],
+        },
+      ]),
+    ),
+    [BALKAN_URL]: kmlResponse(
+      kmlOf([
+        {
+          name: 'Split: Riva Steps',
+          coordinates: [16.443, 43.508],
+          urls: [first.live.url],
+        },
+      ]),
+    ),
+    ...first.live.routes,
+  });
+
+  const { code } = await runIn(t, ['split'], renamed, ws);
+
+  assert.equal(code, 1);
+  assert.match(
+    console.error.mock.calls
+      .map(({ arguments: args }) => args.join(' '))
+      .join('\n'),
+    new RegExp(
+      `split: FAILED — 1 spot an extra map fed last run lost its match \\(${RIVA_ID} ← balkan placemark "Riva"\\)`,
+    ),
+  );
+  assert.deepEqual(await snapshot(outputs), before);
+});
+
+test('a spot whose only Balkan placemark was deleted loses its Balkan photos without failing', async (t) => {
+  const first = balkanWeb();
+  const { ws, read } = await runIn(t, ['split'], first.web);
+  const deleted = fakeWeb({
+    [SPLIT_URL]: kmlResponse(
+      kmlOf([
+        {
+          name: 'Split: Riva',
+          coordinates: RIVA,
+          urls: ['https://photos.test/dead?fife=s16383'],
+        },
+      ]),
+    ),
+    [BALKAN_URL]: kmlResponse(
+      kmlOf([
+        { name: 'Zadar: Ledge', coordinates: LEDGE, urls: [first.ledge.url] },
+      ]),
+    ),
+    ...first.ledge.routes,
+  });
+
+  const { code } = await runIn(t, ['split'], deleted, ws);
+
+  assert.equal(code, 0);
+  const [riva] = (await read('split.geojson')).features;
+  assert.deepEqual(riva.properties.photos, []);
+});
+
 test('a placemark whose notes carry a URL fails the city and writes no output', async (t) => {
   const ws = await workspace(t);
   const kmlText = kmlWith([PHOTO_A]).replace(

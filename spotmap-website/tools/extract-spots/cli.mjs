@@ -530,8 +530,9 @@ async function readJson(path) {
  *
  * @param {{ spotId: string, map: string, n: number, reason: string }[]} newlyDead from
  *   {@link findNewlyDeadPhotos}
- * @param {{ map: string, spotId: string, ordinal: number, name: string }[]} lostMatches from
- *   {@link findNewlyDeadPhotos}; at least one of the two is not empty
+ * @param {{ map: string, spotId: string, ordinal?: number, name: string }[]} lostMatches from
+ *   {@link findNewlyDeadPhotos}; at least one of the two is not empty. An entry without `ordinal`
+ *   names the placemark that fed the spot last run.
  * @returns {Error}
  */
 function guardError(newlyDead, lostMatches) {
@@ -551,7 +552,7 @@ function guardError(newlyDead, lostMatches) {
         ? '1 spot an extra map fed last run lost its match'
         : `${lostMatches.length} spots an extra map fed last run lost their match`;
     problems.push(
-      `${subject} (${listFirst(lostMatches.map(({ spotId, map, ordinal, name }) => `${spotId} ← ${map} placemark #${ordinal} "${name}"`))})`,
+      `${subject} (${listFirst(lostMatches.map(({ spotId, map, ordinal, name }) => `${spotId} ← ${map} placemark ${ordinal === undefined ? '' : `#${ordinal} `}"${name}"`))})`,
     );
   }
   const advice =

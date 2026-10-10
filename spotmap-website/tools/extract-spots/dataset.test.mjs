@@ -265,12 +265,16 @@ function previousRun({ photoCounts, photosDead = [], photosDuplicate = [] }) {
   };
 }
 
-/** A previous run in the current shape: GeoJSON photo files per spot, plus report lists. */
+/**
+ * A previous run in the current shape: GeoJSON photo files per spot, plus report lists. A spot's
+ * source records default to the main map's alone.
+ */
 function previousCurrent({
   files,
   linkCounts,
   photosDead = [],
   photosRecovered = [],
+  sources = {},
 }) {
   return {
     previousCollection: {
@@ -283,7 +287,7 @@ function previousCurrent({
           name: id,
           status: 'active',
           photos,
-          sources: [{ map: 'vienna' }],
+          sources: sources[id] ?? [{ map: 'vienna' }],
         },
       })),
     },
@@ -296,26 +300,33 @@ function previousCurrent({
   };
 }
 
-/** A new run's GeoJSON photo files per spot and report, keeping only what the guard reads. */
+/**
+ * A new run's GeoJSON photo files per spot and report, keeping only what the guard reads. A spot's
+ * source records default to the main map's alone; `linkCounts` and match lists to none.
+ */
 function current({
   files,
   photosDead = [],
   photosRecovered = [],
   ambiguous = [],
   conflicts = [],
+  unmatched = [],
+  sources = {},
+  linkCounts = {},
 }) {
   return {
     collection: {
       type: 'FeatureCollection',
       features: Object.entries(files).map(([id, photos]) => ({
-        properties: { id, photos },
+        properties: { id, photos, sources: sources[id] ?? [{ map: 'vienna' }] },
       })),
     },
     report: {
       map: 'vienna',
       photosDead,
       photosRecovered,
-      matches: { conflicts, ambiguous, unmatched: [] },
+      matches: { conflicts, ambiguous, unmatched },
+      linkCounts,
     },
   };
 }
@@ -397,6 +408,7 @@ test('a number beyond last run’s link count is a new link, not newly dead', ()
     ...current({
       files: { [S]: [] },
       photosDead: [dead('vienna', 2), dead('balkan', 2)],
+      sources: { [S]: [{ map: 'vienna' }, { map: 'balkan' }] },
     }),
   });
   assert.deepEqual(result, NONE);
@@ -446,6 +458,7 @@ test('an ambiguous or unmerged-conflict placemark naming a spot that map fed las
       ...current({
         files: { [S]: [] },
         conflicts: [{ ...conflicts[0], merged: true }],
+        sources: { [S]: [{ map: 'vienna' }, { map: 'balkan' }] },
       }),
     }),
     NONE,
@@ -457,6 +470,150 @@ test('an ambiguous or unmerged-conflict placemark naming a spot that map fed las
     }),
     NONE,
   );
+});
+
+test('a spot an extra map fed last run that no placemark of that map matches now is a lost match while that map has unmatched placemarks', () => {
+  // E.g. the feeding placemark was renamed and moved upstream and now lands in `unmatched`.
+  const previous = previousCurrent({
+    files: { [S]: ['a.webp', 'b.webp'] },
+    linkCounts: { vienna: { [S]: 1 }, balkan: { [S]: 1 } },
+    sources: {
+      [S]: [{ map: 'vienna' }, { map: 'balkan', name: 'Rooftop Miniramp' }],
+    },
+  });
+  assert.deepEqual(
+    findNewlyDeadPhotos({
+      ...previous,
+      ...current({
+        files: { [S]: ['a.webp'] },
+        unmatched: [{ map: 'balkan', ordinal: 7, name: 'Sarajevo: Rooftop' }],
+      }),
+    }),
+    {
+      newlyDead: [],
+      lostMatches: [{ map: 'balkan', spotId: S, name: 'Rooftop Miniramp' }],
+    },
+  );
+  assert.deepEqual(
+    findNewlyDeadPhotos({
+      ...previous,
+      ...current({
+        files: { [S]: ['a.webp'] },
+        unmatched: [{ map: 'other', ordinal: 7, name: 'Sarajevo: Rooftop' }],
+      }),
+    }),
+    NONE,
+  );
+});
+
+test('a spot whose only feeding placemark was deleted, with nothing of that map unmatched, is no lost match', () => {
+  const result = findNewlyDeadPhotos({
+    ...previousCurrent({
+      files: { [S]: ['a.webp', 'b.webp'] },
+      linkCounts: { vienna: { [S]: 1 }, balkan: { [S]: 1 } },
+      sources: { [S]: [{ map: 'vienna' }, { map: 'balkan' }] },
+    }),
+    ...current({ files: { [S]: ['a.webp'] } }),
+  });
+  assert.deepEqual(result, NONE);
+});
+
+test('a spot an extra map fed last run is no lost match when it still has a match, kept every file, or left the main map', () => {
+  const previous = previousCurrent({
+    files: { [S]: ['a.webp', 'b.webp', 'c.webp'] },
+    linkCounts: { vienna: { [S]: 1 }, balkan: { [S]: 2 } },
+    sources: {
+      [S]: [{ map: 'vienna' }, { map: 'balkan' }, { map: 'balkan' }],
+    },
+  });
+  // Something of that map is unmatched in every case, so only the spot's own state excuses it.
+  const unmatched = [{ map: 'balkan', ordinal: 7, name: 'Wien: Elsewhere' }];
+  assert.deepEqual(
+    findNewlyDeadPhotos({
+      ...previous,
+      ...current({
+        files: { [S]: ['a.webp', 'c.webp'] },
+        sources: { [S]: [{ map: 'vienna' }, { map: 'balkan' }] },
+        unmatched,
+      }),
+    }),
+    NONE,
+  );
+  assert.deepEqual(
+    findNewlyDeadPhotos({
+      ...previous,
+      ...current({ files: { [S]: ['a.webp', 'b.webp', 'c.webp'] }, unmatched }),
+    }),
+    NONE,
+  );
+  assert.deepEqual(
+    findNewlyDeadPhotos({
+      ...previous,
+      ...current({ files: { 'other-ffffff': [] }, unmatched }),
+    }),
+    NONE,
+  );
+});
+
+test('a spot named by an ambiguous placemark and matched by none is listed once, by that placemark', () => {
+  const result = findNewlyDeadPhotos({
+    ...previousCurrent({
+      files: { [S]: ['b.webp'] },
+      linkCounts: { vienna: {}, balkan: { [S]: 1 } },
+    }),
+    ...current({
+      files: { [S]: [] },
+      ambiguous: [
+        { map: 'balkan', ordinal: 4, name: 'Curbs', candidates: [S] },
+      ],
+    }),
+  });
+  assert.deepEqual(result, {
+    newlyDead: [],
+    lostMatches: [{ map: 'balkan', spotId: S, ordinal: 4, name: 'Curbs' }],
+  });
+});
+
+test('a still-dead photo renumbered by an earlier link’s removal is not newly dead', () => {
+  // Last run: placemark P1 linked balkan#1 and #2 (written), P2 linked #3 (dead). P1 is deleted
+  // upstream, so P2's dead photo is now balkan#1.
+  const result = findNewlyDeadPhotos({
+    ...previousCurrent({
+      files: { [S]: ['a.webp', 'b.webp'] },
+      linkCounts: { vienna: {}, balkan: { [S]: 3 } },
+      photosDead: [dead('balkan', 3)],
+      sources: {
+        [S]: [{ map: 'vienna' }, { map: 'balkan' }, { map: 'balkan' }],
+      },
+    }),
+    ...current({
+      files: { [S]: [] },
+      photosDead: [dead('balkan', 1)],
+      sources: { [S]: [{ map: 'vienna' }, { map: 'balkan' }] },
+      linkCounts: { balkan: { [S]: 1 } },
+    }),
+  });
+  assert.deepEqual(result, NONE);
+});
+
+test('a written photo that dies as an earlier link is removed is still newly dead', () => {
+  // Last run: balkan#1 and #2 written, #3 dead. Now #1 is removed and #2 dies: the dead #2 slides
+  // to #1, the dead #3 to #2. Only one of them can be last run's dead #3.
+  const result = findNewlyDeadPhotos({
+    ...previousCurrent({
+      files: { [S]: ['a.webp', 'b.webp'] },
+      linkCounts: { vienna: {}, balkan: { [S]: 3 } },
+      photosDead: [dead('balkan', 3)],
+      sources: { [S]: [{ map: 'vienna' }, { map: 'balkan' }] },
+    }),
+    ...current({
+      files: { [S]: [] },
+      photosDead: [dead('balkan', 1), dead('balkan', 2)],
+      sources: { [S]: [{ map: 'vienna' }, { map: 'balkan' }] },
+      linkCounts: { balkan: { [S]: 2 } },
+    }),
+  });
+  assert.deepEqual(result, { newlyDead: [dead('balkan', 1)], lostMatches: [] });
 });
 
 test('legacy: map-less dead entries match this run’s main-map entries by index', () => {
