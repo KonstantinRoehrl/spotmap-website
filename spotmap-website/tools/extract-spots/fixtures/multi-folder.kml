@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>Fixture map</name>
+    <Folder>
+      <name>Wien</name>
+      <Placemark>
+        <name><![CDATA[Wien: Hbf Curb & Ledge]]></name>
+        <styleUrl>#icon-1899-0288D1</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value><![CDATA[https://mymaps.usercontent.google.com/hostedimage/m/*/AAA?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/BBB?fife=s16383]]></value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            16.3785491,48.1840844,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>1234</name>
+        <styleUrl>#icon-1899-F57C00-nodesc</styleUrl>
+        <Point>
+          <coordinates>16.1,48.2,0</coordinates>
+        </Point>
+      </Placemark>
+    </Folder>
+    <Folder>
+      <name>New added Spots</name>
+      <Placemark>
+        <name>Wien: Gap</name>
+        <styleUrl>#icon-1899-7CB342-labelson</styleUrl>
+        <ExtendedData>
+          <Data name="other">
+            <value>ignored</value>
+          </Data>
+          <Data name="gx_media_links">
+            <value>https://lh3.googleusercontent.com/umsh/CCC</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>16.2,48.3,0</coordinates>
+        </Point>
+      </Placemark>
+    </Folder>
+  </Document>
+</kml>
