@@ -109,6 +109,7 @@ function kmlWith(photos) {
 `;
 }
 
+/** `fakeWeb` handlers: `htmlResponse` is one; the others take a body or status and return one. */
 const kmlResponse = (text) => () =>
   new Response(text, {
     headers: { 'content-type': 'application/vnd.google-earth.kml+xml' },

@@ -7,10 +7,12 @@
  * Per city: fetch and parse the KML (cached in data/.cache/kml/ once it parses), map statuses and
  * ids, fingerprint every photo through its tiny rendition, download and encode only photos whose
  * WebP is not on disk yet, write the GeoJSON and report, and only then delete photo files the new
- * GeoJSON no longer references. A city that fails keeps its previous GeoJSON, report and photos;
- * the run moves on and exits non-zero at the end, naming every failed city. Dead photo links are
- * not errors — they are listed in the report — except that a photo written on the previous run
- * that now comes back dead fails its city, so a wrong 403 from Google cannot wipe good photos.
+ * GeoJSON no longer references. A city that fails keeps its previous GeoJSON and report and
+ * deletes no photo (new or re-encoded WebPs may already be on disk; the next successful run sweeps
+ * what it no longer references); the run moves on and exits non-zero at the end, naming every
+ * failed city. Dead photo links are not errors — they are listed in the report — except that a
+ * photo written on the previous run that now comes back dead fails its city, so a wrong 403 from
+ * Google cannot wipe good photos.
  */
 import { existsSync } from 'node:fs';
 import { mkdir, readdir, readFile, rm } from 'node:fs/promises';
@@ -124,10 +126,12 @@ async function main() {
  * Extracts one city: fetches and parses its KML, resolves every photo, and writes the city's
  * GeoJSON and report.
  *
- * Ordering rules, so a city that fails at any step leaves its previous GeoJSON, report and photos
- * untouched: the KML is cached only once it parses (a consent page never replaces the last good
- * copy); nothing is written until every photo has resolved and the dead-photo guard has passed;
- * unreferenced photo files are deleted only after both the GeoJSON and the report are written.
+ * Ordering rules, so a city that fails at any step keeps its previous GeoJSON and report and loses
+ * no photo: the KML is cached only once it parses (a consent page never replaces the last good
+ * copy); photos are encoded as they resolve, so new or `--reencode`d WebPs may already be on disk
+ * when a later step fails, but the GeoJSON and report are written only once every photo has
+ * resolved and the dead-photo guard has passed; unreferenced photo files are deleted only after
+ * both the GeoJSON and the report are written.
  *
  * @param {string} city the `sources.json` key
  * @param {{ mid: string, namePrefixes: string[] }} source the city's `sources.json` entry
