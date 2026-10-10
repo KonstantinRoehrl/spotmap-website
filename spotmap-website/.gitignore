@@ -44,3 +44,9 @@ Thumbs.db
 # Impeccable hook cache (design tooling scratch)
 **/.impeccable/hook.cache.json
 src/.impeccable/
+
+# Spot extraction tool (tools/extract-spots): photos and caches stay local;
+# data/spots/*.geojson, *.report.json and sources.json are committed.
+/data/.cache/
+/data/spots/*/
+/data/**/*.tmp
