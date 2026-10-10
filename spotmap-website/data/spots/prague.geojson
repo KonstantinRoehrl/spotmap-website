@@ -14,7 +14,13 @@
         "id": "stalin-plaza-2a8189",
         "name": "Stalin Plaza",
         "status": "active",
-        "photos": []
+        "photos": [],
+        "sources": [
+          {
+            "map": "prague",
+            "folder": "Tschechien"
+          }
+        ]
       }
     },
     {
@@ -30,7 +36,13 @@
         "id": "perfect-8-stair-8688f3",
         "name": "Perfect 8 Stair",
         "status": "active",
-        "photos": []
+        "photos": [],
+        "sources": [
+          {
+            "map": "prague",
+            "folder": "Tschechien"
+          }
+        ]
       }
     },
     {
@@ -46,7 +58,13 @@
         "id": "perfect-8-stair-57b917",
         "name": "Perfect 8 Stair",
         "status": "active",
-        "photos": []
+        "photos": [],
+        "sources": [
+          {
+            "map": "prague",
+            "folder": "Tschechien"
+          }
+        ]
       }
     },
     {
@@ -62,7 +80,13 @@
         "id": "curbs-836bfd",
         "name": "Curbs",
         "status": "active",
-        "photos": []
+        "photos": [],
+        "sources": [
+          {
+            "map": "prague",
+            "folder": "Tschechien"
+          }
+        ]
       }
     }
   ]

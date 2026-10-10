@@ -17,6 +17,20 @@
         "photos": [
           "spots/rijeka/miniramp-am-dach-3e2255-e9a1fb5a.webp",
           "spots/rijeka/miniramp-am-dach-3e2255-f05ef1f6.webp"
+        ],
+        "sources": [
+          {
+            "map": "rijeka",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              14.4567964,
+              45.3335805
+            ]
+          }
         ]
       }
     },
@@ -35,6 +49,20 @@
         "status": "active",
         "photos": [
           "spots/rijeka/plaza-mit-curb-c69f1a-9e9eac3c.webp"
+        ],
+        "sources": [
+          {
+            "map": "rijeka",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              14.4387773,
+              45.3278172
+            ]
+          }
         ]
       }
     },
@@ -62,6 +90,20 @@
           "spots/rijeka/stair-heaven-072e67-42e825a2.webp",
           "spots/rijeka/stair-heaven-072e67-04e46544.webp",
           "spots/rijeka/stair-heaven-072e67-568f16cf.webp"
+        ],
+        "sources": [
+          {
+            "map": "rijeka",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              14.4681886,
+              45.3280489
+            ]
+          }
         ]
       }
     },
@@ -80,6 +122,20 @@
         "status": "active",
         "photos": [
           "spots/rijeka/curb-a587b7-5af7ef03.webp"
+        ],
+        "sources": [
+          {
+            "map": "rijeka",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              14.445184,
+              45.3243044
+            ]
+          }
         ]
       }
     },
@@ -101,6 +157,20 @@
           "spots/rijeka/diy-0880ca-b5dbc857.webp",
           "spots/rijeka/diy-0880ca-01c1a81d.webp",
           "spots/rijeka/diy-0880ca-72e5a96d.webp"
+        ],
+        "sources": [
+          {
+            "map": "rijeka",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              14.4856661,
+              45.3253844
+            ]
+          }
         ]
       }
     },
@@ -125,6 +195,22 @@
           "spots/rijeka/studenski-centar-dee0de-7c42e14f.webp",
           "spots/rijeka/studenski-centar-dee0de-566b353b.webp",
           "spots/rijeka/studenski-centar-dee0de-4ace4174.webp"
+        ],
+        "sources": [
+          {
+            "map": "rijeka",
+            "folder": "Kroatien",
+            "description": "Stairs, Ledge, Gap, Flatrail"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "description": "Stairs, Ledge, Gap, Flatrail",
+            "position": [
+              14.4677649,
+              45.3287202
+            ]
+          }
         ]
       }
     },
@@ -145,6 +231,20 @@
           "spots/rijeka/main-plaza-d7bfab-14a7fd4e.webp",
           "spots/rijeka/main-plaza-d7bfab-0e943dac.webp",
           "spots/rijeka/main-plaza-d7bfab-a578d6fa.webp"
+        ],
+        "sources": [
+          {
+            "map": "rijeka",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              14.4457498,
+              45.3258986
+            ]
+          }
         ]
       }
     },
@@ -164,6 +264,20 @@
         "photos": [
           "spots/rijeka/low-to-high-ledge-614a10-15c24c21.webp",
           "spots/rijeka/low-to-high-ledge-614a10-fd6804e6.webp"
+        ],
+        "sources": [
+          {
+            "map": "rijeka",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              14.4487256,
+              45.3272558
+            ]
+          }
         ]
       }
     },
@@ -183,6 +297,20 @@
         "photos": [
           "spots/rijeka/strand-gap-f4264b-b7dc876e.webp",
           "spots/rijeka/strand-gap-f4264b-fd504fe9.webp"
+        ],
+        "sources": [
+          {
+            "map": "rijeka",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              14.370739,
+              45.3413787
+            ]
+          }
         ]
       }
     },
@@ -202,6 +330,20 @@
         "photos": [
           "spots/rijeka/curbs-9503a4-a7878579.webp",
           "spots/rijeka/curbs-9503a4-f8f764be.webp"
+        ],
+        "sources": [
+          {
+            "map": "rijeka",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              14.3729307,
+              45.341255
+            ]
+          }
         ]
       }
     }

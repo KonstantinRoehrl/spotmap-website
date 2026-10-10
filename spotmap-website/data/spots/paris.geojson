@@ -16,6 +16,12 @@
         "status": "active",
         "photos": [
           "spots/paris/ivry-316cc2-98cfdcad.webp"
+        ],
+        "sources": [
+          {
+            "map": "paris",
+            "folder": "Frankreich"
+          }
         ]
       }
     },
@@ -34,6 +40,12 @@
         "status": "active",
         "photos": [
           "spots/paris/republique-d9313b-1417d97b.webp"
+        ],
+        "sources": [
+          {
+            "map": "paris",
+            "folder": "Frankreich"
+          }
         ]
       }
     },
@@ -53,6 +65,12 @@
         "photos": [
           "spots/paris/malto-curbs-60d1db-71f25434.webp",
           "spots/paris/malto-curbs-60d1db-0496193f.webp"
+        ],
+        "sources": [
+          {
+            "map": "paris",
+            "folder": "Frankreich"
+          }
         ]
       }
     }

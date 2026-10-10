@@ -17,6 +17,12 @@
         "photos": [
           "spots/graz/11-stair-d9311e-5f8de928.webp",
           "spots/graz/11-stair-d9311e-f1b438c7.webp"
+        ],
+        "sources": [
+          {
+            "map": "graz",
+            "folder": "Rest von Österreich"
+          }
         ]
       }
     },
@@ -35,6 +41,12 @@
         "status": "active",
         "photos": [
           "spots/graz/lendplatz-c07aa3-f8e3850d.webp"
+        ],
+        "sources": [
+          {
+            "map": "graz",
+            "folder": "Rest von Österreich"
+          }
         ]
       }
     },
@@ -54,6 +66,12 @@
         "photos": [
           "spots/graz/unistairs-1087f2-2cde0b05.webp",
           "spots/graz/unistairs-1087f2-2a9eba6e.webp"
+        ],
+        "sources": [
+          {
+            "map": "graz",
+            "folder": "Rest von Österreich"
+          }
         ]
       }
     },
@@ -76,6 +94,12 @@
           "spots/graz/uni-gap-holzcurbs-462694-1664d161.webp",
           "spots/graz/uni-gap-holzcurbs-462694-a307d85c.webp",
           "spots/graz/uni-gap-holzcurbs-462694-13025eaf.webp"
+        ],
+        "sources": [
+          {
+            "map": "graz",
+            "folder": "Rest von Österreich"
+          }
         ]
       }
     },
@@ -96,6 +120,12 @@
           "spots/graz/minibankcurbs-14-stair-b3ed61-e69bf1ca.webp",
           "spots/graz/minibankcurbs-14-stair-b3ed61-95962bd5.webp",
           "spots/graz/minibankcurbs-14-stair-b3ed61-8128fb7d.webp"
+        ],
+        "sources": [
+          {
+            "map": "graz",
+            "folder": "Rest von Österreich"
+          }
         ]
       }
     },
@@ -117,6 +147,12 @@
           "spots/graz/gap-16f29f-3cb6c47f.webp",
           "spots/graz/gap-16f29f-e227a2aa.webp",
           "spots/graz/gap-16f29f-da283fc6.webp"
+        ],
+        "sources": [
+          {
+            "map": "graz",
+            "folder": "Rest von Österreich"
+          }
         ]
       }
     },
@@ -137,6 +173,12 @@
           "spots/graz/curbs-4ae93f-c6cbcf2e.webp",
           "spots/graz/curbs-4ae93f-6e161aa5.webp",
           "spots/graz/curbs-4ae93f-3eaaaa54.webp"
+        ],
+        "sources": [
+          {
+            "map": "graz",
+            "folder": "Rest von Österreich"
+          }
         ]
       }
     }

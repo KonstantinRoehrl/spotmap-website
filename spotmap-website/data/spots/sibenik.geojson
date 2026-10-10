@@ -1,0 +1,59 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          15.8938029,
+          43.7349042
+        ]
+      },
+      "properties": {
+        "id": "homeplaza-1ad084",
+        "name": "Homeplaza",
+        "status": "active",
+        "photos": [
+          "spots/sibenik/homeplaza-1ad084-a10a6dde.webp",
+          "spots/sibenik/homeplaza-1ad084-3748f552.webp",
+          "spots/sibenik/homeplaza-1ad084-83cfb275.webp",
+          "spots/sibenik/homeplaza-1ad084-3112f409.webp",
+          "spots/sibenik/homeplaza-1ad084-558bd7cb.webp"
+        ],
+        "sources": [
+          {
+            "map": "balkan",
+            "folder": "Kroatien"
+          }
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          15.8943581,
+          43.7339561
+        ]
+      },
+      "properties": {
+        "id": "5-stair-and-10-stair-413e9e",
+        "name": "5 Stair and 10 Stair",
+        "status": "active",
+        "photos": [
+          "spots/sibenik/5-stair-and-10-stair-413e9e-084c816e.webp",
+          "spots/sibenik/5-stair-and-10-stair-413e9e-89c0d176.webp",
+          "spots/sibenik/5-stair-and-10-stair-413e9e-681800f4.webp"
+        ],
+        "sources": [
+          {
+            "map": "balkan",
+            "folder": "Kroatien"
+          }
+        ]
+      }
+    }
+  ]
+}

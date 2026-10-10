@@ -1,0 +1,32 @@
+{
+  "city": "zadar",
+  "map": "balkan",
+  "mid": "1IDO4AGmCsN_D-zcXPjpU1eXqwQYTh1A",
+  "placemarks": 2,
+  "spotsWritten": 2,
+  "photosLinked": 9,
+  "photosWritten": 9,
+  "photosDead": [],
+  "photosRecovered": [],
+  "photosDuplicate": [],
+  "photosNearDuplicate": [],
+  "spotsWithoutPhotos": [],
+  "statusCounts": {
+    "active": 2,
+    "demolished": 0,
+    "unclassified": 0
+  },
+  "extraMaps": [],
+  "matches": {
+    "conflicts": [],
+    "ambiguous": [],
+    "unmatched": []
+  },
+  "linkCounts": {
+    "balkan": {
+      "diy-1b64cb": 6,
+      "low-to-high-ledge-6f0013": 3
+    }
+  },
+  "warnings": []
+}

@@ -14,7 +14,25 @@
         "id": "curbs-6f08d1",
         "name": "Curbs",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/curbs-6f08d1-0451d19f.webp",
+          "spots/split/curbs-6f08d1-3861161e.webp",
+          "spots/split/curbs-6f08d1-b2c1bca3.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4352894,
+              43.5072464
+            ]
+          }
+        ]
       }
     },
     {
@@ -30,7 +48,26 @@
         "id": "dardin-8009e3",
         "name": "Dardin",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/dardin-8009e3-40751d7f.webp",
+          "spots/split/dardin-8009e3-71571e16.webp",
+          "spots/split/dardin-8009e3-6580335e.webp",
+          "spots/split/dardin-8009e3-f47a91ff.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.441496,
+              43.5096859
+            ]
+          }
+        ]
       }
     },
     {
@@ -46,7 +83,25 @@
         "id": "lidl-ledge-2cec1f",
         "name": "Lidl Ledge",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/lidl-ledge-2cec1f-1c2b694c.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien",
+            "description": "Last plate missing"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "description": "Last plate missing",
+            "position": [
+              16.4708018,
+              43.5081141
+            ]
+          }
+        ]
       }
     },
     {
@@ -62,7 +117,23 @@
         "id": "bloecke-964c23",
         "name": "Blöcke",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/bloecke-964c23-e7fc5430.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4288601,
+              43.5033945
+            ]
+          }
+        ]
       }
     },
     {
@@ -78,7 +149,26 @@
         "id": "diy-quater-151a97",
         "name": "DIY Quater",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/diy-quater-151a97-eeb96e7c.webp",
+          "spots/split/diy-quater-151a97-f6c8eb60.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien",
+            "description": "rough"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "description": "rough",
+            "position": [
+              16.4932836,
+              43.5016938
+            ]
+          }
+        ]
       }
     },
     {
@@ -94,7 +184,25 @@
         "id": "stairsets-b97c4e",
         "name": "Stairsets",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/stairsets-b97c4e-ad08f91b.webp",
+          "spots/split/stairsets-b97c4e-8f2fd153.webp",
+          "spots/split/stairsets-b97c4e-544cfdd2.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4326432,
+              43.5210798
+            ]
+          }
+        ]
       }
     },
     {
@@ -110,7 +218,26 @@
         "id": "curb-9ad19e",
         "name": "Curb",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/curb-9ad19e-89a9f11a.webp",
+          "spots/split/curb-9ad19e-978fbbd4.webp",
+          "spots/split/curb-9ad19e-57ce53ca.webp",
+          "spots/split/curb-9ad19e-fb32a30d.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4392898,
+              43.5140582
+            ]
+          }
+        ]
       }
     },
     {
@@ -126,7 +253,25 @@
         "id": "5-stair-55a788",
         "name": "5 Stair",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/5-stair-55a788-e31c24d6.webp",
+          "spots/split/5-stair-55a788-20575211.webp",
+          "spots/split/5-stair-55a788-deea44f9.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4399045,
+              43.5143985
+            ]
+          }
+        ]
       }
     },
     {
@@ -142,7 +287,23 @@
         "id": "little-vulcano-3c7041",
         "name": "Little Vulcano",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/little-vulcano-3c7041-7beff0ec.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4287831,
+              43.5042426
+            ]
+          }
+        ]
       }
     },
     {
@@ -158,7 +319,26 @@
         "id": "dropledge-09a89f",
         "name": "Dropledge",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/dropledge-09a89f-77adc0e3.webp",
+          "spots/split/dropledge-09a89f-fe5cbde5.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien",
+            "description": "New Plaza, most likely big bust"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "description": "New Plaza, most likely big bust",
+            "position": [
+              16.4378039,
+              43.5109935
+            ]
+          }
+        ]
       }
     },
     {
@@ -174,7 +354,24 @@
         "id": "pyramide-595094",
         "name": "Pyramide",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/pyramide-595094-f3552a3e.webp",
+          "spots/split/pyramide-595094-1d6a1b26.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4376242,
+              43.5111394
+            ]
+          }
+        ]
       }
     },
     {
@@ -190,7 +387,27 @@
         "id": "little-stairs-and-curbs-fd1412",
         "name": "Little Stairs and Curbs",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/little-stairs-and-curbs-fd1412-01cb7173.webp",
+          "spots/split/little-stairs-and-curbs-fd1412-90297330.webp",
+          "spots/split/little-stairs-and-curbs-fd1412-187b3f41.webp",
+          "spots/split/little-stairs-and-curbs-fd1412-4b47561e.webp",
+          "spots/split/little-stairs-and-curbs-fd1412-4426ed50.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4395909,
+              43.5135787
+            ]
+          }
+        ]
       }
     },
     {
@@ -206,7 +423,24 @@
         "id": "pop-over-rail-8e00ca",
         "name": "Pop Over Rail",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/pop-over-rail-8e00ca-232d7826.webp",
+          "spots/split/pop-over-rail-8e00ca-1cc35244.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4402869,
+              43.5128707
+            ]
+          }
+        ]
       }
     },
     {
@@ -222,7 +456,24 @@
         "id": "gap-to-dropledge-df02ba",
         "name": "Gap to Dropledge",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/gap-to-dropledge-df02ba-0026781f.webp",
+          "spots/split/gap-to-dropledge-df02ba-a8839b0d.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4779817,
+              43.5092875
+            ]
+          }
+        ]
       }
     },
     {
@@ -238,7 +489,24 @@
         "id": "long-ledge-5d84c2",
         "name": "Long Ledge",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/long-ledge-5d84c2-4ad51f99.webp",
+          "spots/split/long-ledge-5d84c2-f884bbf9.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4779026,
+              43.509324
+            ]
+          }
+        ]
       }
     },
     {
@@ -254,7 +522,24 @@
         "id": "crust-ledge-198eea",
         "name": "Crust Ledge",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/crust-ledge-198eea-0226db9d.webp",
+          "spots/split/crust-ledge-198eea-827085da.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4782647,
+              43.5092457
+            ]
+          }
+        ]
       }
     },
     {
@@ -270,7 +555,26 @@
         "id": "manny-pad-ledges-3596c8",
         "name": "Manny Pad, Ledges",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/manny-pad-ledges-3596c8-dd69d4e6.webp",
+          "spots/split/manny-pad-ledges-3596c8-6ea198bb.webp",
+          "spots/split/manny-pad-ledges-3596c8-7dff6bc1.webp",
+          "spots/split/manny-pad-ledges-3596c8-b34ac8ba.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4805943,
+              43.508874
+            ]
+          }
+        ]
       }
     },
     {
@@ -286,7 +590,23 @@
         "id": "small-dropledge-45477b",
         "name": "Small Dropledge",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/small-dropledge-45477b-cda33729.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.480445,
+              43.5085584
+            ]
+          }
+        ]
       }
     },
     {
@@ -302,7 +622,32 @@
         "id": "stairsets-double-set-ledges-thrashcan-gap-cddef3",
         "name": "Stairsets, Double Set, Ledges, Thrashcan Gap",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/stairsets-double-set-ledges-thrashcan-gap-cddef3-024cabd7.webp",
+          "spots/split/stairsets-double-set-ledges-thrashcan-gap-cddef3-eddad753.webp",
+          "spots/split/stairsets-double-set-ledges-thrashcan-gap-cddef3-addded8e.webp",
+          "spots/split/stairsets-double-set-ledges-thrashcan-gap-cddef3-f005cbeb.webp",
+          "spots/split/stairsets-double-set-ledges-thrashcan-gap-cddef3-686fa635.webp",
+          "spots/split/stairsets-double-set-ledges-thrashcan-gap-cddef3-931666c7.webp",
+          "spots/split/stairsets-double-set-ledges-thrashcan-gap-cddef3-6af16949.webp",
+          "spots/split/stairsets-double-set-ledges-thrashcan-gap-cddef3-3c8dc61b.webp",
+          "spots/split/stairsets-double-set-ledges-thrashcan-gap-cddef3-bed67c00.webp",
+          "spots/split/stairsets-double-set-ledges-thrashcan-gap-cddef3-809d892f.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4800321,
+              43.5085084
+            ]
+          }
+        ]
       }
     },
     {
@@ -318,7 +663,21 @@
         "id": "punkt-46-753e20",
         "name": "Punkt 46",
         "status": "active",
-        "photos": []
+        "photos": [],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4791203,
+              43.5087826
+            ]
+          }
+        ]
       }
     },
     {
@@ -334,7 +693,24 @@
         "id": "13er-handrail-21273a",
         "name": "13er Handrail",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/13er-handrail-21273a-8e8a1d12.webp",
+          "spots/split/13er-handrail-21273a-aef28d8e.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4785363,
+              43.5084641
+            ]
+          }
+        ]
       }
     },
     {
@@ -350,7 +726,25 @@
         "id": "10er-handrail-bbb3d2",
         "name": "10er Handrail",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/10er-handrail-bbb3d2-617b9e27.webp",
+          "spots/split/10er-handrail-bbb3d2-362e906f.webp",
+          "spots/split/10er-handrail-bbb3d2-eeb6803b.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4783832,
+              43.5086702
+            ]
+          }
+        ]
       }
     },
     {
@@ -366,7 +760,24 @@
         "id": "low-to-high-ledge-de1430",
         "name": "Low To High Ledge",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/low-to-high-ledge-de1430-74ee77ba.webp",
+          "spots/split/low-to-high-ledge-de1430-966ea23a.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4783392,
+              43.5082837
+            ]
+          }
+        ]
       }
     },
     {
@@ -382,7 +793,24 @@
         "id": "long-hubba-ab198c",
         "name": "Long Hubba",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/long-hubba-ab198c-eb3abb48.webp",
+          "spots/split/long-hubba-ab198c-005f8925.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4780582,
+              43.5084364
+            ]
+          }
+        ]
       }
     },
     {
@@ -398,7 +826,24 @@
         "id": "long-crusty-banana-ledge-357895",
         "name": "Long Crusty Banana Ledge",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/long-crusty-banana-ledge-357895-707e7a3f.webp",
+          "spots/split/long-crusty-banana-ledge-357895-88123e19.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4757839,
+              43.508336
+            ]
+          }
+        ]
       }
     },
     {
@@ -414,7 +859,23 @@
         "id": "bump-to-bar-5663aa",
         "name": "Bump to Bar",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/bump-to-bar-5663aa-0c340cde.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.474906,
+              43.5081793
+            ]
+          }
+        ]
       }
     },
     {
@@ -430,7 +891,25 @@
         "id": "6-stairs-with-plants-37ae16",
         "name": "6 Stairs with Plants",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/6-stairs-with-plants-37ae16-281cd979.webp",
+          "spots/split/6-stairs-with-plants-37ae16-a4fb67dd.webp",
+          "spots/split/6-stairs-with-plants-37ae16-93c3e719.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4730123,
+              43.5081223
+            ]
+          }
+        ]
       }
     },
     {
@@ -446,7 +925,26 @@
         "id": "low-to-high-rail-5503ca",
         "name": "Low to High Rail",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/low-to-high-rail-5503ca-fcd23aab.webp",
+          "spots/split/low-to-high-rail-5503ca-b5d41bec.webp",
+          "spots/split/low-to-high-rail-5503ca-ffc6c775.webp",
+          "spots/split/low-to-high-rail-5503ca-d0499c20.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4727628,
+              43.5080761
+            ]
+          }
+        ]
       }
     },
     {
@@ -462,7 +960,27 @@
         "id": "pyramids-94b5c3",
         "name": "Pyramids",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/pyramids-94b5c3-41a90f8f.webp",
+          "spots/split/pyramids-94b5c3-dda1e8d6.webp",
+          "spots/split/pyramids-94b5c3-3051fb8b.webp",
+          "spots/split/pyramids-94b5c3-fc2f9754.webp",
+          "spots/split/pyramids-94b5c3-dbc5c835.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4732977,
+              43.5077467
+            ]
+          }
+        ]
       }
     },
     {
@@ -478,7 +996,23 @@
         "id": "double-set-51ccc1",
         "name": "Double Set",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/double-set-51ccc1-8fb48ff8.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4489721,
+              43.5103467
+            ]
+          }
+        ]
       }
     },
     {
@@ -494,7 +1028,24 @@
         "id": "low-to-high-manny-pad-b2ed56",
         "name": "Low to High Manny Pad",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/low-to-high-manny-pad-b2ed56-8cb61663.webp",
+          "spots/split/low-to-high-manny-pad-b2ed56-7654df73.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4297437,
+              43.5043427
+            ]
+          }
+        ]
       }
     },
     {
@@ -510,7 +1061,25 @@
         "id": "gap-over-water-supply-9dd80c",
         "name": "Gap over Water Supply",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/gap-over-water-supply-9dd80c-21f666c2.webp",
+          "spots/split/gap-over-water-supply-9dd80c-6baebafb.webp",
+          "spots/split/gap-over-water-supply-9dd80c-42406069.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4305763,
+              43.5050262
+            ]
+          }
+        ]
       }
     },
     {
@@ -526,7 +1095,27 @@
         "id": "gap-over-thrashcan-and-bench-rails-ea945a",
         "name": "Gap over Thrashcan and Bench Rails",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/gap-over-thrashcan-and-bench-rails-ea945a-57b8cb78.webp",
+          "spots/split/gap-over-thrashcan-and-bench-rails-ea945a-c05ade9b.webp",
+          "spots/split/gap-over-thrashcan-and-bench-rails-ea945a-0fc32b8b.webp",
+          "spots/split/gap-over-thrashcan-and-bench-rails-ea945a-c8819c1f.webp",
+          "spots/split/gap-over-thrashcan-and-bench-rails-ea945a-3905d2d7.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4308726,
+              43.5051677
+            ]
+          }
+        ]
       }
     },
     {
@@ -542,7 +1131,24 @@
         "id": "flatgap-15eee5",
         "name": "Flatgap",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/flatgap-15eee5-ced10b5b.webp",
+          "spots/split/flatgap-15eee5-e866b6f0.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4312913,
+              43.5054819
+            ]
+          }
+        ]
       }
     },
     {
@@ -558,7 +1164,23 @@
         "id": "water-pads-e6db44",
         "name": "Water Pads",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/water-pads-e6db44-2e74d334.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4323424,
+              43.5061635
+            ]
+          }
+        ]
       }
     },
     {
@@ -574,7 +1196,24 @@
         "id": "harbour-curbs-314da1",
         "name": "Harbour Curbs",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/harbour-curbs-314da1-b82c2436.webp",
+          "spots/split/harbour-curbs-314da1-85270769.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4337443,
+              43.5071608
+            ]
+          }
+        ]
       }
     },
     {
@@ -590,7 +1229,25 @@
         "id": "mannypad-1cc473",
         "name": "MannyPad",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/mannypad-1cc473-6cc5d0fc.webp",
+          "spots/split/mannypad-1cc473-b1ae3dfc.webp",
+          "spots/split/mannypad-1cc473-fab4fdd8.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4358325,
+              43.5085462
+            ]
+          }
+        ]
       }
     },
     {
@@ -606,7 +1263,23 @@
         "id": "mini-manny-pads-27e16e",
         "name": "Mini Manny Pads",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/mini-manny-pads-27e16e-c7e62a5b.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4364007,
+              43.508097
+            ]
+          }
+        ]
       }
     },
     {
@@ -622,7 +1295,26 @@
         "id": "4-and-8-stairs-a5aa6e",
         "name": "4 and 8 Stairs",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/4-and-8-stairs-a5aa6e-e6ef4fb8.webp",
+          "spots/split/4-and-8-stairs-a5aa6e-98b25f60.webp",
+          "spots/split/4-and-8-stairs-a5aa6e-95d3e2fe.webp",
+          "spots/split/4-and-8-stairs-a5aa6e-b528ae19.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4652934,
+              43.5069414
+            ]
+          }
+        ]
       }
     },
     {
@@ -638,7 +1330,23 @@
         "id": "6-stair-0b85de",
         "name": "6 Stair",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/6-stair-0b85de-f4aeb410.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4662446,
+              43.5070859
+            ]
+          }
+        ]
       }
     },
     {
@@ -654,7 +1362,24 @@
         "id": "ledge-555085",
         "name": "Ledge",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/ledge-555085-7056143d.webp",
+          "spots/split/ledge-555085-8961334c.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4718967,
+              43.5073448
+            ]
+          }
+        ]
       }
     },
     {
@@ -670,7 +1395,23 @@
         "id": "9er-handrail-dfb217",
         "name": "9er Handrail",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/9er-handrail-dfb217-084e6396.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4720999,
+              43.5076118
+            ]
+          }
+        ]
       }
     },
     {
@@ -686,7 +1427,24 @@
         "id": "small-handrail-and-boardslide-hubba-04705d",
         "name": "Small Handrail and Boardslide Hubba",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/small-handrail-and-boardslide-hubba-04705d-efd99b42.webp",
+          "spots/split/small-handrail-and-boardslide-hubba-04705d-c5ac7215.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4708948,
+              43.5084368
+            ]
+          }
+        ]
       }
     },
     {
@@ -702,7 +1460,27 @@
         "id": "11-stair-hubba-974d02",
         "name": "11 Stair Hubba",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/11-stair-hubba-974d02-323af867.webp",
+          "spots/split/11-stair-hubba-974d02-3f43728d.webp",
+          "spots/split/11-stair-hubba-974d02-368dc14e.webp",
+          "spots/split/11-stair-hubba-974d02-d5c7d417.webp",
+          "spots/split/11-stair-hubba-974d02-9e952a63.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4690461,
+              43.5090482
+            ]
+          }
+        ]
       }
     },
     {
@@ -718,7 +1496,28 @@
         "id": "stairs-and-dropledge-291612",
         "name": "Stairs and Dropledge",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/stairs-and-dropledge-291612-f8437c33.webp",
+          "spots/split/stairs-and-dropledge-291612-c7b1e38d.webp",
+          "spots/split/stairs-and-dropledge-291612-a7964d7d.webp",
+          "spots/split/stairs-and-dropledge-291612-cd187a58.webp",
+          "spots/split/stairs-and-dropledge-291612-6952da91.webp",
+          "spots/split/stairs-and-dropledge-291612-2082f36e.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4682101,
+              43.5104055
+            ]
+          }
+        ]
       }
     },
     {
@@ -734,7 +1533,23 @@
         "id": "long-ledge-728a14",
         "name": "Long Ledge",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/long-ledge-728a14-bad4a481.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4678077,
+              43.510032
+            ]
+          }
+        ]
       }
     },
     {
@@ -750,7 +1565,23 @@
         "id": "double-set-roll-in-3ee0a7",
         "name": "Double Set Roll In",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/double-set-roll-in-3ee0a7-e479f305.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4679418,
+              43.5100242
+            ]
+          }
+        ]
       }
     },
     {
@@ -766,7 +1597,23 @@
         "id": "manny-pad-a33517",
         "name": "Manny Pad",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/manny-pad-a33517-5d3115f1.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4676363,
+              43.5088976
+            ]
+          }
+        ]
       }
     },
     {
@@ -782,7 +1629,25 @@
         "id": "jack-o-grady-spot-cb5f20",
         "name": "Jack O'Grady Spot",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/jack-o-grady-spot-cb5f20-f722bdc0.webp",
+          "spots/split/jack-o-grady-spot-cb5f20-2218124f.webp",
+          "spots/split/jack-o-grady-spot-cb5f20-c47cf3e1.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4676009,
+              43.5093685
+            ]
+          }
+        ]
       }
     },
     {
@@ -798,7 +1663,23 @@
         "id": "volcanos-and-curb-2cbb95",
         "name": "Volcanos and Curb",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/volcanos-and-curb-2cbb95-ce936de8.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4659625,
+              43.5084068
+            ]
+          }
+        ]
       }
     },
     {
@@ -814,7 +1695,25 @@
         "id": "big-gap-4f9f33",
         "name": "Big Gap",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/big-gap-4f9f33-6a5c202d.webp",
+          "spots/split/big-gap-4f9f33-5265479f.webp",
+          "spots/split/big-gap-4f9f33-039e3d3f.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4660108,
+              43.5085352
+            ]
+          }
+        ]
       }
     },
     {
@@ -830,7 +1729,25 @@
         "id": "handrail-5dfaa3",
         "name": "Handrail",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/handrail-5dfaa3-05c6011d.webp",
+          "spots/split/handrail-5dfaa3-a2ee3348.webp",
+          "spots/split/handrail-5dfaa3-dd110189.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4648,
+              43.5086782
+            ]
+          }
+        ]
       }
     },
     {
@@ -846,7 +1763,24 @@
         "id": "handrail-be19f3",
         "name": "Handrail",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/handrail-be19f3-6d58511c.webp",
+          "spots/split/handrail-be19f3-f5ed538e.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4604166,
+              43.506732
+            ]
+          }
+        ]
       }
     },
     {
@@ -862,7 +1796,23 @@
         "id": "stairsets-165837",
         "name": "Stairsets",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/stairsets-165837-dff8f260.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.457766,
+              43.5065217
+            ]
+          }
+        ]
       }
     },
     {
@@ -878,7 +1828,29 @@
         "id": "downhill-curb-9a6c86",
         "name": "Downhill Curb",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/downhill-curb-9a6c86-c726eaa8.webp",
+          "spots/split/downhill-curb-9a6c86-1a6be72a.webp",
+          "spots/split/downhill-curb-9a6c86-fb184c0d.webp",
+          "spots/split/downhill-curb-9a6c86-edc6ceb4.webp",
+          "spots/split/downhill-curb-9a6c86-1117dc57.webp",
+          "spots/split/downhill-curb-9a6c86-97de41b3.webp",
+          "spots/split/downhill-curb-9a6c86-93d86b0a.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4558388,
+              43.5063333
+            ]
+          }
+        ]
       }
     },
     {
@@ -894,7 +1866,27 @@
         "id": "10-stair-5e99f5",
         "name": "10 Stair",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/10-stair-5e99f5-fed114ca.webp",
+          "spots/split/10-stair-5e99f5-c0226b5b.webp",
+          "spots/split/10-stair-5e99f5-cc426170.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien",
+            "description": "Short Runup"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "description": "Short Runup",
+            "position": [
+              16.452818,
+              43.5092354
+            ]
+          }
+        ]
       }
     },
     {
@@ -910,7 +1902,23 @@
         "id": "diy-4e5e9d",
         "name": "DIY",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/diy-4e5e9d-3122ef90.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4517884,
+              43.5098634
+            ]
+          }
+        ]
       }
     },
     {
@@ -926,7 +1934,24 @@
         "id": "miniramp-b9f5d6",
         "name": "Miniramp",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/miniramp-b9f5d6-91ac0938.webp",
+          "spots/split/miniramp-b9f5d6-957fe870.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4513035,
+              43.5097516
+            ]
+          }
+        ]
       }
     },
     {
@@ -942,7 +1967,25 @@
         "id": "gap-over-fence-21fda7",
         "name": "Gap over Fence",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/gap-over-fence-21fda7-e1a62c9f.webp",
+          "spots/split/gap-over-fence-21fda7-908aed63.webp",
+          "spots/split/gap-over-fence-21fda7-793dc358.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4480024,
+              43.5132402
+            ]
+          }
+        ]
       }
     },
     {
@@ -958,7 +2001,24 @@
         "id": "gap-over-rail-114dcc",
         "name": "Gap over Rail",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/gap-over-rail-114dcc-6f8b0044.webp",
+          "spots/split/gap-over-rail-114dcc-8c0f186d.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4456054,
+              43.5126016
+            ]
+          }
+        ]
       }
     },
     {
@@ -974,7 +2034,26 @@
         "id": "downledge-fd246c",
         "name": "Downledge",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/downledge-fd246c-f82fc22d.webp",
+          "spots/split/downledge-fd246c-9a545a42.webp",
+          "spots/split/downledge-fd246c-b0d9ad33.webp",
+          "spots/split/downledge-fd246c-4e432e5c.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4446087,
+              43.5129885
+            ]
+          }
+        ]
       }
     },
     {
@@ -990,7 +2069,23 @@
         "id": "habour-small-ledge-bca562",
         "name": "Habour Small Ledge",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/habour-small-ledge-bca562-3fb301fa.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4341734,
+              43.5073465
+            ]
+          }
+        ]
       }
     },
     {
@@ -1006,7 +2101,25 @@
         "id": "crusty-11-stair-6c1c51",
         "name": "Crusty 11 Stair",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/crusty-11-stair-6c1c51-488ff0fa.webp",
+          "spots/split/crusty-11-stair-6c1c51-a2e6e76c.webp",
+          "spots/split/crusty-11-stair-6c1c51-6e53b7f6.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4362853,
+              43.5088014
+            ]
+          }
+        ]
       }
     },
     {
@@ -1022,7 +2135,26 @@
         "id": "bump-to-bar-8965c8",
         "name": "Bump to Bar",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/bump-to-bar-8965c8-3678b81d.webp",
+          "spots/split/bump-to-bar-8965c8-3638e554.webp",
+          "spots/split/bump-to-bar-8965c8-2df52f22.webp",
+          "spots/split/bump-to-bar-8965c8-ec955c5f.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4510354,
+              43.5120424
+            ]
+          }
+        ]
       }
     },
     {
@@ -1038,7 +2170,23 @@
         "id": "skatepark-8cb2ec",
         "name": "Skatepark",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/skatepark-8cb2ec-ad10ec8b.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4508413,
+              43.5125857
+            ]
+          }
+        ]
       }
     },
     {
@@ -1054,7 +2202,27 @@
         "id": "double-set-ledge-eee085",
         "name": "Double Set Ledge",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/double-set-ledge-eee085-dde97797.webp",
+          "spots/split/double-set-ledge-eee085-32046b24.webp",
+          "spots/split/double-set-ledge-eee085-572cc708.webp",
+          "spots/split/double-set-ledge-eee085-f766bd4f.webp",
+          "spots/split/double-set-ledge-eee085-2b9c7f70.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.450607,
+              43.5131442
+            ]
+          }
+        ]
       }
     },
     {
@@ -1070,7 +2238,25 @@
         "id": "low-to-high-rail-a0d8b8",
         "name": "Low to High Rail",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/low-to-high-rail-a0d8b8-4faf4285.webp",
+          "spots/split/low-to-high-rail-a0d8b8-f0e43a5f.webp",
+          "spots/split/low-to-high-rail-a0d8b8-d3501da5.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4514183,
+              43.5119676
+            ]
+          }
+        ]
       }
     },
     {
@@ -1086,7 +2272,23 @@
         "id": "10er-handrail-71c596",
         "name": "10er Handrail",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/10er-handrail-71c596-a12bd3df.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.450796,
+              43.5085483
+            ]
+          }
+        ]
       }
     },
     {
@@ -1102,7 +2304,25 @@
         "id": "chris-pfanner-double-set-4bc65b",
         "name": "Chris Pfanner Double Set",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/chris-pfanner-double-set-4bc65b-607bc074.webp",
+          "spots/split/chris-pfanner-double-set-4bc65b-d6466f54.webp",
+          "spots/split/chris-pfanner-double-set-4bc65b-12c7f984.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4507115,
+              43.5083294
+            ]
+          }
+        ]
       }
     },
     {
@@ -1118,7 +2338,25 @@
         "id": "crusty-10-stair-54f5cb",
         "name": "Crusty 10 Stair",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/crusty-10-stair-54f5cb-93b41233.webp",
+          "spots/split/crusty-10-stair-54f5cb-248c0419.webp",
+          "spots/split/crusty-10-stair-54f5cb-ab6ca4ea.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4478995,
+              43.5075225
+            ]
+          }
+        ]
       }
     },
     {
@@ -1134,7 +2372,25 @@
         "id": "dropledge-91576a",
         "name": "Dropledge",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/dropledge-91576a-00f2524e.webp",
+          "spots/split/dropledge-91576a-2b21fbbe.webp",
+          "spots/split/dropledge-91576a-f74236b9.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4481898,
+              43.5067522
+            ]
+          }
+        ]
       }
     },
     {
@@ -1150,7 +2406,24 @@
         "id": "bank-267211",
         "name": "Bank",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/bank-267211-0eeb1908.webp",
+          "spots/split/bank-267211-79a627b6.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.447027,
+              43.506082
+            ]
+          }
+        ]
       }
     },
     {
@@ -1166,7 +2439,24 @@
         "id": "8-stairs-96bf59",
         "name": "8 Stairs",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/8-stairs-96bf59-f71c2f48.webp",
+          "spots/split/8-stairs-96bf59-eb893797.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4432618,
+              43.5085831
+            ]
+          }
+        ]
       }
     },
     {
@@ -1182,7 +2472,24 @@
         "id": "steep-hubba-012b54",
         "name": "Steep Hubba",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/steep-hubba-012b54-0fbead4d.webp",
+          "spots/split/steep-hubba-012b54-bc508fa1.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4509281,
+              43.5168557
+            ]
+          }
+        ]
       }
     },
     {
@@ -1198,7 +2505,26 @@
         "id": "dropledge-3c7321",
         "name": "Dropledge",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/dropledge-3c7321-d00e6f1e.webp",
+          "spots/split/dropledge-3c7321-b3e27c1e.webp",
+          "spots/split/dropledge-3c7321-4e0946ae.webp",
+          "spots/split/dropledge-3c7321-ce9c5228.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4399764,
+              43.5154512
+            ]
+          }
+        ]
       }
     },
     {
@@ -1214,7 +2540,24 @@
         "id": "skatepark-curb-e7234b",
         "name": "Skatepark Curb",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/skatepark-curb-e7234b-fde61140.webp",
+          "spots/split/skatepark-curb-e7234b-9b169c97.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4505815,
+              43.5127762
+            ]
+          }
+        ]
       }
     },
     {
@@ -1230,7 +2573,24 @@
         "id": "super-crust-ledge-d05f6c",
         "name": "Super Crust Ledge",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/super-crust-ledge-d05f6c-a627cd0a.webp",
+          "spots/split/super-crust-ledge-d05f6c-0f7e40e8.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4528148,
+              43.5082317
+            ]
+          }
+        ]
       }
     },
     {
@@ -1246,7 +2606,27 @@
         "id": "gangster-manny-pad-ab1364",
         "name": "Gangster Manny Pad",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/gangster-manny-pad-ab1364-bdd7fe87.webp",
+          "spots/split/gangster-manny-pad-ab1364-70ce1b1b.webp",
+          "spots/split/gangster-manny-pad-ab1364-fa9889c2.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien",
+            "description": "Stopped with the benches"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "description": "Stopped with the benches",
+            "position": [
+              16.4330691,
+              43.5153116
+            ]
+          }
+        ]
       }
     },
     {
@@ -1262,7 +2642,28 @@
         "id": "slappy-banks-bc5884",
         "name": "Slappy Banks",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/slappy-banks-bc5884-69b38650.webp",
+          "spots/split/slappy-banks-bc5884-345ccacd.webp",
+          "spots/split/slappy-banks-bc5884-dcd1967b.webp",
+          "spots/split/slappy-banks-bc5884-23176f43.webp",
+          "spots/split/slappy-banks-bc5884-77fd217f.webp",
+          "spots/split/slappy-banks-bc5884-2f0662f9.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.465469,
+              43.5051778
+            ]
+          }
+        ]
       }
     },
     {
@@ -1278,7 +2679,26 @@
         "id": "dropledge-adebf6",
         "name": "Dropledge",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/dropledge-adebf6-2dd1edbf.webp",
+          "spots/split/dropledge-adebf6-7ceeab76.webp",
+          "spots/split/dropledge-adebf6-12d7a0be.webp",
+          "spots/split/dropledge-adebf6-1f558345.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4659782,
+              43.5063158
+            ]
+          }
+        ]
       }
     },
     {
@@ -1294,7 +2714,23 @@
         "id": "stairs-f6dca8",
         "name": "Stairs",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/stairs-f6dca8-2e4473b8.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4663461,
+              43.5066392
+            ]
+          }
+        ]
       }
     },
     {
@@ -1310,7 +2746,24 @@
         "id": "wallride-a76b32",
         "name": "Wallride",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/wallride-a76b32-83de8bbd.webp",
+          "spots/split/wallride-a76b32-1e86ee47.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4325596,
+              43.5142744
+            ]
+          }
+        ]
       }
     },
     {
@@ -1326,7 +2779,24 @@
         "id": "bump-to-bar-6b74b1",
         "name": "Bump to Bar",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/bump-to-bar-6b74b1-28e49eb6.webp",
+          "spots/split/bump-to-bar-6b74b1-8c2e3bf0.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4288966,
+              43.513798
+            ]
+          }
+        ]
       }
     },
     {
@@ -1342,7 +2812,24 @@
         "id": "manny-pads-2d017b",
         "name": "Manny Pads",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/manny-pads-2d017b-a12dd265.webp",
+          "spots/split/manny-pads-2d017b-a8ef8acc.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4416224,
+              43.5067079
+            ]
+          }
+        ]
       }
     },
     {
@@ -1358,7 +2845,24 @@
         "id": "handrail-5c5dfb",
         "name": "Handrail",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/handrail-5c5dfb-53274bba.webp",
+          "spots/split/handrail-5c5dfb-4977bcc1.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4331991,
+              43.5146084
+            ]
+          }
+        ]
       }
     },
     {
@@ -1374,7 +2878,23 @@
         "id": "bank-to-flatbar-51511a",
         "name": "Bank to Flatbar",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/bank-to-flatbar-51511a-b87ee1fe.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4550396,
+              43.5053513
+            ]
+          }
+        ]
       }
     },
     {
@@ -1390,7 +2910,23 @@
         "id": "blue-bank-472a6c",
         "name": "Blue Bank",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/blue-bank-472a6c-814d4baa.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.439566,
+              43.5160233
+            ]
+          }
+        ]
       }
     },
     {
@@ -1406,7 +2942,26 @@
         "id": "curb-paradise-dce684",
         "name": "Curb Paradise",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/curb-paradise-dce684-fc91971e.webp",
+          "spots/split/curb-paradise-dce684-c81e6c9f.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien",
+            "description": "It's a school so probably only possible on sunday"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "description": "It's a school so probably only possible on sunday",
+            "position": [
+              16.433725,
+              43.5157079
+            ]
+          }
+        ]
       }
     },
     {
@@ -1422,7 +2977,27 @@
         "id": "manny-pad-stairs-8f82f5",
         "name": "Manny Pad + Stairs",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/manny-pad-stairs-8f82f5-e7d7c711.webp",
+          "spots/split/manny-pad-stairs-8f82f5-b59341b7.webp",
+          "spots/split/manny-pad-stairs-8f82f5-ba07f4e4.webp",
+          "spots/split/manny-pad-stairs-8f82f5-9dc7d8ec.webp",
+          "spots/split/manny-pad-stairs-8f82f5-d6dba35c.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4345812,
+              43.515183
+            ]
+          }
+        ]
       }
     },
     {
@@ -1438,7 +3013,26 @@
         "id": "hubba-99ff20",
         "name": "Hubba",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/hubba-99ff20-69e8388d.webp",
+          "spots/split/hubba-99ff20-09481676.webp",
+          "spots/split/hubba-99ff20-06a28a2e.webp",
+          "spots/split/hubba-99ff20-3c2873fa.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4807132,
+              43.5095423
+            ]
+          }
+        ]
       }
     },
     {
@@ -1454,7 +3048,25 @@
         "id": "handrail-11d5fc",
         "name": "Handrail",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/handrail-11d5fc-947fae0a.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien",
+            "description": "Short runup"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "description": "Short runup",
+            "position": [
+              16.4811871,
+              43.5090026
+            ]
+          }
+        ]
       }
     },
     {
@@ -1470,7 +3082,25 @@
         "id": "death-drop-in-e199c3",
         "name": "Death Drop In",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/death-drop-in-e199c3-3bc99aaf.webp",
+          "spots/split/death-drop-in-e199c3-102becc1.webp",
+          "spots/split/death-drop-in-e199c3-31b7462c.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4818307,
+              43.5093552
+            ]
+          }
+        ]
       }
     },
     {
@@ -1486,7 +3116,25 @@
         "id": "big-hubba-0fda5c",
         "name": "Big Hubba",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/big-hubba-0fda5c-90e9e258.webp",
+          "spots/split/big-hubba-0fda5c-bb06020d.webp",
+          "spots/split/big-hubba-0fda5c-d1a4f55d.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4748416,
+              43.5092917
+            ]
+          }
+        ]
       }
     },
     {
@@ -1502,7 +3150,27 @@
         "id": "6-stair-manny-pad-into-bank-b40947",
         "name": "6 Stair + Manny Pad into Bank",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/6-stair-manny-pad-into-bank-b40947-61a7fc6f.webp",
+          "spots/split/6-stair-manny-pad-into-bank-b40947-9531a3fa.webp",
+          "spots/split/6-stair-manny-pad-into-bank-b40947-d170eb97.webp",
+          "spots/split/6-stair-manny-pad-into-bank-b40947-9f59a5c9.webp",
+          "spots/split/6-stair-manny-pad-into-bank-b40947-b5534b48.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4739697,
+              43.5091303
+            ]
+          }
+        ]
       }
     },
     {
@@ -1518,7 +3186,26 @@
         "id": "big-handrail-2d24ac",
         "name": "Big Handrail",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/big-handrail-2d24ac-379e0d6c.webp",
+          "spots/split/big-handrail-2d24ac-278c3a57.webp",
+          "spots/split/big-handrail-2d24ac-a52cce5f.webp",
+          "spots/split/big-handrail-2d24ac-ae1d4c3c.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4728863,
+              43.5091389
+            ]
+          }
+        ]
       }
     },
     {
@@ -1534,7 +3221,28 @@
         "id": "university-downhill-flatgap-ae593e",
         "name": "University Downhill Flatgap",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/university-downhill-flatgap-ae593e-6e32ecd4.webp",
+          "spots/split/university-downhill-flatgap-ae593e-e059d64d.webp",
+          "spots/split/university-downhill-flatgap-ae593e-e96cd3ca.webp",
+          "spots/split/university-downhill-flatgap-ae593e-32fcdab9.webp",
+          "spots/split/university-downhill-flatgap-ae593e-973cd417.webp",
+          "spots/split/university-downhill-flatgap-ae593e-758f729e.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4655115,
+              43.5120969
+            ]
+          }
+        ]
       }
     },
     {
@@ -1550,7 +3258,25 @@
         "id": "low-to-high-ledge-b2de7e",
         "name": "Low to High Ledge",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/low-to-high-ledge-b2de7e-db8b450d.webp",
+          "spots/split/low-to-high-ledge-b2de7e-a8a787df.webp",
+          "spots/split/low-to-high-ledge-b2de7e-3a9ce7ba.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4471716,
+              43.5198886
+            ]
+          }
+        ]
       }
     },
     {
@@ -1566,7 +3292,26 @@
         "id": "4-stair-handrail-a80ead",
         "name": "4 Stair Handrail",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/4-stair-handrail-a80ead-09bb4ec8.webp",
+          "spots/split/4-stair-handrail-a80ead-2351c2fb.webp",
+          "spots/split/4-stair-handrail-a80ead-c32d8203.webp",
+          "spots/split/4-stair-handrail-a80ead-82b77548.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4524349,
+              43.5156359
+            ]
+          }
+        ]
       }
     },
     {
@@ -1582,7 +3327,26 @@
         "id": "super-crust-kink-hubba-b82147",
         "name": "Super Crust Kink Hubba",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/super-crust-kink-hubba-b82147-d39f6773.webp",
+          "spots/split/super-crust-kink-hubba-b82147-8b2fb11b.webp",
+          "spots/split/super-crust-kink-hubba-b82147-4a3b93f7.webp",
+          "spots/split/super-crust-kink-hubba-b82147-b1015f97.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4515143,
+              43.5165661
+            ]
+          }
+        ]
       }
     },
     {
@@ -1598,7 +3362,25 @@
         "id": "hubba-0518f4",
         "name": "Hubba",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/hubba-0518f4-7255212d.webp",
+          "spots/split/hubba-0518f4-07d57754.webp",
+          "spots/split/hubba-0518f4-42ae2484.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4484203,
+              43.5151722
+            ]
+          }
+        ]
       }
     },
     {
@@ -1614,7 +3396,25 @@
         "id": "handrail-0c4be3",
         "name": "Handrail",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/handrail-0c4be3-6a452679.webp",
+          "spots/split/handrail-0c4be3-1647caa2.webp",
+          "spots/split/handrail-0c4be3-69dd6b6e.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4434927,
+              43.5150636
+            ]
+          }
+        ]
       }
     },
     {
@@ -1630,7 +3430,23 @@
         "id": "wobble-metal-thing-d35958",
         "name": "Wobble Metal Thing",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/wobble-metal-thing-d35958-a2f73e4a.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4319802,
+              43.5066043
+            ]
+          }
+        ]
       }
     },
     {
@@ -1646,7 +3462,25 @@
         "id": "big-stairset-gap-c429c0",
         "name": "Big Stairset Gap",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/big-stairset-gap-c429c0-5e0aaf46.webp",
+          "spots/split/big-stairset-gap-c429c0-0bd1ce9e.webp",
+          "spots/split/big-stairset-gap-c429c0-af1d15cc.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.4316385,
+              43.5065932
+            ]
+          }
+        ]
       }
     },
     {
@@ -1662,7 +3496,25 @@
         "id": "steep-handrail-9c11f4",
         "name": "Steep Handrail",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/steep-handrail-9c11f4-0ad041e8.webp",
+          "spots/split/steep-handrail-9c11f4-6f3ae1d9.webp",
+          "spots/split/steep-handrail-9c11f4-291c743c.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              16.439416,
+              43.5147561
+            ]
+          }
+        ]
       }
     },
     {
@@ -1678,7 +3530,28 @@
         "id": "manny-pad-4c0c7d",
         "name": "Manny Pad",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/split/manny-pad-4c0c7d-b684facf.webp",
+          "spots/split/manny-pad-4c0c7d-20a32a8e.webp",
+          "spots/split/manny-pad-4c0c7d-737e4922.webp",
+          "spots/split/manny-pad-4c0c7d-993eff2f.webp"
+        ],
+        "sources": [
+          {
+            "map": "split",
+            "folder": "Kroatien",
+            "description": "Probably a very high bust factor"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "description": "Probably a very high bust factor",
+            "position": [
+              16.4394616,
+              43.5151213
+            ]
+          }
+        ]
       }
     }
   ]

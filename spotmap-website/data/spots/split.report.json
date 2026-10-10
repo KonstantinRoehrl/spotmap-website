@@ -1,1539 +1,2797 @@
 {
   "city": "split",
+  "map": "split",
   "mid": "1dgfVkXz-ruy1aoQePV7j2lhv5QzEfFw",
   "placemarks": 105,
   "spotsWritten": 105,
-  "photosLinked": 283,
-  "photosWritten": 0,
-  "photosDead": [
+  "photosLinked": 566,
+  "photosWritten": 283,
+  "photosDead": [],
+  "photosRecovered": [
     {
       "spotId": "curbs-6f08d1",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "curbs-6f08d1",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "curbs-6f08d1",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "dardin-8009e3",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "dardin-8009e3",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "dardin-8009e3",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "dardin-8009e3",
-      "index": 4,
-      "reason": "http 404"
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "lidl-ledge-2cec1f",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "bloecke-964c23",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "diy-quater-151a97",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "diy-quater-151a97",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "stairsets-b97c4e",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "stairsets-b97c4e",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "stairsets-b97c4e",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "curb-9ad19e",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "curb-9ad19e",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "curb-9ad19e",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "curb-9ad19e",
-      "index": 4,
-      "reason": "http 404"
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "5-stair-55a788",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "5-stair-55a788",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "5-stair-55a788",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "little-vulcano-3c7041",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "dropledge-09a89f",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "dropledge-09a89f",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "pyramide-595094",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "pyramide-595094",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "little-stairs-and-curbs-fd1412",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "little-stairs-and-curbs-fd1412",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "little-stairs-and-curbs-fd1412",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "little-stairs-and-curbs-fd1412",
-      "index": 4,
-      "reason": "http 404"
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "little-stairs-and-curbs-fd1412",
-      "index": 5,
-      "reason": "http 404"
+      "map": "split",
+      "n": 5,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "pop-over-rail-8e00ca",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "pop-over-rail-8e00ca",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "gap-to-dropledge-df02ba",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "gap-to-dropledge-df02ba",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "long-ledge-5d84c2",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "long-ledge-5d84c2",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "crust-ledge-198eea",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "crust-ledge-198eea",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "manny-pad-ledges-3596c8",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "manny-pad-ledges-3596c8",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "manny-pad-ledges-3596c8",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "manny-pad-ledges-3596c8",
-      "index": 4,
-      "reason": "http 404"
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "small-dropledge-45477b",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "stairsets-double-set-ledges-thrashcan-gap-cddef3",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "stairsets-double-set-ledges-thrashcan-gap-cddef3",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "stairsets-double-set-ledges-thrashcan-gap-cddef3",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "stairsets-double-set-ledges-thrashcan-gap-cddef3",
-      "index": 4,
-      "reason": "http 404"
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "stairsets-double-set-ledges-thrashcan-gap-cddef3",
-      "index": 5,
-      "reason": "http 404"
+      "map": "split",
+      "n": 5,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "stairsets-double-set-ledges-thrashcan-gap-cddef3",
-      "index": 6,
-      "reason": "http 404"
+      "map": "split",
+      "n": 6,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "stairsets-double-set-ledges-thrashcan-gap-cddef3",
-      "index": 7,
-      "reason": "http 404"
+      "map": "split",
+      "n": 7,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "stairsets-double-set-ledges-thrashcan-gap-cddef3",
-      "index": 8,
-      "reason": "http 404"
+      "map": "split",
+      "n": 8,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "stairsets-double-set-ledges-thrashcan-gap-cddef3",
-      "index": 9,
-      "reason": "http 404"
+      "map": "split",
+      "n": 9,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "stairsets-double-set-ledges-thrashcan-gap-cddef3",
-      "index": 10,
-      "reason": "http 404"
+      "map": "split",
+      "n": 10,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "13er-handrail-21273a",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "13er-handrail-21273a",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "10er-handrail-bbb3d2",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "10er-handrail-bbb3d2",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "10er-handrail-bbb3d2",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "low-to-high-ledge-de1430",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "low-to-high-ledge-de1430",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "long-hubba-ab198c",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "long-hubba-ab198c",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "long-crusty-banana-ledge-357895",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "long-crusty-banana-ledge-357895",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "bump-to-bar-5663aa",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "6-stairs-with-plants-37ae16",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "6-stairs-with-plants-37ae16",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "6-stairs-with-plants-37ae16",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "low-to-high-rail-5503ca",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "low-to-high-rail-5503ca",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "low-to-high-rail-5503ca",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "low-to-high-rail-5503ca",
-      "index": 4,
-      "reason": "http 404"
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "pyramids-94b5c3",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "pyramids-94b5c3",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "pyramids-94b5c3",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "pyramids-94b5c3",
-      "index": 4,
-      "reason": "http 404"
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "pyramids-94b5c3",
-      "index": 5,
-      "reason": "http 404"
+      "map": "split",
+      "n": 5,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "double-set-51ccc1",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "low-to-high-manny-pad-b2ed56",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "low-to-high-manny-pad-b2ed56",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "gap-over-water-supply-9dd80c",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "gap-over-water-supply-9dd80c",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "gap-over-water-supply-9dd80c",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "gap-over-thrashcan-and-bench-rails-ea945a",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "gap-over-thrashcan-and-bench-rails-ea945a",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "gap-over-thrashcan-and-bench-rails-ea945a",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "gap-over-thrashcan-and-bench-rails-ea945a",
-      "index": 4,
-      "reason": "http 404"
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "gap-over-thrashcan-and-bench-rails-ea945a",
-      "index": 5,
-      "reason": "http 404"
+      "map": "split",
+      "n": 5,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "flatgap-15eee5",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "flatgap-15eee5",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "water-pads-e6db44",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "harbour-curbs-314da1",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "harbour-curbs-314da1",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "mannypad-1cc473",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "mannypad-1cc473",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "mannypad-1cc473",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "mini-manny-pads-27e16e",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "4-and-8-stairs-a5aa6e",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "4-and-8-stairs-a5aa6e",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "4-and-8-stairs-a5aa6e",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "4-and-8-stairs-a5aa6e",
-      "index": 4,
-      "reason": "http 404"
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "6-stair-0b85de",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "ledge-555085",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "ledge-555085",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "9er-handrail-dfb217",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "small-handrail-and-boardslide-hubba-04705d",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "small-handrail-and-boardslide-hubba-04705d",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "11-stair-hubba-974d02",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "11-stair-hubba-974d02",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "11-stair-hubba-974d02",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "11-stair-hubba-974d02",
-      "index": 4,
-      "reason": "http 404"
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "11-stair-hubba-974d02",
-      "index": 5,
-      "reason": "http 404"
+      "map": "split",
+      "n": 5,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "stairs-and-dropledge-291612",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "stairs-and-dropledge-291612",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "stairs-and-dropledge-291612",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "stairs-and-dropledge-291612",
-      "index": 4,
-      "reason": "http 404"
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "stairs-and-dropledge-291612",
-      "index": 5,
-      "reason": "http 404"
+      "map": "split",
+      "n": 5,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "stairs-and-dropledge-291612",
-      "index": 6,
-      "reason": "http 404"
+      "map": "split",
+      "n": 6,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "long-ledge-728a14",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "double-set-roll-in-3ee0a7",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "manny-pad-a33517",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "jack-o-grady-spot-cb5f20",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "jack-o-grady-spot-cb5f20",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "jack-o-grady-spot-cb5f20",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "volcanos-and-curb-2cbb95",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "big-gap-4f9f33",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "big-gap-4f9f33",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "big-gap-4f9f33",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "handrail-5dfaa3",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "handrail-5dfaa3",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "handrail-5dfaa3",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "handrail-be19f3",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "handrail-be19f3",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "stairsets-165837",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "downhill-curb-9a6c86",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "downhill-curb-9a6c86",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "downhill-curb-9a6c86",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "downhill-curb-9a6c86",
-      "index": 4,
-      "reason": "http 404"
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "downhill-curb-9a6c86",
-      "index": 5,
-      "reason": "http 404"
+      "map": "split",
+      "n": 5,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "downhill-curb-9a6c86",
-      "index": 6,
-      "reason": "http 404"
+      "map": "split",
+      "n": 6,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "downhill-curb-9a6c86",
-      "index": 7,
-      "reason": "http 404"
+      "map": "split",
+      "n": 7,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "10-stair-5e99f5",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "10-stair-5e99f5",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "10-stair-5e99f5",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "diy-4e5e9d",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "miniramp-b9f5d6",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "miniramp-b9f5d6",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "gap-over-fence-21fda7",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "gap-over-fence-21fda7",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "gap-over-fence-21fda7",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "gap-over-rail-114dcc",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "gap-over-rail-114dcc",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "downledge-fd246c",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "downledge-fd246c",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "downledge-fd246c",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "downledge-fd246c",
-      "index": 4,
-      "reason": "http 404"
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "habour-small-ledge-bca562",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "crusty-11-stair-6c1c51",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "crusty-11-stair-6c1c51",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "crusty-11-stair-6c1c51",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "bump-to-bar-8965c8",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "bump-to-bar-8965c8",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "bump-to-bar-8965c8",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "bump-to-bar-8965c8",
-      "index": 4,
-      "reason": "http 404"
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "skatepark-8cb2ec",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "double-set-ledge-eee085",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "double-set-ledge-eee085",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "double-set-ledge-eee085",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "double-set-ledge-eee085",
-      "index": 4,
-      "reason": "http 404"
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "double-set-ledge-eee085",
-      "index": 5,
-      "reason": "http 404"
+      "map": "split",
+      "n": 5,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "low-to-high-rail-a0d8b8",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "low-to-high-rail-a0d8b8",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "low-to-high-rail-a0d8b8",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "10er-handrail-71c596",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "chris-pfanner-double-set-4bc65b",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "chris-pfanner-double-set-4bc65b",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "chris-pfanner-double-set-4bc65b",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "crusty-10-stair-54f5cb",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "crusty-10-stair-54f5cb",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "crusty-10-stair-54f5cb",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "dropledge-91576a",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "dropledge-91576a",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "dropledge-91576a",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "bank-267211",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "bank-267211",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "8-stairs-96bf59",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "8-stairs-96bf59",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "steep-hubba-012b54",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "steep-hubba-012b54",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "dropledge-3c7321",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "dropledge-3c7321",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "dropledge-3c7321",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "dropledge-3c7321",
-      "index": 4,
-      "reason": "http 404"
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "skatepark-curb-e7234b",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "skatepark-curb-e7234b",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "super-crust-ledge-d05f6c",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "super-crust-ledge-d05f6c",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "gangster-manny-pad-ab1364",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "gangster-manny-pad-ab1364",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "gangster-manny-pad-ab1364",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "slappy-banks-bc5884",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "slappy-banks-bc5884",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "slappy-banks-bc5884",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "slappy-banks-bc5884",
-      "index": 4,
-      "reason": "http 404"
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "slappy-banks-bc5884",
-      "index": 5,
-      "reason": "http 404"
+      "map": "split",
+      "n": 5,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "slappy-banks-bc5884",
-      "index": 6,
-      "reason": "http 404"
+      "map": "split",
+      "n": 6,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "dropledge-adebf6",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "dropledge-adebf6",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "dropledge-adebf6",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "dropledge-adebf6",
-      "index": 4,
-      "reason": "http 404"
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "stairs-f6dca8",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "wallride-a76b32",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "wallride-a76b32",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "bump-to-bar-6b74b1",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "bump-to-bar-6b74b1",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "manny-pads-2d017b",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "manny-pads-2d017b",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "handrail-5c5dfb",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "handrail-5c5dfb",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "bank-to-flatbar-51511a",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "blue-bank-472a6c",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "curb-paradise-dce684",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "curb-paradise-dce684",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "manny-pad-stairs-8f82f5",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "manny-pad-stairs-8f82f5",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "manny-pad-stairs-8f82f5",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "manny-pad-stairs-8f82f5",
-      "index": 4,
-      "reason": "http 404"
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "manny-pad-stairs-8f82f5",
-      "index": 5,
-      "reason": "http 404"
+      "map": "split",
+      "n": 5,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "hubba-99ff20",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "hubba-99ff20",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "hubba-99ff20",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "hubba-99ff20",
-      "index": 4,
-      "reason": "http 404"
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "handrail-11d5fc",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "death-drop-in-e199c3",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "death-drop-in-e199c3",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "death-drop-in-e199c3",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "big-hubba-0fda5c",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "big-hubba-0fda5c",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "big-hubba-0fda5c",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "6-stair-manny-pad-into-bank-b40947",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "6-stair-manny-pad-into-bank-b40947",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "6-stair-manny-pad-into-bank-b40947",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "6-stair-manny-pad-into-bank-b40947",
-      "index": 4,
-      "reason": "http 404"
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "6-stair-manny-pad-into-bank-b40947",
-      "index": 5,
-      "reason": "http 404"
+      "map": "split",
+      "n": 5,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "big-handrail-2d24ac",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "big-handrail-2d24ac",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "big-handrail-2d24ac",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "big-handrail-2d24ac",
-      "index": 4,
-      "reason": "http 404"
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "university-downhill-flatgap-ae593e",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "university-downhill-flatgap-ae593e",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "university-downhill-flatgap-ae593e",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "university-downhill-flatgap-ae593e",
-      "index": 4,
-      "reason": "http 404"
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "university-downhill-flatgap-ae593e",
-      "index": 5,
-      "reason": "http 404"
+      "map": "split",
+      "n": 5,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "university-downhill-flatgap-ae593e",
-      "index": 6,
-      "reason": "http 404"
+      "map": "split",
+      "n": 6,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "low-to-high-ledge-b2de7e",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "low-to-high-ledge-b2de7e",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "low-to-high-ledge-b2de7e",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "4-stair-handrail-a80ead",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "4-stair-handrail-a80ead",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "4-stair-handrail-a80ead",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "4-stair-handrail-a80ead",
-      "index": 4,
-      "reason": "http 404"
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "super-crust-kink-hubba-b82147",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "super-crust-kink-hubba-b82147",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "super-crust-kink-hubba-b82147",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "super-crust-kink-hubba-b82147",
-      "index": 4,
-      "reason": "http 404"
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "hubba-0518f4",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "hubba-0518f4",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "hubba-0518f4",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "handrail-0c4be3",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "handrail-0c4be3",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "handrail-0c4be3",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "wobble-metal-thing-d35958",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "big-stairset-gap-c429c0",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "big-stairset-gap-c429c0",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "big-stairset-gap-c429c0",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "steep-handrail-9c11f4",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "steep-handrail-9c11f4",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "steep-handrail-9c11f4",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "manny-pad-4c0c7d",
-      "index": 1,
-      "reason": "http 404"
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "manny-pad-4c0c7d",
-      "index": 2,
-      "reason": "http 404"
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "manny-pad-4c0c7d",
-      "index": 3,
-      "reason": "http 404"
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     },
     {
       "spotId": "manny-pad-4c0c7d",
-      "index": 4,
-      "reason": "http 404"
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
     }
   ],
   "photosDuplicate": [],
+  "photosNearDuplicate": [],
   "spotsWithoutPhotos": [
-    "curbs-6f08d1",
-    "dardin-8009e3",
-    "lidl-ledge-2cec1f",
-    "bloecke-964c23",
-    "diy-quater-151a97",
-    "stairsets-b97c4e",
-    "curb-9ad19e",
-    "5-stair-55a788",
-    "little-vulcano-3c7041",
-    "dropledge-09a89f",
-    "pyramide-595094",
-    "little-stairs-and-curbs-fd1412",
-    "pop-over-rail-8e00ca",
-    "gap-to-dropledge-df02ba",
-    "long-ledge-5d84c2",
-    "crust-ledge-198eea",
-    "manny-pad-ledges-3596c8",
-    "small-dropledge-45477b",
-    "stairsets-double-set-ledges-thrashcan-gap-cddef3",
-    "punkt-46-753e20",
-    "13er-handrail-21273a",
-    "10er-handrail-bbb3d2",
-    "low-to-high-ledge-de1430",
-    "long-hubba-ab198c",
-    "long-crusty-banana-ledge-357895",
-    "bump-to-bar-5663aa",
-    "6-stairs-with-plants-37ae16",
-    "low-to-high-rail-5503ca",
-    "pyramids-94b5c3",
-    "double-set-51ccc1",
-    "low-to-high-manny-pad-b2ed56",
-    "gap-over-water-supply-9dd80c",
-    "gap-over-thrashcan-and-bench-rails-ea945a",
-    "flatgap-15eee5",
-    "water-pads-e6db44",
-    "harbour-curbs-314da1",
-    "mannypad-1cc473",
-    "mini-manny-pads-27e16e",
-    "4-and-8-stairs-a5aa6e",
-    "6-stair-0b85de",
-    "ledge-555085",
-    "9er-handrail-dfb217",
-    "small-handrail-and-boardslide-hubba-04705d",
-    "11-stair-hubba-974d02",
-    "stairs-and-dropledge-291612",
-    "long-ledge-728a14",
-    "double-set-roll-in-3ee0a7",
-    "manny-pad-a33517",
-    "jack-o-grady-spot-cb5f20",
-    "volcanos-and-curb-2cbb95",
-    "big-gap-4f9f33",
-    "handrail-5dfaa3",
-    "handrail-be19f3",
-    "stairsets-165837",
-    "downhill-curb-9a6c86",
-    "10-stair-5e99f5",
-    "diy-4e5e9d",
-    "miniramp-b9f5d6",
-    "gap-over-fence-21fda7",
-    "gap-over-rail-114dcc",
-    "downledge-fd246c",
-    "habour-small-ledge-bca562",
-    "crusty-11-stair-6c1c51",
-    "bump-to-bar-8965c8",
-    "skatepark-8cb2ec",
-    "double-set-ledge-eee085",
-    "low-to-high-rail-a0d8b8",
-    "10er-handrail-71c596",
-    "chris-pfanner-double-set-4bc65b",
-    "crusty-10-stair-54f5cb",
-    "dropledge-91576a",
-    "bank-267211",
-    "8-stairs-96bf59",
-    "steep-hubba-012b54",
-    "dropledge-3c7321",
-    "skatepark-curb-e7234b",
-    "super-crust-ledge-d05f6c",
-    "gangster-manny-pad-ab1364",
-    "slappy-banks-bc5884",
-    "dropledge-adebf6",
-    "stairs-f6dca8",
-    "wallride-a76b32",
-    "bump-to-bar-6b74b1",
-    "manny-pads-2d017b",
-    "handrail-5c5dfb",
-    "bank-to-flatbar-51511a",
-    "blue-bank-472a6c",
-    "curb-paradise-dce684",
-    "manny-pad-stairs-8f82f5",
-    "hubba-99ff20",
-    "handrail-11d5fc",
-    "death-drop-in-e199c3",
-    "big-hubba-0fda5c",
-    "6-stair-manny-pad-into-bank-b40947",
-    "big-handrail-2d24ac",
-    "university-downhill-flatgap-ae593e",
-    "low-to-high-ledge-b2de7e",
-    "4-stair-handrail-a80ead",
-    "super-crust-kink-hubba-b82147",
-    "hubba-0518f4",
-    "handrail-0c4be3",
-    "wobble-metal-thing-d35958",
-    "big-stairset-gap-c429c0",
-    "steep-handrail-9c11f4",
-    "manny-pad-4c0c7d"
+    "punkt-46-753e20"
   ],
   "statusCounts": {
     "active": 105,
     "demolished": 0,
     "unclassified": 0
+  },
+  "extraMaps": [
+    {
+      "map": "balkan",
+      "mid": "1IDO4AGmCsN_D-zcXPjpU1eXqwQYTh1A",
+      "placemarks": 140,
+      "matched": 105
+    }
+  ],
+  "matches": {
+    "conflicts": [],
+    "ambiguous": [],
+    "unmatched": []
+  },
+  "linkCounts": {
+    "split": {
+      "curbs-6f08d1": 3,
+      "dardin-8009e3": 4,
+      "lidl-ledge-2cec1f": 1,
+      "bloecke-964c23": 1,
+      "diy-quater-151a97": 2,
+      "stairsets-b97c4e": 3,
+      "curb-9ad19e": 4,
+      "5-stair-55a788": 3,
+      "little-vulcano-3c7041": 1,
+      "dropledge-09a89f": 2,
+      "pyramide-595094": 2,
+      "little-stairs-and-curbs-fd1412": 5,
+      "pop-over-rail-8e00ca": 2,
+      "gap-to-dropledge-df02ba": 2,
+      "long-ledge-5d84c2": 2,
+      "crust-ledge-198eea": 2,
+      "manny-pad-ledges-3596c8": 4,
+      "small-dropledge-45477b": 1,
+      "stairsets-double-set-ledges-thrashcan-gap-cddef3": 10,
+      "13er-handrail-21273a": 2,
+      "10er-handrail-bbb3d2": 3,
+      "low-to-high-ledge-de1430": 2,
+      "long-hubba-ab198c": 2,
+      "long-crusty-banana-ledge-357895": 2,
+      "bump-to-bar-5663aa": 1,
+      "6-stairs-with-plants-37ae16": 3,
+      "low-to-high-rail-5503ca": 4,
+      "pyramids-94b5c3": 5,
+      "double-set-51ccc1": 1,
+      "low-to-high-manny-pad-b2ed56": 2,
+      "gap-over-water-supply-9dd80c": 3,
+      "gap-over-thrashcan-and-bench-rails-ea945a": 5,
+      "flatgap-15eee5": 2,
+      "water-pads-e6db44": 1,
+      "harbour-curbs-314da1": 2,
+      "mannypad-1cc473": 3,
+      "mini-manny-pads-27e16e": 1,
+      "4-and-8-stairs-a5aa6e": 4,
+      "6-stair-0b85de": 1,
+      "ledge-555085": 2,
+      "9er-handrail-dfb217": 1,
+      "small-handrail-and-boardslide-hubba-04705d": 2,
+      "11-stair-hubba-974d02": 5,
+      "stairs-and-dropledge-291612": 6,
+      "long-ledge-728a14": 1,
+      "double-set-roll-in-3ee0a7": 1,
+      "manny-pad-a33517": 1,
+      "jack-o-grady-spot-cb5f20": 3,
+      "volcanos-and-curb-2cbb95": 1,
+      "big-gap-4f9f33": 3,
+      "handrail-5dfaa3": 3,
+      "handrail-be19f3": 2,
+      "stairsets-165837": 1,
+      "downhill-curb-9a6c86": 7,
+      "10-stair-5e99f5": 3,
+      "diy-4e5e9d": 1,
+      "miniramp-b9f5d6": 2,
+      "gap-over-fence-21fda7": 3,
+      "gap-over-rail-114dcc": 2,
+      "downledge-fd246c": 4,
+      "habour-small-ledge-bca562": 1,
+      "crusty-11-stair-6c1c51": 3,
+      "bump-to-bar-8965c8": 4,
+      "skatepark-8cb2ec": 1,
+      "double-set-ledge-eee085": 5,
+      "low-to-high-rail-a0d8b8": 3,
+      "10er-handrail-71c596": 1,
+      "chris-pfanner-double-set-4bc65b": 3,
+      "crusty-10-stair-54f5cb": 3,
+      "dropledge-91576a": 3,
+      "bank-267211": 2,
+      "8-stairs-96bf59": 2,
+      "steep-hubba-012b54": 2,
+      "dropledge-3c7321": 4,
+      "skatepark-curb-e7234b": 2,
+      "super-crust-ledge-d05f6c": 2,
+      "gangster-manny-pad-ab1364": 3,
+      "slappy-banks-bc5884": 6,
+      "dropledge-adebf6": 4,
+      "stairs-f6dca8": 1,
+      "wallride-a76b32": 2,
+      "bump-to-bar-6b74b1": 2,
+      "manny-pads-2d017b": 2,
+      "handrail-5c5dfb": 2,
+      "bank-to-flatbar-51511a": 1,
+      "blue-bank-472a6c": 1,
+      "curb-paradise-dce684": 2,
+      "manny-pad-stairs-8f82f5": 5,
+      "hubba-99ff20": 4,
+      "handrail-11d5fc": 1,
+      "death-drop-in-e199c3": 3,
+      "big-hubba-0fda5c": 3,
+      "6-stair-manny-pad-into-bank-b40947": 5,
+      "big-handrail-2d24ac": 4,
+      "university-downhill-flatgap-ae593e": 6,
+      "low-to-high-ledge-b2de7e": 3,
+      "4-stair-handrail-a80ead": 4,
+      "super-crust-kink-hubba-b82147": 4,
+      "hubba-0518f4": 3,
+      "handrail-0c4be3": 3,
+      "wobble-metal-thing-d35958": 1,
+      "big-stairset-gap-c429c0": 3,
+      "steep-handrail-9c11f4": 3,
+      "manny-pad-4c0c7d": 4
+    },
+    "balkan": {
+      "curbs-6f08d1": 3,
+      "dardin-8009e3": 4,
+      "lidl-ledge-2cec1f": 1,
+      "bloecke-964c23": 1,
+      "diy-quater-151a97": 2,
+      "stairsets-b97c4e": 3,
+      "curb-9ad19e": 4,
+      "5-stair-55a788": 3,
+      "little-vulcano-3c7041": 1,
+      "dropledge-09a89f": 2,
+      "pyramide-595094": 2,
+      "little-stairs-and-curbs-fd1412": 5,
+      "pop-over-rail-8e00ca": 2,
+      "gap-to-dropledge-df02ba": 2,
+      "long-ledge-5d84c2": 2,
+      "crust-ledge-198eea": 2,
+      "manny-pad-ledges-3596c8": 4,
+      "small-dropledge-45477b": 1,
+      "stairsets-double-set-ledges-thrashcan-gap-cddef3": 10,
+      "13er-handrail-21273a": 2,
+      "10er-handrail-bbb3d2": 3,
+      "low-to-high-ledge-de1430": 2,
+      "long-hubba-ab198c": 2,
+      "long-crusty-banana-ledge-357895": 2,
+      "bump-to-bar-5663aa": 1,
+      "6-stairs-with-plants-37ae16": 3,
+      "low-to-high-rail-5503ca": 4,
+      "pyramids-94b5c3": 5,
+      "double-set-51ccc1": 1,
+      "low-to-high-manny-pad-b2ed56": 2,
+      "gap-over-water-supply-9dd80c": 3,
+      "gap-over-thrashcan-and-bench-rails-ea945a": 5,
+      "flatgap-15eee5": 2,
+      "water-pads-e6db44": 1,
+      "harbour-curbs-314da1": 2,
+      "mannypad-1cc473": 3,
+      "mini-manny-pads-27e16e": 1,
+      "4-and-8-stairs-a5aa6e": 4,
+      "6-stair-0b85de": 1,
+      "ledge-555085": 2,
+      "9er-handrail-dfb217": 1,
+      "small-handrail-and-boardslide-hubba-04705d": 2,
+      "11-stair-hubba-974d02": 5,
+      "stairs-and-dropledge-291612": 6,
+      "long-ledge-728a14": 1,
+      "double-set-roll-in-3ee0a7": 1,
+      "manny-pad-a33517": 1,
+      "jack-o-grady-spot-cb5f20": 3,
+      "volcanos-and-curb-2cbb95": 1,
+      "big-gap-4f9f33": 3,
+      "handrail-5dfaa3": 3,
+      "handrail-be19f3": 2,
+      "stairsets-165837": 1,
+      "downhill-curb-9a6c86": 7,
+      "10-stair-5e99f5": 3,
+      "diy-4e5e9d": 1,
+      "miniramp-b9f5d6": 2,
+      "gap-over-fence-21fda7": 3,
+      "gap-over-rail-114dcc": 2,
+      "downledge-fd246c": 4,
+      "habour-small-ledge-bca562": 1,
+      "crusty-11-stair-6c1c51": 3,
+      "bump-to-bar-8965c8": 4,
+      "skatepark-8cb2ec": 1,
+      "double-set-ledge-eee085": 5,
+      "low-to-high-rail-a0d8b8": 3,
+      "10er-handrail-71c596": 1,
+      "chris-pfanner-double-set-4bc65b": 3,
+      "crusty-10-stair-54f5cb": 3,
+      "dropledge-91576a": 3,
+      "bank-267211": 2,
+      "8-stairs-96bf59": 2,
+      "steep-hubba-012b54": 2,
+      "dropledge-3c7321": 4,
+      "skatepark-curb-e7234b": 2,
+      "super-crust-ledge-d05f6c": 2,
+      "gangster-manny-pad-ab1364": 3,
+      "slappy-banks-bc5884": 6,
+      "dropledge-adebf6": 4,
+      "stairs-f6dca8": 1,
+      "wallride-a76b32": 2,
+      "bump-to-bar-6b74b1": 2,
+      "manny-pads-2d017b": 2,
+      "handrail-5c5dfb": 2,
+      "bank-to-flatbar-51511a": 1,
+      "blue-bank-472a6c": 1,
+      "curb-paradise-dce684": 2,
+      "manny-pad-stairs-8f82f5": 5,
+      "hubba-99ff20": 4,
+      "handrail-11d5fc": 1,
+      "death-drop-in-e199c3": 3,
+      "big-hubba-0fda5c": 3,
+      "6-stair-manny-pad-into-bank-b40947": 5,
+      "big-handrail-2d24ac": 4,
+      "university-downhill-flatgap-ae593e": 6,
+      "low-to-high-ledge-b2de7e": 3,
+      "4-stair-handrail-a80ead": 4,
+      "super-crust-kink-hubba-b82147": 4,
+      "hubba-0518f4": 3,
+      "handrail-0c4be3": 3,
+      "wobble-metal-thing-d35958": 1,
+      "big-stairset-gap-c429c0": 3,
+      "steep-handrail-9c11f4": 3,
+      "manny-pad-4c0c7d": 4
+    }
   },
   "warnings": []
 }

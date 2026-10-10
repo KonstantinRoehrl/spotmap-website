@@ -16,6 +16,12 @@
         "status": "active",
         "photos": [
           "spots/barcelona/fondo-55a629-fdecfd2d.webp"
+        ],
+        "sources": [
+          {
+            "map": "barcelona",
+            "folder": "Spanien"
+          }
         ]
       }
     },
@@ -35,6 +41,12 @@
         "photos": [
           "spots/barcelona/parallel-04f281-2f7360ac.webp",
           "spots/barcelona/parallel-04f281-5f5a0074.webp"
+        ],
+        "sources": [
+          {
+            "map": "barcelona",
+            "folder": "Spanien"
+          }
         ]
       }
     },
@@ -54,6 +66,12 @@
         "photos": [
           "spots/barcelona/stevie-williams-spot-cb16f1-be0f7da0.webp",
           "spots/barcelona/stevie-williams-spot-cb16f1-9203d655.webp"
+        ],
+        "sources": [
+          {
+            "map": "barcelona",
+            "folder": "Spanien"
+          }
         ]
       }
     },
@@ -72,6 +90,12 @@
         "status": "active",
         "photos": [
           "spots/barcelona/universitat-2573ac-850f5c8b.webp"
+        ],
+        "sources": [
+          {
+            "map": "barcelona",
+            "folder": "Spanien"
+          }
         ]
       }
     },
@@ -92,6 +116,12 @@
           "spots/barcelona/macba-b3ea54-19eb88b4.webp",
           "spots/barcelona/macba-b3ea54-8c9b987b.webp",
           "spots/barcelona/macba-b3ea54-3eca8bbd.webp"
+        ],
+        "sources": [
+          {
+            "map": "barcelona",
+            "folder": "Spanien"
+          }
         ]
       }
     },
@@ -110,6 +140,12 @@
         "status": "active",
         "photos": [
           "spots/barcelona/busenitz-spot-995705-6d93805f.webp"
+        ],
+        "sources": [
+          {
+            "map": "barcelona",
+            "folder": "Spanien"
+          }
         ]
       }
     },
@@ -128,6 +164,12 @@
         "status": "active",
         "photos": [
           "spots/barcelona/kicker-over-bench-b95443-9d73376e.webp"
+        ],
+        "sources": [
+          {
+            "map": "barcelona",
+            "folder": "Spanien"
+          }
         ]
       }
     },
@@ -146,6 +188,12 @@
         "status": "active",
         "photos": [
           "spots/barcelona/haifischflosse-ab7d28-1007005d.webp"
+        ],
+        "sources": [
+          {
+            "map": "barcelona",
+            "folder": "Spanien"
+          }
         ]
       }
     },
@@ -171,6 +219,12 @@
           "spots/barcelona/blue-spot-ad06a5-aa1a416a.webp",
           "spots/barcelona/blue-spot-ad06a5-f5b002f8.webp",
           "spots/barcelona/blue-spot-ad06a5-f79cfd33.webp"
+        ],
+        "sources": [
+          {
+            "map": "barcelona",
+            "folder": "Spanien"
+          }
         ]
       }
     },
@@ -189,6 +243,12 @@
         "status": "active",
         "photos": [
           "spots/barcelona/besos-waves-7fa606-466b50cd.webp"
+        ],
+        "sources": [
+          {
+            "map": "barcelona",
+            "folder": "Spanien"
+          }
         ]
       }
     },
@@ -207,6 +267,13 @@
         "status": "active",
         "photos": [
           "spots/barcelona/sant-marti-7-stair-dc5c30-81931c74.webp"
+        ],
+        "sources": [
+          {
+            "map": "barcelona",
+            "folder": "Spanien",
+            "description": "short runup"
+          }
         ]
       }
     },
@@ -225,6 +292,13 @@
         "status": "active",
         "photos": [
           "spots/barcelona/corners-ccd57b-ed3e1d67.webp"
+        ],
+        "sources": [
+          {
+            "map": "barcelona",
+            "folder": "Spanien",
+            "description": "Bust"
+          }
         ]
       }
     },
@@ -243,6 +317,12 @@
         "status": "active",
         "photos": [
           "spots/barcelona/10-stair-rail-589bce-5f666688.webp"
+        ],
+        "sources": [
+          {
+            "map": "barcelona",
+            "folder": "Spanien"
+          }
         ]
       }
     },
@@ -261,6 +341,12 @@
         "status": "active",
         "photos": [
           "spots/barcelona/7er-handrail-32b24b-7218432c.webp"
+        ],
+        "sources": [
+          {
+            "map": "barcelona",
+            "folder": "Spanien"
+          }
         ]
       }
     },
@@ -279,6 +365,12 @@
         "status": "active",
         "photos": [
           "spots/barcelona/virrei-amat-spot-ebc3d7-3ca406c3.webp"
+        ],
+        "sources": [
+          {
+            "map": "barcelona",
+            "folder": "Spanien"
+          }
         ]
       }
     },
@@ -297,6 +389,12 @@
         "status": "active",
         "photos": [
           "spots/barcelona/7er-handrail-1f0e20-d669a403.webp"
+        ],
+        "sources": [
+          {
+            "map": "barcelona",
+            "folder": "Spanien"
+          }
         ]
       }
     },
@@ -316,6 +414,13 @@
         "photos": [
           "spots/barcelona/8er-double-set-34fb2d-876a1c8f.webp",
           "spots/barcelona/8er-double-set-34fb2d-417d1ac2.webp"
+        ],
+        "sources": [
+          {
+            "map": "barcelona",
+            "folder": "Spanien",
+            "description": "Kurze Anfahrt"
+          }
         ]
       }
     },
@@ -334,6 +439,13 @@
         "status": "active",
         "photos": [
           "spots/barcelona/manual-pad-e357ba-05077125.webp"
+        ],
+        "sources": [
+          {
+            "map": "barcelona",
+            "folder": "Spanien",
+            "description": "4 Stair drop"
+          }
         ]
       }
     },
@@ -353,6 +465,12 @@
         "photos": [
           "spots/barcelona/fondo-low-to-high-ledge-de108b-3f6d896b.webp",
           "spots/barcelona/fondo-low-to-high-ledge-de108b-9447a7b0.webp"
+        ],
+        "sources": [
+          {
+            "map": "barcelona",
+            "folder": "Spanien"
+          }
         ]
       }
     },
@@ -372,6 +490,12 @@
         "photos": [
           "spots/barcelona/gap-over-ledge-ef1909-9c8c2830.webp",
           "spots/barcelona/gap-over-ledge-ef1909-9884e594.webp"
+        ],
+        "sources": [
+          {
+            "map": "barcelona",
+            "folder": "Spanien"
+          }
         ]
       }
     },
@@ -390,6 +514,12 @@
         "status": "active",
         "photos": [
           "spots/barcelona/low-to-high-ledge-aca8eb-f93f9afc.webp"
+        ],
+        "sources": [
+          {
+            "map": "barcelona",
+            "folder": "Spanien"
+          }
         ]
       }
     },
@@ -411,6 +541,12 @@
           "spots/barcelona/holzbenches-ueberdacht-ae1242-6d17cd34.webp",
           "spots/barcelona/holzbenches-ueberdacht-ae1242-aa59e751.webp",
           "spots/barcelona/holzbenches-ueberdacht-ae1242-edce6906.webp"
+        ],
+        "sources": [
+          {
+            "map": "barcelona",
+            "folder": "Spanien"
+          }
         ]
       }
     },
@@ -429,6 +565,12 @@
         "status": "active",
         "photos": [
           "spots/barcelona/monument-143f53-58823f62.webp"
+        ],
+        "sources": [
+          {
+            "map": "barcelona",
+            "folder": "Spanien"
+          }
         ]
       }
     },
@@ -447,6 +589,12 @@
         "status": "active",
         "photos": [
           "spots/barcelona/hard-rail-55252d-118c675a.webp"
+        ],
+        "sources": [
+          {
+            "map": "barcelona",
+            "folder": "Spanien"
+          }
         ]
       }
     },
@@ -467,6 +615,12 @@
           "spots/barcelona/curbs-over-stairs-63c5b9-ecc1fb32.webp",
           "spots/barcelona/curbs-over-stairs-63c5b9-2b3cec36.webp",
           "spots/barcelona/curbs-over-stairs-63c5b9-0d531f32.webp"
+        ],
+        "sources": [
+          {
+            "map": "barcelona",
+            "folder": "Spanien"
+          }
         ]
       }
     },
@@ -485,6 +639,12 @@
         "status": "active",
         "photos": [
           "spots/barcelona/vall-d-hebron-ledge-b2da3d-4a54a846.webp"
+        ],
+        "sources": [
+          {
+            "map": "barcelona",
+            "folder": "Spanien"
+          }
         ]
       }
     },
@@ -503,6 +663,12 @@
         "status": "active",
         "photos": [
           "spots/barcelona/long-metal-ledge-ba2e8b-e78af3f7.webp"
+        ],
+        "sources": [
+          {
+            "map": "barcelona",
+            "folder": "Spanien"
+          }
         ]
       }
     },
@@ -521,6 +687,12 @@
         "status": "active",
         "photos": [
           "spots/barcelona/curbs-banks-downhill-0220c3-e8d5354b.webp"
+        ],
+        "sources": [
+          {
+            "map": "barcelona",
+            "folder": "Spanien"
+          }
         ]
       }
     },
@@ -540,6 +712,12 @@
         "photos": [
           "spots/barcelona/marble-benches-36cda7-425c55a6.webp",
           "spots/barcelona/marble-benches-36cda7-2766509c.webp"
+        ],
+        "sources": [
+          {
+            "map": "barcelona",
+            "folder": "Spanien"
+          }
         ]
       }
     },
@@ -559,6 +737,12 @@
         "photos": [
           "spots/barcelona/u-curb-952078-5c9c9b6e.webp",
           "spots/barcelona/u-curb-952078-dd0a319c.webp"
+        ],
+        "sources": [
+          {
+            "map": "barcelona",
+            "folder": "Spanien"
+          }
         ]
       }
     },
@@ -578,6 +762,12 @@
         "photos": [
           "spots/barcelona/low-to-high-ledge-b73ec0-6a791d7b.webp",
           "spots/barcelona/low-to-high-ledge-b73ec0-607ea835.webp"
+        ],
+        "sources": [
+          {
+            "map": "barcelona",
+            "folder": "Spanien"
+          }
         ]
       }
     },
@@ -596,6 +786,12 @@
         "status": "active",
         "photos": [
           "spots/barcelona/curb-482426-997d2777.webp"
+        ],
+        "sources": [
+          {
+            "map": "barcelona",
+            "folder": "Spanien"
+          }
         ]
       }
     },
@@ -614,6 +810,12 @@
         "status": "active",
         "photos": [
           "spots/barcelona/barceloneta-banks-4600d1-f3ef8447.webp"
+        ],
+        "sources": [
+          {
+            "map": "barcelona",
+            "folder": "Spanien"
+          }
         ]
       }
     },
@@ -632,6 +834,12 @@
         "status": "active",
         "photos": [
           "spots/barcelona/small-curb-4b632e-e062ecc8.webp"
+        ],
+        "sources": [
+          {
+            "map": "barcelona",
+            "folder": "Spanien"
+          }
         ]
       }
     }

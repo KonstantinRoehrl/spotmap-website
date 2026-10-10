@@ -17,6 +17,12 @@
         "photos": [
           "spots/vienna/hbf-curb-99f6e5-9f98eefd.webp",
           "spots/vienna/hbf-curb-99f6e5-3665623e.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -35,6 +41,13 @@
         "status": "active",
         "photos": [
           "spots/vienna/boerse-curb-af97e8-7c6cdc76.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "Manchmal Bust"
+          }
         ]
       }
     },
@@ -54,6 +67,12 @@
         "photos": [
           "spots/vienna/donauinsel-stairs-bebe58-41eac855.webp",
           "spots/vienna/donauinsel-stairs-bebe58-07a32350.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -74,6 +93,12 @@
           "spots/vienna/rough-bank-spot-c5efbe-86715522.webp",
           "spots/vienna/rough-bank-spot-c5efbe-bbe13e9d.webp",
           "spots/vienna/rough-bank-spot-c5efbe-020420e2.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -92,6 +117,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/akh-gap-a69bb1-32015587.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -110,6 +141,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/erdberg-curbs-9f943e-8d5b89c4.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -128,6 +165,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/dr-fuxl-curb-d895a1-04d0885b.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -150,6 +193,12 @@
           "spots/vienna/dornerplaza-9a90e5-89ee6417.webp",
           "spots/vienna/dornerplaza-9a90e5-b60fe7c8.webp",
           "spots/vienna/dornerplaza-9a90e5-8676b979.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -169,6 +218,13 @@
         "photos": [
           "spots/vienna/waehringer-stairs-ledge-4f1959-e7dd9026.webp",
           "spots/vienna/waehringer-stairs-ledge-4f1959-998db66a.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "Ledge für beide Seiten"
+          }
         ]
       }
     },
@@ -187,6 +243,13 @@
         "status": "active",
         "photos": [
           "spots/vienna/stubentor-47c251-174c520e.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "teilweise geskatestopped"
+          }
         ]
       }
     },
@@ -205,6 +268,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/urania-a8f271-cc2706bf.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -225,6 +294,12 @@
           "spots/vienna/einsiedlerpark-79bd66-e6660456.webp",
           "spots/vienna/einsiedlerpark-79bd66-81b3d824.webp",
           "spots/vienna/einsiedlerpark-79bd66-94476688.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -243,6 +318,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/red-curb-24e379-52c90b25.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -261,6 +342,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/messecurbs-716264-7de42f66.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -279,6 +366,13 @@
         "status": "active",
         "photos": [
           "spots/vienna/haus-des-meeres-8er-stairs-72ba9d-d31e290e.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "kurze anfahrt"
+          }
         ]
       }
     },
@@ -297,6 +391,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/curbs-777aee-62de306e.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -319,6 +419,12 @@
           "spots/vienna/heldenplatz-8c463c-7b72e873.webp",
           "spots/vienna/heldenplatz-8c463c-92727795.webp",
           "spots/vienna/heldenplatz-8c463c-f35885cb.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -338,6 +444,12 @@
         "photos": [
           "spots/vienna/red-metal-curbs-be2bba-a0f902fe.webp",
           "spots/vienna/red-metal-curbs-be2bba-951542c7.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -356,6 +468,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/meiselmarktledge-f580f8-8bce7bbc.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -375,6 +493,12 @@
         "photos": [
           "spots/vienna/seestadt-kindergarten-curbs-0a8bed-58ca960d.webp",
           "spots/vienna/seestadt-kindergarten-curbs-0a8bed-60ade93c.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -393,6 +517,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/seestadt-blocks-f6e443-e9a23678.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -411,6 +541,13 @@
         "status": "active",
         "photos": [
           "spots/vienna/kirchencurbs-00419b-4939c68f.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "Crusty Boden"
+          }
         ]
       }
     },
@@ -431,6 +568,12 @@
           "spots/vienna/7er-handrail-728cb8-765d8d10.webp",
           "spots/vienna/7er-handrail-728cb8-afffdd72.webp",
           "spots/vienna/7er-handrail-728cb8-4a672508.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -450,6 +593,12 @@
         "photos": [
           "spots/vienna/wu-garage-08f946-361ebd3a.webp",
           "spots/vienna/wu-garage-08f946-75b0df8b.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -469,6 +618,13 @@
         "photos": [
           "spots/vienna/crusty-bank-spot-ab0206-ed9c3445.webp",
           "spots/vienna/crusty-bank-spot-ab0206-4fc02b7d.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "rough"
+          }
         ]
       }
     },
@@ -487,6 +643,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/oberlaa-banks-744490-7afe7f83.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -505,6 +667,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/flex-ledge-5a8d83-6feb070e.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -525,6 +693,12 @@
           "spots/vienna/koch-platz-c6748b-f042f65a.webp",
           "spots/vienna/koch-platz-c6748b-b5951b25.webp",
           "spots/vienna/koch-platz-c6748b-7826f1a9.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -544,6 +718,12 @@
         "photos": [
           "spots/vienna/woodbench-kicker-872790-5998f78f.webp",
           "spots/vienna/woodbench-kicker-872790-2cac913a.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -565,6 +745,12 @@
           "spots/vienna/schuhmeierplatz-f4be7a-34fc0cd7.webp",
           "spots/vienna/schuhmeierplatz-f4be7a-63d29ebe.webp",
           "spots/vienna/schuhmeierplatz-f4be7a-f875cc60.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -584,6 +770,12 @@
         "photos": [
           "spots/vienna/karlsplatz-10er-stair-a36f10-e8d245b0.webp",
           "spots/vienna/karlsplatz-10er-stair-a36f10-b4c85673.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -603,6 +795,13 @@
         "photos": [
           "spots/vienna/stadtpark-4a47df-e1e46cd8.webp",
           "spots/vienna/stadtpark-4a47df-c1e0dc8b.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "Manny Pads, hohes Curb"
+          }
         ]
       }
     },
@@ -625,6 +824,13 @@
           "spots/vienna/tu-spittelau-055b94-b032a0e6.webp",
           "spots/vienna/tu-spittelau-055b94-c4c46fdc.webp",
           "spots/vienna/tu-spittelau-055b94-9ab9334e.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "Ledges, Curbs, Stufen"
+          }
         ]
       }
     },
@@ -644,6 +850,12 @@
         "photos": [
           "spots/vienna/meidling-stufen-gap-a9ab98-242de1c1.webp",
           "spots/vienna/meidling-stufen-gap-a9ab98-1a3d017b.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -662,6 +874,13 @@
         "status": "active",
         "photos": [
           "spots/vienna/oberlaa-ledge-8cea21-d46ab709.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "Gute Ledge, Stufen mit kurzer Ledge"
+          }
         ]
       }
     },
@@ -685,6 +904,12 @@
           "spots/vienna/meiselmarkts-lil-brotha-5b762f-29aaf43a.webp",
           "spots/vienna/meiselmarkts-lil-brotha-5b762f-acfcb76a.webp",
           "spots/vienna/meiselmarkts-lil-brotha-5b762f-0487d640.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -703,6 +928,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/stufencurb-4aebcd-87ea3bf4.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -722,6 +953,12 @@
         "photos": [
           "spots/vienna/burggasse-antispot-c399c5-465631ca.webp",
           "spots/vienna/burggasse-antispot-c399c5-00ae050b.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -744,6 +981,12 @@
           "spots/vienna/rohrrauerpark-fa35ae-4ebc1d71.webp",
           "spots/vienna/rohrrauerpark-fa35ae-38763689.webp",
           "spots/vienna/rohrrauerpark-fa35ae-25789c3e.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -763,6 +1006,12 @@
         "photos": [
           "spots/vienna/burger-king-gap-d63bbe-ab33cc27.webp",
           "spots/vienna/burger-king-gap-d63bbe-c23524be.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -781,6 +1030,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/wifi-wallride-9f99a5-1fac9045.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -799,6 +1054,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/copa-beach-big-wave-28e438-51f0978b.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -817,6 +1078,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/donauzentrum-curbs-65a65c-0a8fce24.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -837,6 +1104,12 @@
           "spots/vienna/t-mobile-stairs-gaps-5060bc-ec889954.webp",
           "spots/vienna/t-mobile-stairs-gaps-5060bc-ff930985.webp",
           "spots/vienna/t-mobile-stairs-gaps-5060bc-e0b0e491.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -857,6 +1130,12 @@
           "spots/vienna/schwarzenbergplatz-25ed58-cdad9c31.webp",
           "spots/vienna/schwarzenbergplatz-25ed58-6a4a1774.webp",
           "spots/vienna/schwarzenbergplatz-25ed58-29113382.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -876,6 +1155,13 @@
         "photos": [
           "spots/vienna/st-marx-10-stair-5cb9b4-83252858.webp",
           "spots/vienna/st-marx-10-stair-5cb9b4-f5775a98.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "Bust"
+          }
         ]
       }
     },
@@ -894,6 +1180,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/st-marx-downhill-curbs-86d388-942faacc.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -912,6 +1204,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/gumpendorfer-6-stair-4e2169-335ad9b9.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -930,6 +1228,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/stadthalle-low-to-high-ledge-ef9369-0c1df2a6.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -948,6 +1252,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/lutz-7-stair-dbaf8a-cc48a8e6.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -966,6 +1276,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/merkur-curbs-96c151-dd49879a.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -986,6 +1302,12 @@
           "spots/vienna/antispot-2-slappy-curb-7c3afa-ed80bc89.webp",
           "spots/vienna/antispot-2-slappy-curb-7c3afa-09cf1737.webp",
           "spots/vienna/antispot-2-slappy-curb-7c3afa-17d34c35.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -1007,6 +1329,12 @@
           "spots/vienna/hbf-suedtiroler-platz-curbs-a61a6d-6f79f070.webp",
           "spots/vienna/hbf-suedtiroler-platz-curbs-a61a6d-f7f60c97.webp",
           "spots/vienna/hbf-suedtiroler-platz-curbs-a61a6d-a33e555d.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -1027,6 +1355,12 @@
           "spots/vienna/hbf-stairs-banks-c7cf23-d872b14f.webp",
           "spots/vienna/hbf-stairs-banks-c7cf23-b13c991c.webp",
           "spots/vienna/hbf-stairs-banks-c7cf23-195fc9a3.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -1045,6 +1379,13 @@
         "status": "active",
         "photos": [
           "spots/vienna/donauinsel-copa-cagrana-banks-27fbb4-2af39d07.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "Perfect Banks"
+          }
         ]
       }
     },
@@ -1063,6 +1404,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/matzleinsdorfer-platz-9-stair-ae33f5-c17895d9.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -1081,6 +1428,13 @@
         "status": "active",
         "photos": [
           "spots/vienna/handelskai-8-stair-b2d96f-81e1e96b.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "perfect stairs, high stairs, probably bust"
+          }
         ]
       }
     },
@@ -1100,6 +1454,13 @@
         "photos": [
           "spots/vienna/uniqa-8-stair-d7740d-dba31d10.webp",
           "spots/vienna/uniqa-8-stair-d7740d-37b4a4e4.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "Radlständer in Ausfahrt"
+          }
         ]
       }
     },
@@ -1119,6 +1480,13 @@
         "photos": [
           "spots/vienna/meidlinger-brunnen-cb87e1-d7a9a21f.webp",
           "spots/vienna/meidlinger-brunnen-cb87e1-54895cb1.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "Nur im Winter fahrbar"
+          }
         ]
       }
     },
@@ -1139,6 +1507,12 @@
           "spots/vienna/13-stair-d676ac-41ff3629.webp",
           "spots/vienna/13-stair-d676ac-d70e2603.webp",
           "spots/vienna/13-stair-d676ac-1be970df.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -1158,6 +1532,13 @@
         "photos": [
           "spots/vienna/10-stair-0fc1a2-057bb1b6.webp",
           "spots/vienna/10-stair-0fc1a2-a42c870f.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "perfekt, evtl bust"
+          }
         ]
       }
     },
@@ -1176,6 +1557,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/elterleinplatz-59f5a3-e192aba2.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -1198,6 +1585,13 @@
           "spots/vienna/schubertpark-d67691-5744bc64.webp",
           "spots/vienna/schubertpark-d67691-bd9c1861.webp",
           "spots/vienna/schubertpark-d67691-070c82ae.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "Holzbänke sind gestopped"
+          }
         ]
       }
     },
@@ -1216,6 +1610,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/deathdrop-7f1ea0-fb637a03.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -1234,6 +1634,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/wu-quater-6e1f0f-4a699b03.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -1254,6 +1660,12 @@
           "spots/vienna/street-bump-d4be0b-9de3f285.webp",
           "spots/vienna/street-bump-d4be0b-eecd5d16.webp",
           "spots/vienna/street-bump-d4be0b-44c0ba78.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -1273,6 +1685,12 @@
         "photos": [
           "spots/vienna/mini-3-blocks-9c5bb3-47f4dfb7.webp",
           "spots/vienna/mini-3-blocks-9c5bb3-1dff3fea.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -1292,6 +1710,13 @@
         "photos": [
           "spots/vienna/low-to-high-ledge-96fa50-80d73a9e.webp",
           "spots/vienna/low-to-high-ledge-96fa50-48ca1ff8.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "High to high ledge eigentlich, aber wurde schon geskatet"
+          }
         ]
       }
     },
@@ -1313,6 +1738,12 @@
           "spots/vienna/antispot-bank-fd1e0c-6c5a9058.webp",
           "spots/vienna/antispot-bank-fd1e0c-81337670.webp",
           "spots/vienna/antispot-bank-fd1e0c-9d016c28.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -1332,6 +1763,12 @@
         "photos": [
           "spots/vienna/9-stair-efb79c-1ffec889.webp",
           "spots/vienna/9-stair-efb79c-8ca18e53.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -1355,6 +1792,13 @@
           "spots/vienna/helmut-zilk-park-a9e2d9-73a34e59.webp",
           "spots/vienna/helmut-zilk-park-a9e2d9-1e82df9a.webp",
           "spots/vienna/helmut-zilk-park-a9e2d9-40303345.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "Leider teilweise gestopped mit dem Pavillon"
+          }
         ]
       }
     },
@@ -1374,6 +1818,13 @@
         "photos": [
           "spots/vienna/curbs-29ae0a-37721f0c.webp",
           "spots/vienna/curbs-29ae0a-c92132e9.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "2 hohe curbs, gutes flat, evtl stress mit bewohnern"
+          }
         ]
       }
     },
@@ -1393,6 +1844,13 @@
         "photos": [
           "spots/vienna/josef-strauss-park-eb09f2-e8ea6427.webp",
           "spots/vienna/josef-strauss-park-eb09f2-d4fc46ba.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "mittelmäßige Holzcurbs, Manny Pads"
+          }
         ]
       }
     },
@@ -1411,6 +1869,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/burggasse-curb-8dd312-982a0793.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -1429,6 +1893,13 @@
         "status": "active",
         "photos": [
           "spots/vienna/albertina-235309-8f520405.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "Manny Pad"
+          }
         ]
       }
     },
@@ -1448,6 +1919,12 @@
         "photos": [
           "spots/vienna/votivkirche-ebf5b8-888ef0bc.webp",
           "spots/vienna/votivkirche-ebf5b8-e6f3c673.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -1466,6 +1943,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/sants-curb-2e5f50-60f1017a.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -1485,6 +1968,12 @@
         "photos": [
           "spots/vienna/enkplatz-curb-mit-gap-2489da-a6a7a0a1.webp",
           "spots/vienna/enkplatz-curb-mit-gap-2489da-8d5c1bbf.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -1504,6 +1993,12 @@
         "photos": [
           "spots/vienna/zentralfriedhof-40c1a1-1515f8dd.webp",
           "spots/vienna/zentralfriedhof-40c1a1-fde71e85.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -1523,6 +2018,12 @@
         "photos": [
           "spots/vienna/7-stair-4782a3-8fc6da05.webp",
           "spots/vienna/7-stair-4782a3-3d4a0dbb.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -1542,6 +2043,13 @@
         "photos": [
           "spots/vienna/curbs-8d5a6f-9a72237b.webp",
           "spots/vienna/curbs-8d5a6f-d4dfb387.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "Bust"
+          }
         ]
       }
     },
@@ -1560,6 +2068,13 @@
         "status": "active",
         "photos": [
           "spots/vienna/wallride-eef4bc-c54813a0.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "Bust"
+          }
         ]
       }
     },
@@ -1579,6 +2094,12 @@
         "photos": [
           "spots/vienna/pilgramgasse-holzbaenke-76c7b5-a88bc740.webp",
           "spots/vienna/pilgramgasse-holzbaenke-76c7b5-427cc404.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -1597,6 +2118,13 @@
         "status": "active",
         "photos": [
           "spots/vienna/barrier-c49bdf-50fb409c.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "Halbwegs überdacht"
+          }
         ]
       }
     },
@@ -1622,6 +2150,12 @@
           "spots/vienna/big-6-block-5386cc-ef4044f9.webp",
           "spots/vienna/big-6-block-5386cc-fdcc2840.webp",
           "spots/vienna/big-6-block-5386cc-8a261e05.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -1640,6 +2174,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/copa-cagrana-manny-pads-891324-eadd37b8.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -1659,6 +2199,12 @@
         "photos": [
           "spots/vienna/fendigasse-9-stair-8001c4-2d11ae2c.webp",
           "spots/vienna/fendigasse-9-stair-8001c4-f3592d15.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -1680,6 +2226,12 @@
           "spots/vienna/arenabergpark-7d88d2-e343ffbf.webp",
           "spots/vienna/arenabergpark-7d88d2-6b6a2b8d.webp",
           "spots/vienna/arenabergpark-7d88d2-3692acd3.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -1699,6 +2251,12 @@
         "photos": [
           "spots/vienna/tschertegasse-curb-649b55-00d2af42.webp",
           "spots/vienna/tschertegasse-curb-649b55-fc211450.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -1718,6 +2276,12 @@
         "photos": [
           "spots/vienna/schoepfwerk-wobble-ed2d30-ac9a5b8a.webp",
           "spots/vienna/schoepfwerk-wobble-ed2d30-73b83184.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -1739,6 +2303,12 @@
           "spots/vienna/arthaberpark-f62d20-c778f569.webp",
           "spots/vienna/arthaberpark-f62d20-78928ac2.webp",
           "spots/vienna/arthaberpark-f62d20-a6167d57.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -1757,6 +2327,13 @@
         "status": "active",
         "photos": [
           "spots/vienna/little-hofburg-d4ae2c-038cdb91.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "Bust!"
+          }
         ]
       }
     },
@@ -1776,6 +2353,12 @@
         "photos": [
           "spots/vienna/brigittenauer-bruecke-diy-8ba08c-24e692f4.webp",
           "spots/vienna/brigittenauer-bruecke-diy-8ba08c-35195e42.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -1795,6 +2378,12 @@
         "photos": [
           "spots/vienna/loquaipark-9b37fc-5ee06b88.webp",
           "spots/vienna/loquaipark-9b37fc-9597ab07.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -1813,6 +2402,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/high-ledge-8f8417-d93ddfe2.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -1832,6 +2427,12 @@
         "photos": [
           "spots/vienna/margaretenrail-88dcb7-1b59e030.webp",
           "spots/vienna/margaretenrail-88dcb7-8ec98d3b.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -1850,6 +2451,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/karlsplatz-doubleset-0dadf4-4dc9c47b.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -1870,6 +2477,12 @@
           "spots/vienna/sozialamt-0e8fd8-9f758d9d.webp",
           "spots/vienna/sozialamt-0e8fd8-dcd69e0b.webp",
           "spots/vienna/sozialamt-0e8fd8-43b332db.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -1892,6 +2505,12 @@
           "spots/vienna/albertina-modern-063259-6c6f03cf.webp",
           "spots/vienna/albertina-modern-063259-f79f9e4a.webp",
           "spots/vienna/albertina-modern-063259-c40f0afb.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -1913,6 +2532,12 @@
           "spots/vienna/parlament-9a9d35-78cd7cab.webp",
           "spots/vienna/parlament-9a9d35-c301542b.webp",
           "spots/vienna/parlament-9a9d35-dd4d50c3.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -1932,6 +2557,12 @@
         "photos": [
           "spots/vienna/simmering-little-dropledge-f27708-127a6255.webp",
           "spots/vienna/simmering-little-dropledge-f27708-51ccb97c.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -1951,6 +2582,12 @@
         "photos": [
           "spots/vienna/holzbox-antispot-e8a2fe-a52b77e6.webp",
           "spots/vienna/holzbox-antispot-e8a2fe-2bdd6afe.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -1969,6 +2606,13 @@
         "status": "demolished",
         "photos": [
           "spots/vienna/schoenbrunn-6cb763-8842e8a4.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "Stopped, aber trotzdem chillig"
+          }
         ]
       }
     },
@@ -1987,6 +2631,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/low-to-high-ledge-mannypad-8fe5fd-89b686fe.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -2006,6 +2656,12 @@
         "photos": [
           "spots/vienna/akh-9-stair-0a7587-6504c35a.webp",
           "spots/vienna/akh-9-stair-0a7587-e916cfa6.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -2025,6 +2681,12 @@
         "photos": [
           "spots/vienna/akh-big-kicker-a7e626-561e5756.webp",
           "spots/vienna/akh-big-kicker-a7e626-8ead2eaf.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -2045,6 +2707,12 @@
           "spots/vienna/4-stair-wheeliepad-60884f-4e5bdfb2.webp",
           "spots/vienna/4-stair-wheeliepad-60884f-9db1292d.webp",
           "spots/vienna/4-stair-wheeliepad-60884f-bc9632b9.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -2064,6 +2732,13 @@
         "photos": [
           "spots/vienna/12-stair-acac6e-ba360fb5.webp",
           "spots/vienna/12-stair-acac6e-6f5f7c36.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "Perfekt"
+          }
         ]
       }
     },
@@ -2083,6 +2758,12 @@
         "photos": [
           "spots/vienna/6-stair-mariahilfer-strasse-5d271b-8b710b22.webp",
           "spots/vienna/6-stair-mariahilfer-strasse-5d271b-e2fabd18.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -2105,6 +2786,13 @@
           "spots/vienna/6-stair-mit-handrail-928e47-1b8a0edd.webp",
           "spots/vienna/6-stair-mit-handrail-928e47-a1c5000a.webp",
           "spots/vienna/6-stair-mit-handrail-928e47-e38d0109.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "Hohes Handrail, größere 6er Stufen"
+          }
         ]
       }
     },
@@ -2127,6 +2815,12 @@
           "spots/vienna/slappy-curb-5c16a9-f2a0d737.webp",
           "spots/vienna/slappy-curb-5c16a9-30a2147a.webp",
           "spots/vienna/slappy-curb-5c16a9-3e3a538b.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -2145,6 +2839,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/sieveringer-bad-rail-a1c072-1559f74f.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -2166,6 +2866,12 @@
           "spots/vienna/oberdoebling-dropledges-9b881d-55102a55.webp",
           "spots/vienna/oberdoebling-dropledges-9b881d-2cd0401e.webp",
           "spots/vienna/oberdoebling-dropledges-9b881d-03598b71.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -2187,6 +2893,12 @@
           "spots/vienna/hundsturm-park-1d3ed2-8317daa7.webp",
           "spots/vienna/hundsturm-park-1d3ed2-d846e027.webp",
           "spots/vienna/hundsturm-park-1d3ed2-9e14e15e.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -2207,6 +2919,13 @@
           "spots/vienna/nepomuk-kapelle-altes-flex-ledge-f5e5ac-ef3b640f.webp",
           "spots/vienna/nepomuk-kapelle-altes-flex-ledge-f5e5ac-dbc83163.webp",
           "spots/vienna/nepomuk-kapelle-altes-flex-ledge-f5e5ac-7b140cfb.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "Thx Thomas Renner für Sanierung"
+          }
         ]
       }
     },
@@ -2227,6 +2946,12 @@
           "spots/vienna/coole-strasse-3617f4-ebdcb7a7.webp",
           "spots/vienna/coole-strasse-3617f4-7b66b75f.webp",
           "spots/vienna/coole-strasse-3617f4-58a1de8d.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -2248,6 +2973,12 @@
           "spots/vienna/arne-carlsen-park-47c8ea-6bbc124b.webp",
           "spots/vienna/arne-carlsen-park-47c8ea-e78e39b3.webp",
           "spots/vienna/arne-carlsen-park-47c8ea-ab8f01f1.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -2268,6 +2999,12 @@
           "spots/vienna/big-bank-d79a1f-4ddf5278.webp",
           "spots/vienna/big-bank-d79a1f-e7f83c5d.webp",
           "spots/vienna/big-bank-d79a1f-9ad29091.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -2286,6 +3023,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/crusty-bank-d07eed-bf7cc0ea.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -2306,6 +3049,12 @@
           "spots/vienna/linzer-strasse-dropledge-d08408-4bb4eb9f.webp",
           "spots/vienna/linzer-strasse-dropledge-d08408-cbb6b289.webp",
           "spots/vienna/linzer-strasse-dropledge-d08408-af34499c.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -2326,6 +3075,13 @@
           "spots/vienna/linzer-strasse-banks-f6d2ec-06d5f371.webp",
           "spots/vienna/linzer-strasse-banks-f6d2ec-04a31659.webp",
           "spots/vienna/linzer-strasse-banks-f6d2ec-7e8877c5.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "Bust"
+          }
         ]
       }
     },
@@ -2344,6 +3100,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/donaukanal-banks-a5bb54-527ddb80.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -2363,6 +3125,12 @@
         "photos": [
           "spots/vienna/schwechat-kicker-991b4a-967596bc.webp",
           "spots/vienna/schwechat-kicker-991b4a-ad53813b.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -2382,6 +3150,13 @@
         "photos": [
           "spots/vienna/waehring-low-to-high-downhill-ledge-17eb1b-395ab3ea.webp",
           "spots/vienna/waehring-low-to-high-downhill-ledge-17eb1b-db2d6014.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "Bust"
+          }
         ]
       }
     },
@@ -2400,6 +3175,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/12-stair-151140-5e4d4e50.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -2419,6 +3200,12 @@
         "photos": [
           "spots/vienna/long-ledge-kaisermuehlen-b4acd3-03a729fb.webp",
           "spots/vienna/long-ledge-kaisermuehlen-b4acd3-9d313910.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -2437,6 +3224,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/metal-upcurb-f94f2b-518ea5db.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -2456,6 +3249,12 @@
         "photos": [
           "spots/vienna/2-stair-ledge-2fa1bd-2e8368fe.webp",
           "spots/vienna/2-stair-ledge-2fa1bd-e1dbd22e.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -2474,6 +3273,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/metall-riffel-ledge-bc6d57-b1ec66a8.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -2492,6 +3297,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/ledges-spittelau-905591-ce735f9a.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -2515,6 +3326,12 @@
           "spots/vienna/a-lot-of-stairs-and-crusty-ledge-8ec7e5-9e688065.webp",
           "spots/vienna/a-lot-of-stairs-and-crusty-ledge-8ec7e5-586fa987.webp",
           "spots/vienna/a-lot-of-stairs-and-crusty-ledge-8ec7e5-d9a0f535.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -2534,6 +3351,12 @@
         "photos": [
           "spots/vienna/3-stair-low-to-high-ledge-2578a0-c720719a.webp",
           "spots/vienna/3-stair-low-to-high-ledge-2578a0-08a75c1b.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -2554,6 +3377,12 @@
           "spots/vienna/donaukanal-gap-6e8844-c28b4f11.webp",
           "spots/vienna/donaukanal-gap-6e8844-5daaba3e.webp",
           "spots/vienna/donaukanal-gap-6e8844-06e7150d.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -2572,6 +3401,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/donaukanal-radweg-ledge-2ec3d9-7f9e0572.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -2597,6 +3432,13 @@
           "spots/vienna/simmeringer-bad-d132fc-8dbf6515.webp",
           "spots/vienna/simmeringer-bad-d132fc-615eeee3.webp",
           "spots/vienna/simmeringer-bad-d132fc-15d93be5.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "Crusty"
+          }
         ]
       }
     },
@@ -2619,6 +3461,12 @@
           "spots/vienna/floridsdorf-holzbaenke-e49c47-02c98e2d.webp",
           "spots/vienna/floridsdorf-holzbaenke-e49c47-ddcd6a68.webp",
           "spots/vienna/floridsdorf-holzbaenke-e49c47-2902d283.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -2639,6 +3487,12 @@
           "spots/vienna/alter-bahnhof-floridsdorf-26ce23-f21ffcb3.webp",
           "spots/vienna/alter-bahnhof-floridsdorf-26ce23-77317a79.webp",
           "spots/vienna/alter-bahnhof-floridsdorf-26ce23-70a97d6a.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -2657,6 +3511,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/big-crusty-bank-5b3a60-60d9d41a.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -2675,6 +3535,13 @@
         "status": "active",
         "photos": [
           "spots/vienna/kh-nord-gap-over-rail-26983d-f2213b56.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "Bust"
+          }
         ]
       }
     },
@@ -2697,6 +3564,13 @@
           "spots/vienna/arsenal-bank-ed308c-e11b6e03.webp",
           "spots/vienna/arsenal-bank-ed308c-f0d93ce1.webp",
           "spots/vienna/arsenal-bank-ed308c-079d54fd.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "Curb stopped"
+          }
         ]
       }
     },
@@ -2715,6 +3589,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/seestadt-curb-blocks-35335e-6add6252.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -2734,6 +3614,12 @@
         "photos": [
           "spots/vienna/donaupark-low-handrail-cbfefe-224c0a11.webp",
           "spots/vienna/donaupark-low-handrail-cbfefe-425f41d8.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -2758,6 +3644,12 @@
           "spots/vienna/donaupark-aceadb-741a36c1.webp",
           "spots/vienna/donaupark-aceadb-de8e9e98.webp",
           "spots/vienna/donaupark-aceadb-0c5b598a.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -2777,6 +3669,12 @@
         "photos": [
           "spots/vienna/erdberger-laende-c25091-bd6ab8c7.webp",
           "spots/vienna/erdberger-laende-c25091-72a32a20.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -2796,6 +3694,12 @@
         "photos": [
           "spots/vienna/4er-stairsets-701206-2eb24750.webp",
           "spots/vienna/4er-stairsets-701206-a718e3c1.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -2814,6 +3718,13 @@
         "status": "active",
         "photos": [
           "spots/vienna/antispot-kicker-8476e2-d550abe8.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "Evtl iwie skatebar"
+          }
         ]
       }
     },
@@ -2833,6 +3744,12 @@
         "photos": [
           "spots/vienna/kokosnuss-antispot-02e5ae-26720fbc.webp",
           "spots/vienna/kokosnuss-antispot-02e5ae-539febb3.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -2852,6 +3769,12 @@
         "photos": [
           "spots/vienna/6-stair-mit-handrail-da1c8f-00cbc8e3.webp",
           "spots/vienna/6-stair-mit-handrail-da1c8f-995cfbc4.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -2871,6 +3794,12 @@
         "photos": [
           "spots/vienna/minikicker-b2934b-afd64e37.webp",
           "spots/vienna/minikicker-b2934b-5ddd2850.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -2890,6 +3819,12 @@
         "photos": [
           "spots/vienna/10-stair-74f2a0-14d17619.webp",
           "spots/vienna/10-stair-74f2a0-3d12e56c.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -2909,6 +3844,12 @@
         "photos": [
           "spots/vienna/flo-erks-ledge-198c9e-b32f3037.webp",
           "spots/vienna/flo-erks-ledge-198c9e-0b3f90e3.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -2927,6 +3868,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/boerse-curb-2-c7142a-dd32da64.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -2947,6 +3894,12 @@
           "spots/vienna/rathaus-woodbenches-56ee5e-72fb504e.webp",
           "spots/vienna/rathaus-woodbenches-56ee5e-64e9eca1.webp",
           "spots/vienna/rathaus-woodbenches-56ee5e-4e19b1cf.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -2966,6 +3919,12 @@
         "photos": [
           "spots/vienna/neulaa-big-gap-489316-ada7357c.webp",
           "spots/vienna/neulaa-big-gap-489316-5e7c43dd.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -2984,6 +3943,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/meidling-brick-ledge-89c194-899d5fa0.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3002,6 +3967,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/spittelau-bank-32127a-bbef8075.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3021,6 +3992,12 @@
         "photos": [
           "spots/vienna/akh-guertel-rail-fe6851-95c431b4.webp",
           "spots/vienna/akh-guertel-rail-fe6851-6b6559b9.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3040,6 +4017,12 @@
         "photos": [
           "spots/vienna/hans-mandl-berufsschule-4488df-a0eb2de4.webp",
           "spots/vienna/hans-mandl-berufsschule-4488df-c5cdc3e0.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3059,6 +4042,12 @@
         "photos": [
           "spots/vienna/stadtpark-stairset-gap-42b044-ac9cb035.webp",
           "spots/vienna/stadtpark-stairset-gap-42b044-7e698ae2.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3077,6 +4066,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/wu-garage-curbs-7ab0d4-a79934dc.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3096,6 +4091,12 @@
         "photos": [
           "spots/vienna/rennweg-5-stair-34e5ad-229cdd0b.webp",
           "spots/vienna/rennweg-5-stair-34e5ad-707672a5.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3114,6 +4115,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/stadtpark-small-curb-957925-93b489a2.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3133,6 +4140,12 @@
         "photos": [
           "spots/vienna/museumsquartier-10-stair-f63701-68021ce3.webp",
           "spots/vienna/museumsquartier-10-stair-f63701-33514405.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3152,6 +4165,12 @@
         "photos": [
           "spots/vienna/burggasse-strassenbahn-gap-1a0299-adf23f0e.webp",
           "spots/vienna/burggasse-strassenbahn-gap-1a0299-e50b65ef.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3170,6 +4189,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/sfu-manny-pads-564c52-0357df0f.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3191,6 +4216,12 @@
           "spots/vienna/walcherstrasse-gap-bccfe9-97824fe7.webp",
           "spots/vienna/walcherstrasse-gap-bccfe9-9069176a.webp",
           "spots/vienna/walcherstrasse-gap-bccfe9-63c031e5.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3209,6 +4240,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/ledge-c432cb-aad3e48c.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3229,6 +4266,12 @@
           "spots/vienna/nordbahnviertel-campus-3b2d84-134b706d.webp",
           "spots/vienna/nordbahnviertel-campus-3b2d84-25b794f2.webp",
           "spots/vienna/nordbahnviertel-campus-3b2d84-8e682891.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3247,6 +4290,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/burgtheater-crusty-curb-4a2227-93f20de2.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3270,6 +4319,12 @@
           "spots/vienna/spittelau-dropledge-banks-gap-c4af0f-a163172b.webp",
           "spots/vienna/spittelau-dropledge-banks-gap-c4af0f-ae4500bf.webp",
           "spots/vienna/spittelau-dropledge-banks-gap-c4af0f-a6b4b62c.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3288,6 +4343,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/mistkuebel-gap-2b24d5-3a2c7ab6.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3308,6 +4369,12 @@
           "spots/vienna/hbf-bump-and-gap-4e32b9-3784150b.webp",
           "spots/vienna/hbf-bump-and-gap-4e32b9-10502ba3.webp",
           "spots/vienna/hbf-bump-and-gap-4e32b9-03b317ca.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3328,6 +4395,12 @@
           "spots/vienna/hbf-gap-to-stromkasten-1c88a6-25ed8c46.webp",
           "spots/vienna/hbf-gap-to-stromkasten-1c88a6-6792fb2b.webp",
           "spots/vienna/hbf-gap-to-stromkasten-1c88a6-484ecd1c.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3347,6 +4420,13 @@
         "photos": [
           "spots/vienna/gasometer-dropledge-86bc4f-04fbb256.webp",
           "spots/vienna/gasometer-dropledge-86bc4f-78e3ec38.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "Sometimes bust"
+          }
         ]
       }
     },
@@ -3366,6 +4446,12 @@
         "photos": [
           "spots/vienna/metallkasten-to-downhill-8f33f0-786402aa.webp",
           "spots/vienna/metallkasten-to-downhill-8f33f0-27cd80e9.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3384,6 +4470,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/u-ledge-2c0646-2766d9fe.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3404,6 +4496,12 @@
           "spots/vienna/landstrasse-streetgap-911f8d-cb38cfd5.webp",
           "spots/vienna/landstrasse-streetgap-911f8d-ce19bc86.webp",
           "spots/vienna/landstrasse-streetgap-911f8d-da39d73d.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3422,6 +4520,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/wien-mitte-pipe-f396db-7d29d9b3.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3440,6 +4544,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/low-to-high-ledge-1b13e5-58c8d950.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3459,6 +4569,12 @@
         "photos": [
           "spots/vienna/9-stair-3a8006-8e3955ed.webp",
           "spots/vienna/9-stair-3a8006-e971421a.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3478,6 +4594,13 @@
         "photos": [
           "spots/vienna/justiz-handrail-48d264-64ee85e0.webp",
           "spots/vienna/justiz-handrail-48d264-91a1dae8.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "Bust"
+          }
         ]
       }
     },
@@ -3499,6 +4622,12 @@
           "spots/vienna/stadlau-banks-7d6b73-f0361002.webp",
           "spots/vienna/stadlau-banks-7d6b73-27a26190.webp",
           "spots/vienna/stadlau-banks-7d6b73-8a9898e7.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3518,6 +4647,13 @@
         "photos": [
           "spots/vienna/wu-garage-6er-stairsets-a1fd66-c12ccd70.webp",
           "spots/vienna/wu-garage-6er-stairsets-a1fd66-74e19bdf.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "Flat is crusty"
+          }
         ]
       }
     },
@@ -3536,6 +4672,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/deathdrop-3bb6d8-45ff2940.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3554,6 +4696,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/margaretenguertel-slappy-wallride-curb-803603-96d5d050.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3573,6 +4721,12 @@
         "photos": [
           "spots/vienna/margaretenguertel-mannypad-16fcf0-0a5f341d.webp",
           "spots/vienna/margaretenguertel-mannypad-16fcf0-1a2038b0.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3592,6 +4746,13 @@
         "photos": [
           "spots/vienna/perfekte-curbs-d73991-dc159095.webp",
           "spots/vienna/perfekte-curbs-d73991-b8083fa2.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "Vermutlich Bust"
+          }
         ]
       }
     },
@@ -3612,6 +4773,12 @@
           "spots/vienna/9-11-stair-c6afb4-6e414e07.webp",
           "spots/vienna/9-11-stair-c6afb4-08423ac8.webp",
           "spots/vienna/9-11-stair-c6afb4-d6978444.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3631,6 +4798,12 @@
         "photos": [
           "spots/vienna/gehsteiggap-a8e153-f80414d9.webp",
           "spots/vienna/gehsteiggap-a8e153-b0172fee.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3652,6 +4825,12 @@
           "spots/vienna/margaretenguertel-brick-spot-aeb53c-a98875b5.webp",
           "spots/vienna/margaretenguertel-brick-spot-aeb53c-4ab01e73.webp",
           "spots/vienna/margaretenguertel-brick-spot-aeb53c-370f9e65.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3670,6 +4849,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/barrier-9e52ff-12771db8.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3691,6 +4876,12 @@
           "spots/vienna/copa-stairsets-30c619-b1c9da73.webp",
           "spots/vienna/copa-stairsets-30c619-7f51c3b6.webp",
           "spots/vienna/copa-stairsets-30c619-fb2066ac.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3709,6 +4900,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/copa-mini-dropledge-8e59a0-1a5ecf7a.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3727,6 +4924,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/11-stair-b83173-03b5d23f.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3745,6 +4948,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/antispot-donauinsel-carwash-drop-33b392-d5317bee.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3763,6 +4972,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/big-bank-421a9a-28d73b5f.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3784,6 +4999,12 @@
           "spots/vienna/schoenbrunn-gap-auf-strasse-d446cd-382ff25d.webp",
           "spots/vienna/schoenbrunn-gap-auf-strasse-d446cd-16a785ad.webp",
           "spots/vienna/schoenbrunn-gap-auf-strasse-d446cd-7359b90f.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3802,6 +5023,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/bka-quater-099785-cf0ef09d.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3820,6 +5047,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/donaukanal-big-handrail-4d9214-9079af4c.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3838,6 +5071,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/antispot-slappy-17eef1-61f275be.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3856,6 +5095,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/bacherplatz-curb-fbf82f-8f0938b8.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3874,6 +5119,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/goethedenkmal-f2b297-d32a069f.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3892,6 +5143,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/oskar-morgenstern-platz-133086-f85a02c6.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3910,6 +5167,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/donaukanal-high-handrail-a9489f-4d31118b.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3928,6 +5191,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/yellow-donaukanal-rail-489dd1-9d7d3dcb.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3946,6 +5215,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/donaukanal-crust-bank-cefe7d-c3e38fa1.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3964,6 +5239,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/schweizergarten-curb-8b5851-43730596.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -3983,6 +5264,12 @@
         "photos": [
           "spots/vienna/stufen-pad-4788b8-77351269.webp",
           "spots/vienna/stufen-pad-4788b8-ea0fa055.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4001,6 +5288,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/4-stufen-slappy-curb-f0dc08-137bb20e.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4020,6 +5313,12 @@
         "photos": [
           "spots/vienna/low-3-stair-dropledge-abcfe1-095996cb.webp",
           "spots/vienna/low-3-stair-dropledge-abcfe1-c339f734.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4038,6 +5337,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/7-stair-d52b02-0ba18f51.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4058,6 +5363,12 @@
           "spots/vienna/deathdrop-07926d-93e91961.webp",
           "spots/vienna/deathdrop-07926d-c59e691f.webp",
           "spots/vienna/deathdrop-07926d-b2aba1dd.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4076,6 +5387,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/gumpendorfer-rail-af5886-32ea7437.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4094,6 +5411,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/platz-der-menschenrechte-8e1c1c-7330221a.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4116,6 +5439,12 @@
           "spots/vienna/seestadt-long-ledge-7d56df-afad3c28.webp",
           "spots/vienna/seestadt-long-ledge-7d56df-cfc21685.webp",
           "spots/vienna/seestadt-long-ledge-7d56df-14c006c4.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4135,6 +5464,12 @@
         "photos": [
           "spots/vienna/dropledge-92237d-139a1075.webp",
           "spots/vienna/dropledge-92237d-8012586c.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4153,6 +5488,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/high-manny-pad-20dd6d-abd7dfe5.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4174,6 +5515,12 @@
           "spots/vienna/10-stair-hubba-ea1583-ce502a1b.webp",
           "spots/vienna/10-stair-hubba-ea1583-79148da6.webp",
           "spots/vienna/10-stair-hubba-ea1583-d0280e67.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4193,6 +5540,12 @@
         "photos": [
           "spots/vienna/zippererstrasse-curb-a7f84f-2aff84f7.webp",
           "spots/vienna/zippererstrasse-curb-a7f84f-c35c02dc.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4212,6 +5565,12 @@
         "photos": [
           "spots/vienna/minibump-d92936-323e6923.webp",
           "spots/vienna/minibump-d92936-2aa3cd0a.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4230,6 +5589,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/zippererstrasse-schulcurbs-411c67-9bfc9d96.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4248,6 +5613,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/7-stair-c77752-d01cf8e0.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4266,6 +5637,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/drops-8bbdf6-3da20cc1.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4284,6 +5661,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/wu-handrail-937a20-f155a2a7.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4302,6 +5685,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/wu-kicker-40fb22-dff2fa8f.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4320,6 +5709,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/laubepark-mannypad-7f6093-67959da5.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4338,6 +5733,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/columbusplatz-crusty-manny-pad-2362cb-06e03d42.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4356,6 +5757,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/favoritenstrasse-schiff-790c1b-f069bbeb.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4374,6 +5781,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/messe-curb-ddef5a-61a979a3.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4392,6 +5805,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/eichenstrasse-5-und-8-stair-f10c8f-73dedcdf.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4412,6 +5831,12 @@
           "spots/vienna/laengenfeldgasse-zaun-gap-53180f-d054fbf2.webp",
           "spots/vienna/laengenfeldgasse-zaun-gap-53180f-e770d9da.webp",
           "spots/vienna/laengenfeldgasse-zaun-gap-53180f-9bdc223a.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4432,6 +5857,12 @@
           "spots/vienna/stromkasten-low-to-high-ledge-401486-82a292cf.webp",
           "spots/vienna/stromkasten-low-to-high-ledge-401486-cf668fa1.webp",
           "spots/vienna/stromkasten-low-to-high-ledge-401486-193fac0b.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4451,6 +5882,12 @@
         "photos": [
           "spots/vienna/gasometer-8er-577e4b-60811e2b.webp",
           "spots/vienna/gasometer-8er-577e4b-04bbc778.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4473,6 +5910,12 @@
           "spots/vienna/reumannplatz-42f32f-de31a4c1.webp",
           "spots/vienna/reumannplatz-42f32f-1b9b398f.webp",
           "spots/vienna/reumannplatz-42f32f-5114d16e.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4493,6 +5936,12 @@
           "spots/vienna/stadion-manny-pads-dc0047-4cffbdfa.webp",
           "spots/vienna/stadion-manny-pads-dc0047-935b2336.webp",
           "spots/vienna/stadion-manny-pads-dc0047-a9be378a.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4511,6 +5960,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/stadion-slappy-up-curb-af227d-695499a2.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4529,6 +5984,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/livio-s-12er-411138-ca072e9d.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4547,6 +6008,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/rooftop-bank-0a5df5-65e8db6a.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4566,6 +6033,12 @@
         "photos": [
           "spots/vienna/bump-to-bump-37692f-0e93be23.webp",
           "spots/vienna/bump-to-bump-37692f-dafd6a33.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4585,6 +6058,12 @@
         "photos": [
           "spots/vienna/garagendropledge-edb3cb-c97f0a61.webp",
           "spots/vienna/garagendropledge-edb3cb-b842cdc8.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4604,6 +6083,12 @@
         "photos": [
           "spots/vienna/stufen-low-to-high-ledge-7a77d2-44493423.webp",
           "spots/vienna/stufen-low-to-high-ledge-7a77d2-aca1f057.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4624,6 +6109,12 @@
           "spots/vienna/flo-erks-gap-a6dd00-0a6d1eee.webp",
           "spots/vienna/flo-erks-gap-a6dd00-8fa17639.webp",
           "spots/vienna/flo-erks-gap-a6dd00-723407af.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4642,6 +6133,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/ueberdachtes-holzcurb-23bf20-ce160925.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4661,6 +6158,12 @@
         "photos": [
           "spots/vienna/7-stair-line-e2ae79-7dc24733.webp",
           "spots/vienna/7-stair-line-e2ae79-8f7825c4.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4680,6 +6183,12 @@
         "photos": [
           "spots/vienna/lidlpark-stair-ledge-1b6f9c-32d3f593.webp",
           "spots/vienna/lidlpark-stair-ledge-1b6f9c-1ca815b6.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4700,6 +6209,12 @@
           "spots/vienna/lidlpark-big-handrail-26d76d-23ec791f.webp",
           "spots/vienna/lidlpark-big-handrail-26d76d-32a46caf.webp",
           "spots/vienna/lidlpark-big-handrail-26d76d-2ec9cd1b.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4718,6 +6233,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/7-stair-rail-0a8edd-84e6adca.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4737,6 +6258,12 @@
         "photos": [
           "spots/vienna/long-4-stair-5c4e74-c09da460.webp",
           "spots/vienna/long-4-stair-5c4e74-143e6794.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4755,6 +6282,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/rails-f3b498-9e21c705.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4774,6 +6307,12 @@
         "photos": [
           "spots/vienna/upledge-bf224c-7aafb0ea.webp",
           "spots/vienna/upledge-bf224c-2eb46824.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4793,6 +6332,12 @@
         "photos": [
           "spots/vienna/minibank-954039-73e2196e.webp",
           "spots/vienna/minibank-954039-b32b5daf.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4812,6 +6357,12 @@
         "photos": [
           "spots/vienna/banana-ledge-044a88-6e1c7b11.webp",
           "spots/vienna/banana-ledge-044a88-ecce77cb.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4831,6 +6382,12 @@
         "photos": [
           "spots/vienna/curb-holzbaenke-b0938b-1ecbdb4e.webp",
           "spots/vienna/curb-holzbaenke-b0938b-777cc8d7.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4851,6 +6408,12 @@
           "spots/vienna/curb-mannypads-46f9cf-31a3ba71.webp",
           "spots/vienna/curb-mannypads-46f9cf-64dd732e.webp",
           "spots/vienna/curb-mannypads-46f9cf-8b044f6c.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4869,6 +6432,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/wienfluss-bank-270cdc-a77d047a.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4887,6 +6456,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/wienzeile-3-block-51002b-a39f047b.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4906,6 +6481,12 @@
         "photos": [
           "spots/vienna/meidling-rails-52671e-1fd9a5bb.webp",
           "spots/vienna/meidling-rails-52671e-f94777c5.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4925,6 +6506,12 @@
         "photos": [
           "spots/vienna/nestroyplatz-7-stair-rail-7442be-c8f73ac8.webp",
           "spots/vienna/nestroyplatz-7-stair-rail-7442be-6b1b252e.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4943,6 +6530,13 @@
         "status": "active",
         "photos": [
           "spots/vienna/low-to-high-ledge-a1ea4f-d7b17579.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "Vermutlich Türe abgesperrt und Bust"
+          }
         ]
       }
     },
@@ -4961,6 +6555,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/augarten-crusty-curbs-5f3015-b0f4e98d.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4980,6 +6580,12 @@
         "photos": [
           "spots/vienna/little-bump-62c2cb-d6996bd8.webp",
           "spots/vienna/little-bump-62c2cb-be066509.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -4998,6 +6604,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/bump-to-rail-50d0f3-1ec67e5e.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -5017,6 +6629,12 @@
         "photos": [
           "spots/vienna/big-stairset-1e5713-15747b87.webp",
           "spots/vienna/big-stairset-1e5713-a14ab3f3.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -5036,6 +6654,13 @@
         "photos": [
           "spots/vienna/schoenbrunn-granit-ledges-17e685-a2fc0c98.webp",
           "spots/vienna/schoenbrunn-granit-ledges-17e685-66372b9e.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "Sieht gut aus, ist aber komisch"
+          }
         ]
       }
     },
@@ -5054,6 +6679,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/little-marble-curb-ee9b42-b5378782.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -5073,6 +6704,12 @@
         "photos": [
           "spots/vienna/sonnwendviertel-handrail-1fe1a9-32882ddb.webp",
           "spots/vienna/sonnwendviertel-handrail-1fe1a9-bb3b4e67.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -5094,6 +6731,12 @@
           "spots/vienna/gummibank-curb-9d1613-0ee5b220.webp",
           "spots/vienna/gummibank-curb-9d1613-2f1c3267.webp",
           "spots/vienna/gummibank-curb-9d1613-fcc4ccf7.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -5113,6 +6756,12 @@
         "photos": [
           "spots/vienna/donaumarina-stairs-bab794-0c0545e3.webp",
           "spots/vienna/donaumarina-stairs-bab794-56e43a59.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -5131,6 +6780,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/das-anabol-ledge-812827-02583199.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -5149,6 +6804,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/stadion-14er-48d415-afcf617d.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -5167,6 +6828,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/st-marx-138510-441c5ef3.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -5187,6 +6854,12 @@
           "spots/vienna/hundsturm-flatgap-d15244-1e4c8718.webp",
           "spots/vienna/hundsturm-flatgap-d15244-c4737382.webp",
           "spots/vienna/hundsturm-flatgap-d15244-1c0e57ec.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -5206,6 +6879,12 @@
         "photos": [
           "spots/vienna/hundsturm-9-stair-497c02-deb439e8.webp",
           "spots/vienna/hundsturm-9-stair-497c02-d9dda63f.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -5227,6 +6906,12 @@
           "spots/vienna/habibis-manny-pad-904118-c28749fc.webp",
           "spots/vienna/habibis-manny-pad-904118-2a7df2b1.webp",
           "spots/vienna/habibis-manny-pad-904118-c8dab205.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -5247,6 +6932,12 @@
           "spots/vienna/grete-jost-park-248a98-7bc5fbe4.webp",
           "spots/vienna/grete-jost-park-248a98-6b8d9982.webp",
           "spots/vienna/grete-jost-park-248a98-9a453c19.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -5270,6 +6961,12 @@
           "spots/vienna/little-ny-8a2a29-5e64cca7.webp",
           "spots/vienna/little-ny-8a2a29-e99dc6d8.webp",
           "spots/vienna/little-ny-8a2a29-983d0e58.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -5288,6 +6985,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/messe-8-847b8b-bc2d1467.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -5306,6 +7009,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/kirchenstufencurb-de71ab-17590ace.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -5324,6 +7033,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/alaudagasse-curb-ueber-bank-1ae967-43d81713.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -5343,6 +7058,12 @@
         "photos": [
           "spots/vienna/karlsplatz-big-bim-gap-e0a8e6-cb8d7b00.webp",
           "spots/vienna/karlsplatz-big-bim-gap-e0a8e6-5df55323.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -5362,6 +7083,12 @@
         "photos": [
           "spots/vienna/tu-4-stair-84c053-7e4f6e34.webp",
           "spots/vienna/tu-4-stair-84c053-0fc2ba2c.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -5381,6 +7108,12 @@
         "photos": [
           "spots/vienna/lueftungsschacht-gap-d06ab2-edb31ebb.webp",
           "spots/vienna/lueftungsschacht-gap-d06ab2-f5928996.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -5399,6 +7132,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/curb-18f1db-82bbf7eb.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -5422,6 +7161,12 @@
           "spots/vienna/sir-karl-popper-schule-741a94-26a859d2.webp",
           "spots/vienna/sir-karl-popper-schule-741a94-a60e9b9e.webp",
           "spots/vienna/sir-karl-popper-schule-741a94-0f6f4572.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -5442,6 +7187,12 @@
           "spots/vienna/ditch-2f5ae6-ab83cbc7.webp",
           "spots/vienna/ditch-2f5ae6-0a6e0e7f.webp",
           "spots/vienna/ditch-2f5ae6-54d87ea8.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -5461,6 +7212,12 @@
         "photos": [
           "spots/vienna/10-stair-7483af-ea5a0ba6.webp",
           "spots/vienna/10-stair-7483af-d734e491.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -5481,6 +7238,12 @@
           "spots/vienna/westbahnhof-8er-53a524-f57c6aab.webp",
           "spots/vienna/westbahnhof-8er-53a524-bb3da62d.webp",
           "spots/vienna/westbahnhof-8er-53a524-5d9703a5.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -5500,6 +7263,12 @@
         "photos": [
           "spots/vienna/ny-gap-over-rail-9716b6-a9ba450a.webp",
           "spots/vienna/ny-gap-over-rail-9716b6-8f9ccc3d.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -5519,6 +7288,12 @@
         "photos": [
           "spots/vienna/praterstern-metalbox-9ee641-a42115c0.webp",
           "spots/vienna/praterstern-metalbox-9ee641-b410e060.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -5538,6 +7313,12 @@
         "photos": [
           "spots/vienna/nordbahn-ledge-b8f0d5-e2de950f.webp",
           "spots/vienna/nordbahn-ledge-b8f0d5-beec8c97.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -5556,6 +7337,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/brunnen-antispot-pads-3e5411-4414afde.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -5576,6 +7363,12 @@
           "spots/vienna/quick-feet-flatgaps-2f1df1-ad4aa5a3.webp",
           "spots/vienna/quick-feet-flatgaps-2f1df1-f1ba20ec.webp",
           "spots/vienna/quick-feet-flatgaps-2f1df1-dd85ea93.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -5597,6 +7390,13 @@
           "spots/vienna/sparkasse-plaza-ffb171-3390de14.webp",
           "spots/vienna/sparkasse-plaza-ffb171-aa9aa751.webp",
           "spots/vienna/sparkasse-plaza-ffb171-beba5415.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "Bust"
+          }
         ]
       }
     },
@@ -5615,6 +7415,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/uprail-radstaender-96c7d6-596d39bc.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -5633,6 +7439,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/quartier-belvedere-curbs-2549a1-0a8a8980.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -5654,6 +7466,12 @@
           "spots/vienna/vorgartenstrasse-blocks-fabae0-58209fef.webp",
           "spots/vienna/vorgartenstrasse-blocks-fabae0-bcec66db.webp",
           "spots/vienna/vorgartenstrasse-blocks-fabae0-9878c9a4.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -5673,6 +7491,13 @@
         "photos": [
           "spots/vienna/gap-be8209-b67f5613.webp",
           "spots/vienna/gap-be8209-5c80fb74.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "Gap into Bank??"
+          }
         ]
       }
     },
@@ -5691,6 +7516,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/wiedner-hauptstrasse-red-blocks-ed4077-9857b1b7.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -5709,6 +7540,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/wallride-23df8e-26ae47fe.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -5729,6 +7566,12 @@
           "spots/vienna/reinprechtsdorfer-big-gap-9acf45-aaf94003.webp",
           "spots/vienna/reinprechtsdorfer-big-gap-9acf45-b1460fd7.webp",
           "spots/vienna/reinprechtsdorfer-big-gap-9acf45-47b3e6d1.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -5748,6 +7591,12 @@
         "photos": [
           "spots/vienna/small-handrail-12f44e-b945c014.webp",
           "spots/vienna/small-handrail-12f44e-d12cbcb8.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -5766,6 +7615,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/crusty-rail-f091ec-f091dd33.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -5784,6 +7639,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/two-blocks-95790f-798f6f54.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -5805,6 +7666,12 @@
           "spots/vienna/handrail-0c677c-38e327d9.webp",
           "spots/vienna/handrail-0c677c-fdfe52e2.webp",
           "spots/vienna/handrail-0c677c-049a05a7.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -5825,6 +7692,12 @@
           "spots/vienna/barriers-3564af-cf23a819.webp",
           "spots/vienna/barriers-3564af-41b633c0.webp",
           "spots/vienna/barriers-3564af-0260e3a4.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -5844,6 +7717,13 @@
         "photos": [
           "spots/vienna/11-stair-41a157-4a0caa0f.webp",
           "spots/vienna/11-stair-41a157-d3863177.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "Relativ hoch, ziemlich kurz"
+          }
         ]
       }
     },
@@ -5862,6 +7742,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/wave-ledge-7c2dba-75752560.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -5889,6 +7775,13 @@
           "spots/vienna/brg-lessinggasse-7bbe62-37509322.webp",
           "spots/vienna/brg-lessinggasse-7bbe62-7c723941.webp",
           "spots/vienna/brg-lessinggasse-7bbe62-5279aa6b.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "Bust wegen einem Anrainer"
+          }
         ]
       }
     },
@@ -5909,6 +7802,12 @@
           "spots/vienna/matzleinsdorfer-platz-dropledge-0e5e4c-80864bd4.webp",
           "spots/vienna/matzleinsdorfer-platz-dropledge-0e5e4c-65f36bd6.webp",
           "spots/vienna/matzleinsdorfer-platz-dropledge-0e5e4c-6502717a.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -5928,6 +7827,12 @@
         "photos": [
           "spots/vienna/crusty-double-set-1236b9-1f0d5d2c.webp",
           "spots/vienna/crusty-double-set-1236b9-0a7bf8ec.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -5946,6 +7851,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/schillerpark-d09659-2265876c.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -5965,6 +7876,12 @@
         "photos": [
           "spots/vienna/roll-in-stairset-65a5ba-2930baa0.webp",
           "spots/vienna/roll-in-stairset-65a5ba-3cee2f5d.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -5984,6 +7901,12 @@
         "photos": [
           "spots/vienna/urban-loritz-platz-wallie-221a0f-1b89d928.webp",
           "spots/vienna/urban-loritz-platz-wallie-221a0f-df161b4f.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -6003,6 +7926,13 @@
         "photos": [
           "spots/vienna/9-stair-mit-rail-95e7b6-b4609218.webp",
           "spots/vienna/9-stair-mit-rail-95e7b6-7b649e5e.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "Very Angry Neighbours"
+          }
         ]
       }
     },
@@ -6023,6 +7953,12 @@
           "spots/vienna/hbf-big-handrail-508bf6-940a55f1.webp",
           "spots/vienna/hbf-big-handrail-508bf6-2c7ed37f.webp",
           "spots/vienna/hbf-big-handrail-508bf6-a3965640.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -6041,6 +7977,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/high-rails-28a55b-0bc64904.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -6064,6 +8006,12 @@
           "spots/vienna/rossauer-laende-gap-over-rail-d0ec2d-661bbcb2.webp",
           "spots/vienna/rossauer-laende-gap-over-rail-d0ec2d-326b2205.webp",
           "spots/vienna/rossauer-laende-gap-over-rail-d0ec2d-2fb9fb80.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -6084,6 +8032,12 @@
           "spots/vienna/block-gap-39870a-46513a0c.webp",
           "spots/vienna/block-gap-39870a-c1a56dcc.webp",
           "spots/vienna/block-gap-39870a-b0ec79fe.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -6104,6 +8058,12 @@
           "spots/vienna/tu-fertigungstechnik-bank-908a22-12ab41b0.webp",
           "spots/vienna/tu-fertigungstechnik-bank-908a22-6911ed3a.webp",
           "spots/vienna/tu-fertigungstechnik-bank-908a22-117fb21f.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -6125,6 +8085,12 @@
           "spots/vienna/tu-fertigungstechnik-tower-1aec26-b5a18dfb.webp",
           "spots/vienna/tu-fertigungstechnik-tower-1aec26-5c7e9b2e.webp",
           "spots/vienna/tu-fertigungstechnik-tower-1aec26-a7c0ac0d.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -6144,6 +8110,12 @@
         "photos": [
           "spots/vienna/rollercoaster-curb-885dab-9e50da46.webp",
           "spots/vienna/rollercoaster-curb-885dab-e36e38a5.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -6165,6 +8137,12 @@
           "spots/vienna/kardinal-nagl-bananas-f15806-c26f7e76.webp",
           "spots/vienna/kardinal-nagl-bananas-f15806-1ff2b8a5.webp",
           "spots/vienna/kardinal-nagl-bananas-f15806-700eb8ae.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -6184,6 +8162,12 @@
         "photos": [
           "spots/vienna/brueckenpfeiler-miniramp-0a6223-2c519b7d.webp",
           "spots/vienna/brueckenpfeiler-miniramp-0a6223-7a51b5db.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -6202,6 +8186,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/slappy-downledge-d9729b-240ca32a.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -6222,6 +8212,13 @@
           "spots/vienna/gnarliest-15-stair-rail-8e2feb-ea6e6f38.webp",
           "spots/vienna/gnarliest-15-stair-rail-8e2feb-6014d74e.webp",
           "spots/vienna/gnarliest-15-stair-rail-8e2feb-0c366fba.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "Anfahrt perfekt"
+          }
         ]
       }
     },
@@ -6240,6 +8237,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/downhill-rolltreppe-6e4d53-9bb54bcf.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -6260,6 +8263,12 @@
           "spots/vienna/bank-to-ledge-d10271-57e266c6.webp",
           "spots/vienna/bank-to-ledge-d10271-3f6142f7.webp",
           "spots/vienna/bank-to-ledge-d10271-57cc4cac.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -6279,6 +8288,12 @@
         "photos": [
           "spots/vienna/mannypad-mit-stufe-669be0-ea41f5ab.webp",
           "spots/vienna/mannypad-mit-stufe-669be0-1eac9fa8.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -6298,6 +8313,12 @@
         "photos": [
           "spots/vienna/3-and-8-stair-f2def3-7bbf285a.webp",
           "spots/vienna/3-and-8-stair-f2def3-6353a8c9.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -6318,6 +8339,12 @@
           "spots/vienna/8-stair-cff2f9-10069128.webp",
           "spots/vienna/8-stair-cff2f9-5fd98732.webp",
           "spots/vienna/8-stair-cff2f9-850c5316.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -6337,6 +8364,12 @@
         "photos": [
           "spots/vienna/gap-to-rail-0f9cf0-1fb58f73.webp",
           "spots/vienna/gap-to-rail-0f9cf0-29c2f423.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -6356,6 +8389,12 @@
         "photos": [
           "spots/vienna/rail-blumenbeete-ffbcf5-8e58fa0a.webp",
           "spots/vienna/rail-blumenbeete-ffbcf5-5f38d980.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -6375,6 +8414,12 @@
         "photos": [
           "spots/vienna/alterlaa-pad-00c01b-598bbf25.webp",
           "spots/vienna/alterlaa-pad-00c01b-7451986d.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -6394,6 +8439,12 @@
         "photos": [
           "spots/vienna/little-bump-a15910-fb6a8ebc.webp",
           "spots/vienna/little-bump-a15910-c245242f.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -6413,6 +8464,12 @@
         "photos": [
           "spots/vienna/little-flatgap-7b5c8d-8980afbb.webp",
           "spots/vienna/little-flatgap-7b5c8d-df60c5e0.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -6434,6 +8491,12 @@
           "spots/vienna/15-stair-rail-8cdeb9-af43d5e7.webp",
           "spots/vienna/15-stair-rail-8cdeb9-84be1315.webp",
           "spots/vienna/15-stair-rail-8cdeb9-b5e3c69c.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -6453,6 +8516,12 @@
         "photos": [
           "spots/vienna/short-handrail-68a0ed-405d170c.webp",
           "spots/vienna/short-handrail-68a0ed-a9cc3a9f.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -6471,6 +8540,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/gap-to-slappy-9fe2d3-7531e676.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -6490,6 +8565,12 @@
         "photos": [
           "spots/vienna/step-up-bank-a03712-134e23dd.webp",
           "spots/vienna/step-up-bank-a03712-cd1baac3.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -6508,6 +8589,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/death-roll-in-9d8900-22350c1a.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -6528,6 +8615,12 @@
           "spots/vienna/alterlaa-spielplatz-bump-a2ec3e-542eae5c.webp",
           "spots/vienna/alterlaa-spielplatz-bump-a2ec3e-6d879c2e.webp",
           "spots/vienna/alterlaa-spielplatz-bump-a2ec3e-74853ea9.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -6546,6 +8639,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/alterlaa-manny-pad-bananacurb-fbba5c-4962d9ac.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -6564,6 +8663,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/landstrasse-slappy-24ee05-2696b205.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -6583,6 +8688,13 @@
         "photos": [
           "spots/vienna/stopped-banks-65cbb6-9cfa08ad.webp",
           "spots/vienna/stopped-banks-65cbb6-edbdb542.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "Maybe still skateable"
+          }
         ]
       }
     },
@@ -6602,6 +8714,12 @@
         "photos": [
           "spots/vienna/7-stairs-0c171e-bf92164f.webp",
           "spots/vienna/7-stairs-0c171e-c5b79c8f.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -6621,6 +8739,12 @@
         "photos": [
           "spots/vienna/doubleset-a5f73d-d7e032b1.webp",
           "spots/vienna/doubleset-a5f73d-eedc261b.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -6640,6 +8764,12 @@
         "photos": [
           "spots/vienna/chris-pfanner-doubleset-dd8ca6-3bfcabe2.webp",
           "spots/vienna/chris-pfanner-doubleset-dd8ca6-c38f5a78.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -6658,6 +8788,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/spittelau-u-bahn-rail-44f851-9b7a0c93.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -6676,6 +8812,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/crust-antispot-bank-3d4325-b2e67bb2.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -6698,6 +8840,12 @@
           "spots/vienna/spittelau-big-handrails-d2612d-0e8b55cd.webp",
           "spots/vienna/spittelau-big-handrails-d2612d-f6b6df7f.webp",
           "spots/vienna/spittelau-big-handrails-d2612d-492a2f1e.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -6717,6 +8865,12 @@
         "photos": [
           "spots/vienna/spittelau-7-stair-rail-a13ec1-43ecb065.webp",
           "spots/vienna/spittelau-7-stair-rail-a13ec1-c34aef53.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -6735,6 +8889,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/gumpendorfer-strasse-handrail-f1ad48-9ebc0270.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -6753,6 +8913,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/schedifka-platz-f442a7-bcf59ee4.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -6773,6 +8939,12 @@
           "spots/vienna/meidling-low-to-high-rail-cab92c-3cc667ef.webp",
           "spots/vienna/meidling-low-to-high-rail-cab92c-267bfcda.webp",
           "spots/vienna/meidling-low-to-high-rail-cab92c-abb9ed31.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -6795,6 +8967,12 @@
           "spots/vienna/big-mistkuebel-gap-1f8de8-ef020005.webp",
           "spots/vienna/big-mistkuebel-gap-1f8de8-54d06a45.webp",
           "spots/vienna/big-mistkuebel-gap-1f8de8-7c3ee9ad.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -6818,6 +8996,13 @@
           "spots/vienna/long-rail-69ddd7-cab1678f.webp",
           "spots/vienna/long-rail-69ddd7-88e408cd.webp",
           "spots/vienna/long-rail-69ddd7-9426ab9d.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "Rail wurde oben wieder gefixed"
+          }
         ]
       }
     },
@@ -6840,6 +9025,12 @@
           "spots/vienna/small-rails-ec65e2-a7d71a90.webp",
           "spots/vienna/small-rails-ec65e2-6e503309.webp",
           "spots/vienna/small-rails-ec65e2-d4d915c9.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -6860,6 +9051,12 @@
           "spots/vienna/small-handrail-dce9b2-fba41d0c.webp",
           "spots/vienna/small-handrail-dce9b2-7b2d0c78.webp",
           "spots/vienna/small-handrail-dce9b2-2f8e5593.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -6879,6 +9076,12 @@
         "photos": [
           "spots/vienna/9-stair-a7175a-adac5be9.webp",
           "spots/vienna/9-stair-a7175a-ac820fad.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -6899,6 +9102,13 @@
           "spots/vienna/9-stair-1dea7e-c98e6126.webp",
           "spots/vienna/9-stair-1dea7e-a5a30826.webp",
           "spots/vienna/9-stair-1dea7e-21f2fd7d.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "Mit Crack für Chinese Ollie (R.I.P. Benes Knie)"
+          }
         ]
       }
     },
@@ -6919,6 +9129,12 @@
           "spots/vienna/meidling-big-double-set-078c84-c62e883e.webp",
           "spots/vienna/meidling-big-double-set-078c84-abfd8b9d.webp",
           "spots/vienna/meidling-big-double-set-078c84-3f4c1da3.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -6939,6 +9155,12 @@
           "spots/vienna/zippererstrasse-13-stair-rail-f5c514-4b61c3ef.webp",
           "spots/vienna/zippererstrasse-13-stair-rail-f5c514-94e63b79.webp",
           "spots/vienna/zippererstrasse-13-stair-rail-f5c514-787b623d.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -6958,6 +9180,12 @@
         "photos": [
           "spots/vienna/mq-wobble-mit-curb-0e3204-58b8adfd.webp",
           "spots/vienna/mq-wobble-mit-curb-0e3204-5de2d4d8.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -6976,6 +9204,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/mq-curb-1bcf58-2fe4048c.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -6994,6 +9228,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/tricore-rail-581e5a-8e272536.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7014,6 +9254,12 @@
           "spots/vienna/t-mobile-high-handrail-9a98d8-c047cc3c.webp",
           "spots/vienna/t-mobile-high-handrail-9a98d8-8c4841f3.webp",
           "spots/vienna/t-mobile-high-handrail-9a98d8-ec9a7233.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7033,6 +9279,12 @@
         "photos": [
           "spots/vienna/vhs-meidling-stufencurbs-c8f359-76b911cd.webp",
           "spots/vienna/vhs-meidling-stufencurbs-c8f359-73f8d5bf.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7055,6 +9307,12 @@
           "spots/vienna/allianz-gap-ef0997-8f2cd7d3.webp",
           "spots/vienna/allianz-gap-ef0997-fc78b8b2.webp",
           "spots/vienna/allianz-gap-ef0997-08a6bdf9.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7074,6 +9332,12 @@
         "photos": [
           "spots/vienna/obi-manny-pad-120c0f-26ceee04.webp",
           "spots/vienna/obi-manny-pad-120c0f-2ca64bde.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7094,6 +9358,12 @@
           "spots/vienna/7er-handrail-95b3d0-c9716313.webp",
           "spots/vienna/7er-handrail-95b3d0-8661f1d5.webp",
           "spots/vienna/7er-handrail-95b3d0-b1fc905b.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7115,6 +9385,12 @@
           "spots/vienna/auhofstrasse-10er-5801ce-15a95a02.webp",
           "spots/vienna/auhofstrasse-10er-5801ce-e84649b9.webp",
           "spots/vienna/auhofstrasse-10er-5801ce-dd794a27.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7136,6 +9412,12 @@
           "spots/vienna/hietzing-12er-handrail-c1427f-e50890c7.webp",
           "spots/vienna/hietzing-12er-handrail-c1427f-391ee10c.webp",
           "spots/vienna/hietzing-12er-handrail-c1427f-985e02f7.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7155,6 +9437,12 @@
         "photos": [
           "spots/vienna/naschmarkt-rail-13d3cf-a2af454c.webp",
           "spots/vienna/naschmarkt-rail-13d3cf-1816765d.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7174,6 +9462,12 @@
         "photos": [
           "spots/vienna/laengenfeldgasse-little-dropledge-da88a9-66e54b90.webp",
           "spots/vienna/laengenfeldgasse-little-dropledge-da88a9-9d02af72.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7195,6 +9489,12 @@
           "spots/vienna/8er-high-hubba-304f40-15ba26e5.webp",
           "spots/vienna/8er-high-hubba-304f40-d3a2dd23.webp",
           "spots/vienna/8er-high-hubba-304f40-24caf708.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7214,6 +9514,12 @@
         "photos": [
           "spots/vienna/tu-bank-gap-0a0ad9-8a12ce9c.webp",
           "spots/vienna/tu-bank-gap-0a0ad9-e6d668e3.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7238,6 +9544,12 @@
           "spots/vienna/allianz-ledge-e6b620-b17ae553.webp",
           "spots/vienna/allianz-ledge-e6b620-a27ce27f.webp",
           "spots/vienna/allianz-ledge-e6b620-82274835.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7258,6 +9570,12 @@
           "spots/vienna/terassengap-682882-e7a641e4.webp",
           "spots/vienna/terassengap-682882-fe717ba5.webp",
           "spots/vienna/terassengap-682882-68c64caf.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7278,6 +9596,12 @@
           "spots/vienna/auhofstrasse-12er-9f9598-7bda5856.webp",
           "spots/vienna/auhofstrasse-12er-9f9598-71c1ec7d.webp",
           "spots/vienna/auhofstrasse-12er-9f9598-dc9284cc.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7301,6 +9625,12 @@
           "spots/vienna/volkstheater-581f1d-953b1528.webp",
           "spots/vienna/volkstheater-581f1d-a46940c6.webp",
           "spots/vienna/volkstheater-581f1d-b2e5df58.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7320,6 +9650,12 @@
         "photos": [
           "spots/vienna/6er-stufen-linzer-strasse-ac5bdf-0a97f511.webp",
           "spots/vienna/6er-stufen-linzer-strasse-ac5bdf-d3817a0b.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7340,6 +9676,12 @@
           "spots/vienna/strange-antispot-bump-c81e1a-77c2fdc5.webp",
           "spots/vienna/strange-antispot-bump-c81e1a-be585d2f.webp",
           "spots/vienna/strange-antispot-bump-c81e1a-bf86e319.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7365,6 +9707,13 @@
           "spots/vienna/stufen-hellride-6225d7-4b2d988d.webp",
           "spots/vienna/stufen-hellride-6225d7-6ac330e9.webp",
           "spots/vienna/stufen-hellride-6225d7-f2f87836.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "4 - 7 - 8 - 7 - 7"
+          }
         ]
       }
     },
@@ -7384,6 +9733,12 @@
         "photos": [
           "spots/vienna/double-kink-rail-6e6453-732dcea3.webp",
           "spots/vienna/double-kink-rail-6e6453-d49d19b5.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7405,6 +9760,12 @@
           "spots/vienna/huetteldorf-8er-rail-68d0da-692d6700.webp",
           "spots/vienna/huetteldorf-8er-rail-68d0da-71e7a9a0.webp",
           "spots/vienna/huetteldorf-8er-rail-68d0da-80eafff8.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7428,6 +9789,12 @@
           "spots/vienna/10-stair-line-c1e468-f773e93d.webp",
           "spots/vienna/10-stair-line-c1e468-37176422.webp",
           "spots/vienna/10-stair-line-c1e468-fa4f7eeb.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7448,6 +9815,12 @@
           "spots/vienna/bonk-rail-a79e7f-38c5699e.webp",
           "spots/vienna/bonk-rail-a79e7f-83f71a59.webp",
           "spots/vienna/bonk-rail-a79e7f-2482bdf5.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7467,6 +9840,12 @@
         "photos": [
           "spots/vienna/8-stair-dc7e6f-4c5b4cfa.webp",
           "spots/vienna/8-stair-dc7e6f-47a12789.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7488,6 +9867,12 @@
           "spots/vienna/double-kink-rail-ab7968-b7987795.webp",
           "spots/vienna/double-kink-rail-ab7968-ffcc04e5.webp",
           "spots/vienna/double-kink-rail-ab7968-7c220226.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7506,6 +9891,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/karlsplatz-mannypads-8547c5-0874bc12.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7525,6 +9916,12 @@
         "photos": [
           "spots/vienna/double-kink-rail-3eaefc-da8bf1df.webp",
           "spots/vienna/double-kink-rail-3eaefc-9a9a64da.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7544,6 +9941,12 @@
         "photos": [
           "spots/vienna/double-kink-rail-8ac94d-b319b8ed.webp",
           "spots/vienna/double-kink-rail-8ac94d-ac011f7f.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7565,6 +9968,12 @@
           "spots/vienna/super-crust-bank-091e04-71b23159.webp",
           "spots/vienna/super-crust-bank-091e04-f539445d.webp",
           "spots/vienna/super-crust-bank-091e04-413cc461.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7591,6 +10000,12 @@
           "spots/vienna/stair-paradise-1-325845-702ae852.webp",
           "spots/vienna/stair-paradise-1-325845-206a1fc4.webp",
           "spots/vienna/stair-paradise-1-325845-c24a5053.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7615,6 +10030,12 @@
           "spots/vienna/stair-paradise-2-e0ac8a-06c37bc4.webp",
           "spots/vienna/stair-paradise-2-e0ac8a-96e245bc.webp",
           "spots/vienna/stair-paradise-2-e0ac8a-c82775fe.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7634,6 +10055,12 @@
         "photos": [
           "spots/vienna/tu-flatgap-771a64-f87a0614.webp",
           "spots/vienna/tu-flatgap-771a64-7cfd0a78.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7652,6 +10079,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/schottentor-hellride-0e7074-737689b8.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7672,6 +10105,12 @@
           "spots/vienna/gap-to-curb-cb242e-7117e8cf.webp",
           "spots/vienna/gap-to-curb-cb242e-4aba4538.webp",
           "spots/vienna/gap-to-curb-cb242e-79b78afc.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7691,6 +10130,12 @@
         "photos": [
           "spots/vienna/wu-gap-f94c8d-45f13964.webp",
           "spots/vienna/wu-gap-f94c8d-0d33bdfc.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7710,6 +10155,12 @@
         "photos": [
           "spots/vienna/wu-low-handrail-4da835-3aa8aebf.webp",
           "spots/vienna/wu-low-handrail-4da835-9c01cece.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7730,6 +10181,12 @@
           "spots/vienna/big-triple-kink-rail-abf738-6685456c.webp",
           "spots/vienna/big-triple-kink-rail-abf738-295f50b8.webp",
           "spots/vienna/big-triple-kink-rail-abf738-59ff3f15.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7749,6 +10206,12 @@
         "photos": [
           "spots/vienna/holmes-place-curbs-dac882-c19778d0.webp",
           "spots/vienna/holmes-place-curbs-dac882-76588c4f.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7769,6 +10232,12 @@
           "spots/vienna/banklehne-rail-2fa9b7-2e4312fd.webp",
           "spots/vienna/banklehne-rail-2fa9b7-2db578fe.webp",
           "spots/vienna/banklehne-rail-2fa9b7-5b76a33d.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7792,6 +10261,12 @@
           "spots/vienna/senfbauten-basketballplatz-db2923-608eb08a.webp",
           "spots/vienna/senfbauten-basketballplatz-db2923-c558bcdc.webp",
           "spots/vienna/senfbauten-basketballplatz-db2923-9cb8d0ba.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7811,6 +10286,12 @@
         "photos": [
           "spots/vienna/block-to-drop-504c5a-9e874cb5.webp",
           "spots/vienna/block-to-drop-504c5a-de6ec831.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7832,6 +10313,12 @@
           "spots/vienna/big-wienerberg-handrails-9f7169-38f3bc54.webp",
           "spots/vienna/big-wienerberg-handrails-9f7169-bbaeabfc.webp",
           "spots/vienna/big-wienerberg-handrails-9f7169-83c3522f.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7850,6 +10337,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/mahue-stufencurb-ded4de-06f4b8bb.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7868,6 +10361,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/mahue-bump-to-stromkasten-bcffb0-87c0a97f.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7887,6 +10386,12 @@
         "photos": [
           "spots/vienna/mahue-handrail-443dd3-1b23e1d2.webp",
           "spots/vienna/mahue-handrail-443dd3-325803b8.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7906,6 +10411,12 @@
         "photos": [
           "spots/vienna/quick-feet-gap-ac86ff-94ec3915.webp",
           "spots/vienna/quick-feet-gap-ac86ff-33329b91.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7926,6 +10437,12 @@
           "spots/vienna/big-handrail-c42438-e5e024e9.webp",
           "spots/vienna/big-handrail-c42438-159424d0.webp",
           "spots/vienna/big-handrail-c42438-f92457ec.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7945,6 +10462,12 @@
         "photos": [
           "spots/vienna/long-8-stair-29b642-dde46bbd.webp",
           "spots/vienna/long-8-stair-29b642-369d7829.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7966,6 +10489,12 @@
           "spots/vienna/heavy-bump-efeeaf-9305b5e1.webp",
           "spots/vienna/heavy-bump-efeeaf-0879dce1.webp",
           "spots/vienna/heavy-bump-efeeaf-d81f5e27.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -7985,6 +10514,12 @@
         "photos": [
           "spots/vienna/kumpato-manny-pad-12b933-a35d4da8.webp",
           "spots/vienna/kumpato-manny-pad-12b933-2d759101.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8004,6 +10539,12 @@
         "photos": [
           "spots/vienna/7-stair-f4264b-20f40199.webp",
           "spots/vienna/7-stair-f4264b-cf0801ec.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8023,6 +10564,12 @@
         "photos": [
           "spots/vienna/crust-rail-2e43ba-df887a4a.webp",
           "spots/vienna/crust-rail-2e43ba-7831cf29.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8044,6 +10591,12 @@
           "spots/vienna/raiffeisen-gap-40406c-c8e5b444.webp",
           "spots/vienna/raiffeisen-gap-40406c-2378edaf.webp",
           "spots/vienna/raiffeisen-gap-40406c-04bbf85b.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8063,6 +10616,12 @@
         "photos": [
           "spots/vienna/raiffeisen-handrail-59c09d-26dd181d.webp",
           "spots/vienna/raiffeisen-handrail-59c09d-842b7040.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8082,6 +10641,12 @@
         "photos": [
           "spots/vienna/gap-over-rail-b09976-6229004f.webp",
           "spots/vienna/gap-over-rail-b09976-a3ea9a6f.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8100,6 +10665,13 @@
         "status": "active",
         "photos": [
           "spots/vienna/leslie-plaza-ec7da2-e2962a8c.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "Bust"
+          }
         ]
       }
     },
@@ -8120,6 +10692,12 @@
           "spots/vienna/donaukanal-dropledge-889af8-be744802.webp",
           "spots/vienna/donaukanal-dropledge-889af8-7bf3c4d8.webp",
           "spots/vienna/donaukanal-dropledge-889af8-4d9e827f.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8138,6 +10716,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/flatgaps-7c5c80-f9988a7d.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8158,6 +10742,12 @@
           "spots/vienna/9-stair-c85da9-6ac851ec.webp",
           "spots/vienna/9-stair-c85da9-5e8a7c48.webp",
           "spots/vienna/9-stair-c85da9-981c2bfe.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8176,6 +10766,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/wienerberg-brick-bank-c89d49-7304f578.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8195,6 +10791,12 @@
         "photos": [
           "spots/vienna/high-gumpendorfer-curb-fcf36f-76c7ffef.webp",
           "spots/vienna/high-gumpendorfer-curb-fcf36f-bca9ce85.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8214,6 +10816,12 @@
         "photos": [
           "spots/vienna/wavy-curbs-f5bf9e-bf1812aa.webp",
           "spots/vienna/wavy-curbs-f5bf9e-aebd06c5.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8233,6 +10841,12 @@
         "photos": [
           "spots/vienna/street-bump-to-bump-fd069f-99d7b055.webp",
           "spots/vienna/street-bump-to-bump-fd069f-f2c9552a.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8252,6 +10866,12 @@
         "photos": [
           "spots/vienna/big-handrail-354ada-c8957f5f.webp",
           "spots/vienna/big-handrail-354ada-0c7c3c09.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8271,6 +10891,12 @@
         "photos": [
           "spots/vienna/8-stair-rail-5a0eca-34931ddb.webp",
           "spots/vienna/8-stair-rail-5a0eca-66563e69.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8289,6 +10915,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/little-bank-f66b92-b6aefef3.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8308,6 +10940,12 @@
         "photos": [
           "spots/vienna/poetzleinsdorfer-handrail-7676c7-3fe92609.webp",
           "spots/vienna/poetzleinsdorfer-handrail-7676c7-4fc1e97f.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8327,6 +10965,12 @@
         "photos": [
           "spots/vienna/shitty-wooden-dropledge-8bf8c4-ce4f8107.webp",
           "spots/vienna/shitty-wooden-dropledge-8bf8c4-44718f25.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8346,6 +10990,12 @@
         "photos": [
           "spots/vienna/downhill-curbs-manny-pad-45644f-c115da34.webp",
           "spots/vienna/downhill-curbs-manny-pad-45644f-962b1818.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8364,6 +11014,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/bakerstreet-curb-1957e1-59111850.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8383,6 +11039,12 @@
         "photos": [
           "spots/vienna/manny-pads-88d3de-0c382240.webp",
           "spots/vienna/manny-pads-88d3de-b0276c1d.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8401,6 +11063,13 @@
         "status": "active",
         "photos": [
           "spots/vienna/rohrauer-fuer-fortgeschrittene-85e48a-bfe3bbea.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "Nur Mo-Sa!"
+          }
         ]
       }
     },
@@ -8419,6 +11088,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/statuencurb-1106d8-91d70db0.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8439,6 +11114,12 @@
           "spots/vienna/donaukanal-big-ollie-spot-f1ea66-cc2f59c4.webp",
           "spots/vienna/donaukanal-big-ollie-spot-f1ea66-a521c07a.webp",
           "spots/vienna/donaukanal-big-ollie-spot-f1ea66-63f98275.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8458,6 +11139,12 @@
         "photos": [
           "spots/vienna/raiffeisen-11-stair-920215-9359f194.webp",
           "spots/vienna/raiffeisen-11-stair-920215-28e5a44d.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8478,6 +11165,12 @@
           "spots/vienna/gap-to-block-d8eb46-286bafdd.webp",
           "spots/vienna/gap-to-block-d8eb46-d8411656.webp",
           "spots/vienna/gap-to-block-d8eb46-be373af2.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8496,6 +11189,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/low-to-high-ledge-d84ba8-d16f2d14.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8514,6 +11213,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/wu-long-uprail-7de00e-bd396195.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8533,6 +11238,12 @@
         "photos": [
           "spots/vienna/flatbars-bump-to-curb-40f3e0-234a3017.webp",
           "spots/vienna/flatbars-bump-to-curb-40f3e0-8963cb78.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8552,6 +11263,12 @@
         "photos": [
           "spots/vienna/bratansplaza-84d568-ea1b7736.webp",
           "spots/vienna/bratansplaza-84d568-8d21fc4d.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8571,6 +11288,12 @@
         "photos": [
           "spots/vienna/bank-to-slappy-29525d-c6350bed.webp",
           "spots/vienna/bank-to-slappy-29525d-f025faee.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8594,6 +11317,12 @@
           "spots/vienna/zgonc-parkplatz-d4a4e9-c24e7305.webp",
           "spots/vienna/zgonc-parkplatz-d4a4e9-8cecda72.webp",
           "spots/vienna/zgonc-parkplatz-d4a4e9-31b5a009.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8613,6 +11342,12 @@
         "photos": [
           "spots/vienna/erdberg-downledge-5f865e-b76189ec.webp",
           "spots/vienna/erdberg-downledge-5f865e-e787dcd3.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8632,6 +11367,12 @@
         "photos": [
           "spots/vienna/high-wood-ledge-999ebb-435dcadc.webp",
           "spots/vienna/high-wood-ledge-999ebb-daf5c708.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8652,6 +11393,12 @@
           "spots/vienna/liesling-handrail-2848df-2b360f69.webp",
           "spots/vienna/liesling-handrail-2848df-2945b128.webp",
           "spots/vienna/liesling-handrail-2848df-fe928829.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8673,6 +11420,12 @@
           "spots/vienna/spoff-rail-36ce24-3be5b0c3.webp",
           "spots/vienna/spoff-rail-36ce24-1639702d.webp",
           "spots/vienna/spoff-rail-36ce24-3f002a06.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8693,6 +11446,12 @@
           "spots/vienna/gap-over-rail-ded6f9-e75e14db.webp",
           "spots/vienna/gap-over-rail-ded6f9-c84119e7.webp",
           "spots/vienna/gap-over-rail-ded6f9-254a5224.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8716,6 +11475,12 @@
           "spots/vienna/big-rail-d8498e-1a76dd17.webp",
           "spots/vienna/big-rail-d8498e-55564bff.webp",
           "spots/vienna/big-rail-d8498e-75aefc56.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8735,6 +11500,12 @@
         "photos": [
           "spots/vienna/new-arsenal-curb-4e9595-d54ce290.webp",
           "spots/vienna/new-arsenal-curb-4e9595-f57d6ee8.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8753,6 +11524,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/tangentenpark-e000f7-b63c4c29.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8772,6 +11549,13 @@
         "photos": [
           "spots/vienna/meidling-macba-a2b893-d309e9e5.webp",
           "spots/vienna/meidling-macba-a2b893-a3a66718.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "Meidling’s Außergewöhnliche Curb Battle Arena"
+          }
         ]
       }
     },
@@ -8790,6 +11574,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/kundratstrasse-block-d6644a-881f2189.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8809,6 +11599,12 @@
         "photos": [
           "spots/vienna/forschneritschpark-1fdcba-904b4b30.webp",
           "spots/vienna/forschneritschpark-1fdcba-3f0a7f55.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8828,6 +11624,12 @@
         "photos": [
           "spots/vienna/big-double-kink-858439-ea2bec4c.webp",
           "spots/vienna/big-double-kink-858439-51002b6c.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8848,6 +11650,12 @@
           "spots/vienna/big-gap-over-rail-7e4d51-44342af0.webp",
           "spots/vienna/big-gap-over-rail-7e4d51-3625a54a.webp",
           "spots/vienna/big-gap-over-rail-7e4d51-499dd601.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8868,6 +11676,12 @@
           "spots/vienna/waehringer-strasse-manny-pad-dda376-3f46ff12.webp",
           "spots/vienna/waehringer-strasse-manny-pad-dda376-cfa0397f.webp",
           "spots/vienna/waehringer-strasse-manny-pad-dda376-24cb407e.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8887,6 +11701,12 @@
         "photos": [
           "spots/vienna/5-stair-handrail-cb3462-18df567e.webp",
           "spots/vienna/5-stair-handrail-cb3462-92822965.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8912,6 +11732,13 @@
           "spots/vienna/stairsets-f91be2-e357a713.webp",
           "spots/vienna/stairsets-f91be2-952ae69e.webp",
           "spots/vienna/stairsets-f91be2-3cb4d553.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "8 & 10 Stairs"
+          }
         ]
       }
     },
@@ -8932,6 +11759,12 @@
           "spots/vienna/marktgasse-curb-9aee6b-505c72d9.webp",
           "spots/vienna/marktgasse-curb-9aee6b-3b91d7b4.webp",
           "spots/vienna/marktgasse-curb-9aee6b-dedd5e2c.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8951,6 +11784,12 @@
         "photos": [
           "spots/vienna/antispot-bank-907e19-18df9844.webp",
           "spots/vienna/antispot-bank-907e19-56514672.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8970,7 +11809,13 @@
         "photos": [
           "spots/vienna/somogyi-hof-triple-set-052d09-a4ee2904.webp",
           "spots/vienna/somogyi-hof-triple-set-052d09-903458b2.webp",
-          "spots/vienna/somogyi-hof-triple-set-052d09-19b4a055.webp"
+          "spots/vienna/somogyi-hof-triple-set-052d09-2763da1d.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -8995,6 +11840,12 @@
           "spots/vienna/stairs-gaps-and-huge-block-333d63-9ac9510a.webp",
           "spots/vienna/stairs-gaps-and-huge-block-333d63-fe4b9e79.webp",
           "spots/vienna/stairs-gaps-and-huge-block-333d63-78753dc6.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9014,6 +11865,12 @@
         "photos": [
           "spots/vienna/breitensee-curb-fe940e-4bedd242.webp",
           "spots/vienna/breitensee-curb-fe940e-a3e1a35e.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9032,6 +11889,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/rainbow-rail-b4572b-8b91b2cb.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9050,6 +11913,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/little-bank-d6ace3-a79e3690.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9069,6 +11938,12 @@
         "photos": [
           "spots/vienna/brick-blocks-e9a922-c2f7ba3e.webp",
           "spots/vienna/brick-blocks-e9a922-896f250c.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9087,6 +11962,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/big-hubba-c82f30-4d2309f0.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9105,6 +11986,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/low-to-high-curbs-ff2d09-0c3dc4ec.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9125,6 +12012,12 @@
           "spots/vienna/gap-over-rail-075ea1-2a0b7932.webp",
           "spots/vienna/gap-over-rail-075ea1-744d0622.webp",
           "spots/vienna/gap-over-rail-075ea1-913420ce.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9143,6 +12036,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/neue-donau-manny-pad-110adb-3e5482c9.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9162,6 +12061,12 @@
         "photos": [
           "spots/vienna/super-crust-hubba-78c1c0-e4e26839.webp",
           "spots/vienna/super-crust-hubba-78c1c0-b8d471dd.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9180,6 +12085,13 @@
         "status": "active",
         "photos": [
           "spots/vienna/achau-blocks-918eee-7e16e2e8.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien",
+            "description": "Fast Wien"
+          }
         ]
       }
     },
@@ -9201,6 +12113,12 @@
           "spots/vienna/wallenberg-91dff5-0329882f.webp",
           "spots/vienna/wallenberg-91dff5-3d007d6d.webp",
           "spots/vienna/wallenberg-91dff5-2f78717f.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9224,6 +12142,12 @@
           "spots/vienna/copa-gaps-3e13f4-2681bf80.webp",
           "spots/vienna/copa-gaps-3e13f4-7d0bbe87.webp",
           "spots/vienna/copa-gaps-3e13f4-5a57ddc9.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9245,6 +12169,12 @@
           "spots/vienna/westbahnhof-crust-gap-cd8eab-cddff445.webp",
           "spots/vienna/westbahnhof-crust-gap-cd8eab-7dc46ef8.webp",
           "spots/vienna/westbahnhof-crust-gap-cd8eab-baa2ed7e.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9263,6 +12193,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/wilhelminenberg-curb-60a7bc-73e2f64d.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9282,6 +12218,12 @@
         "photos": [
           "spots/vienna/wobble-antispot-ac664d-565ede3a.webp",
           "spots/vienna/wobble-antispot-ac664d-12141c4b.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9305,6 +12247,12 @@
           "spots/vienna/sf-gap-into-downhill-2a005d-17a6995f.webp",
           "spots/vienna/sf-gap-into-downhill-2a005d-8f9d6fd9.webp",
           "spots/vienna/sf-gap-into-downhill-2a005d-75499ecb.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9325,6 +12273,12 @@
           "spots/vienna/antispot-dropin-c76478-79d8c0c1.webp",
           "spots/vienna/antispot-dropin-c76478-69adc941.webp",
           "spots/vienna/antispot-dropin-c76478-6376392c.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9344,6 +12298,12 @@
         "photos": [
           "spots/vienna/wienfluss-curb-5b8b6b-bd3eb677.webp",
           "spots/vienna/wienfluss-curb-5b8b6b-f3c59835.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9364,6 +12324,12 @@
           "spots/vienna/kicker-e646cd-84917eb0.webp",
           "spots/vienna/kicker-e646cd-915b895a.webp",
           "spots/vienna/kicker-e646cd-18c16d44.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9382,6 +12348,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/crust-banana-slappy-0eda60-6b711026.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9401,6 +12373,12 @@
         "photos": [
           "spots/vienna/mini-dropledges-5c962c-f13e0978.webp",
           "spots/vienna/mini-dropledges-5c962c-e55fdb2a.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9420,6 +12398,12 @@
         "photos": [
           "spots/vienna/low-to-high-ledge-73e819-0a836af5.webp",
           "spots/vienna/low-to-high-ledge-73e819-cc13ceb2.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9438,6 +12422,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/wallride-6610a1-00eb0693.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9457,6 +12447,12 @@
         "photos": [
           "spots/vienna/very-long-handrail-d5682f-117c4f2c.webp",
           "spots/vienna/very-long-handrail-d5682f-21ff6e54.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9477,6 +12473,12 @@
           "spots/vienna/zero-gap-42725c-21d2b8c9.webp",
           "spots/vienna/zero-gap-42725c-a37d0ab3.webp",
           "spots/vienna/zero-gap-42725c-4af7b3b0.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9496,6 +12498,12 @@
         "photos": [
           "spots/vienna/crust-quater-882094-62fd9578.webp",
           "spots/vienna/crust-quater-882094-b9d5ae7e.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9515,6 +12523,12 @@
         "photos": [
           "spots/vienna/crust-3-block-83eaf8-e7d520bb.webp",
           "spots/vienna/crust-3-block-83eaf8-b379fa8a.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9535,6 +12549,12 @@
           "spots/vienna/floridsdorf-3-block-25509a-6b684ae8.webp",
           "spots/vienna/floridsdorf-3-block-25509a-5cc5280a.webp",
           "spots/vienna/floridsdorf-3-block-25509a-b2c83e1d.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9554,6 +12574,12 @@
         "photos": [
           "spots/vienna/manny-pad-4f27a4-58c47f7e.webp",
           "spots/vienna/manny-pad-4f27a4-31665028.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9572,6 +12598,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/antispot-curb-b1bb7c-4ddfceb7.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9592,6 +12624,12 @@
           "spots/vienna/mini-low-to-high-ledge-b84eaf-f83ea64b.webp",
           "spots/vienna/mini-low-to-high-ledge-b84eaf-0230b8bb.webp",
           "spots/vienna/mini-low-to-high-ledge-b84eaf-44caf69c.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9611,6 +12649,12 @@
         "photos": [
           "spots/vienna/super-crust-bank-87e907-a381344b.webp",
           "spots/vienna/super-crust-bank-87e907-904e5145.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9631,6 +12675,12 @@
           "spots/vienna/kronenzeitung-gap-53185a-313161be.webp",
           "spots/vienna/kronenzeitung-gap-53185a-654d77f6.webp",
           "spots/vienna/kronenzeitung-gap-53185a-19357742.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9650,6 +12700,12 @@
         "photos": [
           "spots/vienna/curbs-b70790-5b39dc69.webp",
           "spots/vienna/curbs-b70790-64191018.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9668,6 +12724,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/stadthalle-long-ledge-69e947-083af5d2.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9687,6 +12749,12 @@
         "photos": [
           "spots/vienna/crust-bank-e9f772-5ed68cc1.webp",
           "spots/vienna/crust-bank-e9f772-6940c346.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9707,6 +12775,12 @@
           "spots/vienna/pfanner-rail-da3b56-beba1e40.webp",
           "spots/vienna/pfanner-rail-da3b56-35dbfe85.webp",
           "spots/vienna/pfanner-rail-da3b56-50d28089.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9726,6 +12800,12 @@
         "photos": [
           "spots/vienna/og-spot-136cdc-4fa4a3ea.webp",
           "spots/vienna/og-spot-136cdc-486d3983.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9745,6 +12825,12 @@
         "photos": [
           "spots/vienna/gap-over-hubba-4f07b0-f857b3e1.webp",
           "spots/vienna/gap-over-hubba-4f07b0-2c5fd2f5.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9766,6 +12852,12 @@
           "spots/vienna/mittelgasse-schule-aa6245-017c3d00.webp",
           "spots/vienna/mittelgasse-schule-aa6245-bad00a8b.webp",
           "spots/vienna/mittelgasse-schule-aa6245-0d6dc799.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9786,6 +12878,12 @@
           "spots/vienna/kardinal-nagl-platz-gap-1628c0-9db16525.webp",
           "spots/vienna/kardinal-nagl-platz-gap-1628c0-f2f7d559.webp",
           "spots/vienna/kardinal-nagl-platz-gap-1628c0-ff04ab2a.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9810,6 +12908,12 @@
           "spots/vienna/wienzeile-gap-3bea63-5e340dd1.webp",
           "spots/vienna/wienzeile-gap-3bea63-84c246fb.webp",
           "spots/vienna/wienzeile-gap-3bea63-b24c4db7.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9830,6 +12934,12 @@
           "spots/vienna/auhof-6-stair-1aad45-99b398be.webp",
           "spots/vienna/auhof-6-stair-1aad45-2a0b03ef.webp",
           "spots/vienna/auhof-6-stair-1aad45-5650ed83.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9850,6 +12960,12 @@
           "spots/vienna/kendler-14er-07ee33-5f5d265b.webp",
           "spots/vienna/kendler-14er-07ee33-e5bc4da9.webp",
           "spots/vienna/kendler-14er-07ee33-1cfc87bf.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9869,6 +12985,12 @@
         "photos": [
           "spots/vienna/9-stair-handrail-b32df3-ba85eba5.webp",
           "spots/vienna/9-stair-handrail-b32df3-6fe68724.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9891,6 +13013,12 @@
           "spots/vienna/mannypads-51c094-ae8a7b34.webp",
           "spots/vienna/mannypads-51c094-ef3062b1.webp",
           "spots/vienna/mannypads-51c094-78a565ae.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9912,6 +13040,12 @@
           "spots/vienna/2-stair-kicker-dc43f6-89a3e8b6.webp",
           "spots/vienna/2-stair-kicker-dc43f6-f16dfcfa.webp",
           "spots/vienna/2-stair-kicker-dc43f6-7970ea60.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9934,6 +13068,12 @@
           "spots/vienna/super-crust-antispot-kicker-ad17d2-7968eadf.webp",
           "spots/vienna/super-crust-antispot-kicker-ad17d2-2d6b1f85.webp",
           "spots/vienna/super-crust-antispot-kicker-ad17d2-7cfae960.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9952,6 +13092,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/high-flatbar-a63589-a52a6ede.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9970,6 +13116,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/8-stair-e449af-b4a34f7d.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -9992,6 +13144,12 @@
           "spots/vienna/schwarzer-adler-platz-8c4335-563328e7.webp",
           "spots/vienna/schwarzer-adler-platz-8c4335-9d6609e4.webp",
           "spots/vienna/schwarzer-adler-platz-8c4335-daa1f1b2.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -10011,6 +13169,12 @@
         "photos": [
           "spots/vienna/high-9-stair-rail-280b37-c2fbae17.webp",
           "spots/vienna/high-9-stair-rail-280b37-63a2bb16.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -10031,6 +13195,12 @@
           "spots/vienna/10-stair-3452a2-d74ee5e3.webp",
           "spots/vienna/10-stair-3452a2-3fafca0b.webp",
           "spots/vienna/10-stair-3452a2-286a1c3a.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -10051,6 +13221,12 @@
           "spots/vienna/pier-22-af7c8f-534925bf.webp",
           "spots/vienna/pier-22-af7c8f-d5accbe8.webp",
           "spots/vienna/pier-22-af7c8f-0a1cfb54.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -10070,6 +13246,12 @@
         "photos": [
           "spots/vienna/blumenbeet-rail-090cc4-a2a13883.webp",
           "spots/vienna/blumenbeet-rail-090cc4-be5537be.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -10089,6 +13271,12 @@
         "photos": [
           "spots/vienna/curb-5b7636-7e2f7a3f.webp",
           "spots/vienna/curb-5b7636-aed0b8d9.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -10107,6 +13295,12 @@
         "status": "active",
         "photos": [
           "spots/vienna/5-stair-9e53cf-49787724.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Wien"
+          }
         ]
       }
     },
@@ -10132,6 +13326,12 @@
           "spots/vienna/stollgasse-e99598-629bd75d.webp",
           "spots/vienna/stollgasse-e99598-faf2bbea.webp",
           "spots/vienna/stollgasse-e99598-616daf1c.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "New added Spots"
+          }
         ]
       }
     },
@@ -10152,6 +13352,12 @@
           "spots/vienna/big-handrail-3ceff5-b0fe23e7.webp",
           "spots/vienna/big-handrail-3ceff5-4098dff7.webp",
           "spots/vienna/big-handrail-3ceff5-6ced4e98.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "New added Spots"
+          }
         ]
       }
     },
@@ -10170,6 +13376,12 @@
         "status": "unclassified",
         "photos": [
           "spots/vienna/big-handrail-22fca7-65c1e18e.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "New added Spots"
+          }
         ]
       }
     },
@@ -10190,6 +13402,12 @@
           "spots/vienna/deathdrop-b60fec-23c617bf.webp",
           "spots/vienna/deathdrop-b60fec-77467cea.webp",
           "spots/vienna/deathdrop-b60fec-128b181d.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "New added Spots"
+          }
         ]
       }
     },
@@ -10210,6 +13428,12 @@
           "spots/vienna/crust-curb-over-gap-174e17-c0335b96.webp",
           "spots/vienna/crust-curb-over-gap-174e17-12924c50.webp",
           "spots/vienna/crust-curb-over-gap-174e17-4061b5fb.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "New added Spots"
+          }
         ]
       }
     },
@@ -10229,6 +13453,12 @@
         "photos": [
           "spots/vienna/slappy-hubba-917eac-9bcc916c.webp",
           "spots/vienna/slappy-hubba-917eac-dfd7a04d.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "New added Spots"
+          }
         ]
       }
     },
@@ -10250,6 +13480,12 @@
           "spots/vienna/neue-wu-garage-e0ad2d-2ffa9630.webp",
           "spots/vienna/neue-wu-garage-e0ad2d-259dd83a.webp",
           "spots/vienna/neue-wu-garage-e0ad2d-ac855ce9.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "New added Spots"
+          }
         ]
       }
     },
@@ -10272,6 +13508,12 @@
           "spots/vienna/manny-pad-909cb3-e0787c8c.webp",
           "spots/vienna/manny-pad-909cb3-40ca3c1c.webp",
           "spots/vienna/manny-pad-909cb3-f601272a.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "New added Spots"
+          }
         ]
       }
     },
@@ -10293,6 +13535,12 @@
           "spots/vienna/wallride-c059f4-a0c0809f.webp",
           "spots/vienna/wallride-c059f4-e22b9611.webp",
           "spots/vienna/wallride-c059f4-203e0ef5.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "New added Spots"
+          }
         ]
       }
     },
@@ -10313,6 +13561,13 @@
           "spots/vienna/alm-diy-r-i-p-e022ea-9b7f048b.webp",
           "spots/vienna/alm-diy-r-i-p-e022ea-831effad.webp",
           "spots/vienna/alm-diy-r-i-p-e022ea-6704bff1.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Stopped/Destroyed Spots",
+            "description": "R.I.P"
+          }
         ]
       }
     },
@@ -10333,6 +13588,12 @@
           "spots/vienna/r-i-p-spittelau-a4c91a-e44a709b.webp",
           "spots/vienna/r-i-p-spittelau-a4c91a-ee99d72b.webp",
           "spots/vienna/r-i-p-spittelau-a4c91a-db812e81.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Stopped/Destroyed Spots"
+          }
         ]
       }
     },
@@ -10349,7 +13610,13 @@
         "id": "st-marx-curbs-r-i-p-b09e6b",
         "name": "St. Marx Curbs R.I.P",
         "status": "demolished",
-        "photos": []
+        "photos": [],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Stopped/Destroyed Spots"
+          }
+        ]
       }
     },
     {
@@ -10368,6 +13635,12 @@
         "photos": [
           "spots/vienna/karlsplatz-curbs-rip-bde61b-5bf32157.webp",
           "spots/vienna/karlsplatz-curbs-rip-bde61b-fe9333a9.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Stopped/Destroyed Spots"
+          }
         ]
       }
     },
@@ -10387,6 +13660,13 @@
         "photos": [
           "spots/vienna/r-i-p-wiedner-strasse-curbs-22a9dc-0916720e.webp",
           "spots/vienna/r-i-p-wiedner-strasse-curbs-22a9dc-e40a166a.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Stopped/Destroyed Spots",
+            "description": "skatestopped"
+          }
         ]
       }
     },
@@ -10406,6 +13686,12 @@
         "photos": [
           "spots/vienna/huetteldorfer-rail-r-i-p-ca2fd8-18d08220.webp",
           "spots/vienna/huetteldorfer-rail-r-i-p-ca2fd8-d3a27a33.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Stopped/Destroyed Spots"
+          }
         ]
       }
     },
@@ -10425,6 +13711,13 @@
         "photos": [
           "spots/vienna/wienerberg-curb-r-i-p-3db880-d155b820.webp",
           "spots/vienna/wienerberg-curb-r-i-p-3db880-e430d1b5.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Stopped/Destroyed Spots",
+            "description": "Stopped"
+          }
         ]
       }
     },
@@ -10445,6 +13738,12 @@
           "spots/vienna/r-i-p-crusty-mittersteig-curb-3c9c7b-86bd060e.webp",
           "spots/vienna/r-i-p-crusty-mittersteig-curb-3c9c7b-6674e81a.webp",
           "spots/vienna/r-i-p-crusty-mittersteig-curb-3c9c7b-72915483.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Stopped/Destroyed Spots"
+          }
         ]
       }
     },
@@ -10465,6 +13764,13 @@
           "spots/vienna/r-i-p-wellenrail-460cb4-e2476236.webp",
           "spots/vienna/r-i-p-wellenrail-460cb4-6e638ea4.webp",
           "spots/vienna/r-i-p-wellenrail-460cb4-65a56ace.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Stopped/Destroyed Spots",
+            "description": "Stopped"
+          }
         ]
       }
     },
@@ -10485,6 +13791,13 @@
           "spots/vienna/r-i-p-seestadt-wood-curbs-549bc4-355e930c.webp",
           "spots/vienna/r-i-p-seestadt-wood-curbs-549bc4-a607d94e.webp",
           "spots/vienna/r-i-p-seestadt-wood-curbs-549bc4-3bd0ed49.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Stopped/Destroyed Spots",
+            "description": "Stopped"
+          }
         ]
       }
     },
@@ -10503,6 +13816,13 @@
         "status": "demolished",
         "photos": [
           "spots/vienna/r-i-p-favoriten-stufencurb-17111f-9b07b3fb.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Stopped/Destroyed Spots",
+            "description": "Abgerissen"
+          }
         ]
       }
     },
@@ -10523,6 +13843,12 @@
           "spots/vienna/r-i-p-schwedenplatz-bump-80f1b4-f97c0412.webp",
           "spots/vienna/r-i-p-schwedenplatz-bump-80f1b4-dd32a22d.webp",
           "spots/vienna/r-i-p-schwedenplatz-bump-80f1b4-338a10df.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Stopped/Destroyed Spots"
+          }
         ]
       }
     },
@@ -10542,6 +13868,12 @@
         "photos": [
           "spots/vienna/crusty-anticurb-c8c126-a5f9aa00.webp",
           "spots/vienna/crusty-anticurb-c8c126-28dcf812.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Stopped/Destroyed Spots"
+          }
         ]
       }
     },
@@ -10560,6 +13892,12 @@
         "status": "demolished",
         "photos": [
           "spots/vienna/westbahnhof-curb-r-i-p-69448f-1bbf6a97.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Stopped/Destroyed Spots"
+          }
         ]
       }
     },
@@ -10579,6 +13917,13 @@
         "photos": [
           "spots/vienna/most-crustiest-rail-in-vienna-4606e1-56a5518e.webp",
           "spots/vienna/most-crustiest-rail-in-vienna-4606e1-e72bcd3d.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Stopped/Destroyed Spots",
+            "description": "R.I.P"
+          }
         ]
       }
     },
@@ -10599,6 +13944,12 @@
           "spots/vienna/heavy-bump-to-bump-f48ad2-fe980785.webp",
           "spots/vienna/heavy-bump-to-bump-f48ad2-9b31713a.webp",
           "spots/vienna/heavy-bump-to-bump-f48ad2-1b486836.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Stopped/Destroyed Spots"
+          }
         ]
       }
     },
@@ -10619,6 +13970,12 @@
           "spots/vienna/r-i-p-holzcurb-acbe09-9d6b7122.webp",
           "spots/vienna/r-i-p-holzcurb-acbe09-f9b0fe74.webp",
           "spots/vienna/r-i-p-holzcurb-acbe09-cc79a6bd.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Stopped/Destroyed Spots"
+          }
         ]
       }
     },
@@ -10638,6 +13995,13 @@
         "photos": [
           "spots/vienna/ubahn-volkstheater-9er-6bbc05-6d4eb394.webp",
           "spots/vienna/ubahn-volkstheater-9er-6bbc05-840baca6.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Stopped/Destroyed Spots",
+            "description": "Gestoppt mit Blindenstreifen"
+          }
         ]
       }
     },
@@ -10659,6 +14023,12 @@
           "spots/vienna/r-i-p-stadtpark-8-stair-f58102-1ce38649.webp",
           "spots/vienna/r-i-p-stadtpark-8-stair-f58102-da1f9005.webp",
           "spots/vienna/r-i-p-stadtpark-8-stair-f58102-2bf969e7.webp"
+        ],
+        "sources": [
+          {
+            "map": "vienna",
+            "folder": "Stopped/Destroyed Spots"
+          }
         ]
       }
     }

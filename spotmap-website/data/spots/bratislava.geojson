@@ -17,6 +17,12 @@
         "photos": [
           "spots/bratislava/diy-curbs-665c3e-e806494a.webp",
           "spots/bratislava/diy-curbs-665c3e-eaa9f49b.webp"
+        ],
+        "sources": [
+          {
+            "map": "bratislava",
+            "folder": "Slovakei"
+          }
         ]
       }
     },
@@ -36,6 +42,12 @@
         "photos": [
           "spots/bratislava/heavy-handrail-873315-8aa1428f.webp",
           "spots/bratislava/heavy-handrail-873315-9800646f.webp"
+        ],
+        "sources": [
+          {
+            "map": "bratislava",
+            "folder": "Slovakei"
+          }
         ]
       }
     },
@@ -56,6 +68,12 @@
           "spots/bratislava/boat-gap-bd695b-7ff105f3.webp",
           "spots/bratislava/boat-gap-bd695b-ce3e904b.webp",
           "spots/bratislava/boat-gap-bd695b-c6b02555.webp"
+        ],
+        "sources": [
+          {
+            "map": "bratislava",
+            "folder": "Slovakei"
+          }
         ]
       }
     },
@@ -75,6 +93,12 @@
         "photos": [
           "spots/bratislava/4-stair-manny-pad-a828f6-9e62f521.webp",
           "spots/bratislava/4-stair-manny-pad-a828f6-da884405.webp"
+        ],
+        "sources": [
+          {
+            "map": "bratislava",
+            "folder": "Slovakei"
+          }
         ]
       }
     },
@@ -94,6 +118,12 @@
         "photos": [
           "spots/bratislava/curb-to-downhill-3c3dcd-3fab7958.webp",
           "spots/bratislava/curb-to-downhill-3c3dcd-61cb0f2b.webp"
+        ],
+        "sources": [
+          {
+            "map": "bratislava",
+            "folder": "Slovakei"
+          }
         ]
       }
     },
@@ -114,6 +144,12 @@
           "spots/bratislava/low-to-high-ledge-8c72d9-b9c18879.webp",
           "spots/bratislava/low-to-high-ledge-8c72d9-385e6846.webp",
           "spots/bratislava/low-to-high-ledge-8c72d9-daeadcbb.webp"
+        ],
+        "sources": [
+          {
+            "map": "bratislava",
+            "folder": "Slovakei"
+          }
         ]
       }
     },
@@ -134,6 +170,12 @@
           "spots/bratislava/handrail-51da27-b9227860.webp",
           "spots/bratislava/handrail-51da27-860f134b.webp",
           "spots/bratislava/handrail-51da27-600ee14f.webp"
+        ],
+        "sources": [
+          {
+            "map": "bratislava",
+            "folder": "Slovakei"
+          }
         ]
       }
     },
@@ -155,6 +197,12 @@
           "spots/bratislava/kicker-over-stairs-1a6dba-e33298c7.webp",
           "spots/bratislava/kicker-over-stairs-1a6dba-9ab86612.webp",
           "spots/bratislava/kicker-over-stairs-1a6dba-9c8a05bf.webp"
+        ],
+        "sources": [
+          {
+            "map": "bratislava",
+            "folder": "Slovakei"
+          }
         ]
       }
     },
@@ -175,6 +223,12 @@
           "spots/bratislava/vienna-gate-gap-5ed7ef-4ef190f8.webp",
           "spots/bratislava/vienna-gate-gap-5ed7ef-20d7361a.webp",
           "spots/bratislava/vienna-gate-gap-5ed7ef-d4d528af.webp"
+        ],
+        "sources": [
+          {
+            "map": "bratislava",
+            "folder": "Slovakei"
+          }
         ]
       }
     },
@@ -200,6 +254,12 @@
           "spots/bratislava/a-lot-of-banks-f6369d-a20ec93b.webp",
           "spots/bratislava/a-lot-of-banks-f6369d-ee868790.webp",
           "spots/bratislava/a-lot-of-banks-f6369d-187484ce.webp"
+        ],
+        "sources": [
+          {
+            "map": "bratislava",
+            "folder": "Slovakei"
+          }
         ]
       }
     },
@@ -224,6 +284,12 @@
           "spots/bratislava/opera-710d2e-80bececf.webp",
           "spots/bratislava/opera-710d2e-d89f576e.webp",
           "spots/bratislava/opera-710d2e-ad44283c.webp"
+        ],
+        "sources": [
+          {
+            "map": "bratislava",
+            "folder": "Slovakei"
+          }
         ]
       }
     }

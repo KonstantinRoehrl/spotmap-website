@@ -16,6 +16,12 @@
         "status": "active",
         "photos": [
           "spots/valencia/muvim-museum-9873c9-18eb86fa.webp"
+        ],
+        "sources": [
+          {
+            "map": "valencia",
+            "folder": "Unbenannte Ebene"
+          }
         ]
       }
     },
@@ -36,6 +42,12 @@
           "spots/valencia/metal-curb-0b0596-457d7017.webp",
           "spots/valencia/metal-curb-0b0596-cc10904c.webp",
           "spots/valencia/metal-curb-0b0596-fcfa5c66.webp"
+        ],
+        "sources": [
+          {
+            "map": "valencia",
+            "folder": "Unbenannte Ebene"
+          }
         ]
       }
     },
@@ -54,6 +66,12 @@
         "status": "active",
         "photos": [
           "spots/valencia/wood-benches-99a03a-efcd6b28.webp"
+        ],
+        "sources": [
+          {
+            "map": "valencia",
+            "folder": "Unbenannte Ebene"
+          }
         ]
       }
     },
@@ -73,6 +91,12 @@
         "photos": [
           "spots/valencia/3-block-00f21e-65cda6c4.webp",
           "spots/valencia/3-block-00f21e-42f60175.webp"
+        ],
+        "sources": [
+          {
+            "map": "valencia",
+            "folder": "Unbenannte Ebene"
+          }
         ]
       }
     },
@@ -92,6 +116,12 @@
         "photos": [
           "spots/valencia/gap-over-block-rails-f6e377-b0d31f88.webp",
           "spots/valencia/gap-over-block-rails-f6e377-cd64ce55.webp"
+        ],
+        "sources": [
+          {
+            "map": "valencia",
+            "folder": "Unbenannte Ebene"
+          }
         ]
       }
     },
@@ -111,6 +141,12 @@
         "photos": [
           "spots/valencia/antispot-metal-pyramids-9d3ac1-e240fb7d.webp",
           "spots/valencia/antispot-metal-pyramids-9d3ac1-08403624.webp"
+        ],
+        "sources": [
+          {
+            "map": "valencia",
+            "folder": "Unbenannte Ebene"
+          }
         ]
       }
     }

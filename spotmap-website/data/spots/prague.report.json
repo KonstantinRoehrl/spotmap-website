@@ -1,5 +1,6 @@
 {
   "city": "prague",
+  "map": "prague",
   "mid": "1M3yJ3bz-KOrPTxIPHVUO6ZgMdtgFLqI",
   "placemarks": 4,
   "spotsWritten": 4,
@@ -8,56 +9,68 @@
   "photosDead": [
     {
       "spotId": "stalin-plaza-2a8189",
-      "index": 1,
+      "map": "prague",
+      "n": 1,
       "reason": "http 404"
     },
     {
       "spotId": "stalin-plaza-2a8189",
-      "index": 2,
+      "map": "prague",
+      "n": 2,
       "reason": "http 404"
     },
     {
       "spotId": "stalin-plaza-2a8189",
-      "index": 3,
+      "map": "prague",
+      "n": 3,
       "reason": "http 404"
     },
     {
       "spotId": "stalin-plaza-2a8189",
-      "index": 4,
+      "map": "prague",
+      "n": 4,
       "reason": "http 404"
     },
     {
       "spotId": "stalin-plaza-2a8189",
-      "index": 5,
+      "map": "prague",
+      "n": 5,
       "reason": "http 404"
     },
     {
       "spotId": "stalin-plaza-2a8189",
-      "index": 6,
+      "map": "prague",
+      "n": 6,
       "reason": "http 404"
     },
     {
       "spotId": "perfect-8-stair-8688f3",
-      "index": 1,
+      "map": "prague",
+      "n": 1,
       "reason": "http 404"
     },
     {
       "spotId": "perfect-8-stair-57b917",
-      "index": 1,
+      "map": "prague",
+      "n": 1,
       "reason": "http 404"
     },
     {
       "spotId": "perfect-8-stair-57b917",
-      "index": 2,
+      "map": "prague",
+      "n": 2,
       "reason": "http 404"
     },
     {
       "spotId": "curbs-836bfd",
-      "index": 1,
+      "map": "prague",
+      "n": 1,
       "reason": "http 404"
     }
   ],
+  "photosRecovered": [],
   "photosDuplicate": [],
+  "photosNearDuplicate": [],
   "spotsWithoutPhotos": [
     "stalin-plaza-2a8189",
     "perfect-8-stair-8688f3",
@@ -68,6 +81,20 @@
     "active": 4,
     "demolished": 0,
     "unclassified": 0
+  },
+  "extraMaps": [],
+  "matches": {
+    "conflicts": [],
+    "ambiguous": [],
+    "unmatched": []
+  },
+  "linkCounts": {
+    "prague": {
+      "stalin-plaza-2a8189": 6,
+      "perfect-8-stair-8688f3": 1,
+      "perfect-8-stair-57b917": 2,
+      "curbs-836bfd": 1
+    }
   },
   "warnings": []
 }

@@ -15,7 +15,22 @@
         "name": "Irgendwo: Ditch",
         "status": "active",
         "photos": [
-          "spots/zagreb/irgendwo-ditch-7869ce-02acb1e7.webp"
+          "spots/zagreb/irgendwo-ditch-7869ce-02acb1e7.webp",
+          "spots/zagreb/irgendwo-ditch-7869ce-02a0b5bb.webp"
+        ],
+        "sources": [
+          {
+            "map": "zagreb",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              15.5036161,
+              45.4519366
+            ]
+          }
         ]
       }
     },
@@ -32,7 +47,26 @@
         "id": "kreisverkehr-curbs-af9198",
         "name": "Kreisverkehr Curbs",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/zagreb/kreisverkehr-curbs-af9198-9660f730.webp",
+          "spots/zagreb/kreisverkehr-curbs-af9198-2ee525b3.webp"
+        ],
+        "sources": [
+          {
+            "map": "zagreb",
+            "folder": "Kroatien",
+            "description": "Stress mit Polizei"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "description": "Stress mit Polizei",
+            "position": [
+              15.9871438,
+              45.8099529
+            ]
+          }
+        ]
       }
     },
     {
@@ -48,7 +82,21 @@
         "id": "pavillion-8-stair-85f7d1",
         "name": "Pavillion 8 Stair",
         "status": "active",
-        "photos": []
+        "photos": [],
+        "sources": [
+          {
+            "map": "zagreb",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              15.9782916,
+              45.8104422
+            ]
+          }
+        ]
       }
     },
     {
@@ -64,7 +112,27 @@
         "id": "12-stair-b8905f",
         "name": "12 Stair",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/zagreb/12-stair-b8905f-c35e11c3.webp",
+          "spots/zagreb/12-stair-b8905f-9985a4b0.webp",
+          "spots/zagreb/12-stair-b8905f-0333ca41.webp"
+        ],
+        "sources": [
+          {
+            "map": "zagreb",
+            "folder": "Kroatien",
+            "description": "perfect"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "description": "perfect",
+            "position": [
+              15.9641365,
+              45.8074686
+            ]
+          }
+        ]
       }
     },
     {
@@ -80,7 +148,23 @@
         "id": "curb-c8e276",
         "name": "Curb",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/zagreb/curb-c8e276-bf7155e0.webp"
+        ],
+        "sources": [
+          {
+            "map": "zagreb",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              15.9610862,
+              45.8083391
+            ]
+          }
+        ]
       }
     },
     {
@@ -98,7 +182,25 @@
         "status": "active",
         "photos": [
           "spots/zagreb/low-to-high-ledges-264650-fd1787fd.webp",
-          "spots/zagreb/low-to-high-ledges-264650-67ad7181.webp"
+          "spots/zagreb/low-to-high-ledges-264650-67ad7181.webp",
+          "spots/zagreb/low-to-high-ledges-264650-7f159945.webp",
+          "spots/zagreb/low-to-high-ledges-264650-6812eec0.webp",
+          "spots/zagreb/low-to-high-ledges-264650-5d896406.webp",
+          "spots/zagreb/low-to-high-ledges-264650-9a23c606.webp"
+        ],
+        "sources": [
+          {
+            "map": "zagreb",
+            "folder": "Kroatien"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "position": [
+              15.9701142,
+              45.8069529
+            ]
+          }
         ]
       }
     },
@@ -115,7 +217,29 @@
         "id": "musikakademie-092068",
         "name": "Musikakademie",
         "status": "active",
-        "photos": []
+        "photos": [
+          "spots/zagreb/musikakademie-092068-a7046aaa.webp",
+          "spots/zagreb/musikakademie-092068-7fd244ba.webp",
+          "spots/zagreb/musikakademie-092068-767e6720.webp",
+          "spots/zagreb/musikakademie-092068-986a9d13.webp",
+          "spots/zagreb/musikakademie-092068-43b5a4a8.webp"
+        ],
+        "sources": [
+          {
+            "map": "zagreb",
+            "folder": "Kroatien",
+            "description": "Von Polizei gekickt worden, Locals sagen, dass es eigentlich kein Problem da ist"
+          },
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "description": "Von Polizei gekickt worden, Locals sagen, dass es eigentlich kein Problem da ist",
+            "position": [
+              15.9687583,
+              45.8100182
+            ]
+          }
+        ]
       }
     }
   ]

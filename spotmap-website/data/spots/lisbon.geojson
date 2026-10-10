@@ -16,6 +16,12 @@
         "status": "active",
         "photos": [
           "spots/lisbon/round-fountain-1a519e-38b508a1.webp"
+        ],
+        "sources": [
+          {
+            "map": "lisbon",
+            "folder": "Portugal"
+          }
         ]
       }
     },
@@ -34,6 +40,12 @@
         "status": "active",
         "photos": [
           "spots/lisbon/cage-b1a840-00dbbd56.webp"
+        ],
+        "sources": [
+          {
+            "map": "lisbon",
+            "folder": "Portugal"
+          }
         ]
       }
     },
@@ -52,6 +64,12 @@
         "status": "active",
         "photos": [
           "spots/lisbon/crust-curbs-c5b857-b1517b32.webp"
+        ],
+        "sources": [
+          {
+            "map": "lisbon",
+            "folder": "Portugal"
+          }
         ]
       }
     },
@@ -70,6 +88,12 @@
         "status": "active",
         "photos": [
           "spots/lisbon/bench-c620fc-8c311600.webp"
+        ],
+        "sources": [
+          {
+            "map": "lisbon",
+            "folder": "Portugal"
+          }
         ]
       }
     },
@@ -94,6 +118,12 @@
           "spots/lisbon/angelina-diy-58f07e-d4e3395d.webp",
           "spots/lisbon/angelina-diy-58f07e-73a001f3.webp",
           "spots/lisbon/angelina-diy-58f07e-88eabe99.webp"
+        ],
+        "sources": [
+          {
+            "map": "lisbon",
+            "folder": "Portugal"
+          }
         ]
       }
     },
@@ -113,6 +143,12 @@
         "photos": [
           "spots/lisbon/bank-5c2954-52a0c050.webp",
           "spots/lisbon/bank-5c2954-bf874f0e.webp"
+        ],
+        "sources": [
+          {
+            "map": "lisbon",
+            "folder": "Portugal"
+          }
         ]
       }
     },
@@ -131,6 +167,12 @@
         "status": "active",
         "photos": [
           "spots/lisbon/marble-curbs-019fcc-38b0bb13.webp"
+        ],
+        "sources": [
+          {
+            "map": "lisbon",
+            "folder": "Portugal"
+          }
         ]
       }
     },
@@ -149,6 +191,12 @@
         "status": "active",
         "photos": [
           "spots/lisbon/curb-7b0a64-e69b9fd5.webp"
+        ],
+        "sources": [
+          {
+            "map": "lisbon",
+            "folder": "Portugal"
+          }
         ]
       }
     }

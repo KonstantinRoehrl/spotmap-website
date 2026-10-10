@@ -20,6 +20,20 @@
           "spots/sarajevo/curbs-9b74f4-6f0e3974.webp",
           "spots/sarajevo/curbs-9b74f4-47cf4d8e.webp",
           "spots/sarajevo/curbs-9b74f4-40ce0308.webp"
+        ],
+        "sources": [
+          {
+            "map": "sarajevo",
+            "folder": "Balkan"
+          },
+          {
+            "map": "balkan",
+            "folder": "Balkan",
+            "position": [
+              18.3425186,
+              43.8326209
+            ]
+          }
         ]
       }
     },
@@ -39,6 +53,20 @@
         "photos": [
           "spots/sarajevo/art-academy-curbs-5ab6b8-72fe87a5.webp",
           "spots/sarajevo/art-academy-curbs-5ab6b8-5162041f.webp"
+        ],
+        "sources": [
+          {
+            "map": "sarajevo",
+            "folder": "Balkan"
+          },
+          {
+            "map": "balkan",
+            "folder": "Balkan",
+            "position": [
+              18.4176905,
+              43.8560821
+            ]
+          }
         ]
       }
     },
@@ -60,6 +88,22 @@
           "spots/sarajevo/plaza-b274ae-becb4403.webp",
           "spots/sarajevo/plaza-b274ae-9eaae309.webp",
           "spots/sarajevo/plaza-b274ae-a975e815.webp"
+        ],
+        "sources": [
+          {
+            "map": "sarajevo",
+            "folder": "Balkan",
+            "description": "Bust"
+          },
+          {
+            "map": "balkan",
+            "folder": "Balkan",
+            "description": "Bust",
+            "position": [
+              18.4139237,
+              43.8550828
+            ]
+          }
         ]
       }
     },
@@ -79,6 +123,20 @@
         "photos": [
           "spots/sarajevo/rooftop-miniramp-beb4e4-ca7971e0.webp",
           "spots/sarajevo/rooftop-miniramp-beb4e4-457093bb.webp"
+        ],
+        "sources": [
+          {
+            "map": "sarajevo",
+            "folder": "Balkan"
+          },
+          {
+            "map": "balkan",
+            "folder": "Balkan",
+            "position": [
+              18.3185214,
+              43.7571731
+            ]
+          }
         ]
       }
     }

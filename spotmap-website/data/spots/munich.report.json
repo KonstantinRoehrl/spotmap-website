@@ -1,17 +1,36 @@
 {
   "city": "munich",
+  "map": "munich",
   "mid": "17-7uPZrlp0LG5MqKsKdmaJBAYk6BRXo",
   "placemarks": 6,
   "spotsWritten": 6,
   "photosLinked": 9,
   "photosWritten": 9,
   "photosDead": [],
+  "photosRecovered": [],
   "photosDuplicate": [],
+  "photosNearDuplicate": [],
   "spotsWithoutPhotos": [],
   "statusCounts": {
     "active": 6,
     "demolished": 0,
     "unclassified": 0
+  },
+  "extraMaps": [],
+  "matches": {
+    "conflicts": [],
+    "ambiguous": [],
+    "unmatched": []
+  },
+  "linkCounts": {
+    "munich": {
+      "diy-skatespot-5fb88a": 1,
+      "spanische-curbs-6bf232": 1,
+      "curb-over-gap-495d23": 1,
+      "8er-stair-bb7577": 3,
+      "curb-f8d6f6": 1,
+      "rooftop-quaters-3b6b63": 2
+    }
   },
   "warnings": []
 }

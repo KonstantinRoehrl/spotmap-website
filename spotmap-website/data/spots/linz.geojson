@@ -18,6 +18,12 @@
           "spots/linz/wels-12-stair-bank-gap-82db98-bfac490b.webp",
           "spots/linz/wels-12-stair-bank-gap-82db98-7fc7c31b.webp",
           "spots/linz/wels-12-stair-bank-gap-82db98-855a5931.webp"
+        ],
+        "sources": [
+          {
+            "map": "linz",
+            "folder": "Rest von Österreich"
+          }
         ]
       }
     },
@@ -38,6 +44,12 @@
           "spots/linz/tabakfabrik-stairs-7e5950-2d5ca4d7.webp",
           "spots/linz/tabakfabrik-stairs-7e5950-4f86dfad.webp",
           "spots/linz/tabakfabrik-stairs-7e5950-a2d7962c.webp"
+        ],
+        "sources": [
+          {
+            "map": "linz",
+            "folder": "Rest von Österreich"
+          }
         ]
       }
     },
@@ -57,6 +69,12 @@
         "photos": [
           "spots/linz/musiktheater-curbs-64d106-45453049.webp",
           "spots/linz/musiktheater-curbs-64d106-edfdf7ef.webp"
+        ],
+        "sources": [
+          {
+            "map": "linz",
+            "folder": "Rest von Österreich"
+          }
         ]
       }
     },
@@ -76,6 +94,12 @@
         "photos": [
           "spots/linz/urfahr-wiesengap-c3a6c8-3be8df63.webp",
           "spots/linz/urfahr-wiesengap-c3a6c8-c80d8f72.webp"
+        ],
+        "sources": [
+          {
+            "map": "linz",
+            "folder": "Rest von Österreich"
+          }
         ]
       }
     },
@@ -95,6 +119,12 @@
         "photos": [
           "spots/linz/irgendwo-pollham-kirche-59374b-697c083a.webp",
           "spots/linz/irgendwo-pollham-kirche-59374b-3b0bd4c2.webp"
+        ],
+        "sources": [
+          {
+            "map": "linz",
+            "folder": "Rest von Österreich"
+          }
         ]
       }
     },
@@ -111,7 +141,13 @@
         "id": "wels-low-to-high-ledges-2bbc33",
         "name": "Wels: Low to High Ledges",
         "status": "active",
-        "photos": []
+        "photos": [],
+        "sources": [
+          {
+            "map": "linz",
+            "folder": "Rest von Österreich"
+          }
+        ]
       }
     },
     {
@@ -129,6 +165,12 @@
         "status": "active",
         "photos": [
           "spots/linz/kepler-klinik-8-stair-a55d23-9282fca3.webp"
+        ],
+        "sources": [
+          {
+            "map": "linz",
+            "folder": "Rest von Österreich"
+          }
         ]
       }
     },
@@ -145,7 +187,13 @@
         "id": "antispot-blumauergarage-01cdbd",
         "name": "Antispot Blumauergarage",
         "status": "active",
-        "photos": []
+        "photos": [],
+        "sources": [
+          {
+            "map": "linz",
+            "folder": "Rest von Österreich"
+          }
+        ]
       }
     },
     {
@@ -165,6 +213,12 @@
           "spots/linz/irgendwo-htl-griesskirchen-1ae144-7f623a73.webp",
           "spots/linz/irgendwo-htl-griesskirchen-1ae144-d3e87340.webp",
           "spots/linz/irgendwo-htl-griesskirchen-1ae144-8fb3f79d.webp"
+        ],
+        "sources": [
+          {
+            "map": "linz",
+            "folder": "Rest von Österreich"
+          }
         ]
       }
     },
@@ -185,6 +239,12 @@
           "spots/linz/griesskirchen-moebelhaendler-manny-pad-107548-9218a5c4.webp",
           "spots/linz/griesskirchen-moebelhaendler-manny-pad-107548-45f416e2.webp",
           "spots/linz/griesskirchen-moebelhaendler-manny-pad-107548-8a97b85b.webp"
+        ],
+        "sources": [
+          {
+            "map": "linz",
+            "folder": "Rest von Österreich"
+          }
         ]
       }
     },
@@ -204,6 +264,12 @@
         "photos": [
           "spots/linz/gallspach-volksschule-d6931c-5d50f816.webp",
           "spots/linz/gallspach-volksschule-d6931c-be411c7e.webp"
+        ],
+        "sources": [
+          {
+            "map": "linz",
+            "folder": "Rest von Österreich"
+          }
         ]
       }
     },
@@ -223,6 +289,12 @@
         "photos": [
           "spots/linz/gallspach-courthouse-6d46b4-4600ee0f.webp",
           "spots/linz/gallspach-courthouse-6d46b4-44ebe2ac.webp"
+        ],
+        "sources": [
+          {
+            "map": "linz",
+            "folder": "Rest von Österreich"
+          }
         ]
       }
     },
@@ -241,6 +313,12 @@
         "status": "active",
         "photos": [
           "spots/linz/wels-loadingdock-63eb2f-6c592408.webp"
+        ],
+        "sources": [
+          {
+            "map": "linz",
+            "folder": "Rest von Österreich"
+          }
         ]
       }
     },
@@ -260,6 +338,12 @@
         "photos": [
           "spots/linz/wels-hauptschule-43603a-50215677.webp",
           "spots/linz/wels-hauptschule-43603a-bd6ea70d.webp"
+        ],
+        "sources": [
+          {
+            "map": "linz",
+            "folder": "Rest von Österreich"
+          }
         ]
       }
     },
@@ -278,6 +362,13 @@
         "status": "active",
         "photos": [
           "spots/linz/wels-holzcurbs-81f80d-2a6ac619.webp"
+        ],
+        "sources": [
+          {
+            "map": "linz",
+            "folder": "Rest von Österreich",
+            "description": "Hoch"
+          }
         ]
       }
     },
@@ -299,6 +390,12 @@
           "spots/linz/wels-brg-wallererstrasse-f4886e-0619e810.webp",
           "spots/linz/wels-brg-wallererstrasse-f4886e-35b87c1c.webp",
           "spots/linz/wels-brg-wallererstrasse-f4886e-b06f1da5.webp"
+        ],
+        "sources": [
+          {
+            "map": "linz",
+            "folder": "Rest von Österreich"
+          }
         ]
       }
     }
