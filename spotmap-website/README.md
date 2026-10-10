@@ -43,7 +43,50 @@ src/
                     # relative; a root-absolute /fonts/... 404s under the deploy
                     # prefix (tools/verify-css-asset-urls.mjs guards it)
   index.html
+tools/
+  extract-spots/    # npm run extract:spots — My Maps KML → data/spots/ (see below)
+  verify-*.mjs      # build guards run by build:pages
+data/
+  spots/            # extracted per-city datasets (GeoJSON + run reports)
 ```
+
+## Spot data extraction
+
+`npm run extract:spots` pulls every city's Google My Maps KML export, turns its
+placemarks into the app's `SpotCollection` GeoJSON (`src/app/models/spots/spot.ts`),
+and re-encodes every reachable photo to WebP (long edge 1400px, quality 72).
+
+```bash
+npm run extract:spots                       # all 16 cities
+npm run extract:spots -- vienna split       # only these cities
+npm run extract:spots -- vienna --reencode  # download and encode existing photos again
+```
+
+The tool lives in `tools/extract-spots/` and writes to `data/`. The live map
+still reads `public/spots/`; promoting a dataset there is a separate step.
+
+| Path | Committed | Contents |
+| --- | --- | --- |
+| `data/spots/sources.json` | yes | each city's My Maps `mid` and the name prefixes stripped from its spot names |
+| `data/spots/<city>.geojson` | yes | the city's spots; photo paths are base-relative (`spots/<city>/…`) |
+| `data/spots/<city>.report.json` | yes | counts, dead photos (by spot and position) and warnings from the last run |
+| `data/spots/<city>/*.webp` | no | the encoded photos |
+| `data/.cache/kml/` | no | the raw KML of each city's last successful fetch |
+
+Photos are not committed: all cities together come to well over a thousand
+images, too heavy for git, and they get a real host later.
+
+Google changes every photo URL on each export, so the tool recognises a photo by
+a fingerprint of its tiny 32px rendition and names the file after it. A re-run
+fetches that rendition for every photo (a few KB each) and downloads only photos
+that are new or changed; with unchanged maps it downloads no originals and the
+committed files stay identical. A city that fails keeps its previous files; the
+run carries on and exits non-zero, naming each failed city.
+
+Some photo links (`lh3.googleusercontent.com/umsh/…` — every photo of Split and
+Prague) answer 404, even for the map's owner, and My Maps itself shows them as
+broken images. Those photos are lost at the source: the tool skips them and lists
+them under `photosDead` in the city's report.
 
 ## Design system
 
