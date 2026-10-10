@@ -2,28 +2,14 @@
   class="map-container w-full h-full relative"
   [attr.aria-busy]="!mapReady() && failureReason() === null"
 >
-  @switch (renderer()) {
-    @case ('gmaps') {
-      <app-gmaps-embed
-        class="map-frame w-full h-full block"
-        [style.opacity]="mapReady() ? 1 : 0"
-        [city]="city()"
-        [retryToken]="retryToken()"
-        (ready)="onRendererReady()"
-        (failed)="onRendererFailed($event)"
-      ></app-gmaps-embed>
-    }
-    @case ('maplibre') {
-      <app-spot-map
-        class="map-frame w-full h-full block"
-        [style.opacity]="mapReady() ? 1 : 0"
-        [city]="city()"
-        [retryToken]="retryToken()"
-        (ready)="onRendererReady()"
-        (failed)="onRendererFailed($event)"
-      ></app-spot-map>
-    }
-  }
+  <app-spot-map
+    class="map-frame w-full h-full block"
+    [style.opacity]="mapReady() ? 1 : 0"
+    [city]="city()"
+    [retryToken]="retryToken()"
+    (ready)="onRendererReady()"
+    (failed)="onRendererFailed($event)"
+  ></app-spot-map>
 
   <!-- loading: matrix-radar spinner over the dark surface -->
   @if (!mapReady() && failureReason() === null) {
