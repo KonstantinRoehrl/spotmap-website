@@ -580,8 +580,20 @@ describe('buildTerminalStyle', () => {
     });
   });
 
-  it('credits Mapterhorn, BEV and Copernicus wherever terrain is drawn', () => {
-    for (const credit of ['Mapterhorn', 'BEV', 'Copernicus GLO-30']) {
+  it("credits Mapterhorn, every survey DEM behind the picker's cities, and Copernicus wherever terrain is drawn", () => {
+    for (const credit of [
+      'Mapterhorn',
+      'BEV',
+      'Land Oberösterreich',
+      'Land Salzburg',
+      'ÚGKK SR',
+      'ČÚZK',
+      'Bayerische Vermessungsverwaltung',
+      'IGN',
+      'scne.es',
+      'Direção-Geral do Território',
+      'Copernicus GLO-30',
+    ]) {
       expect(MAPTERHORN_DEM.attribution).toContain(credit);
     }
   });

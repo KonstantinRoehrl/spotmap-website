@@ -11,9 +11,14 @@ export type ProtocolHost = Parameters<DemSource['setupMaplibre']>[0];
 
 /**
  * The terrain provider: Mapterhorn's keyless terrarium tiles. Swapping provider — AWS Terrain
- * Tiles, or a self-hosted PMTiles extract of Vienna — is a change to this constant alone. Vienna's
- * z13+ terrain is BEV ALS-DGM 1 m (Mapterhorn source `at1`, CC BY 4.0) and the z0–12 planet
- * archive is built over Copernicus GLO-30, so the attribution credits both.
+ * Tiles, or a self-hosted PMTiles extract — is a change to this constant alone. Mapterhorn serves
+ * z13+ from national survey DEMs where it has one, and the z0–12 planet archive from Copernicus
+ * GLO-30. The attribution credits every survey that may cover one of the picker's cities, per
+ * Mapterhorn's attribution.json (read 2026-10-10): BEV, Land Oberösterreich and Land Salzburg for
+ * Austria, ÚGKK SR for Bratislava, ČÚZK for Prague, Bayerische Vermessungsverwaltung for Munich,
+ * IGN for Paris, scne.es for Barcelona and Valencia, and Direção-Geral do Território for Lisbon.
+ * The Croatian, Serbian and Bosnian cities have no survey source there and use GLO-30 alone. A city
+ * in a new country means checking that list again.
  */
 export const MAPTERHORN_DEM = {
   url: 'https://tiles.mapterhorn.com/{z}/{x}/{y}.webp',
@@ -23,7 +28,13 @@ export const MAPTERHORN_DEM = {
   maxzoom: 14,
   attribution:
     '<a href="https://mapterhorn.com/attribution/" target="_blank" rel="noopener">© Mapterhorn</a>' +
-    ' · DGM © BEV (CC BY 4.0)' +
+    ' · DGM © BEV, Land Oberösterreich, Land Salzburg (CC BY 4.0)' +
+    ' · DMR 5.0 © ÚGKK SR (CC BY 4.0)' +
+    ' · DMR 4G © ČÚZK (CC BY 4.0)' +
+    ' · DGM1 © Bayerische Vermessungsverwaltung (CC BY 4.0)' +
+    ' · RGE ALTI®, LiDAR HD © IGN (Licence Ouverte 2.0)' +
+    ' · MDT © scne.es (CC BY 4.0)' +
+    ' · MDT © Direção-Geral do Território (CC BY 4.0)' +
     ' · Copernicus GLO-30 © DLR e.V. 2010–2014, © Airbus Defence and Space GmbH 2014–2018,' +
     ' provided under COPERNICUS by the EU and ESA',
 } as const;
