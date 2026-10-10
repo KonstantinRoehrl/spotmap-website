@@ -1,0 +1,17 @@
+{
+  "city": "sarajevo",
+  "mid": "1bQasamQ0CRfALwtB5BzXZCRPSMugK4w",
+  "placemarks": 4,
+  "spotsWritten": 4,
+  "photosLinked": 13,
+  "photosWritten": 13,
+  "photosDead": [],
+  "photosDuplicate": [],
+  "spotsWithoutPhotos": [],
+  "statusCounts": {
+    "active": 4,
+    "demolished": 0,
+    "unclassified": 0
+  },
+  "warnings": []
+}

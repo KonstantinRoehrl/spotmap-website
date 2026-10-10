@@ -1,0 +1,1302 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0425578,
+          47.7263164
+        ]
+      },
+      "properties": {
+        "id": "grasgap-ad87a9",
+        "name": "Grasgap",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/grasgap-ad87a9-fa1dae72.webp",
+          "spots/salzburg/grasgap-ad87a9-61a19928.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0444555,
+          47.8013956
+        ]
+      },
+      "properties": {
+        "id": "holzbaenke-f38eb3",
+        "name": "Holzbänke",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/holzbaenke-f38eb3-766d96b2.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0367804,
+          47.8280738
+        ]
+      },
+      "properties": {
+        "id": "vita-kicker-1a5bfc",
+        "name": "Vita Kicker",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/vita-kicker-1a5bfc-830738f7.webp",
+          "spots/salzburg/vita-kicker-1a5bfc-31f4b3a8.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0072331,
+          47.8161445
+        ]
+      },
+      "properties": {
+        "id": "e-park-baenke-f0d5a2",
+        "name": "E-Park Bänke",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0810502,
+          47.780185
+        ]
+      },
+      "properties": {
+        "id": "double-set-e15fb6",
+        "name": "Double Set",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/double-set-e15fb6-1c6764bc.webp",
+          "spots/salzburg/double-set-e15fb6-e7a09019.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0399561,
+          47.8069851
+        ]
+      },
+      "properties": {
+        "id": "paracelsusbad-curb-70c948",
+        "name": "Paracelsusbad Curb",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/paracelsusbad-curb-70c948-83c6b52a.webp",
+          "spots/salzburg/paracelsusbad-curb-70c948-1d156a28.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0389918,
+          47.8142938
+        ]
+      },
+      "properties": {
+        "id": "gap-auf-strasse-1e9af2",
+        "name": "Gap auf Straße",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/gap-auf-strasse-1e9af2-e3db1e69.webp",
+          "spots/salzburg/gap-auf-strasse-1e9af2-6500e848.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0546197,
+          47.792865
+        ]
+      },
+      "properties": {
+        "id": "4er-ledge-3972ce",
+        "name": "4er Ledge",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/4er-ledge-3972ce-70d4d3fd.webp",
+          "spots/salzburg/4er-ledge-3972ce-8cf36a9f.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0142444,
+          47.846906
+        ]
+      },
+      "properties": {
+        "id": "schlachthof-f9f225",
+        "name": "Schlachthof",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/schlachthof-f9f225-ffffeebb.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0445454,
+          47.8031098
+        ]
+      },
+      "properties": {
+        "id": "2er-stufen-manny-pad-7175bc",
+        "name": "2er Stufen/ Manny Pad",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/2er-stufen-manny-pad-7175bc-081087db.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0428126,
+          47.7995894
+        ]
+      },
+      "properties": {
+        "id": "unnuetzes-ding-5a73ee",
+        "name": "Unnützes Ding",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/unnuetzes-ding-5a73ee-191fbe76.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0412664,
+          47.799684
+        ]
+      },
+      "properties": {
+        "id": "bosna-gap-7ef1ed",
+        "name": "Bosna Gap",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/bosna-gap-7ef1ed-90d2e5fc.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0649328,
+          47.8090151
+        ]
+      },
+      "properties": {
+        "id": "6er-stair-over-rail-27c5ac",
+        "name": "6er Stair over Rail",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/6er-stair-over-rail-27c5ac-ed8cb858.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0615211,
+          47.8232873
+        ]
+      },
+      "properties": {
+        "id": "kicker-laderampe-af641f",
+        "name": "Kicker Laderampe",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/kicker-laderampe-af641f-32cff12e.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0659279,
+          47.8033999
+        ]
+      },
+      "properties": {
+        "id": "laderampe-over-rail-5e5181",
+        "name": "Laderampe over Rail",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/laderampe-over-rail-5e5181-56cc1cd4.webp",
+          "spots/salzburg/laderampe-over-rail-5e5181-d5326b5a.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0859023,
+          47.7732706
+        ]
+      },
+      "properties": {
+        "id": "ursulinen-84c97a",
+        "name": "Ursulinen",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/ursulinen-84c97a-c3e6b4ef.webp",
+          "spots/salzburg/ursulinen-84c97a-15dc8ddd.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.042177,
+          47.7985985
+        ]
+      },
+      "properties": {
+        "id": "festspielhauscurb-c99837",
+        "name": "Festspielhauscurb",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/festspielhauscurb-c99837-eb1d3737.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0684572,
+          47.7752606
+        ]
+      },
+      "properties": {
+        "id": "eybl-stairs-0be9d5",
+        "name": "Eybl Stairs",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/eybl-stairs-0be9d5-e91d96bf.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0584151,
+          47.8070372
+        ]
+      },
+      "properties": {
+        "id": "7er-stairs-425ea4",
+        "name": "7er Stairs",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/7er-stairs-425ea4-9165f73b.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0576694,
+          47.8089358
+        ]
+      },
+      "properties": {
+        "id": "rail-f257e5",
+        "name": "Rail",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/rail-f257e5-7ac8a4a7.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0539814,
+          47.8062121
+        ]
+      },
+      "properties": {
+        "id": "4er-stairs-6cc44e",
+        "name": "4er Stairs",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/4er-stairs-6cc44e-2d17942e.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0454452,
+          47.8079442
+        ]
+      },
+      "properties": {
+        "id": "rainbow-curb-c713fc",
+        "name": "Rainbow Curb",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/rainbow-curb-c713fc-11dfdb60.webp",
+          "spots/salzburg/rainbow-curb-c713fc-0f1e0ede.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0381966,
+          47.8108777
+        ]
+      },
+      "properties": {
+        "id": "lehener-bruecke-double-set-062f77",
+        "name": "Lehener Brücke Double Set",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/lehener-bruecke-double-set-062f77-e41dd131.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0313301,
+          47.8092637
+        ]
+      },
+      "properties": {
+        "id": "strubergasse-c58789",
+        "name": "Strubergasse",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/strubergasse-c58789-8f3117fd.webp",
+          "spots/salzburg/strubergasse-c58789-5e6846e2.webp",
+          "spots/salzburg/strubergasse-c58789-01ac7fa7.webp",
+          "spots/salzburg/strubergasse-c58789-7680b0c8.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.9960322,
+          47.7928974
+        ]
+      },
+      "properties": {
+        "id": "6-stair-5bd5cd",
+        "name": "6 Stair",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/6-stair-5bd5cd-05a19989.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0194908,
+          47.8457395
+        ]
+      },
+      "properties": {
+        "id": "bergheim-wallride-e400fd",
+        "name": "Bergheim Wallride",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0594651,
+          47.7889546
+        ]
+      },
+      "properties": {
+        "id": "3er-bloecke-96c6b7",
+        "name": "3er Blöcke",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0392534,
+          47.8228749
+        ]
+      },
+      "properties": {
+        "id": "hofer-curbs-a18dc6",
+        "name": "Hofer Curbs",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/hofer-curbs-a18dc6-2e84b510.webp",
+          "spots/salzburg/hofer-curbs-a18dc6-6ba4d2f2.webp",
+          "spots/salzburg/hofer-curbs-a18dc6-7b615821.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.039704,
+          47.8219006
+        ]
+      },
+      "properties": {
+        "id": "parallel-a3f4c2",
+        "name": "Parallel",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/parallel-a3f4c2-547c9a15.webp",
+          "spots/salzburg/parallel-a3f4c2-b42efab0.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0447787,
+          47.8216052
+        ]
+      },
+      "properties": {
+        "id": "htl-00fbe4",
+        "name": "HTL",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/htl-00fbe4-0e1e024c.webp",
+          "spots/salzburg/htl-00fbe4-99276a61.webp",
+          "spots/salzburg/htl-00fbe4-0bcc7b03.webp",
+          "spots/salzburg/htl-00fbe4-f18461dd.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0085555,
+          47.7974381
+        ]
+      },
+      "properties": {
+        "id": "flatbar-c0fd4d",
+        "name": "Flatbar",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/flatbar-c0fd4d-58f32161.webp",
+          "spots/salzburg/flatbar-c0fd4d-f9b5a918.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.993409,
+          47.7921514
+        ]
+      },
+      "properties": {
+        "id": "langes-rail-7e0748",
+        "name": "Langes Rail",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0139722,
+          47.8066697
+        ]
+      },
+      "properties": {
+        "id": "drop-0c7e58",
+        "name": "Drop",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0733442,
+          47.7986273
+        ]
+      },
+      "properties": {
+        "id": "wallride-ca94b6",
+        "name": "Wallride",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0139977,
+          47.8073146
+        ]
+      },
+      "properties": {
+        "id": "gap-3de895",
+        "name": "Gap",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0598044,
+          47.8105264
+        ]
+      },
+      "properties": {
+        "id": "gap-007df7",
+        "name": "Gap",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/gap-007df7-9b5ed84a.webp",
+          "spots/salzburg/gap-007df7-703dda51.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.9970729,
+          47.8156095
+        ]
+      },
+      "properties": {
+        "id": "stairsets-952708",
+        "name": "Stairsets",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0680737,
+          47.780796
+        ]
+      },
+      "properties": {
+        "id": "yello-gap-01fc16",
+        "name": "Yello Gap",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/yello-gap-01fc16-26f8cff3.webp",
+          "spots/salzburg/yello-gap-01fc16-965eda85.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.045857,
+          47.7801453
+        ]
+      },
+      "properties": {
+        "id": "gap-auf-strasse-5d2a12",
+        "name": "Gap auf Straße",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0661452,
+          47.8063265
+        ]
+      },
+      "properties": {
+        "id": "moebelix-ledge-322fa9",
+        "name": "Möbelix Ledge",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/moebelix-ledge-322fa9-42edbd1c.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0665448,
+          47.8079181
+        ]
+      },
+      "properties": {
+        "id": "bowling-gap-c9068c",
+        "name": "Bowling Gap",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/bowling-gap-c9068c-d54028ba.webp",
+          "spots/salzburg/bowling-gap-c9068c-ff07c816.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0982231,
+          47.6826713
+        ]
+      },
+      "properties": {
+        "id": "3er-ledge-df4a69",
+        "name": "3er Ledge",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/3er-ledge-df4a69-15e31d10.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0371103,
+          47.7984552
+        ]
+      },
+      "properties": {
+        "id": "gap-over-ledge-42adb2",
+        "name": "Gap over Ledge",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/gap-over-ledge-42adb2-00880b20.webp",
+          "spots/salzburg/gap-over-ledge-42adb2-de3377cd.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.1064762,
+          47.6842017
+        ]
+      },
+      "properties": {
+        "id": "interspar-6er-6f2dba",
+        "name": "Interspar 6er",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/interspar-6er-6f2dba-0e73eddc.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0543649,
+          47.7968039
+        ]
+      },
+      "properties": {
+        "id": "kuenstlerhauscurb-33bf16",
+        "name": "Künstlerhauscurb",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0525652,
+          47.7980291
+        ]
+      },
+      "properties": {
+        "id": "salzach-curbs-908dfe",
+        "name": "Salzach Curbs",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/salzach-curbs-908dfe-397e5b0c.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.9911184,
+          47.8110173
+        ]
+      },
+      "properties": {
+        "id": "gap-49b326",
+        "name": "Gap",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/gap-49b326-a21671c6.webp",
+          "spots/salzburg/gap-49b326-fd3e8d2d.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.9880232,
+          47.7940777
+        ]
+      },
+      "properties": {
+        "id": "cineplexx-7er-ef3927",
+        "name": "Cineplexx 7er",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/cineplexx-7er-ef3927-186bb4c5.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.040795,
+          47.8015776
+        ]
+      },
+      "properties": {
+        "id": "holzbaenke-2fc933",
+        "name": "Holzbänke",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/holzbaenke-2fc933-0f1197a5.webp",
+          "spots/salzburg/holzbaenke-2fc933-83dc6f40.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0073619,
+          47.8836503
+        ]
+      },
+      "properties": {
+        "id": "a-town-bank-d2f867",
+        "name": "A-Town Bank",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/a-town-bank-d2f867-38d2c130.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.1014068,
+          47.6741014
+        ]
+      },
+      "properties": {
+        "id": "handrail-6bf9d2",
+        "name": "Handrail",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/handrail-6bf9d2-fddcb16d.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0196377,
+          47.8045894
+        ]
+      },
+      "properties": {
+        "id": "metal-ledge-05dcd0",
+        "name": "Metal Ledge",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/metal-ledge-05dcd0-89dd92d6.webp",
+          "spots/salzburg/metal-ledge-05dcd0-add6f63b.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0436763,
+          47.8118882
+        ]
+      },
+      "properties": {
+        "id": "stufencurb-899fde",
+        "name": "Stufencurb",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/stufencurb-899fde-48f5d6f5.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0668546,
+          47.7779617
+        ]
+      },
+      "properties": {
+        "id": "merkur-stairs-070da3",
+        "name": "Merkur Stairs",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/merkur-stairs-070da3-b3e5be64.webp",
+          "spots/salzburg/merkur-stairs-070da3-b9c9df02.webp",
+          "spots/salzburg/merkur-stairs-070da3-2ddc4f63.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0539948,
+          47.7950886
+        ]
+      },
+      "properties": {
+        "id": "uni-28f78f",
+        "name": "Uni",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/uni-28f78f-b801bee0.webp",
+          "spots/salzburg/uni-28f78f-e7045ba6.webp",
+          "spots/salzburg/uni-28f78f-b0503c0e.webp",
+          "spots/salzburg/uni-28f78f-5ef5454b.webp",
+          "spots/salzburg/uni-28f78f-427a3ff7.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0169843,
+          47.7519962
+        ]
+      },
+      "properties": {
+        "id": "lehrbauhof-kicker-45dfed",
+        "name": "Lehrbauhof Kicker",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0642354,
+          47.7963607
+        ]
+      },
+      "properties": {
+        "id": "finanzamt-8er-689325",
+        "name": "Finanzamt 8er",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/finanzamt-8er-689325-41741806.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0673254,
+          47.797748
+        ]
+      },
+      "properties": {
+        "id": "picollo-rail-be873b",
+        "name": "Picollo Rail",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/picollo-rail-be873b-82365c3d.webp",
+          "spots/salzburg/picollo-rail-be873b-d0b5f97a.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0660111,
+          47.8233954
+        ]
+      },
+      "properties": {
+        "id": "curb-487113",
+        "name": "Curb",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/curb-487113-2c49cc44.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0310096,
+          47.7965745
+        ]
+      },
+      "properties": {
+        "id": "riedenburg-siedlung-61fbc3",
+        "name": "Riedenburg Siedlung",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/riedenburg-siedlung-61fbc3-8f9ae938.webp",
+          "spots/salzburg/riedenburg-siedlung-61fbc3-31303e6a.webp",
+          "spots/salzburg/riedenburg-siedlung-61fbc3-fd7c2cd5.webp",
+          "spots/salzburg/riedenburg-siedlung-61fbc3-10c062bb.webp",
+          "spots/salzburg/riedenburg-siedlung-61fbc3-daca97ea.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0714273,
+          47.8135767
+        ]
+      },
+      "properties": {
+        "id": "gnigl-7-stair-230957",
+        "name": "Gnigl 7 Stair",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/gnigl-7-stair-230957-9a06fa65.webp",
+          "spots/salzburg/gnigl-7-stair-230957-adbc45c5.webp",
+          "spots/salzburg/gnigl-7-stair-230957-f3acc8ee.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0279549,
+          47.8140956
+        ]
+      },
+      "properties": {
+        "id": "stadtbibliothek-rail-7b57fa",
+        "name": "Stadtbibliothek Rail",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/stadtbibliothek-rail-7b57fa-27549628.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0876336,
+          47.7720795
+        ]
+      },
+      "properties": {
+        "id": "9-stair-7fbc9f",
+        "name": "9 Stair",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/9-stair-7fbc9f-d7a9e290.webp",
+          "spots/salzburg/9-stair-7fbc9f-1fdfe569.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0443182,
+          47.8121156
+        ]
+      },
+      "properties": {
+        "id": "hbf-block-1d59a6",
+        "name": "Hbf Block",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0618384,
+          47.824518
+        ]
+      },
+      "properties": {
+        "id": "loading-dock-ea0656",
+        "name": "Loading Dock",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/loading-dock-ea0656-6fb29e25.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.9975483,
+          47.83362
+        ]
+      },
+      "properties": {
+        "id": "hofer-8er-71056f",
+        "name": "Hofer 8er",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/hofer-8er-71056f-26c8f99f.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0672371,
+          47.784565
+        ]
+      },
+      "properties": {
+        "id": "wuestenrot-dropledge-4b19c0",
+        "name": "Wüstenrot Dropledge",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/wuestenrot-dropledge-4b19c0-f4704ecc.webp",
+          "spots/salzburg/wuestenrot-dropledge-4b19c0-669e5903.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0744287,
+          47.8025687
+        ]
+      },
+      "properties": {
+        "id": "gap-over-rail-e03d71",
+        "name": "Gap over Rail",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/gap-over-rail-e03d71-dba34cd0.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0648366,
+          47.7848424
+        ]
+      },
+      "properties": {
+        "id": "herrnau-10-stair-7a0eac",
+        "name": "Herrnau 10 Stair",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/herrnau-10-stair-7a0eac-2147f96b.webp",
+          "spots/salzburg/herrnau-10-stair-7a0eac-8d2cdcb5.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0553601,
+          47.7918441
+        ]
+      },
+      "properties": {
+        "id": "flatgap-5ba5a0",
+        "name": "Flatgap",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/flatgap-5ba5a0-5c8d6846.webp",
+          "spots/salzburg/flatgap-5ba5a0-d14b252c.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.05339,
+          47.822281
+        ]
+      },
+      "properties": {
+        "id": "crusty-bank-9945db",
+        "name": "Crusty Bank",
+        "status": "active",
+        "photos": [
+          "spots/salzburg/crusty-bank-9945db-d7a97eb4.webp"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "city": "belgrade",
+  "mid": "1YvzcNEJYFSuU9VYLUM3Nt3DW5Ro5PC8",
+  "placemarks": 6,
+  "spotsWritten": 6,
+  "photosLinked": 18,
+  "photosWritten": 18,
+  "photosDead": [],
+  "photosDuplicate": [],
+  "spotsWithoutPhotos": [],
+  "statusCounts": {
+    "active": 6,
+    "demolished": 0,
+    "unclassified": 0
+  },
+  "warnings": []
+}

@@ -1,0 +1,306 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.0089121,
+          48.1523068
+        ]
+      },
+      "properties": {
+        "id": "wels-12-stair-bank-gap-82db98",
+        "name": "Wels: 12 Stair Bank Gap",
+        "status": "active",
+        "photos": [
+          "spots/linz/wels-12-stair-bank-gap-82db98-bfac490b.webp",
+          "spots/linz/wels-12-stair-bank-gap-82db98-7fc7c31b.webp",
+          "spots/linz/wels-12-stair-bank-gap-82db98-855a5931.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.2997307,
+          48.3121407
+        ]
+      },
+      "properties": {
+        "id": "tabakfabrik-stairs-7e5950",
+        "name": "Tabakfabrik Stairs",
+        "status": "active",
+        "photos": [
+          "spots/linz/tabakfabrik-stairs-7e5950-2d5ca4d7.webp",
+          "spots/linz/tabakfabrik-stairs-7e5950-4f86dfad.webp",
+          "spots/linz/tabakfabrik-stairs-7e5950-a2d7962c.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.2925745,
+          48.2947594
+        ]
+      },
+      "properties": {
+        "id": "musiktheater-curbs-64d106",
+        "name": "Musiktheater Curbs",
+        "status": "active",
+        "photos": [
+          "spots/linz/musiktheater-curbs-64d106-45453049.webp",
+          "spots/linz/musiktheater-curbs-64d106-edfdf7ef.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.2930171,
+          48.3222515
+        ]
+      },
+      "properties": {
+        "id": "urfahr-wiesengap-c3a6c8",
+        "name": "Urfahr Wiesengap",
+        "status": "active",
+        "photos": [
+          "spots/linz/urfahr-wiesengap-c3a6c8-3be8df63.webp",
+          "spots/linz/urfahr-wiesengap-c3a6c8-c80d8f72.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.8505062,
+          48.2600003
+        ]
+      },
+      "properties": {
+        "id": "irgendwo-pollham-kirche-59374b",
+        "name": "Irgendwo: Pollham Kirche",
+        "status": "active",
+        "photos": [
+          "spots/linz/irgendwo-pollham-kirche-59374b-697c083a.webp",
+          "spots/linz/irgendwo-pollham-kirche-59374b-3b0bd4c2.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.0096256,
+          48.1517628
+        ]
+      },
+      "properties": {
+        "id": "wels-low-to-high-ledges-2bbc33",
+        "name": "Wels: Low to High Ledges",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.2963015,
+          48.2821791
+        ]
+      },
+      "properties": {
+        "id": "kepler-klinik-8-stair-a55d23",
+        "name": "Kepler Klinik 8 Stair",
+        "status": "active",
+        "photos": [
+          "spots/linz/kepler-klinik-8-stair-a55d23-9282fca3.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.2992157,
+          48.2964992
+        ]
+      },
+      "properties": {
+        "id": "antispot-blumauergarage-01cdbd",
+        "name": "Antispot Blumauergarage",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.8363898,
+          48.235243
+        ]
+      },
+      "properties": {
+        "id": "irgendwo-htl-griesskirchen-1ae144",
+        "name": "Irgendwo: HTL Grießkirchen",
+        "status": "active",
+        "photos": [
+          "spots/linz/irgendwo-htl-griesskirchen-1ae144-7f623a73.webp",
+          "spots/linz/irgendwo-htl-griesskirchen-1ae144-d3e87340.webp",
+          "spots/linz/irgendwo-htl-griesskirchen-1ae144-8fb3f79d.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.8438188,
+          48.2266596
+        ]
+      },
+      "properties": {
+        "id": "griesskirchen-moebelhaendler-manny-pad-107548",
+        "name": "Grießkirchen: Möbelhändler Manny Pad",
+        "status": "active",
+        "photos": [
+          "spots/linz/griesskirchen-moebelhaendler-manny-pad-107548-9218a5c4.webp",
+          "spots/linz/griesskirchen-moebelhaendler-manny-pad-107548-45f416e2.webp",
+          "spots/linz/griesskirchen-moebelhaendler-manny-pad-107548-8a97b85b.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.8093581,
+          48.2088138
+        ]
+      },
+      "properties": {
+        "id": "gallspach-volksschule-d6931c",
+        "name": "Gallspach: Volksschule",
+        "status": "active",
+        "photos": [
+          "spots/linz/gallspach-volksschule-d6931c-5d50f816.webp",
+          "spots/linz/gallspach-volksschule-d6931c-be411c7e.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.808816,
+          48.2074092
+        ]
+      },
+      "properties": {
+        "id": "gallspach-courthouse-6d46b4",
+        "name": "Gallspach: Courthouse",
+        "status": "active",
+        "photos": [
+          "spots/linz/gallspach-courthouse-6d46b4-4600ee0f.webp",
+          "spots/linz/gallspach-courthouse-6d46b4-44ebe2ac.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.02429,
+          48.160764
+        ]
+      },
+      "properties": {
+        "id": "wels-loadingdock-63eb2f",
+        "name": "Wels: Loadingdock",
+        "status": "active",
+        "photos": [
+          "spots/linz/wels-loadingdock-63eb2f-6c592408.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.0080013,
+          48.155529
+        ]
+      },
+      "properties": {
+        "id": "wels-hauptschule-43603a",
+        "name": "Wels: Hauptschule",
+        "status": "active",
+        "photos": [
+          "spots/linz/wels-hauptschule-43603a-50215677.webp",
+          "spots/linz/wels-hauptschule-43603a-bd6ea70d.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.0119784,
+          48.1732611
+        ]
+      },
+      "properties": {
+        "id": "wels-holzcurbs-81f80d",
+        "name": "Wels: Holzcurbs",
+        "status": "active",
+        "photos": [
+          "spots/linz/wels-holzcurbs-81f80d-2a6ac619.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.0207766,
+          48.1696179
+        ]
+      },
+      "properties": {
+        "id": "wels-brg-wallererstrasse-f4886e",
+        "name": "Wels: BRG Wallererstraße",
+        "status": "active",
+        "photos": [
+          "spots/linz/wels-brg-wallererstrasse-f4886e-89273a59.webp",
+          "spots/linz/wels-brg-wallererstrasse-f4886e-0619e810.webp",
+          "spots/linz/wels-brg-wallererstrasse-f4886e-35b87c1c.webp",
+          "spots/linz/wels-brg-wallererstrasse-f4886e-b06f1da5.webp"
+        ]
+      }
+    }
+  ]
+}

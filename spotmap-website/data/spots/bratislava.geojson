@@ -1,0 +1,231 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          17.0802696,
+          48.143127
+        ]
+      },
+      "properties": {
+        "id": "diy-curbs-665c3e",
+        "name": "DIY Curbs",
+        "status": "active",
+        "photos": [
+          "spots/bratislava/diy-curbs-665c3e-e806494a.webp",
+          "spots/bratislava/diy-curbs-665c3e-eaa9f49b.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          17.0798145,
+          48.1440858
+        ]
+      },
+      "properties": {
+        "id": "heavy-handrail-873315",
+        "name": "Heavy Handrail",
+        "status": "active",
+        "photos": [
+          "spots/bratislava/heavy-handrail-873315-8aa1428f.webp",
+          "spots/bratislava/heavy-handrail-873315-9800646f.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          17.1034763,
+          48.1393312
+        ]
+      },
+      "properties": {
+        "id": "boat-gap-bd695b",
+        "name": "Boat Gap",
+        "status": "active",
+        "photos": [
+          "spots/bratislava/boat-gap-bd695b-7ff105f3.webp",
+          "spots/bratislava/boat-gap-bd695b-ce3e904b.webp",
+          "spots/bratislava/boat-gap-bd695b-c6b02555.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          17.1053489,
+          48.1401858
+        ]
+      },
+      "properties": {
+        "id": "4-stair-manny-pad-a828f6",
+        "name": "4 Stair Manny Pad",
+        "status": "active",
+        "photos": [
+          "spots/bratislava/4-stair-manny-pad-a828f6-9e62f521.webp",
+          "spots/bratislava/4-stair-manny-pad-a828f6-da884405.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          17.1045849,
+          48.1417376
+        ]
+      },
+      "properties": {
+        "id": "curb-to-downhill-3c3dcd",
+        "name": "Curb to Downhill",
+        "status": "active",
+        "photos": [
+          "spots/bratislava/curb-to-downhill-3c3dcd-3fab7958.webp",
+          "spots/bratislava/curb-to-downhill-3c3dcd-61cb0f2b.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          17.1066062,
+          48.1405712
+        ]
+      },
+      "properties": {
+        "id": "low-to-high-ledge-8c72d9",
+        "name": "Low to High Ledge",
+        "status": "active",
+        "photos": [
+          "spots/bratislava/low-to-high-ledge-8c72d9-b9c18879.webp",
+          "spots/bratislava/low-to-high-ledge-8c72d9-385e6846.webp",
+          "spots/bratislava/low-to-high-ledge-8c72d9-daeadcbb.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          17.1064077,
+          48.1404674
+        ]
+      },
+      "properties": {
+        "id": "handrail-51da27",
+        "name": "Handrail",
+        "status": "active",
+        "photos": [
+          "spots/bratislava/handrail-51da27-b9227860.webp",
+          "spots/bratislava/handrail-51da27-860f134b.webp",
+          "spots/bratislava/handrail-51da27-600ee14f.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          17.1094923,
+          48.1401791
+        ]
+      },
+      "properties": {
+        "id": "kicker-over-stairs-1a6dba",
+        "name": "Kicker over Stairs",
+        "status": "active",
+        "photos": [
+          "spots/bratislava/kicker-over-stairs-1a6dba-23536d3e.webp",
+          "spots/bratislava/kicker-over-stairs-1a6dba-e33298c7.webp",
+          "spots/bratislava/kicker-over-stairs-1a6dba-9ab86612.webp",
+          "spots/bratislava/kicker-over-stairs-1a6dba-9c8a05bf.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          17.0970927,
+          48.1214958
+        ]
+      },
+      "properties": {
+        "id": "vienna-gate-gap-5ed7ef",
+        "name": "Vienna Gate Gap",
+        "status": "active",
+        "photos": [
+          "spots/bratislava/vienna-gate-gap-5ed7ef-4ef190f8.webp",
+          "spots/bratislava/vienna-gate-gap-5ed7ef-20d7361a.webp",
+          "spots/bratislava/vienna-gate-gap-5ed7ef-d4d528af.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          17.0760481,
+          48.1460941
+        ]
+      },
+      "properties": {
+        "id": "a-lot-of-banks-f6369d",
+        "name": "A lot of banks",
+        "status": "active",
+        "photos": [
+          "spots/bratislava/a-lot-of-banks-f6369d-e7db5b39.webp",
+          "spots/bratislava/a-lot-of-banks-f6369d-865ffbef.webp",
+          "spots/bratislava/a-lot-of-banks-f6369d-3d6821da.webp",
+          "spots/bratislava/a-lot-of-banks-f6369d-e24eb2ed.webp",
+          "spots/bratislava/a-lot-of-banks-f6369d-770a2065.webp",
+          "spots/bratislava/a-lot-of-banks-f6369d-a20ec93b.webp",
+          "spots/bratislava/a-lot-of-banks-f6369d-ee868790.webp",
+          "spots/bratislava/a-lot-of-banks-f6369d-187484ce.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          17.123366,
+          48.140901
+        ]
+      },
+      "properties": {
+        "id": "opera-710d2e",
+        "name": "Opera",
+        "status": "active",
+        "photos": [
+          "spots/bratislava/opera-710d2e-508d3e74.webp",
+          "spots/bratislava/opera-710d2e-6aa3d111.webp",
+          "spots/bratislava/opera-710d2e-90b38997.webp",
+          "spots/bratislava/opera-710d2e-e96dea73.webp",
+          "spots/bratislava/opera-710d2e-80bececf.webp",
+          "spots/bratislava/opera-710d2e-d89f576e.webp",
+          "spots/bratislava/opera-710d2e-ad44283c.webp"
+        ]
+      }
+    }
+  ]
+}

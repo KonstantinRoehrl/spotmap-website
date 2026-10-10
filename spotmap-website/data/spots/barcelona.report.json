@@ -1,0 +1,17 @@
+{
+  "city": "barcelona",
+  "mid": "16PXTegYiPPz7-ZusqQ6kyuucHZ3yNhQ",
+  "placemarks": 34,
+  "spotsWritten": 34,
+  "photosLinked": 56,
+  "photosWritten": 56,
+  "photosDead": [],
+  "photosDuplicate": [],
+  "spotsWithoutPhotos": [],
+  "statusCounts": {
+    "active": 34,
+    "demolished": 0,
+    "unclassified": 0
+  },
+  "warnings": []
+}

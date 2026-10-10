@@ -1,0 +1,25 @@
+{
+  "city": "vienna",
+  "mid": "13c9hk1PqIRE5jgjTAr1pf4sP_9GNiIg",
+  "placemarks": 551,
+  "spotsWritten": 551,
+  "photosLinked": 1296,
+  "photosWritten": 1295,
+  "photosDead": [],
+  "photosDuplicate": [
+    {
+      "spotId": "stair-paradise-2-e0ac8a",
+      "index": 4,
+      "sameAs": 3
+    }
+  ],
+  "spotsWithoutPhotos": [
+    "st-marx-curbs-r-i-p-b09e6b"
+  ],
+  "statusCounts": {
+    "active": 522,
+    "demolished": 20,
+    "unclassified": 9
+  },
+  "warnings": []
+}

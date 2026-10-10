@@ -1,0 +1,73 @@
+{
+  "city": "prague",
+  "mid": "1M3yJ3bz-KOrPTxIPHVUO6ZgMdtgFLqI",
+  "placemarks": 4,
+  "spotsWritten": 4,
+  "photosLinked": 10,
+  "photosWritten": 0,
+  "photosDead": [
+    {
+      "spotId": "stalin-plaza-2a8189",
+      "index": 1,
+      "reason": "http 404"
+    },
+    {
+      "spotId": "stalin-plaza-2a8189",
+      "index": 2,
+      "reason": "http 404"
+    },
+    {
+      "spotId": "stalin-plaza-2a8189",
+      "index": 3,
+      "reason": "http 404"
+    },
+    {
+      "spotId": "stalin-plaza-2a8189",
+      "index": 4,
+      "reason": "http 404"
+    },
+    {
+      "spotId": "stalin-plaza-2a8189",
+      "index": 5,
+      "reason": "http 404"
+    },
+    {
+      "spotId": "stalin-plaza-2a8189",
+      "index": 6,
+      "reason": "http 404"
+    },
+    {
+      "spotId": "perfect-8-stair-8688f3",
+      "index": 1,
+      "reason": "http 404"
+    },
+    {
+      "spotId": "perfect-8-stair-57b917",
+      "index": 1,
+      "reason": "http 404"
+    },
+    {
+      "spotId": "perfect-8-stair-57b917",
+      "index": 2,
+      "reason": "http 404"
+    },
+    {
+      "spotId": "curbs-836bfd",
+      "index": 1,
+      "reason": "http 404"
+    }
+  ],
+  "photosDuplicate": [],
+  "spotsWithoutPhotos": [
+    "stalin-plaza-2a8189",
+    "perfect-8-stair-8688f3",
+    "perfect-8-stair-57b917",
+    "curbs-836bfd"
+  ],
+  "statusCounts": {
+    "active": 4,
+    "demolished": 0,
+    "unclassified": 0
+  },
+  "warnings": []
+}
