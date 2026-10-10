@@ -200,6 +200,7 @@ test('a first run writes the GeoJSON, the report and the photo, and caches the K
         name: 'Murinsel',
         status: 'active',
         photos: [`spots/graz/${PHOTO_A.file}`],
+        sources: [{ map: 'graz' }],
       },
     ],
   );
@@ -254,8 +255,8 @@ test('on a first run a dead rendition and a dead original are reported, never an
   const { report } = await ws.run(web.fetch);
 
   assert.deepEqual(report.photosDead, [
-    { spotId: SPOT_ID, index: 1, reason: 'http 404' },
-    { spotId: SPOT_ID, index: 2, reason: 'content-type text/html' },
+    { spotId: SPOT_ID, map: 'graz', n: 1, reason: 'http 404' },
+    { spotId: SPOT_ID, map: 'graz', n: 2, reason: 'content-type text/html' },
   ]);
   assert.equal(report.photosWritten, 0);
   const collection = JSON.parse(await readFile(ws.geojsonPath, 'utf8'));
@@ -349,7 +350,7 @@ test('a photo written last run that now comes back dead fails the city and keeps
   });
 
   await assert.rejects(ws.run(web.fetch), {
-    message: `1 photo that was downloaded last run now comes back dead (${SPOT_ID} #1: http 403); kept the previous files — re-run later, or remove the link in My Maps if the photo is really gone`,
+    message: `1 photo that was downloaded last run now comes back dead (${SPOT_ID} graz#1: http 403); kept the previous files — re-run later, or remove the link in My Maps if the photo is really gone`,
   });
 
   assert.deepEqual(await snapshot(ws), before);
@@ -365,7 +366,7 @@ test('the guard error lists a handful of the newly dead photos and counts the re
   const web = fakeWeb({ [KML_URL]: kmlResponse(kmlWith(photos)) });
 
   await assert.rejects(ws.run(web.fetch), {
-    message: `7 photos that were downloaded last run now come back dead (${[1, 2, 3, 4, 5].map((index) => `${SPOT_ID} #${index}: http 404`).join(', ')}, and 2 more); kept the previous files — re-run later, or remove the links in My Maps if the photos are really gone`,
+    message: `7 photos that were downloaded last run now come back dead (${[1, 2, 3, 4, 5].map((n) => `${SPOT_ID} graz#${n}: http 404`).join(', ')}, and 2 more); kept the previous files — re-run later, or remove the links in My Maps if the photos are really gone`,
   });
 });
 

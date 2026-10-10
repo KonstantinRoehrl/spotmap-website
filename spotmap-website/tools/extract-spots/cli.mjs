@@ -21,6 +21,7 @@ import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 import { writeFileAtomic } from './atomic.mjs';
 import {
+  assertNoUrls,
   buildCity,
   findNewlyDeadPhotos,
   photoKey,
@@ -133,7 +134,7 @@ async function main() {
  * no photo: the KML is cached only once it parses (a consent page never replaces the last good
  * copy); photos are encoded as they resolve, so new or `--reencode`d WebPs may already be on disk
  * when a later step fails, but the GeoJSON and report are written only once every photo has
- * resolved and the dead-photo guard has passed; unreferenced photo files are deleted only after
+ * resolved, the dead-photo guard has passed and the output carries no URL; unreferenced photo files are deleted only after
  * both the GeoJSON and the report are written.
  *
  * @param {string} city the `sources.json` key
@@ -158,7 +159,11 @@ export async function extractCity(
   } = {},
 ) {
   const kmlText = await fetchKml(mid, { fetch });
-  const { spots, warnings } = prepareSpots(parseKml(kmlText), namePrefixes);
+  const { spots, warnings } = prepareSpots(
+    parseKml(kmlText),
+    namePrefixes,
+    city,
+  );
   await mkdir(kmlCacheDir, { recursive: true });
   await writeFileAtomic(join(kmlCacheDir, `${city}.kml`), kmlText);
 
@@ -177,13 +182,14 @@ export async function extractCity(
   }
   const outcomes = new Map(
     photos.map((photo, i) => [
-      photoKey(photo.spotId, photo.index),
+      photoKey(photo.spotId, photo.map, photo.n),
       settled[i].value,
     ]),
   );
 
   const { collection, report } = buildCity({
     city,
+    map: city,
     mid,
     spots,
     warnings,
@@ -196,6 +202,7 @@ export async function extractCity(
   if (newlyDead.length > 0) {
     throw newlyDeadError(newlyDead);
   }
+  assertNoUrls(collection);
   await writeFileAtomic(
     join(spotsDir, `${city}.geojson`),
     toJsonText(collection),
@@ -265,16 +272,16 @@ async function readJson(path) {
 
 /**
  * The error a city fails with when photos written last run now come back dead, listing the first
- * few by spot and position.
+ * few by spot, map and number.
  *
- * @param {{ spotId: string, index: number, reason: string }[]} newlyDead from
+ * @param {{ spotId: string, map: string, n: number, reason: string }[]} newlyDead from
  *   {@link findNewlyDeadPhotos}, not empty
  * @returns {Error}
  */
 function newlyDeadError(newlyDead) {
   const listed = newlyDead
     .slice(0, MAX_LISTED_NEWLY_DEAD)
-    .map(({ spotId, index, reason }) => `${spotId} #${index}: ${reason}`);
+    .map(({ spotId, map, n, reason }) => `${spotId} ${map}#${n}: ${reason}`);
   const unlisted = newlyDead.length - listed.length;
   if (unlisted > 0) {
     listed.push(`and ${unlisted} more`);
