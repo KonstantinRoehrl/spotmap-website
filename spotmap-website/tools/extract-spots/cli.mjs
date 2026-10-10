@@ -7,9 +7,10 @@
  * Per city: fetch and parse the KML (cached in data/.cache/kml/ once it parses), map statuses and
  * ids, fingerprint every photo through its tiny rendition, download and encode only photos whose
  * WebP is not on disk yet, write the GeoJSON and report, and only then delete photo files the new
- * GeoJSON no longer references. A city that fails keeps its previous GeoJSON and report; the run
- * moves on and exits non-zero at the end, naming every failed city. Dead photo links are never
- * errors — they are listed in the report.
+ * GeoJSON no longer references. A city that fails keeps its previous GeoJSON, report and photos;
+ * the run moves on and exits non-zero at the end, naming every failed city. Dead photo links are
+ * not errors — they are listed in the report — except that a photo written on the previous run
+ * that now comes back dead fails its city, so a wrong 403 from Google cannot wipe good photos.
  */
 import { existsSync } from 'node:fs';
 import { mkdir, readdir, readFile, rm } from 'node:fs/promises';
@@ -17,7 +18,13 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 import { writeFileAtomic } from './atomic.mjs';
-import { buildCity, photoKey, prepareSpots, toJsonText } from './dataset.mjs';
+import {
+  buildCity,
+  findNewlyDeadPhotos,
+  photoKey,
+  prepareSpots,
+  toJsonText,
+} from './dataset.mjs';
 import { photoFileName } from './ids.mjs';
 import { parseKml } from './kml.mjs';
 import {
@@ -32,6 +39,7 @@ const SPOTS_DIR = join(APP_ROOT, 'data', 'spots');
 const SOURCES_PATH = join(SPOTS_DIR, 'sources.json');
 const KML_CACHE_DIR = join(APP_ROOT, 'data', '.cache', 'kml');
 const KML_TIMEOUT_MS = 60_000;
+const MAX_LISTED_NEWLY_DEAD = 5;
 
 /**
  * Reads the command line. No city arguments means every known city.
@@ -112,21 +120,49 @@ async function main() {
   }
 }
 
-async function extractCity(city, { mid, namePrefixes }, { reencode }) {
-  const kmlText = await fetchKml(mid);
+/**
+ * Extracts one city: fetches and parses its KML, resolves every photo, and writes the city's
+ * GeoJSON and report.
+ *
+ * Ordering rules, so a city that fails at any step leaves its previous GeoJSON, report and photos
+ * untouched: the KML is cached only once it parses (a consent page never replaces the last good
+ * copy); nothing is written until every photo has resolved and the dead-photo guard has passed;
+ * unreferenced photo files are deleted only after both the GeoJSON and the report are written.
+ *
+ * @param {string} city the `sources.json` key
+ * @param {{ mid: string, namePrefixes: string[] }} source the city's `sources.json` entry
+ * @param {{ reencode: boolean }} options `reencode` downloads and encodes every live photo again
+ * @param {object} [deps] injected for tests; the defaults are the real run's
+ * @param {typeof globalThis.fetch} [deps.fetch]
+ * @param {string} [deps.spotsDir] holds the GeoJSON, the report and the `<city>/` photo folder
+ * @param {string} [deps.kmlCacheDir] holds the last KML of each city that parsed
+ * @returns {Promise<{ report: object, downloaded: number }>} `downloaded` counts the photos
+ *   encoded in this run
+ * @throws {Error} when the city fails at any step, saying why
+ */
+export async function extractCity(
+  city,
+  { mid, namePrefixes },
+  { reencode },
+  {
+    fetch = globalThis.fetch,
+    spotsDir = SPOTS_DIR,
+    kmlCacheDir = KML_CACHE_DIR,
+  } = {},
+) {
+  const kmlText = await fetchKml(mid, { fetch });
   const { spots, warnings } = prepareSpots(parseKml(kmlText), namePrefixes);
-  // Cached only once it parses, so a consent page never replaces the last good copy.
-  await mkdir(KML_CACHE_DIR, { recursive: true });
-  await writeFileAtomic(join(KML_CACHE_DIR, `${city}.kml`), kmlText);
+  await mkdir(kmlCacheDir, { recursive: true });
+  await writeFileAtomic(join(kmlCacheDir, `${city}.kml`), kmlText);
 
-  const photoDir = join(SPOTS_DIR, city);
+  const photoDir = join(spotsDir, city);
   await mkdir(photoDir, { recursive: true });
   const photos = spots.flatMap((spot) =>
     spot.photos.map((photo) => ({ spotId: spot.id, ...photo })),
   );
   // allSettled, not all: a failing photo must not leave others still writing into the next city.
   const settled = await Promise.allSettled(
-    photos.map((photo) => resolvePhoto(photo, photoDir, reencode)),
+    photos.map((photo) => resolvePhoto(photo, { photoDir, reencode, fetch })),
   );
   const failed = settled.find((result) => result.status === 'rejected');
   if (failed) {
@@ -146,12 +182,19 @@ async function extractCity(city, { mid, namePrefixes }, { reencode }) {
     warnings,
     outcomes,
   });
+  const newlyDead = findNewlyDeadPhotos({
+    ...(await readPreviousOutputs(spotsDir, city)),
+    report,
+  });
+  if (newlyDead.length > 0) {
+    throw newlyDeadError(newlyDead);
+  }
   await writeFileAtomic(
-    join(SPOTS_DIR, `${city}.geojson`),
+    join(spotsDir, `${city}.geojson`),
     toJsonText(collection),
   );
   await writeFileAtomic(
-    join(SPOTS_DIR, `${city}.report.json`),
+    join(spotsDir, `${city}.report.json`),
     toJsonText(report),
   );
   const written = [...outcomes.values()].filter((outcome) => outcome.written);
@@ -166,7 +209,92 @@ async function extractCity(city, { mid, namePrefixes }, { reencode }) {
   };
 }
 
-async function fetchKml(mid) {
+/**
+ * Reads a city's GeoJSON and report from its previous run, for the dead-photo guard.
+ *
+ * @param {string} spotsDir
+ * @param {string} city
+ * @returns {Promise<{ previousCollection?: object, previousReport?: object }>} empty when either
+ *   file is missing (a first run has nothing to compare)
+ * @throws {Error} naming the file when one exists but cannot be read as the expected JSON, so a
+ *   damaged file fails the city instead of silently switching the guard off
+ */
+async function readPreviousOutputs(spotsDir, city) {
+  const geojsonPath = join(spotsDir, `${city}.geojson`);
+  const reportPath = join(spotsDir, `${city}.report.json`);
+  if (!existsSync(geojsonPath) || !existsSync(reportPath)) {
+    return {};
+  }
+  const previousCollection = await readJson(geojsonPath);
+  const previousReport = await readJson(reportPath);
+  if (!Array.isArray(previousCollection?.features)) {
+    throw new Error(`previous ${geojsonPath} has no features list`);
+  }
+  if (
+    !Array.isArray(previousReport?.photosDead) ||
+    !Array.isArray(previousReport?.photosDuplicate)
+  ) {
+    throw new Error(
+      `previous ${reportPath} has no photosDead or photosDuplicate list`,
+    );
+  }
+  return { previousCollection, previousReport };
+}
+
+/**
+ * Reads and parses a JSON file.
+ *
+ * @param {string} path
+ * @returns {Promise<unknown>}
+ * @throws {Error} naming the file when it cannot be read or parsed
+ */
+async function readJson(path) {
+  try {
+    return JSON.parse(await readFile(path, 'utf8'));
+  } catch (error) {
+    throw new Error(`cannot read previous ${path}: ${error.message}`);
+  }
+}
+
+/**
+ * The error a city fails with when photos written last run now come back dead, listing the first
+ * few by spot and position.
+ *
+ * @param {{ spotId: string, index: number, reason: string }[]} newlyDead from
+ *   {@link findNewlyDeadPhotos}, not empty
+ * @returns {Error}
+ */
+function newlyDeadError(newlyDead) {
+  const listed = newlyDead
+    .slice(0, MAX_LISTED_NEWLY_DEAD)
+    .map(({ spotId, index, reason }) => `${spotId} #${index}: ${reason}`);
+  const unlisted = newlyDead.length - listed.length;
+  if (unlisted > 0) {
+    listed.push(`and ${unlisted} more`);
+  }
+  const subject =
+    newlyDead.length === 1
+      ? '1 photo that was downloaded last run now comes back dead'
+      : `${newlyDead.length} photos that were downloaded last run now come back dead`;
+  const advice =
+    newlyDead.length === 1
+      ? 'remove the link in My Maps if the photo is really gone'
+      : 'remove the links in My Maps if the photos are really gone';
+  return new Error(
+    `${subject} (${listed.join(', ')}); kept the previous files — re-run later, or ${advice}`,
+  );
+}
+
+/**
+ * Downloads a map's KML export.
+ *
+ * @param {string} mid the My Maps map id
+ * @param {object} options
+ * @param {typeof globalThis.fetch} options.fetch
+ * @returns {Promise<string>} the response text, not yet validated as KML
+ * @throws {Error} on a non-2xx answer, naming the status and the URL
+ */
+async function fetchKml(mid, { fetch }) {
   const url = `https://www.google.com/maps/d/kml?mid=${encodeURIComponent(mid)}&forcekml=1`;
   const response = await fetch(url, {
     signal: AbortSignal.timeout(KML_TIMEOUT_MS),
@@ -177,8 +305,21 @@ async function fetchKml(mid) {
   return response.text();
 }
 
-async function resolvePhoto({ spotId, url }, photoDir, reencode) {
-  const rendition = await fetchPhoto(fingerprintUrl(url));
+/**
+ * Resolves one photo link to its outcome. The tiny rendition is always fetched: it is both the
+ * dead-link check and the fingerprint that names the file. The original is fetched and encoded
+ * only when that file is not on disk yet, or on `reencode`.
+ *
+ * @param {{ spotId: string, url: string }} photo
+ * @param {object} options
+ * @param {string} options.photoDir the city's photo folder
+ * @param {boolean} options.reencode encode again even when the file exists
+ * @param {typeof globalThis.fetch} options.fetch
+ * @returns {Promise<import('./dataset.mjs').PhotoOutcome>}
+ * @throws {Error} when retries run out or the original cannot be encoded
+ */
+async function resolvePhoto({ spotId, url }, { photoDir, reencode, fetch }) {
+  const rendition = await fetchPhoto(fingerprintUrl(url), { fetch });
   if (rendition.dead) {
     return { dead: true, reason: rendition.reason };
   }
@@ -187,7 +328,7 @@ async function resolvePhoto({ spotId, url }, photoDir, reencode) {
   if (!reencode && existsSync(outPath)) {
     return { written: true, file };
   }
-  const original = await fetchPhoto(url);
+  const original = await fetchPhoto(url, { fetch });
   if (original.dead) {
     return { dead: true, reason: original.reason };
   }
@@ -199,7 +340,14 @@ async function resolvePhoto({ spotId, url }, photoDir, reencode) {
   return { written: true, file, downloaded: true };
 }
 
-// Also sweeps `.tmp` leftovers of an interrupted run: nothing references them.
+/**
+ * Deletes every file in `dir` whose name is not in `referenced`. That also sweeps the `.tmp`
+ * leftovers of an interrupted run: nothing references them.
+ *
+ * @param {string} dir a city's photo folder
+ * @param {Set<string>} referenced the file names the new GeoJSON lists
+ * @returns {Promise<void>}
+ */
 async function removeUnreferencedFiles(dir, referenced) {
   for (const name of await readdir(dir)) {
     if (!referenced.has(name)) {

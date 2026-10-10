@@ -165,6 +165,55 @@ export function buildCity({ city, mid, spots, warnings, outcomes }) {
 }
 
 /**
+ * Finds the dead photos that were written on the previous run, so the CLI can refuse to wipe them
+ * when Google wrongly answers 403 or HTML for photos that are fine. A dead photo is newly dead when
+ * its spot was in the previous GeoJSON, its position is within that spot's previous link count
+ * (its written photos plus its dead and duplicate positions — a duplicate was written too), and
+ * the previous report did not list it as dead already. A link that was already dead, or a position
+ * the previous run did not have, is not newly dead.
+ *
+ * @param {object} input
+ * @param {object} [input.previousCollection] the previous run's GeoJSON; absent on a first run
+ * @param {object} [input.previousReport] the previous run's report; absent on a first run
+ * @param {object} input.report the new report from {@link buildCity}
+ * @returns {{ spotId: string, index: number, reason: string }[]} the newly dead entries of
+ *   `report.photosDead`, in KML order; none when either previous output is absent
+ */
+export function findNewlyDeadPhotos({
+  previousCollection,
+  previousReport,
+  report,
+}) {
+  if (!previousCollection || !previousReport) {
+    return [];
+  }
+  const previousLinkCounts = new Map(
+    previousCollection.features.map(({ properties }) => [
+      properties.id,
+      properties.photos.length,
+    ]),
+  );
+  for (const { spotId } of [
+    ...previousReport.photosDead,
+    ...previousReport.photosDuplicate,
+  ]) {
+    if (previousLinkCounts.has(spotId)) {
+      previousLinkCounts.set(spotId, previousLinkCounts.get(spotId) + 1);
+    }
+  }
+  const previouslyDead = new Set(
+    previousReport.photosDead.map(({ spotId, index }) =>
+      photoKey(spotId, index),
+    ),
+  );
+  return report.photosDead.filter(
+    ({ spotId, index }) =>
+      index <= (previousLinkCounts.get(spotId) ?? 0) &&
+      !previouslyDead.has(photoKey(spotId, index)),
+  );
+}
+
+/**
  * Serialises a committed output: 2-space JSON with a trailing newline, like the pilot's GeoJSON.
  *
  * @param {unknown} value

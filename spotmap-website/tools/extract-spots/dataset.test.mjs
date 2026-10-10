@@ -3,7 +3,13 @@
  */
 import { strict as assert } from 'node:assert';
 import { test } from 'node:test';
-import { buildCity, photoKey, prepareSpots, toJsonText } from './dataset.mjs';
+import {
+  buildCity,
+  findNewlyDeadPhotos,
+  photoKey,
+  prepareSpots,
+  toJsonText,
+} from './dataset.mjs';
 import { spotId } from './ids.mjs';
 
 const MYMAPS_A =
@@ -194,6 +200,95 @@ test('a photo without an outcome is a bug, not a silent drop', () => {
       }),
     /no download outcome for photo 1 of spot curbs-/,
   );
+});
+
+/** A previous run's GeoJSON and report, keeping only what the guard reads. */
+function previousRun({ photoCounts, photosDead = [], photosDuplicate = [] }) {
+  return {
+    previousCollection: {
+      type: 'FeatureCollection',
+      features: Object.entries(photoCounts).map(([id, count]) => ({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [16.1, 48.1] },
+        properties: {
+          id,
+          name: id,
+          status: 'active',
+          photos: Array.from(
+            { length: count },
+            (_, i) => `spots/vienna/${id}-${i}.webp`,
+          ),
+        },
+      })),
+    },
+    previousReport: { photosDead, photosDuplicate },
+  };
+}
+
+test('without previous outputs no dead photo is newly dead', () => {
+  const report = {
+    photosDead: [{ spotId: 'curbs-abc123', index: 1, reason: 'http 403' }],
+  };
+  assert.deepEqual(findNewlyDeadPhotos({ report }), []);
+});
+
+test('a photo that was already dead last run is not newly dead', () => {
+  const dead = { spotId: 'curbs-abc123', index: 2, reason: 'http 404' };
+  const previous = previousRun({
+    photoCounts: { 'curbs-abc123': 1 },
+    photosDead: [dead],
+  });
+  assert.deepEqual(
+    findNewlyDeadPhotos({ ...previous, report: { photosDead: [dead] } }),
+    [],
+  );
+});
+
+test('a dead position beyond the previous link count is a new link, not newly dead', () => {
+  const previous = previousRun({ photoCounts: { 'curbs-abc123': 1 } });
+  const report = {
+    photosDead: [{ spotId: 'curbs-abc123', index: 2, reason: 'http 404' }],
+  };
+  assert.deepEqual(findNewlyDeadPhotos({ ...previous, report }), []);
+});
+
+test('a dead photo of a spot the previous run did not have is not newly dead', () => {
+  const previous = previousRun({ photoCounts: { 'curbs-abc123': 1 } });
+  const report = {
+    photosDead: [{ spotId: 'gap-def456', index: 1, reason: 'http 404' }],
+  };
+  assert.deepEqual(findNewlyDeadPhotos({ ...previous, report }), []);
+});
+
+test('a photo written last run that now comes back dead is newly dead, in KML order', () => {
+  const previous = previousRun({
+    photoCounts: { 'curbs-abc123': 2, 'gap-def456': 1 },
+    photosDead: [{ spotId: 'curbs-abc123', index: 3, reason: 'http 404' }],
+  });
+  const report = {
+    photosDead: [
+      { spotId: 'curbs-abc123', index: 2, reason: 'http 403' },
+      { spotId: 'curbs-abc123', index: 3, reason: 'http 404' },
+      { spotId: 'gap-def456', index: 1, reason: 'content-type text/html' },
+    ],
+  };
+  assert.deepEqual(findNewlyDeadPhotos({ ...previous, report }), [
+    { spotId: 'curbs-abc123', index: 2, reason: 'http 403' },
+    { spotId: 'gap-def456', index: 1, reason: 'content-type text/html' },
+  ]);
+});
+
+test('a position that was a duplicate last run counts as written, so its death is newly dead', () => {
+  const previous = previousRun({
+    photoCounts: { 'curbs-abc123': 1 },
+    photosDuplicate: [{ spotId: 'curbs-abc123', index: 2, sameAs: 1 }],
+  });
+  const report = {
+    photosDead: [{ spotId: 'curbs-abc123', index: 2, reason: 'http 403' }],
+  };
+  assert.deepEqual(findNewlyDeadPhotos({ ...previous, report }), [
+    { spotId: 'curbs-abc123', index: 2, reason: 'http 403' },
+  ]);
 });
 
 test('JSON text is 2-space indented with a trailing newline', () => {
