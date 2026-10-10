@@ -1,0 +1,118 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.3817437,
+          39.4695174
+        ]
+      },
+      "properties": {
+        "id": "muvim-museum-9873c9",
+        "name": "Muvim Museum",
+        "status": "active",
+        "photos": [
+          "spots/valencia/muvim-museum-9873c9-18eb86fa.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.3852507,
+          39.4705303
+        ]
+      },
+      "properties": {
+        "id": "metal-curb-0b0596",
+        "name": "Metal Curb",
+        "status": "active",
+        "photos": [
+          "spots/valencia/metal-curb-0b0596-457d7017.webp",
+          "spots/valencia/metal-curb-0b0596-cc10904c.webp",
+          "spots/valencia/metal-curb-0b0596-fcfa5c66.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.3876633,
+          39.4718883
+        ]
+      },
+      "properties": {
+        "id": "wood-benches-99a03a",
+        "name": "Wood benches",
+        "status": "active",
+        "photos": [
+          "spots/valencia/wood-benches-99a03a-efcd6b28.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.3804017,
+          39.4789112
+        ]
+      },
+      "properties": {
+        "id": "3-block-00f21e",
+        "name": "3 Block",
+        "status": "active",
+        "photos": [
+          "spots/valencia/3-block-00f21e-65cda6c4.webp",
+          "spots/valencia/3-block-00f21e-42f60175.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.3800735,
+          39.4763485
+        ]
+      },
+      "properties": {
+        "id": "gap-over-block-rails-f6e377",
+        "name": "Gap over Block, Rails",
+        "status": "active",
+        "photos": [
+          "spots/valencia/gap-over-block-rails-f6e377-b0d31f88.webp",
+          "spots/valencia/gap-over-block-rails-f6e377-cd64ce55.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.3874272,
+          39.4753509
+        ]
+      },
+      "properties": {
+        "id": "antispot-metal-pyramids-9d3ac1",
+        "name": "Antispot Metal Pyramids",
+        "status": "active",
+        "photos": [
+          "spots/valencia/antispot-metal-pyramids-9d3ac1-e240fb7d.webp",
+          "spots/valencia/antispot-metal-pyramids-9d3ac1-08403624.webp"
+        ]
+      }
+    }
+  ]
+}

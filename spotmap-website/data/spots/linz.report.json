@@ -1,0 +1,20 @@
+{
+  "city": "linz",
+  "mid": "1J7UzUWB930mEv319KPFKDUNCuMqbgGM",
+  "placemarks": 16,
+  "spotsWritten": 16,
+  "photosLinked": 31,
+  "photosWritten": 31,
+  "photosDead": [],
+  "photosDuplicate": [],
+  "spotsWithoutPhotos": [
+    "wels-low-to-high-ledges-2bbc33",
+    "antispot-blumauergarage-01cdbd"
+  ],
+  "statusCounts": {
+    "active": 16,
+    "demolished": 0,
+    "unclassified": 0
+  },
+  "warnings": []
+}

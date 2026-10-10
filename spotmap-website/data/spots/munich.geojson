@@ -1,0 +1,116 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.5391099,
+          48.1790073
+        ]
+      },
+      "properties": {
+        "id": "diy-skatespot-5fb88a",
+        "name": "DIY Skatespot",
+        "status": "active",
+        "photos": [
+          "spots/munich/diy-skatespot-5fb88a-ef3919f2.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.5803006,
+          48.1405443
+        ]
+      },
+      "properties": {
+        "id": "spanische-curbs-6bf232",
+        "name": "Spanische Curbs",
+        "status": "active",
+        "photos": [
+          "spots/munich/spanische-curbs-6bf232-97d61430.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.5338072,
+          48.17758
+        ]
+      },
+      "properties": {
+        "id": "curb-over-gap-495d23",
+        "name": "Curb over Gap",
+        "status": "active",
+        "photos": [
+          "spots/munich/curb-over-gap-495d23-83495877.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.5915686,
+          48.1427288
+        ]
+      },
+      "properties": {
+        "id": "8er-stair-bb7577",
+        "name": "8er Stair",
+        "status": "active",
+        "photos": [
+          "spots/munich/8er-stair-bb7577-2f261ef9.webp",
+          "spots/munich/8er-stair-bb7577-ab47c31f.webp",
+          "spots/munich/8er-stair-bb7577-32a29c97.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.5368515,
+          48.1805668
+        ]
+      },
+      "properties": {
+        "id": "curb-f8d6f6",
+        "name": "Curb",
+        "status": "active",
+        "photos": [
+          "spots/munich/curb-f8d6f6-8c979266.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.5293467,
+          48.1781899
+        ]
+      },
+      "properties": {
+        "id": "rooftop-quaters-3b6b63",
+        "name": "Rooftop Quaters",
+        "status": "active",
+        "photos": [
+          "spots/munich/rooftop-quaters-3b6b63-39632c4e.webp",
+          "spots/munich/rooftop-quaters-3b6b63-98e4f664.webp"
+        ]
+      }
+    }
+  ]
+}

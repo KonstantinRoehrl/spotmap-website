@@ -1,0 +1,23 @@
+{
+  "city": "zagreb",
+  "mid": "1yVLyImhI2XOE7yg80PvGdwe-dDBfa5I",
+  "placemarks": 7,
+  "spotsWritten": 7,
+  "photosLinked": 3,
+  "photosWritten": 3,
+  "photosDead": [],
+  "photosDuplicate": [],
+  "spotsWithoutPhotos": [
+    "kreisverkehr-curbs-af9198",
+    "pavillion-8-stair-85f7d1",
+    "12-stair-b8905f",
+    "curb-c8e276",
+    "musikakademie-092068"
+  ],
+  "statusCounts": {
+    "active": 7,
+    "demolished": 0,
+    "unclassified": 0
+  },
+  "warnings": []
+}

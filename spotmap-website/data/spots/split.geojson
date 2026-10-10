@@ -1,0 +1,1685 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.435289,
+          43.507246
+        ]
+      },
+      "properties": {
+        "id": "curbs-6f08d1",
+        "name": "Curbs",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.441496,
+          43.509686
+        ]
+      },
+      "properties": {
+        "id": "dardin-8009e3",
+        "name": "Dardin",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.470802,
+          43.508114
+        ]
+      },
+      "properties": {
+        "id": "lidl-ledge-2cec1f",
+        "name": "Lidl Ledge",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.42886,
+          43.503394
+        ]
+      },
+      "properties": {
+        "id": "bloecke-964c23",
+        "name": "Blöcke",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.493284,
+          43.501694
+        ]
+      },
+      "properties": {
+        "id": "diy-quater-151a97",
+        "name": "DIY Quater",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.432643,
+          43.52108
+        ]
+      },
+      "properties": {
+        "id": "stairsets-b97c4e",
+        "name": "Stairsets",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.43929,
+          43.514058
+        ]
+      },
+      "properties": {
+        "id": "curb-9ad19e",
+        "name": "Curb",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.439904,
+          43.514398
+        ]
+      },
+      "properties": {
+        "id": "5-stair-55a788",
+        "name": "5 Stair",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.428783,
+          43.504243
+        ]
+      },
+      "properties": {
+        "id": "little-vulcano-3c7041",
+        "name": "Little Vulcano",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.437804,
+          43.510994
+        ]
+      },
+      "properties": {
+        "id": "dropledge-09a89f",
+        "name": "Dropledge",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.437624,
+          43.511139
+        ]
+      },
+      "properties": {
+        "id": "pyramide-595094",
+        "name": "Pyramide",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.439591,
+          43.513579
+        ]
+      },
+      "properties": {
+        "id": "little-stairs-and-curbs-fd1412",
+        "name": "Little Stairs and Curbs",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.440287,
+          43.512871
+        ]
+      },
+      "properties": {
+        "id": "pop-over-rail-8e00ca",
+        "name": "Pop Over Rail",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.477982,
+          43.509288
+        ]
+      },
+      "properties": {
+        "id": "gap-to-dropledge-df02ba",
+        "name": "Gap to Dropledge",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.477903,
+          43.509324
+        ]
+      },
+      "properties": {
+        "id": "long-ledge-5d84c2",
+        "name": "Long Ledge",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.478265,
+          43.509246
+        ]
+      },
+      "properties": {
+        "id": "crust-ledge-198eea",
+        "name": "Crust Ledge",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.480594,
+          43.508874
+        ]
+      },
+      "properties": {
+        "id": "manny-pad-ledges-3596c8",
+        "name": "Manny Pad, Ledges",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.480445,
+          43.508558
+        ]
+      },
+      "properties": {
+        "id": "small-dropledge-45477b",
+        "name": "Small Dropledge",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.480032,
+          43.508508
+        ]
+      },
+      "properties": {
+        "id": "stairsets-double-set-ledges-thrashcan-gap-cddef3",
+        "name": "Stairsets, Double Set, Ledges, Thrashcan Gap",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.47912,
+          43.508783
+        ]
+      },
+      "properties": {
+        "id": "punkt-46-753e20",
+        "name": "Punkt 46",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.478536,
+          43.508464
+        ]
+      },
+      "properties": {
+        "id": "13er-handrail-21273a",
+        "name": "13er Handrail",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.478383,
+          43.50867
+        ]
+      },
+      "properties": {
+        "id": "10er-handrail-bbb3d2",
+        "name": "10er Handrail",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.478339,
+          43.508284
+        ]
+      },
+      "properties": {
+        "id": "low-to-high-ledge-de1430",
+        "name": "Low To High Ledge",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.478058,
+          43.508436
+        ]
+      },
+      "properties": {
+        "id": "long-hubba-ab198c",
+        "name": "Long Hubba",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.475784,
+          43.508336
+        ]
+      },
+      "properties": {
+        "id": "long-crusty-banana-ledge-357895",
+        "name": "Long Crusty Banana Ledge",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.474906,
+          43.508179
+        ]
+      },
+      "properties": {
+        "id": "bump-to-bar-5663aa",
+        "name": "Bump to Bar",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.473012,
+          43.508122
+        ]
+      },
+      "properties": {
+        "id": "6-stairs-with-plants-37ae16",
+        "name": "6 Stairs with Plants",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.472763,
+          43.508076
+        ]
+      },
+      "properties": {
+        "id": "low-to-high-rail-5503ca",
+        "name": "Low to High Rail",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.473298,
+          43.507747
+        ]
+      },
+      "properties": {
+        "id": "pyramids-94b5c3",
+        "name": "Pyramids",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.448972,
+          43.510347
+        ]
+      },
+      "properties": {
+        "id": "double-set-51ccc1",
+        "name": "Double Set",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.429744,
+          43.504343
+        ]
+      },
+      "properties": {
+        "id": "low-to-high-manny-pad-b2ed56",
+        "name": "Low to High Manny Pad",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.430576,
+          43.505026
+        ]
+      },
+      "properties": {
+        "id": "gap-over-water-supply-9dd80c",
+        "name": "Gap over Water Supply",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.430873,
+          43.505168
+        ]
+      },
+      "properties": {
+        "id": "gap-over-thrashcan-and-bench-rails-ea945a",
+        "name": "Gap over Thrashcan and Bench Rails",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.431291,
+          43.505482
+        ]
+      },
+      "properties": {
+        "id": "flatgap-15eee5",
+        "name": "Flatgap",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.432342,
+          43.506164
+        ]
+      },
+      "properties": {
+        "id": "water-pads-e6db44",
+        "name": "Water Pads",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.433744,
+          43.507161
+        ]
+      },
+      "properties": {
+        "id": "harbour-curbs-314da1",
+        "name": "Harbour Curbs",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.435832,
+          43.508546
+        ]
+      },
+      "properties": {
+        "id": "mannypad-1cc473",
+        "name": "MannyPad",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.436401,
+          43.508097
+        ]
+      },
+      "properties": {
+        "id": "mini-manny-pads-27e16e",
+        "name": "Mini Manny Pads",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.465293,
+          43.506941
+        ]
+      },
+      "properties": {
+        "id": "4-and-8-stairs-a5aa6e",
+        "name": "4 and 8 Stairs",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.466245,
+          43.507086
+        ]
+      },
+      "properties": {
+        "id": "6-stair-0b85de",
+        "name": "6 Stair",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.471897,
+          43.507345
+        ]
+      },
+      "properties": {
+        "id": "ledge-555085",
+        "name": "Ledge",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.4721,
+          43.507612
+        ]
+      },
+      "properties": {
+        "id": "9er-handrail-dfb217",
+        "name": "9er Handrail",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.470895,
+          43.508437
+        ]
+      },
+      "properties": {
+        "id": "small-handrail-and-boardslide-hubba-04705d",
+        "name": "Small Handrail and Boardslide Hubba",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.469046,
+          43.509048
+        ]
+      },
+      "properties": {
+        "id": "11-stair-hubba-974d02",
+        "name": "11 Stair Hubba",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.46821,
+          43.510406
+        ]
+      },
+      "properties": {
+        "id": "stairs-and-dropledge-291612",
+        "name": "Stairs and Dropledge",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.467808,
+          43.510032
+        ]
+      },
+      "properties": {
+        "id": "long-ledge-728a14",
+        "name": "Long Ledge",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.467942,
+          43.510024
+        ]
+      },
+      "properties": {
+        "id": "double-set-roll-in-3ee0a7",
+        "name": "Double Set Roll In",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.467636,
+          43.508898
+        ]
+      },
+      "properties": {
+        "id": "manny-pad-a33517",
+        "name": "Manny Pad",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.467601,
+          43.509368
+        ]
+      },
+      "properties": {
+        "id": "jack-o-grady-spot-cb5f20",
+        "name": "Jack O'Grady Spot",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.465962,
+          43.508407
+        ]
+      },
+      "properties": {
+        "id": "volcanos-and-curb-2cbb95",
+        "name": "Volcanos and Curb",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.466011,
+          43.508535
+        ]
+      },
+      "properties": {
+        "id": "big-gap-4f9f33",
+        "name": "Big Gap",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.4648,
+          43.508678
+        ]
+      },
+      "properties": {
+        "id": "handrail-5dfaa3",
+        "name": "Handrail",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.460417,
+          43.506732
+        ]
+      },
+      "properties": {
+        "id": "handrail-be19f3",
+        "name": "Handrail",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.457766,
+          43.506522
+        ]
+      },
+      "properties": {
+        "id": "stairsets-165837",
+        "name": "Stairsets",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.455839,
+          43.506333
+        ]
+      },
+      "properties": {
+        "id": "downhill-curb-9a6c86",
+        "name": "Downhill Curb",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.452818,
+          43.509235
+        ]
+      },
+      "properties": {
+        "id": "10-stair-5e99f5",
+        "name": "10 Stair",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.451788,
+          43.509863
+        ]
+      },
+      "properties": {
+        "id": "diy-4e5e9d",
+        "name": "DIY",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.451304,
+          43.509752
+        ]
+      },
+      "properties": {
+        "id": "miniramp-b9f5d6",
+        "name": "Miniramp",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.448002,
+          43.51324
+        ]
+      },
+      "properties": {
+        "id": "gap-over-fence-21fda7",
+        "name": "Gap over Fence",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.445605,
+          43.512602
+        ]
+      },
+      "properties": {
+        "id": "gap-over-rail-114dcc",
+        "name": "Gap over Rail",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.444609,
+          43.512988
+        ]
+      },
+      "properties": {
+        "id": "downledge-fd246c",
+        "name": "Downledge",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.434173,
+          43.507346
+        ]
+      },
+      "properties": {
+        "id": "habour-small-ledge-bca562",
+        "name": "Habour Small Ledge",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.436285,
+          43.508801
+        ]
+      },
+      "properties": {
+        "id": "crusty-11-stair-6c1c51",
+        "name": "Crusty 11 Stair",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.451035,
+          43.512042
+        ]
+      },
+      "properties": {
+        "id": "bump-to-bar-8965c8",
+        "name": "Bump to Bar",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.450841,
+          43.512586
+        ]
+      },
+      "properties": {
+        "id": "skatepark-8cb2ec",
+        "name": "Skatepark",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.450607,
+          43.513144
+        ]
+      },
+      "properties": {
+        "id": "double-set-ledge-eee085",
+        "name": "Double Set Ledge",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.451418,
+          43.511968
+        ]
+      },
+      "properties": {
+        "id": "low-to-high-rail-a0d8b8",
+        "name": "Low to High Rail",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.450796,
+          43.508548
+        ]
+      },
+      "properties": {
+        "id": "10er-handrail-71c596",
+        "name": "10er Handrail",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.450712,
+          43.508329
+        ]
+      },
+      "properties": {
+        "id": "chris-pfanner-double-set-4bc65b",
+        "name": "Chris Pfanner Double Set",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.447899,
+          43.507522
+        ]
+      },
+      "properties": {
+        "id": "crusty-10-stair-54f5cb",
+        "name": "Crusty 10 Stair",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.44819,
+          43.506752
+        ]
+      },
+      "properties": {
+        "id": "dropledge-91576a",
+        "name": "Dropledge",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.447027,
+          43.506082
+        ]
+      },
+      "properties": {
+        "id": "bank-267211",
+        "name": "Bank",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.443262,
+          43.508583
+        ]
+      },
+      "properties": {
+        "id": "8-stairs-96bf59",
+        "name": "8 Stairs",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.450928,
+          43.516856
+        ]
+      },
+      "properties": {
+        "id": "steep-hubba-012b54",
+        "name": "Steep Hubba",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.439976,
+          43.515451
+        ]
+      },
+      "properties": {
+        "id": "dropledge-3c7321",
+        "name": "Dropledge",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.450581,
+          43.512776
+        ]
+      },
+      "properties": {
+        "id": "skatepark-curb-e7234b",
+        "name": "Skatepark Curb",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.452815,
+          43.508232
+        ]
+      },
+      "properties": {
+        "id": "super-crust-ledge-d05f6c",
+        "name": "Super Crust Ledge",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.433069,
+          43.515312
+        ]
+      },
+      "properties": {
+        "id": "gangster-manny-pad-ab1364",
+        "name": "Gangster Manny Pad",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.465469,
+          43.505178
+        ]
+      },
+      "properties": {
+        "id": "slappy-banks-bc5884",
+        "name": "Slappy Banks",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.465978,
+          43.506316
+        ]
+      },
+      "properties": {
+        "id": "dropledge-adebf6",
+        "name": "Dropledge",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.466346,
+          43.506639
+        ]
+      },
+      "properties": {
+        "id": "stairs-f6dca8",
+        "name": "Stairs",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.43256,
+          43.514274
+        ]
+      },
+      "properties": {
+        "id": "wallride-a76b32",
+        "name": "Wallride",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.428897,
+          43.513798
+        ]
+      },
+      "properties": {
+        "id": "bump-to-bar-6b74b1",
+        "name": "Bump to Bar",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.441622,
+          43.506708
+        ]
+      },
+      "properties": {
+        "id": "manny-pads-2d017b",
+        "name": "Manny Pads",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.433199,
+          43.514608
+        ]
+      },
+      "properties": {
+        "id": "handrail-5c5dfb",
+        "name": "Handrail",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.45504,
+          43.505351
+        ]
+      },
+      "properties": {
+        "id": "bank-to-flatbar-51511a",
+        "name": "Bank to Flatbar",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.439566,
+          43.516023
+        ]
+      },
+      "properties": {
+        "id": "blue-bank-472a6c",
+        "name": "Blue Bank",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.433725,
+          43.515708
+        ]
+      },
+      "properties": {
+        "id": "curb-paradise-dce684",
+        "name": "Curb Paradise",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.434581,
+          43.515183
+        ]
+      },
+      "properties": {
+        "id": "manny-pad-stairs-8f82f5",
+        "name": "Manny Pad + Stairs",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.480713,
+          43.509542
+        ]
+      },
+      "properties": {
+        "id": "hubba-99ff20",
+        "name": "Hubba",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.481187,
+          43.509003
+        ]
+      },
+      "properties": {
+        "id": "handrail-11d5fc",
+        "name": "Handrail",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.481831,
+          43.509355
+        ]
+      },
+      "properties": {
+        "id": "death-drop-in-e199c3",
+        "name": "Death Drop In",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.474842,
+          43.509292
+        ]
+      },
+      "properties": {
+        "id": "big-hubba-0fda5c",
+        "name": "Big Hubba",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.47397,
+          43.50913
+        ]
+      },
+      "properties": {
+        "id": "6-stair-manny-pad-into-bank-b40947",
+        "name": "6 Stair + Manny Pad into Bank",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.472886,
+          43.509139
+        ]
+      },
+      "properties": {
+        "id": "big-handrail-2d24ac",
+        "name": "Big Handrail",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.465512,
+          43.512097
+        ]
+      },
+      "properties": {
+        "id": "university-downhill-flatgap-ae593e",
+        "name": "University Downhill Flatgap",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.447172,
+          43.519889
+        ]
+      },
+      "properties": {
+        "id": "low-to-high-ledge-b2de7e",
+        "name": "Low to High Ledge",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.452435,
+          43.515636
+        ]
+      },
+      "properties": {
+        "id": "4-stair-handrail-a80ead",
+        "name": "4 Stair Handrail",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.451514,
+          43.516566
+        ]
+      },
+      "properties": {
+        "id": "super-crust-kink-hubba-b82147",
+        "name": "Super Crust Kink Hubba",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.44842,
+          43.515172
+        ]
+      },
+      "properties": {
+        "id": "hubba-0518f4",
+        "name": "Hubba",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.443493,
+          43.515064
+        ]
+      },
+      "properties": {
+        "id": "handrail-0c4be3",
+        "name": "Handrail",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.43198,
+          43.506604
+        ]
+      },
+      "properties": {
+        "id": "wobble-metal-thing-d35958",
+        "name": "Wobble Metal Thing",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.431638,
+          43.506593
+        ]
+      },
+      "properties": {
+        "id": "big-stairset-gap-c429c0",
+        "name": "Big Stairset Gap",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.439416,
+          43.514756
+        ]
+      },
+      "properties": {
+        "id": "steep-handrail-9c11f4",
+        "name": "Steep Handrail",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          16.439462,
+          43.515121
+        ]
+      },
+      "properties": {
+        "id": "manny-pad-4c0c7d",
+        "name": "Manny Pad",
+        "status": "active",
+        "photos": []
+      }
+    }
+  ]
+}

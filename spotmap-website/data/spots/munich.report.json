@@ -1,0 +1,17 @@
+{
+  "city": "munich",
+  "mid": "17-7uPZrlp0LG5MqKsKdmaJBAYk6BRXo",
+  "placemarks": 6,
+  "spotsWritten": 6,
+  "photosLinked": 9,
+  "photosWritten": 9,
+  "photosDead": [],
+  "photosDuplicate": [],
+  "spotsWithoutPhotos": [],
+  "statusCounts": {
+    "active": 6,
+    "demolished": 0,
+    "unclassified": 0
+  },
+  "warnings": []
+}

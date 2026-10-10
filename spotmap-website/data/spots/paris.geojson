@@ -1,0 +1,60 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.3868817,
+          48.8128798
+        ]
+      },
+      "properties": {
+        "id": "ivry-316cc2",
+        "name": "Ivry",
+        "status": "active",
+        "photos": [
+          "spots/paris/ivry-316cc2-98cfdcad.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.3637664,
+          48.8675555
+        ]
+      },
+      "properties": {
+        "id": "republique-d9313b",
+        "name": "Republique",
+        "status": "active",
+        "photos": [
+          "spots/paris/republique-d9313b-1417d97b.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.3814328,
+          48.8296303
+        ]
+      },
+      "properties": {
+        "id": "malto-curbs-60d1db",
+        "name": "Malto Curbs",
+        "status": "active",
+        "photos": [
+          "spots/paris/malto-curbs-60d1db-71f25434.webp",
+          "spots/paris/malto-curbs-60d1db-0496193f.webp"
+        ]
+      }
+    }
+  ]
+}

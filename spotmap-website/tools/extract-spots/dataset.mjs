@@ -1,0 +1,224 @@
+/**
+ * Turns a city's parsed placemarks and photo outcomes into its committed outputs: the
+ * `SpotCollection` GeoJSON the app reads (`src/app/models/spots/spot.ts`) and the run report.
+ *
+ * Everything here follows KML document order, never download-completion order, so concurrent
+ * downloads cannot reorder the committed files. Nothing committed carries a photo URL: Google
+ * rotates them on every export, so a URL would turn every re-run into a diff.
+ */
+import { assignIds, cleanName, spotId } from './ids.mjs';
+import { statusFor } from './status.mjs';
+
+/**
+ * One photo link of a spot.
+ *
+ * @typedef {object} PhotoRef
+ * @property {string} url the link from `gx_media_links` (rotates per export; never committed)
+ * @property {number} index 1-based position in the placemark's `gx_media_links`
+ */
+
+/**
+ * A placemark resolved to the site's spot model, before any photo is downloaded.
+ *
+ * @typedef {object} PreparedSpot
+ * @property {string} id
+ * @property {string} name the name with the city's own prefix stripped
+ * @property {'active' | 'demolished' | 'unclassified'} status
+ * @property {[number, number]} coordinates `[lng, lat]`
+ * @property {PhotoRef[]} photos
+ */
+
+/**
+ * What happened to one photo: encoded to `file` (now, or in an earlier run), or dead at the
+ * source.
+ *
+ * @typedef {{ written: true, file: string, downloaded?: boolean } | { dead: true, reason: string }} PhotoOutcome
+ */
+
+/**
+ * The key a photo's outcome is stored under.
+ *
+ * @param {string} spotId
+ * @param {number} index the photo's 1-based position in its placemark
+ * @returns {string} `<spotId>#<index>`
+ */
+export function photoKey(spotId, index) {
+  return `${spotId}#${index}`;
+}
+
+/**
+ * Resolves placemarks to spots: status from the pin colour, own prefix stripped, unique ids, and
+ * every photo link numbered by its position.
+ *
+ * @param {import('./kml.mjs').Placemark[]} placemarks in KML order
+ * @param {string[]} ownPrefixes the city's own name prefixes
+ * @returns {{ spots: PreparedSpot[], warnings: string[] }}
+ * @throws {Error} naming the placemark when its pin colour is unknown
+ */
+export function prepareSpots(placemarks, ownPrefixes) {
+  const resolved = placemarks.map((placemark) => {
+    let status;
+    try {
+      status = statusFor(placemark.styleUrl);
+    } catch (error) {
+      throw new Error(`placemark "${placemark.name}": ${error.message}`);
+    }
+    return {
+      name: cleanName(placemark.name, ownPrefixes),
+      status,
+      coordinates: placemark.coordinates,
+      mediaUrls: placemark.mediaUrls,
+    };
+  });
+  const { ids, warnings } = assignIds(
+    resolved.map(({ name, coordinates }) => spotId(name, coordinates)),
+  );
+  const spots = resolved.map(({ name, status, coordinates, mediaUrls }, i) => ({
+    id: ids[i],
+    name,
+    status,
+    coordinates,
+    photos: mediaUrls.map((url, j) => ({ url, index: j + 1 })),
+  }));
+  return { spots, warnings };
+}
+
+/**
+ * Builds a city's GeoJSON and run report. Written photos become base-relative paths
+ * (`spots/<city>/<file>`, the `SpotProperties.photos` contract); dead ones are left out of the
+ * GeoJSON and listed in the report by spot and position. A spot with no written photo is still
+ * included. A written photo that resolves to the same file as an earlier photo of its spot is kept
+ * only once; each repeat is listed in the report's `photosDuplicate` with the position it repeats.
+ *
+ * @param {object} input
+ * @param {string} input.city the `CityEnum` value
+ * @param {string} input.mid the My Maps map id
+ * @param {PreparedSpot[]} input.spots from {@link prepareSpots}
+ * @param {string[]} input.warnings from {@link prepareSpots}
+ * @param {Map<string, PhotoOutcome>} input.outcomes keyed by {@link photoKey}
+ * @returns {{ collection: object, report: object }}
+ * @throws {Error} when a photo has no outcome
+ */
+export function buildCity({ city, mid, spots, warnings, outcomes }) {
+  const photosDead = [];
+  const photosDuplicate = [];
+  const spotsWithoutPhotos = [];
+  const statusCounts = { active: 0, demolished: 0, unclassified: 0 };
+  let photosLinked = 0;
+  let photosWritten = 0;
+
+  const features = spots.map((spot) => {
+    const photos = [];
+    const keptIndexByFile = new Map();
+    for (const photo of spot.photos) {
+      photosLinked++;
+      const outcome = outcomes.get(photoKey(spot.id, photo.index));
+      if (outcome?.written && keptIndexByFile.has(outcome.file)) {
+        photosDuplicate.push({
+          spotId: spot.id,
+          index: photo.index,
+          sameAs: keptIndexByFile.get(outcome.file),
+        });
+      } else if (outcome?.written) {
+        keptIndexByFile.set(outcome.file, photo.index);
+        photos.push(`spots/${city}/${outcome.file}`);
+        photosWritten++;
+      } else if (outcome?.dead) {
+        photosDead.push({
+          spotId: spot.id,
+          index: photo.index,
+          reason: outcome.reason,
+        });
+      } else {
+        throw new Error(
+          `no download outcome for photo ${photo.index} of spot ${spot.id}`,
+        );
+      }
+    }
+    if (photos.length === 0) {
+      spotsWithoutPhotos.push(spot.id);
+    }
+    statusCounts[spot.status]++;
+    return {
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: spot.coordinates },
+      properties: { id: spot.id, name: spot.name, status: spot.status, photos },
+    };
+  });
+
+  return {
+    collection: { type: 'FeatureCollection', features },
+    report: {
+      city,
+      mid,
+      placemarks: spots.length,
+      spotsWritten: features.length,
+      photosLinked,
+      photosWritten,
+      photosDead,
+      photosDuplicate,
+      spotsWithoutPhotos,
+      statusCounts,
+      warnings,
+    },
+  };
+}
+
+/**
+ * Finds the dead photos that were written on the previous run, so the CLI can refuse to wipe them
+ * when Google wrongly answers 403 or HTML for photos that are fine. A dead photo is newly dead when
+ * its spot was in the previous GeoJSON, its position is within that spot's previous link count
+ * (its written photos plus its dead and duplicate positions — a duplicate was written too), and
+ * the previous report did not list it as dead already. A link that was already dead, or a position
+ * the previous run did not have, is not newly dead.
+ *
+ * @param {object} input
+ * @param {object} [input.previousCollection] the previous run's GeoJSON; absent on a first run
+ * @param {object} [input.previousReport] the previous run's report; absent on a first run
+ * @param {object} input.report the new report from {@link buildCity}
+ * @returns {{ spotId: string, index: number, reason: string }[]} the newly dead entries of
+ *   `report.photosDead`, in KML order; none when either previous output is absent
+ */
+export function findNewlyDeadPhotos({
+  previousCollection,
+  previousReport,
+  report,
+}) {
+  if (!previousCollection || !previousReport) {
+    return [];
+  }
+  const previousLinkCounts = new Map(
+    previousCollection.features.map(({ properties }) => [
+      properties.id,
+      properties.photos.length,
+    ]),
+  );
+  for (const { spotId } of [
+    ...previousReport.photosDead,
+    ...previousReport.photosDuplicate,
+  ]) {
+    if (previousLinkCounts.has(spotId)) {
+      previousLinkCounts.set(spotId, previousLinkCounts.get(spotId) + 1);
+    }
+  }
+  const previouslyDead = new Set(
+    previousReport.photosDead.map(({ spotId, index }) =>
+      photoKey(spotId, index),
+    ),
+  );
+  return report.photosDead.filter(
+    ({ spotId, index }) =>
+      index <= (previousLinkCounts.get(spotId) ?? 0) &&
+      !previouslyDead.has(photoKey(spotId, index)),
+  );
+}
+
+/**
+ * Serialises a committed output: 2-space JSON with a trailing newline, like the pilot's GeoJSON.
+ *
+ * @param {unknown} value
+ * @returns {string}
+ */
+export function toJsonText(value) {
+  return `${JSON.stringify(value, null, 2)}\n`;
+}

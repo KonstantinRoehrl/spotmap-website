@@ -1,0 +1,66 @@
+{
+  "vienna": {
+    "mid": "13c9hk1PqIRE5jgjTAr1pf4sP_9GNiIg",
+    "namePrefixes": ["Wien", "R.I.P Wien"]
+  },
+  "graz": {
+    "mid": "12VL0aop2XkUVOdyqh8GadV6RJM4Oztg",
+    "namePrefixes": ["Graz"]
+  },
+  "linz": {
+    "mid": "1J7UzUWB930mEv319KPFKDUNCuMqbgGM",
+    "namePrefixes": ["Linz"]
+  },
+  "salzburg": {
+    "mid": "1iCbIuQjvWH2ag86j2Jpz6HS7i8W3fi0",
+    "namePrefixes": ["SBG"]
+  },
+  "bratislava": {
+    "mid": "11v43r1GYNV0soxAefVXBRT1R-E_JAuI",
+    "namePrefixes": ["Bratislava"]
+  },
+  "prague": {
+    "mid": "1M3yJ3bz-KOrPTxIPHVUO6ZgMdtgFLqI",
+    "namePrefixes": ["Prag"]
+  },
+  "split": {
+    "mid": "1dgfVkXz-ruy1aoQePV7j2lhv5QzEfFw",
+    "namePrefixes": ["Split"]
+  },
+  "zagreb": {
+    "mid": "1yVLyImhI2XOE7yg80PvGdwe-dDBfa5I",
+    "namePrefixes": ["Zagreb"]
+  },
+  "rijeka": {
+    "mid": "1EpSHyJXOp2H35Dn_HwdC0EzHfnHgojI",
+    "namePrefixes": ["Rijeka"]
+  },
+  "belgrade": {
+    "mid": "1YvzcNEJYFSuU9VYLUM3Nt3DW5Ro5PC8",
+    "namePrefixes": ["Belgrad"]
+  },
+  "sarajevo": {
+    "mid": "1bQasamQ0CRfALwtB5BzXZCRPSMugK4w",
+    "namePrefixes": ["Sarajevo"]
+  },
+  "lisbon": {
+    "mid": "1Yovquxft4XHZ9ZxQ0EEws6_6JbNzfeQ",
+    "namePrefixes": ["Lissabon"]
+  },
+  "paris": {
+    "mid": "1t9v4PkMwg0lTWlTq_920vNF0pBJNXag",
+    "namePrefixes": ["Paris"]
+  },
+  "munich": {
+    "mid": "17-7uPZrlp0LG5MqKsKdmaJBAYk6BRXo",
+    "namePrefixes": ["MUC"]
+  },
+  "barcelona": {
+    "mid": "16PXTegYiPPz7-ZusqQ6kyuucHZ3yNhQ",
+    "namePrefixes": ["Barca"]
+  },
+  "valencia": {
+    "mid": "1qvOlmPVyn0x11bbgaxDaxg0VqUGuAhc",
+    "namePrefixes": ["VLC"]
+  }
+}

@@ -1,0 +1,209 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.4567964,
+          45.3335805
+        ]
+      },
+      "properties": {
+        "id": "miniramp-am-dach-3e2255",
+        "name": "Miniramp am Dach",
+        "status": "active",
+        "photos": [
+          "spots/rijeka/miniramp-am-dach-3e2255-e9a1fb5a.webp",
+          "spots/rijeka/miniramp-am-dach-3e2255-f05ef1f6.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.4387773,
+          45.3278172
+        ]
+      },
+      "properties": {
+        "id": "plaza-mit-curb-c69f1a",
+        "name": "Plaza mit Curb",
+        "status": "active",
+        "photos": [
+          "spots/rijeka/plaza-mit-curb-c69f1a-9e9eac3c.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.4681886,
+          45.3280489
+        ]
+      },
+      "properties": {
+        "id": "stair-heaven-072e67",
+        "name": "Stair Heaven",
+        "status": "active",
+        "photos": [
+          "spots/rijeka/stair-heaven-072e67-2e518900.webp",
+          "spots/rijeka/stair-heaven-072e67-ea192e1d.webp",
+          "spots/rijeka/stair-heaven-072e67-df028c96.webp",
+          "spots/rijeka/stair-heaven-072e67-ec278ff1.webp",
+          "spots/rijeka/stair-heaven-072e67-7eee7da6.webp",
+          "spots/rijeka/stair-heaven-072e67-263d69b0.webp",
+          "spots/rijeka/stair-heaven-072e67-fe7669de.webp",
+          "spots/rijeka/stair-heaven-072e67-42e825a2.webp",
+          "spots/rijeka/stair-heaven-072e67-04e46544.webp",
+          "spots/rijeka/stair-heaven-072e67-568f16cf.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.445184,
+          45.3243044
+        ]
+      },
+      "properties": {
+        "id": "curb-a587b7",
+        "name": "Curb",
+        "status": "active",
+        "photos": [
+          "spots/rijeka/curb-a587b7-5af7ef03.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.4856661,
+          45.3253844
+        ]
+      },
+      "properties": {
+        "id": "diy-0880ca",
+        "name": "DIY",
+        "status": "active",
+        "photos": [
+          "spots/rijeka/diy-0880ca-8b08a289.webp",
+          "spots/rijeka/diy-0880ca-b5dbc857.webp",
+          "spots/rijeka/diy-0880ca-01c1a81d.webp",
+          "spots/rijeka/diy-0880ca-72e5a96d.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.4677649,
+          45.3287202
+        ]
+      },
+      "properties": {
+        "id": "studenski-centar-dee0de",
+        "name": "Studenski Centar",
+        "status": "active",
+        "photos": [
+          "spots/rijeka/studenski-centar-dee0de-1cd7c9e0.webp",
+          "spots/rijeka/studenski-centar-dee0de-d63a30fd.webp",
+          "spots/rijeka/studenski-centar-dee0de-89e34028.webp",
+          "spots/rijeka/studenski-centar-dee0de-fbd3b38f.webp",
+          "spots/rijeka/studenski-centar-dee0de-7c42e14f.webp",
+          "spots/rijeka/studenski-centar-dee0de-566b353b.webp",
+          "spots/rijeka/studenski-centar-dee0de-4ace4174.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.4457498,
+          45.3258986
+        ]
+      },
+      "properties": {
+        "id": "main-plaza-d7bfab",
+        "name": "Main Plaza",
+        "status": "active",
+        "photos": [
+          "spots/rijeka/main-plaza-d7bfab-14a7fd4e.webp",
+          "spots/rijeka/main-plaza-d7bfab-0e943dac.webp",
+          "spots/rijeka/main-plaza-d7bfab-a578d6fa.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.4487256,
+          45.3272558
+        ]
+      },
+      "properties": {
+        "id": "low-to-high-ledge-614a10",
+        "name": "Low to High Ledge",
+        "status": "active",
+        "photos": [
+          "spots/rijeka/low-to-high-ledge-614a10-15c24c21.webp",
+          "spots/rijeka/low-to-high-ledge-614a10-fd6804e6.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.370739,
+          45.3413787
+        ]
+      },
+      "properties": {
+        "id": "strand-gap-f4264b",
+        "name": "Strand Gap",
+        "status": "active",
+        "photos": [
+          "spots/rijeka/strand-gap-f4264b-b7dc876e.webp",
+          "spots/rijeka/strand-gap-f4264b-fd504fe9.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.3729307,
+          45.341255
+        ]
+      },
+      "properties": {
+        "id": "curbs-9503a4",
+        "name": "Curbs",
+        "status": "active",
+        "photos": [
+          "spots/rijeka/curbs-9503a4-a7878579.webp",
+          "spots/rijeka/curbs-9503a4-f8f764be.webp"
+        ]
+      }
+    }
+  ]
+}

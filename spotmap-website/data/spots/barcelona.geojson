@@ -1,0 +1,639 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.2247261,
+          41.4533376
+        ]
+      },
+      "properties": {
+        "id": "fondo-55a629",
+        "name": "Fondo",
+        "status": "active",
+        "photos": [
+          "spots/barcelona/fondo-55a629-fdecfd2d.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.1717364,
+          41.3738982
+        ]
+      },
+      "properties": {
+        "id": "parallel-04f281",
+        "name": "Parallel",
+        "status": "active",
+        "photos": [
+          "spots/barcelona/parallel-04f281-2f7360ac.webp",
+          "spots/barcelona/parallel-04f281-5f5a0074.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.1718088,
+          41.4293905
+        ]
+      },
+      "properties": {
+        "id": "stevie-williams-spot-cb16f1",
+        "name": "Stevie Williams Spot",
+        "status": "active",
+        "photos": [
+          "spots/barcelona/stevie-williams-spot-cb16f1-be0f7da0.webp",
+          "spots/barcelona/stevie-williams-spot-cb16f1-9203d655.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.16408,
+          41.3856808
+        ]
+      },
+      "properties": {
+        "id": "universitat-2573ac",
+        "name": "Universitat",
+        "status": "active",
+        "photos": [
+          "spots/barcelona/universitat-2573ac-850f5c8b.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.1668601,
+          41.3828463
+        ]
+      },
+      "properties": {
+        "id": "macba-b3ea54",
+        "name": "Macba",
+        "status": "active",
+        "photos": [
+          "spots/barcelona/macba-b3ea54-19eb88b4.webp",
+          "spots/barcelona/macba-b3ea54-8c9b987b.webp",
+          "spots/barcelona/macba-b3ea54-3eca8bbd.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.1126634,
+          41.3754762
+        ]
+      },
+      "properties": {
+        "id": "busenitz-spot-995705",
+        "name": "Busenitz Spot",
+        "status": "active",
+        "photos": [
+          "spots/barcelona/busenitz-spot-995705-6d93805f.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.1991941,
+          41.4163787
+        ]
+      },
+      "properties": {
+        "id": "kicker-over-bench-b95443",
+        "name": "Kicker over Bench",
+        "status": "active",
+        "photos": [
+          "spots/barcelona/kicker-over-bench-b95443-9d73376e.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.198655,
+          41.4175222
+        ]
+      },
+      "properties": {
+        "id": "haifischflosse-ab7d28",
+        "name": "Haifischflosse",
+        "status": "active",
+        "photos": [
+          "spots/barcelona/haifischflosse-ab7d28-1007005d.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.22931,
+          41.4442243
+        ]
+      },
+      "properties": {
+        "id": "blue-spot-ad06a5",
+        "name": "Blue Spot",
+        "status": "active",
+        "photos": [
+          "spots/barcelona/blue-spot-ad06a5-65682c2c.webp",
+          "spots/barcelona/blue-spot-ad06a5-3dd590f9.webp",
+          "spots/barcelona/blue-spot-ad06a5-59e252d6.webp",
+          "spots/barcelona/blue-spot-ad06a5-bb9cabca.webp",
+          "spots/barcelona/blue-spot-ad06a5-a6418f75.webp",
+          "spots/barcelona/blue-spot-ad06a5-aa1a416a.webp",
+          "spots/barcelona/blue-spot-ad06a5-f5b002f8.webp",
+          "spots/barcelona/blue-spot-ad06a5-f79cfd33.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.207855,
+          41.4198092
+        ]
+      },
+      "properties": {
+        "id": "besos-waves-7fa606",
+        "name": "Besos Waves",
+        "status": "active",
+        "photos": [
+          "spots/barcelona/besos-waves-7fa606-466b50cd.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.197727,
+          41.419949
+        ]
+      },
+      "properties": {
+        "id": "sant-marti-7-stair-dc5c30",
+        "name": "Sant Marti 7 Stair",
+        "status": "active",
+        "photos": [
+          "spots/barcelona/sant-marti-7-stair-dc5c30-81931c74.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.2294682,
+          41.4433959
+        ]
+      },
+      "properties": {
+        "id": "corners-ccd57b",
+        "name": "Corners",
+        "status": "active",
+        "photos": [
+          "spots/barcelona/corners-ccd57b-ed3e1d67.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.2088876,
+          41.419247
+        ]
+      },
+      "properties": {
+        "id": "10-stair-rail-589bce",
+        "name": "10 Stair Rail",
+        "status": "active",
+        "photos": [
+          "spots/barcelona/10-stair-rail-589bce-5f666688.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.226617,
+          41.4445781
+        ]
+      },
+      "properties": {
+        "id": "7er-handrail-32b24b",
+        "name": "7er Handrail",
+        "status": "active",
+        "photos": [
+          "spots/barcelona/7er-handrail-32b24b-7218432c.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.1747968,
+          41.4295634
+        ]
+      },
+      "properties": {
+        "id": "virrei-amat-spot-ebc3d7",
+        "name": "Virrei Amat Spot",
+        "status": "active",
+        "photos": [
+          "spots/barcelona/virrei-amat-spot-ebc3d7-3ca406c3.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.2267002,
+          41.4434502
+        ]
+      },
+      "properties": {
+        "id": "7er-handrail-1f0e20",
+        "name": "7er Handrail",
+        "status": "active",
+        "photos": [
+          "spots/barcelona/7er-handrail-1f0e20-d669a403.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.1323146,
+          41.3611984
+        ]
+      },
+      "properties": {
+        "id": "8er-double-set-34fb2d",
+        "name": "8er Double Set",
+        "status": "active",
+        "photos": [
+          "spots/barcelona/8er-double-set-34fb2d-876a1c8f.webp",
+          "spots/barcelona/8er-double-set-34fb2d-417d1ac2.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.0874801,
+          41.3535842
+        ]
+      },
+      "properties": {
+        "id": "manual-pad-e357ba",
+        "name": "Manual Pad",
+        "status": "active",
+        "photos": [
+          "spots/barcelona/manual-pad-e357ba-05077125.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.2198069,
+          41.4521556
+        ]
+      },
+      "properties": {
+        "id": "fondo-low-to-high-ledge-de108b",
+        "name": "Fondo Low to High Ledge",
+        "status": "active",
+        "photos": [
+          "spots/barcelona/fondo-low-to-high-ledge-de108b-3f6d896b.webp",
+          "spots/barcelona/fondo-low-to-high-ledge-de108b-9447a7b0.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.1659394,
+          41.3843491
+        ]
+      },
+      "properties": {
+        "id": "gap-over-ledge-ef1909",
+        "name": "Gap over Ledge",
+        "status": "active",
+        "photos": [
+          "spots/barcelona/gap-over-ledge-ef1909-9c8c2830.webp",
+          "spots/barcelona/gap-over-ledge-ef1909-9884e594.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.1804656,
+          41.3773792
+        ]
+      },
+      "properties": {
+        "id": "low-to-high-ledge-aca8eb",
+        "name": "Low to High Ledge",
+        "status": "active",
+        "photos": [
+          "spots/barcelona/low-to-high-ledge-aca8eb-f93f9afc.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.2019649,
+          41.4479578
+        ]
+      },
+      "properties": {
+        "id": "holzbenches-ueberdacht-ae1242",
+        "name": "Holzbenches überdacht",
+        "status": "active",
+        "photos": [
+          "spots/barcelona/holzbenches-ueberdacht-ae1242-69a66057.webp",
+          "spots/barcelona/holzbenches-ueberdacht-ae1242-6d17cd34.webp",
+          "spots/barcelona/holzbenches-ueberdacht-ae1242-aa59e751.webp",
+          "spots/barcelona/holzbenches-ueberdacht-ae1242-edce6906.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.1743301,
+          41.3874346
+        ]
+      },
+      "properties": {
+        "id": "monument-143f53",
+        "name": "Monument",
+        "status": "active",
+        "photos": [
+          "spots/barcelona/monument-143f53-58823f62.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.1752836,
+          41.384086
+        ]
+      },
+      "properties": {
+        "id": "hard-rail-55252d",
+        "name": "Hard rail",
+        "status": "active",
+        "photos": [
+          "spots/barcelona/hard-rail-55252d-118c675a.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.1774877,
+          41.3844226
+        ]
+      },
+      "properties": {
+        "id": "curbs-over-stairs-63c5b9",
+        "name": "Curbs over Stairs",
+        "status": "active",
+        "photos": [
+          "spots/barcelona/curbs-over-stairs-63c5b9-ecc1fb32.webp",
+          "spots/barcelona/curbs-over-stairs-63c5b9-2b3cec36.webp",
+          "spots/barcelona/curbs-over-stairs-63c5b9-0d531f32.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.1460247,
+          41.4270838
+        ]
+      },
+      "properties": {
+        "id": "vall-d-hebron-ledge-b2da3d",
+        "name": "Vall d'Hebron Ledge",
+        "status": "active",
+        "photos": [
+          "spots/barcelona/vall-d-hebron-ledge-b2da3d-4a54a846.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.1477413,
+          41.4315916
+        ]
+      },
+      "properties": {
+        "id": "long-metal-ledge-ba2e8b",
+        "name": "Long Metal Ledge",
+        "status": "active",
+        "photos": [
+          "spots/barcelona/long-metal-ledge-ba2e8b-e78af3f7.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.1484655,
+          41.4321134
+        ]
+      },
+      "properties": {
+        "id": "curbs-banks-downhill-0220c3",
+        "name": "Curbs + Banks Downhill",
+        "status": "active",
+        "photos": [
+          "spots/barcelona/curbs-banks-downhill-0220c3-e8d5354b.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.2053337,
+          41.4199842
+        ]
+      },
+      "properties": {
+        "id": "marble-benches-36cda7",
+        "name": "Marble Benches",
+        "status": "active",
+        "photos": [
+          "spots/barcelona/marble-benches-36cda7-425c55a6.webp",
+          "spots/barcelona/marble-benches-36cda7-2766509c.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.1788635,
+          41.4007377
+        ]
+      },
+      "properties": {
+        "id": "u-curb-952078",
+        "name": "U - Curb",
+        "status": "active",
+        "photos": [
+          "spots/barcelona/u-curb-952078-5c9c9b6e.webp",
+          "spots/barcelona/u-curb-952078-dd0a319c.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.1366158,
+          41.3639173
+        ]
+      },
+      "properties": {
+        "id": "low-to-high-ledge-b73ec0",
+        "name": "Low to High Ledge",
+        "status": "active",
+        "photos": [
+          "spots/barcelona/low-to-high-ledge-b73ec0-6a791d7b.webp",
+          "spots/barcelona/low-to-high-ledge-b73ec0-607ea835.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.135415,
+          41.3636785
+        ]
+      },
+      "properties": {
+        "id": "curb-482426",
+        "name": "Curb",
+        "status": "active",
+        "photos": [
+          "spots/barcelona/curb-482426-997d2777.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.1864392,
+          41.3823012
+        ]
+      },
+      "properties": {
+        "id": "barceloneta-banks-4600d1",
+        "name": "Barceloneta Banks",
+        "status": "active",
+        "photos": [
+          "spots/barcelona/barceloneta-banks-4600d1-f3ef8447.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.1272778,
+          41.3579093
+        ]
+      },
+      "properties": {
+        "id": "small-curb-4b632e",
+        "name": "Small Curb",
+        "status": "active",
+        "photos": [
+          "spots/barcelona/small-curb-4b632e-e062ecc8.webp"
+        ]
+      }
+    }
+  ]
+}

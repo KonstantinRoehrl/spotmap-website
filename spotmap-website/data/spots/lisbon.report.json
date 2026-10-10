@@ -1,0 +1,17 @@
+{
+  "city": "lisbon",
+  "mid": "1Yovquxft4XHZ9ZxQ0EEws6_6JbNzfeQ",
+  "placemarks": 8,
+  "spotsWritten": 8,
+  "photosLinked": 15,
+  "photosWritten": 15,
+  "photosDead": [],
+  "photosDuplicate": [],
+  "spotsWithoutPhotos": [],
+  "statusCounts": {
+    "active": 8,
+    "demolished": 0,
+    "unclassified": 0
+  },
+  "warnings": []
+}

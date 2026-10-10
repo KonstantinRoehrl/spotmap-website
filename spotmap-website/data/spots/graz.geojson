@@ -1,0 +1,144 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          15.4439799,
+          47.0685456
+        ]
+      },
+      "properties": {
+        "id": "11-stair-d9311e",
+        "name": "11 Stair",
+        "status": "active",
+        "photos": [
+          "spots/graz/11-stair-d9311e-5f8de928.webp",
+          "spots/graz/11-stair-d9311e-f1b438c7.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          15.4307249,
+          47.0749281
+        ]
+      },
+      "properties": {
+        "id": "lendplatz-c07aa3",
+        "name": "Lendplatz",
+        "status": "active",
+        "photos": [
+          "spots/graz/lendplatz-c07aa3-f8e3850d.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          15.4502304,
+          47.0783725
+        ]
+      },
+      "properties": {
+        "id": "unistairs-1087f2",
+        "name": "Unistairs",
+        "status": "active",
+        "photos": [
+          "spots/graz/unistairs-1087f2-2cde0b05.webp",
+          "spots/graz/unistairs-1087f2-2a9eba6e.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          15.4479607,
+          47.0782561
+        ]
+      },
+      "properties": {
+        "id": "uni-gap-holzcurbs-462694",
+        "name": "Uni Gap + Holzcurbs",
+        "status": "active",
+        "photos": [
+          "spots/graz/uni-gap-holzcurbs-462694-39a4e073.webp",
+          "spots/graz/uni-gap-holzcurbs-462694-f3075039.webp",
+          "spots/graz/uni-gap-holzcurbs-462694-1664d161.webp",
+          "spots/graz/uni-gap-holzcurbs-462694-a307d85c.webp",
+          "spots/graz/uni-gap-holzcurbs-462694-13025eaf.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          15.450349,
+          47.0763494
+        ]
+      },
+      "properties": {
+        "id": "minibankcurbs-14-stair-b3ed61",
+        "name": "Minibankcurbs + 14 Stair",
+        "status": "active",
+        "photos": [
+          "spots/graz/minibankcurbs-14-stair-b3ed61-e69bf1ca.webp",
+          "spots/graz/minibankcurbs-14-stair-b3ed61-95962bd5.webp",
+          "spots/graz/minibankcurbs-14-stair-b3ed61-8128fb7d.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          15.4534363,
+          47.076359
+        ]
+      },
+      "properties": {
+        "id": "gap-16f29f",
+        "name": "Gap",
+        "status": "active",
+        "photos": [
+          "spots/graz/gap-16f29f-88b8d44d.webp",
+          "spots/graz/gap-16f29f-3cb6c47f.webp",
+          "spots/graz/gap-16f29f-e227a2aa.webp",
+          "spots/graz/gap-16f29f-da283fc6.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          15.449709,
+          47.0796514
+        ]
+      },
+      "properties": {
+        "id": "curbs-4ae93f",
+        "name": "Curbs",
+        "status": "active",
+        "photos": [
+          "spots/graz/curbs-4ae93f-c6cbcf2e.webp",
+          "spots/graz/curbs-4ae93f-6e161aa5.webp",
+          "spots/graz/curbs-4ae93f-3eaaaa54.webp"
+        ]
+      }
+    }
+  ]
+}

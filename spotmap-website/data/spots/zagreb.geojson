@@ -1,0 +1,122 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          15.503616,
+          45.451937
+        ]
+      },
+      "properties": {
+        "id": "irgendwo-ditch-7869ce",
+        "name": "Irgendwo: Ditch",
+        "status": "active",
+        "photos": [
+          "spots/zagreb/irgendwo-ditch-7869ce-02acb1e7.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          15.987144,
+          45.809953
+        ]
+      },
+      "properties": {
+        "id": "kreisverkehr-curbs-af9198",
+        "name": "Kreisverkehr Curbs",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          15.978292,
+          45.810442
+        ]
+      },
+      "properties": {
+        "id": "pavillion-8-stair-85f7d1",
+        "name": "Pavillion 8 Stair",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          15.964136,
+          45.807469
+        ]
+      },
+      "properties": {
+        "id": "12-stair-b8905f",
+        "name": "12 Stair",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          15.961086,
+          45.808339
+        ]
+      },
+      "properties": {
+        "id": "curb-c8e276",
+        "name": "Curb",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          15.970114,
+          45.806953
+        ]
+      },
+      "properties": {
+        "id": "low-to-high-ledges-264650",
+        "name": "Low to High Ledges",
+        "status": "active",
+        "photos": [
+          "spots/zagreb/low-to-high-ledges-264650-fd1787fd.webp",
+          "spots/zagreb/low-to-high-ledges-264650-67ad7181.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          15.968758,
+          45.810018
+        ]
+      },
+      "properties": {
+        "id": "musikakademie-092068",
+        "name": "Musikakademie",
+        "status": "active",
+        "photos": []
+      }
+    }
+  ]
+}

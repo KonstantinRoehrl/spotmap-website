@@ -1,0 +1,156 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -9.1521139,
+          38.7085027
+        ]
+      },
+      "properties": {
+        "id": "round-fountain-1a519e",
+        "name": "Round Fountain",
+        "status": "active",
+        "photos": [
+          "spots/lisbon/round-fountain-1a519e-38b508a1.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -9.1694702,
+          38.7350438
+        ]
+      },
+      "properties": {
+        "id": "cage-b1a840",
+        "name": "Cage",
+        "status": "active",
+        "photos": [
+          "spots/lisbon/cage-b1a840-00dbbd56.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -9.1603545,
+          38.7132899
+        ]
+      },
+      "properties": {
+        "id": "crust-curbs-c5b857",
+        "name": "Crust Curbs",
+        "status": "active",
+        "photos": [
+          "spots/lisbon/crust-curbs-c5b857-b1517b32.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -9.1548001,
+          38.7067657
+        ]
+      },
+      "properties": {
+        "id": "bench-c620fc",
+        "name": "Bench",
+        "status": "active",
+        "photos": [
+          "spots/lisbon/bench-c620fc-8c311600.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -9.1555253,
+          38.7047937
+        ]
+      },
+      "properties": {
+        "id": "angelina-diy-58f07e",
+        "name": "Angelina DIY",
+        "status": "active",
+        "photos": [
+          "spots/lisbon/angelina-diy-58f07e-1e09303f.webp",
+          "spots/lisbon/angelina-diy-58f07e-0ea5d0c5.webp",
+          "spots/lisbon/angelina-diy-58f07e-f0921148.webp",
+          "spots/lisbon/angelina-diy-58f07e-fada8b01.webp",
+          "spots/lisbon/angelina-diy-58f07e-d4e3395d.webp",
+          "spots/lisbon/angelina-diy-58f07e-73a001f3.webp",
+          "spots/lisbon/angelina-diy-58f07e-88eabe99.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -9.1386078,
+          38.7064378
+        ]
+      },
+      "properties": {
+        "id": "bank-5c2954",
+        "name": "Bank",
+        "status": "active",
+        "photos": [
+          "spots/lisbon/bank-5c2954-52a0c050.webp",
+          "spots/lisbon/bank-5c2954-bf874f0e.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -9.1372961,
+          38.7072755
+        ]
+      },
+      "properties": {
+        "id": "marble-curbs-019fcc",
+        "name": "Marble Curbs",
+        "status": "active",
+        "photos": [
+          "spots/lisbon/marble-curbs-019fcc-38b0bb13.webp"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -9.1333122,
+          38.7293169
+        ]
+      },
+      "properties": {
+        "id": "curb-7b0a64",
+        "name": "Curb",
+        "status": "active",
+        "photos": [
+          "spots/lisbon/curb-7b0a64-e69b9fd5.webp"
+        ]
+      }
+    }
+  ]
+}

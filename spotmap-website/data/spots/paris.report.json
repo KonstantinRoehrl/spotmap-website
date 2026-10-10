@@ -1,0 +1,17 @@
+{
+  "city": "paris",
+  "mid": "1t9v4PkMwg0lTWlTq_920vNF0pBJNXag",
+  "placemarks": 3,
+  "spotsWritten": 3,
+  "photosLinked": 4,
+  "photosWritten": 4,
+  "photosDead": [],
+  "photosDuplicate": [],
+  "spotsWithoutPhotos": [],
+  "statusCounts": {
+    "active": 3,
+    "demolished": 0,
+    "unclassified": 0
+  },
+  "warnings": []
+}

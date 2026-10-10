@@ -1,0 +1,17 @@
+{
+  "city": "bratislava",
+  "mid": "11v43r1GYNV0soxAefVXBRT1R-E_JAuI",
+  "placemarks": 11,
+  "spotsWritten": 11,
+  "photosLinked": 39,
+  "photosWritten": 39,
+  "photosDead": [],
+  "photosDuplicate": [],
+  "spotsWithoutPhotos": [],
+  "statusCounts": {
+    "active": 11,
+    "demolished": 0,
+    "unclassified": 0
+  },
+  "warnings": []
+}

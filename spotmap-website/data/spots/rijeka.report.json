@@ -1,0 +1,17 @@
+{
+  "city": "rijeka",
+  "mid": "1EpSHyJXOp2H35Dn_HwdC0EzHfnHgojI",
+  "placemarks": 10,
+  "spotsWritten": 10,
+  "photosLinked": 34,
+  "photosWritten": 34,
+  "photosDead": [],
+  "photosDuplicate": [],
+  "spotsWithoutPhotos": [],
+  "statusCounts": {
+    "active": 10,
+    "demolished": 0,
+    "unclassified": 0
+  },
+  "warnings": []
+}

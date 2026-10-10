@@ -1,0 +1,30 @@
+{
+  "city": "salzburg",
+  "mid": "1iCbIuQjvWH2ag86j2Jpz6HS7i8W3fi0",
+  "placemarks": 71,
+  "spotsWritten": 71,
+  "photosLinked": 102,
+  "photosWritten": 102,
+  "photosDead": [],
+  "photosDuplicate": [],
+  "spotsWithoutPhotos": [
+    "e-park-baenke-f0d5a2",
+    "bergheim-wallride-e400fd",
+    "3er-bloecke-96c6b7",
+    "langes-rail-7e0748",
+    "drop-0c7e58",
+    "wallride-ca94b6",
+    "gap-3de895",
+    "stairsets-952708",
+    "gap-auf-strasse-5d2a12",
+    "kuenstlerhauscurb-33bf16",
+    "lehrbauhof-kicker-45dfed",
+    "hbf-block-1d59a6"
+  ],
+  "statusCounts": {
+    "active": 71,
+    "demolished": 0,
+    "unclassified": 0
+  },
+  "warnings": []
+}
