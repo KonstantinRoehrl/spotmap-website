@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>Descriptions</name>
+    <Placemark>
+      <name>Root: Plain</name>
+      <description>Fish &amp;amp; chips &lt;3</description>
+      <Point>
+        <coordinates>16.1,48.1,0</coordinates>
+      </Point>
+    </Placemark>
+    <Folder>
+      <name>Spots</name>
+      <Placemark>
+        <name><![CDATA[Wien: Livio's 12er]]></name>
+        <description><![CDATA[<img src="https://mymaps.usercontent.google.com/hostedimage/m/*/AAA?fife" height="200" width="auto" /><br><br>Police &amp; guards  <BR/>Rough &lt;3 floor<br />&#x1F6F9; &#228;<br><br><br><br>last line]]></description>
+        <Point>
+          <coordinates>16.2,48.2,0</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Wien: Only a photo</name>
+        <description><![CDATA[<img src="https://mymaps.usercontent.google.com/hostedimage/m/*/BBB?fife" height="200" width="auto" />]]></description>
+        <Point>
+          <coordinates>16.3,48.3,0</coordinates>
+        </Point>
+      </Placemark>
+      <Folder>
+        <name>Nested</name>
+        <Placemark>
+          <name>Wien: Deep</name>
+          <description><![CDATA[double &amp;amp; decoded once]]></description>
+          <Point>
+            <coordinates>16.4,48.4,0</coordinates>
+          </Point>
+        </Placemark>
+      </Folder>
+    </Folder>
+  </Document>
+</kml>

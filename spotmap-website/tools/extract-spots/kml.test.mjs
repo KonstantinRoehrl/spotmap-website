@@ -17,12 +17,14 @@ test('collects placemarks from every folder in document order', () => {
 test('reads a single folder holding a single placemark as a list', () => {
   assert.deepEqual(parseKml(fixture('single-folder.kml')), [
     {
+      ordinal: 0,
       name: 'Graz: Murinsel',
       styleUrl: '#icon-1899-0288D1-labelson',
       coordinates: [15.4342, 47.0739],
       mediaUrls: [
         'https://mymaps.usercontent.google.com/hostedimage/m/*/DDD?fife=s16383',
       ],
+      folder: 'Graz',
     },
   ]);
 });
@@ -75,4 +77,44 @@ test('throws on a placemark without a point, naming it', () => {
     () => parseKml(text),
     /placemark "Wien: Ghost" has no Point coordinates/,
   );
+});
+
+const described = () => parseKml(fixture('descriptions.kml'));
+
+test('numbers placemarks by their position in the parsed order', () => {
+  assert.deepEqual(
+    parseKml(fixture('multi-folder.kml')).map(({ ordinal }) => ordinal),
+    [0, 1, 2],
+  );
+});
+
+test('records the folder path, joined outermost first, and none at the document root', () => {
+  assert.deepEqual(
+    described().map(({ folder }) => folder),
+    [undefined, 'Spots', 'Spots', 'Spots / Nested'],
+  );
+  assert.equal('folder' in described()[0], false);
+});
+
+test('reads a CDATA name as written', () => {
+  assert.equal(described()[1].name, "Wien: Livio's 12er");
+});
+
+test('turns CDATA notes into plain text: images dropped, <br> as newlines, entities decoded, blank runs collapsed', () => {
+  assert.equal(
+    described()[1].description,
+    'Police & guards\nRough <3 floor\n🛹 ä\n\nlast line',
+  );
+});
+
+test('decodes plain-text notes exactly once and keeps a "<3" as typed', () => {
+  assert.equal(described()[0].description, 'Fish &amp; chips <3');
+});
+
+test('decodes CDATA notes exactly once', () => {
+  assert.equal(described()[3].description, 'double &amp; decoded once');
+});
+
+test('leaves the description out when nothing but images remains', () => {
+  assert.equal('description' in described()[2], false);
 });
