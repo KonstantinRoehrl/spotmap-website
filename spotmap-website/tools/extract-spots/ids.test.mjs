@@ -8,6 +8,7 @@ import { test } from 'node:test';
 import {
   assignIds,
   cleanName,
+  hasOwnPrefix,
   photoFileName,
   slugify,
   spotId,
@@ -93,4 +94,13 @@ test('photo file name joins the spot id and the photo fingerprint', () => {
     photoFileName('curbs-abc123', '0a1b2c3d'),
     'curbs-abc123-0a1b2c3d.webp',
   );
+});
+
+test('an own prefix is a leading "<prefix>:" after trimming, case-sensitive', () => {
+  assert.equal(hasOwnPrefix('  Split: Riva', ['Split']), true);
+  assert.equal(hasOwnPrefix('R.I.P Wien: Gap', ['Wien', 'R.I.P Wien']), true);
+  assert.equal(hasOwnPrefix('split: Riva', ['Split']), false);
+  assert.equal(hasOwnPrefix('Splitter: Riva', ['Split']), false);
+  assert.equal(hasOwnPrefix('Split Riva', ['Split']), false);
+  assert.equal(hasOwnPrefix('Novi Sad: Stairs', ['Beograd']), false);
 });

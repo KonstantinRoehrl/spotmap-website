@@ -20,7 +20,7 @@ const GERMAN_LETTERS = { ä: 'ae', ö: 'oe', ü: 'ue', ß: 'ss' };
  */
 export function cleanName(name, ownPrefixes) {
   const trimmed = name.trim();
-  const prefix = ownPrefixes.find((own) => trimmed.startsWith(`${own}:`));
+  const prefix = ownPrefixOf(trimmed, ownPrefixes);
   return prefix === undefined
     ? trimmed
     : trimmed.slice(prefix.length + 1).trim();
@@ -95,4 +95,27 @@ export function assignIds(baseIds) {
  */
 export function photoFileName(spotId, fingerprint) {
   return `${spotId}-${fingerprint}.webp`;
+}
+
+/**
+ * Whether a placemark name starts with one of the city's own `<prefix>:` — exactly the names
+ * {@link cleanName} strips a prefix from.
+ *
+ * @param {string} name the raw placemark name
+ * @param {string[]} ownPrefixes the city's own prefixes from `sources.json`
+ * @returns {boolean}
+ */
+export function hasOwnPrefix(name, ownPrefixes) {
+  return ownPrefixOf(name.trim(), ownPrefixes) !== undefined;
+}
+
+/**
+ * The first own prefix a trimmed name starts with, followed by `:`.
+ *
+ * @param {string} trimmedName
+ * @param {string[]} ownPrefixes
+ * @returns {string | undefined}
+ */
+function ownPrefixOf(trimmedName, ownPrefixes) {
+  return ownPrefixes.find((own) => trimmedName.startsWith(`${own}:`));
 }
