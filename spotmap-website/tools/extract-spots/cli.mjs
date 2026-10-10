@@ -47,7 +47,7 @@ const MAX_LISTED_NEWLY_DEAD = 5;
  * Reads the command line. No city arguments means every known city.
  *
  * @param {string[]} argv the arguments after the script name
- * @param {string[]} knownCities the keys of `sources.json`, in registry order
+ * @param {string[]} knownCities the city keys of `sources.json`'s `cities`, in registry order
  * @returns {{ cities: string[], reencode: boolean }}
  * @throws {Error} on an unknown city or flag
  */
@@ -71,10 +71,10 @@ export function parseCliArgs(argv, knownCities) {
 
 /** Runs the extraction for the cities on the command line and prints a per-city summary. */
 async function main() {
-  const sources = JSON.parse(await readFile(SOURCES_PATH, 'utf8'));
+  const { maps, cities } = JSON.parse(await readFile(SOURCES_PATH, 'utf8'));
   let options;
   try {
-    options = parseCliArgs(process.argv.slice(2), Object.keys(sources));
+    options = parseCliArgs(process.argv.slice(2), Object.keys(cities));
   } catch (error) {
     console.error(`extract:spots: ${error.message}`);
     process.exitCode = 2;
@@ -87,7 +87,10 @@ async function main() {
     try {
       const { report, downloaded } = await extractCity(
         city,
-        sources[city],
+        {
+          mid: maps[cities[city].map],
+          namePrefixes: cities[city].namePrefixes,
+        },
         options,
       );
       const duplicates = report.photosDuplicate.length;

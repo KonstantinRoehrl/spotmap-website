@@ -1,3 +1,4 @@
+/** Every city the site has a map for. The value is the URL slug and the picker's label. */
 export enum CityEnum {
   // Austria
   Vienna = 'vienna',
@@ -12,6 +13,12 @@ export enum CityEnum {
   Split = 'split',
   Zagreb = 'zagreb',
   Rijeka = 'rijeka',
+  /** Spots come from the shared "Spotmap Balkan" map, placemarks prefixed `Zadar:`. */
+  Zadar = 'zadar',
+  /** Spots come from the shared "Spotmap Balkan" map, placemarks prefixed `Vodice:`. */
+  Vodice = 'vodice',
+  /** Spots come from the shared "Spotmap Balkan" map, placemarks prefixed `Sibenik:`. */
+  Sibenik = 'sibenik',
   // Serbia
   Belgrad = 'belgrade',
   // Bosnia
@@ -27,6 +34,7 @@ export enum CityEnum {
   Valencia = 'valencia',
 }
 
+/** Countries the picker groups cities by. */
 export enum CountryEnum {
   Austria = 'austria',
   Slovakia = 'slovakia',
@@ -40,6 +48,7 @@ export enum CountryEnum {
   Spain = 'spain',
 }
 
+/** ISO 3166-1 alpha-2 code of each {@link CountryEnum}. */
 export enum CountryCodeEnum {
   Austria = 'AT',
   Slovakia = 'SK',

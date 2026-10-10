@@ -1,8 +1,10 @@
 /**
- * Keeps the tool's city registry (data/spots/sources.json) in step with the app's own city list.
+ * Keeps the tool's map registry (data/spots/sources.json) in step with the app's own city list.
  *
- * sources.json duplicates each city's My Maps `mid` on purpose — Phase 4 deletes the app's
- * `mapLink` — so while both exist this test stops them drifting apart silently.
+ * The registry names each My Maps map once, under a slug, and each city by the slug of its main
+ * map (plus any extra maps it draws photos from). It duplicates each city's main-map `mid` on
+ * purpose — Phase 4 deletes the app's `mapLink` — so while both exist this test stops them
+ * drifting apart silently.
  */
 import { strict as assert } from 'node:assert';
 import { readFileSync } from 'node:fs';
@@ -10,7 +12,7 @@ import { test } from 'node:test';
 
 const read = (path) => readFileSync(new URL(path, import.meta.url), 'utf8');
 
-const sources = JSON.parse(read('../../data/spots/sources.json'));
+const { maps, cities } = JSON.parse(read('../../data/spots/sources.json'));
 const enumSource = read('../../src/app/models/enums/map-enum.ts');
 const configSource = read('../../src/app/models/enums/config.ts');
 
@@ -30,17 +32,44 @@ const midByCity = Object.fromEntries(
 );
 
 test('lists exactly the CityEnum cities, in declaration order', () => {
-  assert.deepEqual(Object.keys(sources), Object.values(cityByMember));
+  assert.deepEqual(Object.keys(cities ?? {}), Object.values(cityByMember));
 });
 
-test('every mid matches the mapLink in config.ts', () => {
-  for (const [city, { mid }] of Object.entries(sources)) {
-    assert.equal(mid, midByCity[city], city);
+test("every city's main-map mid matches the mapLink in config.ts", () => {
+  for (const [city, { map }] of Object.entries(cities ?? {})) {
+    assert.equal(maps[map], midByCity[city], city);
   }
 });
 
+test('every map a city names is registered', () => {
+  for (const [city, { map, extraMaps = [] }] of Object.entries(cities ?? {})) {
+    for (const slug of [map, ...extraMaps]) {
+      assert.ok(Object.hasOwn(maps ?? {}, slug), `${city}: ${slug}`);
+    }
+  }
+});
+
+test('no city lists its own main map as an extra map', () => {
+  for (const [city, { map, extraMaps = [] }] of Object.entries(cities ?? {})) {
+    assert.equal(extraMaps.includes(map), false, city);
+  }
+});
+
+test('every registered map is used by some city', () => {
+  const used = new Set(
+    Object.values(cities ?? {}).flatMap(({ map, extraMaps = [] }) => [
+      map,
+      ...extraMaps,
+    ]),
+  );
+  assert.deepEqual(
+    Object.keys(maps ?? {}).filter((slug) => !used.has(slug)),
+    [],
+  );
+});
+
 test('every city names at least one own prefix', () => {
-  for (const [city, { namePrefixes }] of Object.entries(sources)) {
+  for (const [city, { namePrefixes }] of Object.entries(cities ?? {})) {
     assert.ok(Array.isArray(namePrefixes) && namePrefixes.length > 0, city);
   }
 });

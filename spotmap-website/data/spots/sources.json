@@ -1,66 +1,107 @@
 {
-  "vienna": {
-    "mid": "13c9hk1PqIRE5jgjTAr1pf4sP_9GNiIg",
-    "namePrefixes": ["Wien", "R.I.P Wien"]
+  "maps": {
+    "vienna": "13c9hk1PqIRE5jgjTAr1pf4sP_9GNiIg",
+    "graz": "12VL0aop2XkUVOdyqh8GadV6RJM4Oztg",
+    "linz": "1J7UzUWB930mEv319KPFKDUNCuMqbgGM",
+    "salzburg": "1iCbIuQjvWH2ag86j2Jpz6HS7i8W3fi0",
+    "bratislava": "11v43r1GYNV0soxAefVXBRT1R-E_JAuI",
+    "prague": "1M3yJ3bz-KOrPTxIPHVUO6ZgMdtgFLqI",
+    "split": "1dgfVkXz-ruy1aoQePV7j2lhv5QzEfFw",
+    "zagreb": "1yVLyImhI2XOE7yg80PvGdwe-dDBfa5I",
+    "rijeka": "1EpSHyJXOp2H35Dn_HwdC0EzHfnHgojI",
+    "belgrade": "1YvzcNEJYFSuU9VYLUM3Nt3DW5Ro5PC8",
+    "sarajevo": "1bQasamQ0CRfALwtB5BzXZCRPSMugK4w",
+    "lisbon": "1Yovquxft4XHZ9ZxQ0EEws6_6JbNzfeQ",
+    "paris": "1t9v4PkMwg0lTWlTq_920vNF0pBJNXag",
+    "munich": "17-7uPZrlp0LG5MqKsKdmaJBAYk6BRXo",
+    "barcelona": "16PXTegYiPPz7-ZusqQ6kyuucHZ3yNhQ",
+    "valencia": "1qvOlmPVyn0x11bbgaxDaxg0VqUGuAhc",
+    "balkan": "1IDO4AGmCsN_D-zcXPjpU1eXqwQYTh1A"
   },
-  "graz": {
-    "mid": "12VL0aop2XkUVOdyqh8GadV6RJM4Oztg",
-    "namePrefixes": ["Graz"]
-  },
-  "linz": {
-    "mid": "1J7UzUWB930mEv319KPFKDUNCuMqbgGM",
-    "namePrefixes": ["Linz"]
-  },
-  "salzburg": {
-    "mid": "1iCbIuQjvWH2ag86j2Jpz6HS7i8W3fi0",
-    "namePrefixes": ["SBG"]
-  },
-  "bratislava": {
-    "mid": "11v43r1GYNV0soxAefVXBRT1R-E_JAuI",
-    "namePrefixes": ["Bratislava"]
-  },
-  "prague": {
-    "mid": "1M3yJ3bz-KOrPTxIPHVUO6ZgMdtgFLqI",
-    "namePrefixes": ["Prag"]
-  },
-  "split": {
-    "mid": "1dgfVkXz-ruy1aoQePV7j2lhv5QzEfFw",
-    "namePrefixes": ["Split"]
-  },
-  "zagreb": {
-    "mid": "1yVLyImhI2XOE7yg80PvGdwe-dDBfa5I",
-    "namePrefixes": ["Zagreb"]
-  },
-  "rijeka": {
-    "mid": "1EpSHyJXOp2H35Dn_HwdC0EzHfnHgojI",
-    "namePrefixes": ["Rijeka"]
-  },
-  "belgrade": {
-    "mid": "1YvzcNEJYFSuU9VYLUM3Nt3DW5Ro5PC8",
-    "namePrefixes": ["Belgrad"]
-  },
-  "sarajevo": {
-    "mid": "1bQasamQ0CRfALwtB5BzXZCRPSMugK4w",
-    "namePrefixes": ["Sarajevo"]
-  },
-  "lisbon": {
-    "mid": "1Yovquxft4XHZ9ZxQ0EEws6_6JbNzfeQ",
-    "namePrefixes": ["Lissabon"]
-  },
-  "paris": {
-    "mid": "1t9v4PkMwg0lTWlTq_920vNF0pBJNXag",
-    "namePrefixes": ["Paris"]
-  },
-  "munich": {
-    "mid": "17-7uPZrlp0LG5MqKsKdmaJBAYk6BRXo",
-    "namePrefixes": ["MUC"]
-  },
-  "barcelona": {
-    "mid": "16PXTegYiPPz7-ZusqQ6kyuucHZ3yNhQ",
-    "namePrefixes": ["Barca"]
-  },
-  "valencia": {
-    "mid": "1qvOlmPVyn0x11bbgaxDaxg0VqUGuAhc",
-    "namePrefixes": ["VLC"]
+  "cities": {
+    "vienna": {
+      "map": "vienna",
+      "namePrefixes": ["Wien", "R.I.P Wien"]
+    },
+    "graz": {
+      "map": "graz",
+      "namePrefixes": ["Graz"]
+    },
+    "linz": {
+      "map": "linz",
+      "namePrefixes": ["Linz"]
+    },
+    "salzburg": {
+      "map": "salzburg",
+      "namePrefixes": ["SBG"]
+    },
+    "bratislava": {
+      "map": "bratislava",
+      "namePrefixes": ["Bratislava"]
+    },
+    "prague": {
+      "map": "prague",
+      "namePrefixes": ["Prag"]
+    },
+    "split": {
+      "map": "split",
+      "namePrefixes": ["Split"],
+      "extraMaps": ["balkan"]
+    },
+    "zagreb": {
+      "map": "zagreb",
+      "namePrefixes": ["Zagreb"],
+      "extraMaps": ["balkan"]
+    },
+    "rijeka": {
+      "map": "rijeka",
+      "namePrefixes": ["Rijeka"],
+      "extraMaps": ["balkan"]
+    },
+    "zadar": {
+      "map": "balkan",
+      "namePrefixes": ["Zadar"],
+      "onlyPrefixed": true
+    },
+    "vodice": {
+      "map": "balkan",
+      "namePrefixes": ["Vodice"],
+      "onlyPrefixed": true
+    },
+    "sibenik": {
+      "map": "balkan",
+      "namePrefixes": ["Sibenik"],
+      "onlyPrefixed": true
+    },
+    "belgrade": {
+      "map": "belgrade",
+      "namePrefixes": ["Belgrad"],
+      "extraMaps": ["balkan"]
+    },
+    "sarajevo": {
+      "map": "sarajevo",
+      "namePrefixes": ["Sarajevo"],
+      "extraMaps": ["balkan"]
+    },
+    "lisbon": {
+      "map": "lisbon",
+      "namePrefixes": ["Lissabon"]
+    },
+    "paris": {
+      "map": "paris",
+      "namePrefixes": ["Paris"]
+    },
+    "munich": {
+      "map": "munich",
+      "namePrefixes": ["MUC"]
+    },
+    "barcelona": {
+      "map": "barcelona",
+      "namePrefixes": ["Barca"]
+    },
+    "valencia": {
+      "map": "valencia",
+      "namePrefixes": ["VLC"]
+    }
   }
 }
