@@ -14,7 +14,9 @@ const read = (path) => readFileSync(new URL(path, import.meta.url), 'utf8');
 
 const { maps, cities } = JSON.parse(read('../../data/spots/sources.json'));
 const enumSource = read('../../src/app/models/enums/map-enum.ts');
-const configSource = read('../../src/app/models/enums/config.ts');
+const configSource = inlineMapLinkConstants(
+  read('../../src/app/models/enums/config.ts'),
+);
 
 const cityEnumBody = /export enum CityEnum \{([\s\S]*?)\n\}/.exec(
   enumSource,
@@ -30,6 +32,28 @@ const midByCity = Object.fromEntries(
     ...configSource.matchAll(/\[CityEnum\.(\w+)\]:\s*\{[\s\S]*?mid=([\w-]+)/g),
   ].map(([, member, mid]) => [cityByMember[member], mid]),
 );
+
+/**
+ * Replaces each `mapLink: SOME_CONSTANT` in config.ts with the constant's string literal, so every
+ * city entry carries its own `mid=` and the lazy entry match cannot run on into the next entry.
+ *
+ * @param {string} source the text of config.ts
+ * @returns {string} the text with every constant `mapLink` inlined
+ * @throws {Error} naming a `mapLink` constant that config.ts does not declare as a string literal
+ */
+function inlineMapLinkConstants(source) {
+  const constants = new Map(
+    [...source.matchAll(/const (\w+) =\s*'([^']*)'/g)].map(
+      ([, name, value]) => [name, value],
+    ),
+  );
+  return source.replace(/mapLink:\s*([A-Za-z_]\w*)\s*,/g, (_, name) => {
+    if (!constants.has(name)) {
+      throw new Error(`config.ts: mapLink constant ${name} is not declared`);
+    }
+    return `mapLink: '${constants.get(name)}',`;
+  });
+}
 
 test('lists exactly the CityEnum cities, in declaration order', () => {
   assert.deepEqual(Object.keys(cities ?? {}), Object.values(cityByMember));
