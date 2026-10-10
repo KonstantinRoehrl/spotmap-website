@@ -10,6 +10,7 @@
     "verify:css-asset-urls": "node tools/verify-css-asset-urls.mjs ../dist/spotmap-website/browser",
     "verify:dev-map-worker": "node tools/verify-dev-server-map-worker.mjs",
     "extract:spots": "node tools/extract-spots/cli.mjs",
+    "promote:spots": "node tools/extract-spots/promote.mjs",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "test:tools": "node --test \"tools/**/*.test.mjs\"",
