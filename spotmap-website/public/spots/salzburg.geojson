@@ -1,0 +1,1141 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0425578,
+          47.7263164
+        ]
+      },
+      "properties": {
+        "id": "grasgap-ad87a9",
+        "name": "Grasgap",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0444555,
+          47.8013956
+        ]
+      },
+      "properties": {
+        "id": "holzbaenke-f38eb3",
+        "name": "Holzbänke",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0367804,
+          47.8280738
+        ]
+      },
+      "properties": {
+        "id": "vita-kicker-1a5bfc",
+        "name": "Vita Kicker",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0072331,
+          47.8161445
+        ]
+      },
+      "properties": {
+        "id": "e-park-baenke-f0d5a2",
+        "name": "E-Park Bänke",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0810502,
+          47.780185
+        ]
+      },
+      "properties": {
+        "id": "double-set-e15fb6",
+        "name": "Double Set",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0399561,
+          47.8069851
+        ]
+      },
+      "properties": {
+        "id": "paracelsusbad-curb-70c948",
+        "name": "Paracelsusbad Curb",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0389918,
+          47.8142938
+        ]
+      },
+      "properties": {
+        "id": "gap-auf-strasse-1e9af2",
+        "name": "Gap auf Straße",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0546197,
+          47.792865
+        ]
+      },
+      "properties": {
+        "id": "4er-ledge-3972ce",
+        "name": "4er Ledge",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0142444,
+          47.846906
+        ]
+      },
+      "properties": {
+        "id": "schlachthof-f9f225",
+        "name": "Schlachthof",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0445454,
+          47.8031098
+        ]
+      },
+      "properties": {
+        "id": "2er-stufen-manny-pad-7175bc",
+        "name": "2er Stufen/ Manny Pad",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0428126,
+          47.7995894
+        ]
+      },
+      "properties": {
+        "id": "unnuetzes-ding-5a73ee",
+        "name": "Unnützes Ding",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0412664,
+          47.799684
+        ]
+      },
+      "properties": {
+        "id": "bosna-gap-7ef1ed",
+        "name": "Bosna Gap",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0649328,
+          47.8090151
+        ]
+      },
+      "properties": {
+        "id": "6er-stair-over-rail-27c5ac",
+        "name": "6er Stair over Rail",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0615211,
+          47.8232873
+        ]
+      },
+      "properties": {
+        "id": "kicker-laderampe-af641f",
+        "name": "Kicker Laderampe",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0659279,
+          47.8033999
+        ]
+      },
+      "properties": {
+        "id": "laderampe-over-rail-5e5181",
+        "name": "Laderampe over Rail",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0859023,
+          47.7732706
+        ]
+      },
+      "properties": {
+        "id": "ursulinen-84c97a",
+        "name": "Ursulinen",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.042177,
+          47.7985985
+        ]
+      },
+      "properties": {
+        "id": "festspielhauscurb-c99837",
+        "name": "Festspielhauscurb",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0684572,
+          47.7752606
+        ]
+      },
+      "properties": {
+        "id": "eybl-stairs-0be9d5",
+        "name": "Eybl Stairs",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0584151,
+          47.8070372
+        ]
+      },
+      "properties": {
+        "id": "7er-stairs-425ea4",
+        "name": "7er Stairs",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0576694,
+          47.8089358
+        ]
+      },
+      "properties": {
+        "id": "rail-f257e5",
+        "name": "Rail",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0539814,
+          47.8062121
+        ]
+      },
+      "properties": {
+        "id": "4er-stairs-6cc44e",
+        "name": "4er Stairs",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0454452,
+          47.8079442
+        ]
+      },
+      "properties": {
+        "id": "rainbow-curb-c713fc",
+        "name": "Rainbow Curb",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0381966,
+          47.8108777
+        ]
+      },
+      "properties": {
+        "id": "lehener-bruecke-double-set-062f77",
+        "name": "Lehener Brücke Double Set",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0313301,
+          47.8092637
+        ]
+      },
+      "properties": {
+        "id": "strubergasse-c58789",
+        "name": "Strubergasse",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.9960322,
+          47.7928974
+        ]
+      },
+      "properties": {
+        "id": "6-stair-5bd5cd",
+        "name": "6 Stair",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0194908,
+          47.8457395
+        ]
+      },
+      "properties": {
+        "id": "bergheim-wallride-e400fd",
+        "name": "Bergheim Wallride",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0594651,
+          47.7889546
+        ]
+      },
+      "properties": {
+        "id": "3er-bloecke-96c6b7",
+        "name": "3er Blöcke",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0392534,
+          47.8228749
+        ]
+      },
+      "properties": {
+        "id": "hofer-curbs-a18dc6",
+        "name": "Hofer Curbs",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.039704,
+          47.8219006
+        ]
+      },
+      "properties": {
+        "id": "parallel-a3f4c2",
+        "name": "Parallel",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0447787,
+          47.8216052
+        ]
+      },
+      "properties": {
+        "id": "htl-00fbe4",
+        "name": "HTL",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0085555,
+          47.7974381
+        ]
+      },
+      "properties": {
+        "id": "flatbar-c0fd4d",
+        "name": "Flatbar",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.993409,
+          47.7921514
+        ]
+      },
+      "properties": {
+        "id": "langes-rail-7e0748",
+        "name": "Langes Rail",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0139722,
+          47.8066697
+        ]
+      },
+      "properties": {
+        "id": "drop-0c7e58",
+        "name": "Drop",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0733442,
+          47.7986273
+        ]
+      },
+      "properties": {
+        "id": "wallride-ca94b6",
+        "name": "Wallride",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0139977,
+          47.8073146
+        ]
+      },
+      "properties": {
+        "id": "gap-3de895",
+        "name": "Gap",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0598044,
+          47.8105264
+        ]
+      },
+      "properties": {
+        "id": "gap-007df7",
+        "name": "Gap",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.9970729,
+          47.8156095
+        ]
+      },
+      "properties": {
+        "id": "stairsets-952708",
+        "name": "Stairsets",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0680737,
+          47.780796
+        ]
+      },
+      "properties": {
+        "id": "yello-gap-01fc16",
+        "name": "Yello Gap",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.045857,
+          47.7801453
+        ]
+      },
+      "properties": {
+        "id": "gap-auf-strasse-5d2a12",
+        "name": "Gap auf Straße",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0661452,
+          47.8063265
+        ]
+      },
+      "properties": {
+        "id": "moebelix-ledge-322fa9",
+        "name": "Möbelix Ledge",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0665448,
+          47.8079181
+        ]
+      },
+      "properties": {
+        "id": "bowling-gap-c9068c",
+        "name": "Bowling Gap",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0982231,
+          47.6826713
+        ]
+      },
+      "properties": {
+        "id": "3er-ledge-df4a69",
+        "name": "3er Ledge",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0371103,
+          47.7984552
+        ]
+      },
+      "properties": {
+        "id": "gap-over-ledge-42adb2",
+        "name": "Gap over Ledge",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.1064762,
+          47.6842017
+        ]
+      },
+      "properties": {
+        "id": "interspar-6er-6f2dba",
+        "name": "Interspar 6er",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0543649,
+          47.7968039
+        ]
+      },
+      "properties": {
+        "id": "kuenstlerhauscurb-33bf16",
+        "name": "Künstlerhauscurb",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0525652,
+          47.7980291
+        ]
+      },
+      "properties": {
+        "id": "salzach-curbs-908dfe",
+        "name": "Salzach Curbs",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.9911184,
+          47.8110173
+        ]
+      },
+      "properties": {
+        "id": "gap-49b326",
+        "name": "Gap",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.9880232,
+          47.7940777
+        ]
+      },
+      "properties": {
+        "id": "cineplexx-7er-ef3927",
+        "name": "Cineplexx 7er",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.040795,
+          47.8015776
+        ]
+      },
+      "properties": {
+        "id": "holzbaenke-2fc933",
+        "name": "Holzbänke",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0073619,
+          47.8836503
+        ]
+      },
+      "properties": {
+        "id": "a-town-bank-d2f867",
+        "name": "A-Town Bank",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.1014068,
+          47.6741014
+        ]
+      },
+      "properties": {
+        "id": "handrail-6bf9d2",
+        "name": "Handrail",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0196377,
+          47.8045894
+        ]
+      },
+      "properties": {
+        "id": "metal-ledge-05dcd0",
+        "name": "Metal Ledge",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0436763,
+          47.8118882
+        ]
+      },
+      "properties": {
+        "id": "stufencurb-899fde",
+        "name": "Stufencurb",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0668546,
+          47.7779617
+        ]
+      },
+      "properties": {
+        "id": "merkur-stairs-070da3",
+        "name": "Merkur Stairs",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0539948,
+          47.7950886
+        ]
+      },
+      "properties": {
+        "id": "uni-28f78f",
+        "name": "Uni",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0169843,
+          47.7519962
+        ]
+      },
+      "properties": {
+        "id": "lehrbauhof-kicker-45dfed",
+        "name": "Lehrbauhof Kicker",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0642354,
+          47.7963607
+        ]
+      },
+      "properties": {
+        "id": "finanzamt-8er-689325",
+        "name": "Finanzamt 8er",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0673254,
+          47.797748
+        ]
+      },
+      "properties": {
+        "id": "picollo-rail-be873b",
+        "name": "Picollo Rail",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0660111,
+          47.8233954
+        ]
+      },
+      "properties": {
+        "id": "curb-487113",
+        "name": "Curb",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0310096,
+          47.7965745
+        ]
+      },
+      "properties": {
+        "id": "riedenburg-siedlung-61fbc3",
+        "name": "Riedenburg Siedlung",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0714273,
+          47.8135767
+        ]
+      },
+      "properties": {
+        "id": "gnigl-7-stair-230957",
+        "name": "Gnigl 7 Stair",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0279549,
+          47.8140956
+        ]
+      },
+      "properties": {
+        "id": "stadtbibliothek-rail-7b57fa",
+        "name": "Stadtbibliothek Rail",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0876336,
+          47.7720795
+        ]
+      },
+      "properties": {
+        "id": "9-stair-7fbc9f",
+        "name": "9 Stair",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0443182,
+          47.8121156
+        ]
+      },
+      "properties": {
+        "id": "hbf-block-1d59a6",
+        "name": "Hbf Block",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0618384,
+          47.824518
+        ]
+      },
+      "properties": {
+        "id": "loading-dock-ea0656",
+        "name": "Loading Dock",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.9975483,
+          47.83362
+        ]
+      },
+      "properties": {
+        "id": "hofer-8er-71056f",
+        "name": "Hofer 8er",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0672371,
+          47.784565
+        ]
+      },
+      "properties": {
+        "id": "wuestenrot-dropledge-4b19c0",
+        "name": "Wüstenrot Dropledge",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0744287,
+          47.8025687
+        ]
+      },
+      "properties": {
+        "id": "gap-over-rail-e03d71",
+        "name": "Gap over Rail",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0648366,
+          47.7848424
+        ]
+      },
+      "properties": {
+        "id": "herrnau-10-stair-7a0eac",
+        "name": "Herrnau 10 Stair",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.0553601,
+          47.7918441
+        ]
+      },
+      "properties": {
+        "id": "flatgap-5ba5a0",
+        "name": "Flatgap",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13.05339,
+          47.822281
+        ]
+      },
+      "properties": {
+        "id": "crusty-bank-9945db",
+        "name": "Crusty Bank",
+        "status": "active",
+        "photos": []
+      }
+    }
+  ]
+}

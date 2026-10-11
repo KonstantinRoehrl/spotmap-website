@@ -1,0 +1,133 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -9.1521139,
+          38.7085027
+        ]
+      },
+      "properties": {
+        "id": "round-fountain-1a519e",
+        "name": "Round Fountain",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -9.1694702,
+          38.7350438
+        ]
+      },
+      "properties": {
+        "id": "cage-b1a840",
+        "name": "Cage",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -9.1603545,
+          38.7132899
+        ]
+      },
+      "properties": {
+        "id": "crust-curbs-c5b857",
+        "name": "Crust Curbs",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -9.1548001,
+          38.7067657
+        ]
+      },
+      "properties": {
+        "id": "bench-c620fc",
+        "name": "Bench",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -9.1555253,
+          38.7047937
+        ]
+      },
+      "properties": {
+        "id": "angelina-diy-58f07e",
+        "name": "Angelina DIY",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -9.1386078,
+          38.7064378
+        ]
+      },
+      "properties": {
+        "id": "bank-5c2954",
+        "name": "Bank",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -9.1372961,
+          38.7072755
+        ]
+      },
+      "properties": {
+        "id": "marble-curbs-019fcc",
+        "name": "Marble Curbs",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -9.1333122,
+          38.7293169
+        ]
+      },
+      "properties": {
+        "id": "curb-7b0a64",
+        "name": "Curb",
+        "status": "active",
+        "photos": []
+      }
+    }
+  ]
+}

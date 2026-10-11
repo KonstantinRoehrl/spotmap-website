@@ -1,6 +1,5 @@
 import {
   Component,
-  computed,
   DestroyRef,
   effect,
   inject,
@@ -8,9 +7,7 @@ import {
   signal,
   ChangeDetectionStrategy,
 } from '@angular/core';
-import { SUPPORTED_CITIES } from '../../../models/enums/config';
 import { CityEnum, MapFailureReason } from '../../../models/enums/map-enum';
-import { GmapsEmbedComponent } from '../gmaps-embed/gmaps-embed.component';
 import { LoadingBarComponent } from '../loading-bar/loading-bar.component';
 import { SpotMapComponent } from '../spot-map/spot-map.component';
 
@@ -20,28 +17,32 @@ const LOAD_TIMEOUT_MS = 15_000;
 /** Delay between the renderer reporting ready and revealing it (preserves the fade-in cadence). */
 const REVEAL_DELAY_MS = 700;
 
+/**
+ * Hosts the city's MapLibre map and owns its loading, timeout, failure and retry state; the map
+ * renders for every city.
+ */
 @Component({
   selector: 'app-map-container',
-  imports: [LoadingBarComponent, GmapsEmbedComponent, SpotMapComponent],
+  imports: [LoadingBarComponent, SpotMapComponent],
   templateUrl: './map-container.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: './map-container.component.css',
 })
 export class MapContainerComponent {
+  /** The city whose map is shown; the instance is reused when it changes. */
   city = input.required<CityEnum>();
-
-  /** Which renderer draws the selected city. */
-  protected readonly renderer = computed(
-    () => SUPPORTED_CITIES[this.city()].renderer,
-  );
 
   /** Bumped on each retry so the active renderer re-attempts from scratch. */
   protected readonly retryToken = signal(0);
 
+  /** Why the map gave up, or `null` while it is loading or shown; non-null shows the error overlay. */
   protected readonly failureReason = signal<MapFailureReason | null>(null);
+  /** Whether the map has painted and been revealed; false shows the loading overlay. */
   protected readonly mapReady = signal(false);
 
+  /** The pending unreachable-watchdog, if armed. */
   private timeoutId?: number;
+  /** The pending fade-in reveal, if scheduled. */
   private revealTimeoutId?: number;
 
   constructor() {
@@ -110,6 +111,7 @@ export class MapContainerComponent {
     this.startTimer();
   }
 
+  /** Arm the unreachable-watchdog: if the map has not revealed by LOAD_TIMEOUT_MS, show SIGNAL LOST. */
   private startTimer() {
     this.clearTimer();
     this.timeoutId = window.setTimeout(() => {
@@ -119,6 +121,7 @@ export class MapContainerComponent {
     }, LOAD_TIMEOUT_MS);
   }
 
+  /** Cancel the unreachable-watchdog. */
   private clearTimer() {
     if (this.timeoutId !== undefined) {
       clearTimeout(this.timeoutId);
@@ -126,6 +129,7 @@ export class MapContainerComponent {
     }
   }
 
+  /** Cancel the pending fade-in reveal. */
   private clearRevealTimer() {
     if (this.revealTimeoutId !== undefined) {
       clearTimeout(this.revealTimeoutId);
@@ -133,6 +137,7 @@ export class MapContainerComponent {
     }
   }
 
+  /** Cancel both the watchdog and the reveal. */
   private clearAllTimers() {
     this.clearTimer();
     this.clearRevealTimer();

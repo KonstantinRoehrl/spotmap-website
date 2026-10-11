@@ -1,9 +1,9 @@
 # Spotmap
 
-A skate-spot map for Vienna (and other cities), styled as a green-phosphor CRT
-terminal — "The Phosphor Archive". It's an Angular single-page app; the map
-itself is an embedded Google My Maps iframe, framed in a dark, glowing terminal
-shell so a blank embed never flashes white.
+A skate-spot compendium for European cities, styled as a green-phosphor CRT
+terminal — "The Phosphor Archive". It's an Angular single-page app; every city's
+map is drawn by the site itself with MapLibre, from a static per-city GeoJSON
+file, framed in a dark, glowing terminal shell so a slow map never flashes white.
 
 ## Tech stack
 
@@ -45,7 +45,7 @@ src/
                     # prefix (tools/verify-css-asset-urls.mjs guards it)
   index.html
 tools/
-  extract-spots/    # npm run extract:spots — My Maps KML → data/spots/ (see below)
+  extract-spots/    # npm run extract:spots / promote:spots — My Maps KML → data/spots/ → public/spots/ (see below)
   verify-*.mjs      # build:pages runs the dist guards; verify:dev-map-worker is manual
 data/
   spots/            # extracted per-city datasets (GeoJSON + run reports)
@@ -64,8 +64,23 @@ npm run extract:spots -- vienna split       # only these cities
 npm run extract:spots -- vienna --reencode  # download and encode existing photos again
 ```
 
-The tool lives in `tools/extract-spots/` and writes to `data/`. The live map
-still reads `public/spots/`; promoting a dataset there is a separate step.
+The tool lives in `tools/extract-spots/` and writes to `data/`. Each city it
+writes successfully is then **promoted**: `public/spots/<city>.geojson`, the file
+the app loads, is rewritten as a trimmed copy of the data file. Each spot keeps
+its geometry, `id`, `name` and `status`; `photos` is always empty until photos
+get a host, and source records, notes and folders stay in `data/` only.
+
+```bash
+npm run promote:spots                 # re-promote every city, offline
+npm run promote:spots -- vienna graz  # only these cities
+```
+
+`promote:spots` never touches the network. An unknown city exits 2; a city whose
+data file cannot be read is named, the others are still promoted, and the run
+exits 1. `tools/extract-spots/promote.test.mjs` (part of `npm run test:tools`, so
+CI and `build:pages` run it) fails when a `public/spots/<city>.geojson` differs
+from what promoting its data file would write, or when `public/spots/` holds
+anything other than one `<city>.geojson` per city.
 
 | Path                               | Committed | Contents                                                                       |
 | ---------------------------------- | --------- | ------------------------------------------------------------------------------ |
@@ -73,6 +88,7 @@ still reads `public/spots/`; promoting a dataset there is a separate step.
 | `data/spots/<city>.geojson`        | yes       | the city's spots; photo paths are base-relative (`spots/<city>/…`)             |
 | `data/spots/<city>.report.json`    | yes       | counts, dead, recovered and repeated photos, match issues and warnings         |
 | `data/spots/<map>.map-report.json` | yes       | the placemarks of a shared or extra map that no city or several cities claim   |
+| `public/spots/<city>.geojson`      | yes       | the promoted copy the app serves: no photos, no sources                        |
 | `data/spots/<city>/*.webp`         | no        | the encoded photos                                                             |
 | `data/.cache/kml/<map>.kml`        | no        | the raw KML of each map's last fetch that parsed                               |
 
@@ -116,7 +132,6 @@ naming the map.
 `tools/extract-spots/sources.test.mjs` keeps the registry honest:
 
 - `cities` lists exactly the `CityEnum` cities, in declaration order;
-- each city's main-map id equals the `mid=` of its `mapLink` in `config.ts`;
 - every map a city names (`map` and `extraMaps`) is registered in `maps`;
 - no city lists its own main map as an extra map;
 - every registered map is used by some city;
@@ -212,9 +227,12 @@ where any are non-zero.
 ### When a city fails
 
 A city that fails keeps its previous files; the run carries on and exits
-non-zero, naming each failed city. A city also fails, so a wrong error from
-Google or a moved placemark cannot wipe good photos, when compared with its
-previous run:
+non-zero, naming each failed city. The one exception is a failed promotion. It
+comes after the data file and report are written, so that city has its new data
+and report, a stale `public/spots/<city>.geojson` and no photo deleted. The drift
+test flags the stale copy until `npm run promote:spots -- <city>` rewrites it. A
+city also fails, so a wrong error from Google or a moved placemark cannot wipe
+good photos, when compared with its previous run:
 
 - **a photo is newly dead**: one the previous run downloaded now comes back
   dead, recovered or not;

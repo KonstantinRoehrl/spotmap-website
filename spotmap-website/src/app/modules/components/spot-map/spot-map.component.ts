@@ -28,7 +28,8 @@ import {
   SPOT_POPUP_FRAME_CLASS,
   SpotPopupComponent,
 } from '../spot-popup/spot-popup.component';
-import type { ElevationTiles } from './elevation';
+import { demMaxzoomFor, type ElevationTiles } from './elevation';
+import { framingBounds } from './fit-bounds';
 import { startLockOn } from './lock-on-pulse';
 import {
   ELEVATION_LOADER,
@@ -47,6 +48,14 @@ const FIT_PADDING_PX = 48;
 
 /** Never zoom past this when fitting a tight cluster — a 20-metre-wide view helps nobody. */
 const FIT_MAX_ZOOM = 16;
+
+/**
+ * A map this wide or narrower has its attribution collapsed to the info button — once it has
+ * painted, and again whenever it narrows to this width. The figure is this component's own
+ * choice, matching the width MapLibre switches its compact layout on at when `compact` is left
+ * unset. On a phone the expanded credits, which run to fourteen lines, would cover half the map.
+ */
+const NARROW_MAP_MAX_WIDTH_PX = 640;
 
 /** How long the opening fit-to-spots camera move takes, unless reduced motion is requested. */
 const FIT_DURATION_MS = 600;
@@ -112,6 +121,13 @@ export class SpotMapComponent {
   private map?: MapLibreMap;
 
   /**
+   * Whether the map was last measured at or under {@link NARROW_MAP_MAX_WIDTH_PX}, so a resize
+   * collapses the attribution on the way down to a phone width and never again while the visitor
+   * has it open there.
+   */
+  private mapIsNarrow = false;
+
+  /**
    * Latched the moment the map either paints or gives up, so one map can never report both
    * `ready` and `failed`. Every teardown resets it, because the next build is a new map.
    */
@@ -165,7 +181,8 @@ export class SpotMapComponent {
     // timeout bounds how long after `load` relief may still be added rather than how long after
     // the build began — a phone whose map paints late would otherwise lose relief the library
     // already had ready. The loader memoises its setup, so that second call reuses these imports.
-    void this.loadElevation();
+    const demMaxzoom = demMaxzoomFor(city);
+    void this.loadElevation(demMaxzoom);
 
     let collection: SpotCollection;
     try {
@@ -267,12 +284,25 @@ export class SpotMapComponent {
       }
       this.outcome = 'painted';
       this.drawSpots(map, collection);
+      this.mapIsNarrow = this.isNarrow();
+      this.collapseAttributionOnNarrowMap(this.mapIsNarrow);
       this.ready.emit();
       // Only now: `load` waits on every visible source's tiles, so terrain in the opening style
       // would hold the pins back behind the slowest DEM tile.
       // A missing terrain library resolves `null` — the loader never rejects — and leaves the map
       // flat.
-      void this.addElevation(map, this.loadElevation(), generation);
+      void this.addElevation(map, this.loadElevation(demMaxzoom), generation);
+    });
+
+    // A phone turned from landscape to portrait narrows a map that opened wide, and MapLibre
+    // only re-collapses its compact attribution on a drag, so the narrowing is caught here.
+    map.on('resize', () => {
+      if (generation !== this.generation || this.outcome !== 'painted') {
+        return;
+      }
+      const narrow = this.isNarrow();
+      this.collapseAttributionOnNarrowMap(narrow && !this.mapIsNarrow);
+      this.mapIsNarrow = narrow;
     });
 
     map.on('click', SPOT_HIT_LAYER_ID, (event: MapLayerMouseEvent) => {
@@ -409,7 +439,7 @@ export class SpotMapComponent {
     this.failed.emit(reason);
   }
 
-  /** Adds the spot source and its pins, then frames the city's spots. */
+  /** Adds the spot source and its pins, then frames the spots that make up the city. */
   private drawSpots(map: MapLibreMap, collection: SpotCollection): void {
     map.addSource(SPOT_SOURCE_ID, {
       type: 'geojson',
@@ -421,7 +451,9 @@ export class SpotMapComponent {
       map.addLayer(layer);
     }
 
-    const bounds = this.boundsOf(collection);
+    const bounds = framingBounds(
+      collection.features.map((feature) => feature.geometry.coordinates),
+    );
     if (bounds) {
       map.fitBounds(bounds, {
         padding: FIT_PADDING_PX,
@@ -429,6 +461,29 @@ export class SpotMapComponent {
         duration: prefersReducedMotion() ? 0 : FIT_DURATION_MS,
       });
     }
+  }
+
+  /** Whether the map's canvas host is at or under {@link NARROW_MAP_MAX_WIDTH_PX} wide. */
+  private isNarrow(): boolean {
+    return (
+      this.canvasHost().nativeElement.offsetWidth <= NARROW_MAP_MAX_WIDTH_PX
+    );
+  }
+
+  /**
+   * Collapses the attribution control to its info button when `collapse` is set. MapLibre opens
+   * it on a map of any width and only collapses it on the first drag, which on a phone leaves the
+   * credits over half the map until the visitor happens to pan. This is the same collapse the
+   * drag makes — the credits stay one tap away — and the control is the library's, so its CSS
+   * class is the only handle there is.
+   */
+  private collapseAttributionOnNarrowMap(collapse: boolean): void {
+    if (!collapse) {
+      return;
+    }
+    this.canvasHost()
+      .nativeElement.querySelector('.maplibregl-ctrl-attrib')
+      ?.classList.remove('maplibregl-compact-show');
   }
 
   /**
@@ -460,30 +515,6 @@ export class SpotMapComponent {
     } catch (error) {
       console.error(error);
     }
-  }
-
-  /** The tightest box holding every spot, or null for a city whose set is still empty. */
-  private boundsOf(
-    collection: SpotCollection,
-  ): [[number, number], [number, number]] | null {
-    if (collection.features.length === 0) {
-      return null;
-    }
-    let minLng = Infinity;
-    let minLat = Infinity;
-    let maxLng = -Infinity;
-    let maxLat = -Infinity;
-    for (const feature of collection.features) {
-      const [lng, lat] = feature.geometry.coordinates;
-      minLng = Math.min(minLng, lng);
-      minLat = Math.min(minLat, lat);
-      maxLng = Math.max(maxLng, lng);
-      maxLat = Math.max(maxLat, lat);
-    }
-    return [
-      [minLng, minLat],
-      [maxLng, maxLat],
-    ];
   }
 
   /**

@@ -1,0 +1,37 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          15.8938029,
+          43.7349042
+        ]
+      },
+      "properties": {
+        "id": "homeplaza-1ad084",
+        "name": "Homeplaza",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          15.8943581,
+          43.7339561
+        ]
+      },
+      "properties": {
+        "id": "5-stair-and-10-stair-413e9e",
+        "name": "5 Stair and 10 Stair",
+        "status": "active",
+        "photos": []
+      }
+    }
+  ]
+}

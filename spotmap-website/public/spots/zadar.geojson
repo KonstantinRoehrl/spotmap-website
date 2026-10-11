@@ -1,0 +1,37 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          15.232268,
+          44.1183758
+        ]
+      },
+      "properties": {
+        "id": "diy-1b64cb",
+        "name": "DIY",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          15.2238951,
+          44.115576
+        ]
+      },
+      "properties": {
+        "id": "low-to-high-ledge-6f0013",
+        "name": "Low to High Ledge",
+        "status": "active",
+        "photos": []
+      }
+    }
+  ]
+}

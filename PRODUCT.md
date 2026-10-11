@@ -25,7 +25,7 @@ A blend of three, held in tension on purpose:
 - **Cryptic / insider** — the terminal/matrix texture is an in-group signal; it rewards the in-the-know and frames spots as knowledge you're being let in on.
 - **Sarcastic / self-aware** — the voice jokes and doesn't take itself seriously (existing copy: "CAN SOMEONE BRING WAX?", "SKATEVIDEOS > INSTAGRAM"), **but leaves room for earnest respect/safety notes** ("RESPECT THE LOCALS", and e.g. "TAKE CARE OF PEDESTRIANS"). Careless in tone, careful about the culture.
 
-Guiding metaphor: **time travel back to earlier days.** Everything the site controls should feel like an earlier computing era — typewriter, terminal, matrix, CRT glow. (Vienna's map is drawn by the site itself now, styled to the same terminal system as the shell around it. The remaining cities still embed Google My Maps until the later migration phases reach them — a temporary anachronism the retro shell wraps around, not a fixture.)
+Guiding metaphor: **time travel back to earlier days.** Everything the site controls should feel like an earlier computing era — typewriter, terminal, matrix, CRT glow. (Every city's map is drawn by the site itself, styled to the same terminal system as the shell around it.)
 
 ## Anti-references
 
@@ -33,7 +33,7 @@ Guiding metaphor: **time travel back to earlier days.** Everything the site cont
 - **Mainstream fitness / social apps** — Strava / Instagram / Komoot: rounded friendly cards, engagement feeds, gradients.
 - **Over-gamified / cutesy** — badges, mascots, confetti, bubbly rounded everything. Too toy-like for an archive.
 - **Generic dark-mode SaaS template** — "dark theme + one accent + card grid." Dark ≠ the matrix aesthetic; the difference is the retro-computing intent, not just low brightness.
-- **Constraint:** two renderers coexist until every city is migrated — Vienna is drawn by the site, the other cities still embed Google My Maps. Design for both: the retro shell has to hold our own map *and* still wrap around the embed it hasn't replaced yet.
+- **Constraint:** one renderer for every city — the site draws each map itself from a static per-city dataset. The retro shell holds our own map everywhere; there is no third-party map to wrap.
 
 ## Design Principles
 
@@ -47,4 +47,4 @@ Guiding metaphor: **time travel back to earlier days.** Everything the site cont
 
 - **Mobile-first** is the accessibility priority: one-handed use, outdoors, in bright sunlight. Watch that the green-on-black glow stays legible in daylight (glow must not smear text; keep effective contrast high) and that touch targets/city-switching are thumb-friendly.
 - **Honor `prefers-reduced-motion`** for every heavy animation (typewriter intro, glitch text, matrix radar spinner) — currently there are **no** reduced-motion fallbacks; each needs a calm alternative (crossfade/instant, static end-state) that still shows content.
-- **Pragmatic WCAG AA where feasible** — prioritize contrast and keyboard/screen-reader basics (the map iframe needs a title; decorative ASCII should be hidden from AT). Not chasing full formal AA compliance for a niche passion project, but no obvious exclusions.
+- **Pragmatic WCAG AA where feasible** — prioritize contrast and keyboard/screen-reader basics (the map needs an accessible name; decorative ASCII should be hidden from AT). Not chasing full formal AA compliance for a niche passion project, but no obvious exclusions.

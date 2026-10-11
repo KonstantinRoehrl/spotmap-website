@@ -1,0 +1,69 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          15.785471,
+          43.754653
+        ]
+      },
+      "properties": {
+        "id": "7-stair-daf680",
+        "name": "7 Stair",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          15.7739482,
+          43.7559348
+        ]
+      },
+      "properties": {
+        "id": "low-to-high-ledge-b9d825",
+        "name": "Low to High Ledge",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          15.7848795,
+          43.7554237
+        ]
+      },
+      "properties": {
+        "id": "11-stair-c62a72",
+        "name": "11 Stair",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          15.7855018,
+          43.7552048
+        ]
+      },
+      "properties": {
+        "id": "8-stair-f38064",
+        "name": "8 Stair",
+        "status": "active",
+        "photos": []
+      }
+    }
+  ]
+}

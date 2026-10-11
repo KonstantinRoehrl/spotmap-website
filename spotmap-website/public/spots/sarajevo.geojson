@@ -1,0 +1,69 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.3425186,
+          43.8326209
+        ]
+      },
+      "properties": {
+        "id": "curbs-9b74f4",
+        "name": "Curbs",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.4176905,
+          43.8560821
+        ]
+      },
+      "properties": {
+        "id": "art-academy-curbs-5ab6b8",
+        "name": "Art Academy Curbs",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.4139237,
+          43.8550828
+        ]
+      },
+      "properties": {
+        "id": "plaza-b274ae",
+        "name": "Plaza",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.4141708,
+          43.853915
+        ]
+      },
+      "properties": {
+        "id": "rooftop-miniramp-beb4e4",
+        "name": "Rooftop Miniramp",
+        "status": "active",
+        "photos": []
+      }
+    }
+  ]
+}

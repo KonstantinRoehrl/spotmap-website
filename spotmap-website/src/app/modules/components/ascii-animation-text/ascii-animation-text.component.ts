@@ -17,6 +17,13 @@ import { prefersReducedMotion } from '../../../utils/prefers-reduced-motion';
 // linear in font size); 100 keeps the arithmetic readable.
 const MEASURE_REFERENCE_PX = 100;
 
+/**
+ * Terminal-style boot text: types each message character by character with
+ * glitch effects, holds it, collapses it, then moves on to the next one.
+ * Emits `animationFinished` once the last message has played, unless `loop` is
+ * set (or immediately when the user prefers reduced motion or there is nothing
+ * to type).
+ */
 @Component({
   selector: 'app-ascii-animation-text',
   standalone: true,
@@ -26,6 +33,7 @@ const MEASURE_REFERENCE_PX = 100;
   encapsulation: ViewEncapsulation.None,
 })
 export class AsciiAnimationTextComponent implements AfterViewInit, OnDestroy {
+  /** Lines to play in order; the last one is the welcome line left on screen under reduced motion. */
   messages = input<string[]>([
     'SYSTEM INITIALIZING...',
     'ACCESSING QUANTUM ENCRYPTION MODULE...',
@@ -34,7 +42,7 @@ export class AsciiAnimationTextComponent implements AfterViewInit, OnDestroy {
     'CALCULATING THEORETICAL TIME TRAVEL...',
     'ENCRYPTING YOUR THOUGHTS...',
     'ACCESS GRANTED',
-    'WELCOME TO THE VIENNA SPOTMAP',
+    'WELCOME TO THE SPOTMAP COMPENDIUM',
   ]);
 
   centered = input<boolean>(false);

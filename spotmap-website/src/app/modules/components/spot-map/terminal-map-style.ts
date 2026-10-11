@@ -242,7 +242,7 @@ function elevationSources(
       tiles: [elevation.demTiles],
       tileSize: MAPTERHORN_DEM.tileSize,
       encoding: MAPTERHORN_DEM.encoding,
-      maxzoom: MAPTERHORN_DEM.maxzoom,
+      maxzoom: elevation.demMaxzoom,
       attribution: MAPTERHORN_DEM.attribution,
     },
     [CONTOUR_SOURCE_ID]: {

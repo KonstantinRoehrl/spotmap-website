@@ -17,7 +17,7 @@ const ELEVATION_TIMEOUT_MS = 4000;
 
 /**
  * The page's elevation loader: imports maplibre-contour and maplibre-gl on first use and registers
- * the terrain protocols once. The one place, beside the map factories, that imports the libraries
+ * the terrain protocols once per DEM zoom. The one place, beside the map factories, that imports the libraries
  * for real.
  */
 export const loadElevation: ElevationLoader = createElevationLoader(

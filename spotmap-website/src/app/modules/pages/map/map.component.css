@@ -10,13 +10,6 @@
   display: flex;
 }
 
-.map-container iframe {
-  flex: 1 1 auto;
-  width: 100%;
-  height: 100%;
-  border: none;
-}
-
 /* --------------------
    Material select / form-field styling lives GLOBALLY in src/theme.scss.
    The dropdown is a CDK overlay rendered at the document root (outside this

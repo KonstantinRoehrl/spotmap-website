@@ -8,7 +8,6 @@ import {
 } from '@angular/core/testing';
 
 import { CityEnum, MapFailureReason } from '../../../models/enums/map-enum';
-import { GmapsEmbedComponent } from '../gmaps-embed/gmaps-embed.component';
 import {
   ELEVATION_LOADER,
   MAP_FACTORY,
@@ -43,12 +42,9 @@ describe('MapContainerComponent', () => {
       ],
     }).compileComponents();
 
-    // The container owns the state machine, not the embed. Blank the renderer's
-    // template so these tests never open a live Google iframe; the embed's own
-    // markup is covered by gmaps-embed.component.spec.ts.
-    TestBed.overrideComponent(GmapsEmbedComponent, { set: { template: '' } });
-    // Same for the MapLibre renderer: no WebGL context is built here either, and its
-    // own markup is covered by spot-map.component.spec.ts.
+    // The container owns the state machine, not the map. Blank the MapLibre renderer's
+    // template so no WebGL context is built here; its own markup is covered by
+    // spot-map.component.spec.ts.
     TestBed.overrideComponent(SpotMapComponent, { set: { template: '' } });
   });
 
@@ -87,17 +83,16 @@ describe('MapContainerComponent', () => {
     fixture.destroy();
   });
 
-  it('renders the maplibre renderer for a city configured to use it', () => {
+  it('renders the maplibre map for vienna', () => {
     const fixture = create(true, CityEnum.Vienna);
     expect(fixture.nativeElement.querySelector('app-spot-map')).toBeTruthy();
-    expect(fixture.nativeElement.querySelector('app-gmaps-embed')).toBeNull();
     fixture.destroy();
   });
 
-  it('renders the google embed for a city configured to use it', () => {
+  it('renders the maplibre map for graz, which used to embed google my maps', () => {
     const fixture = create(true, CityEnum.Graz);
-    expect(fixture.nativeElement.querySelector('app-gmaps-embed')).toBeTruthy();
-    expect(fixture.nativeElement.querySelector('app-spot-map')).toBeNull();
+    expect(fixture.nativeElement.querySelector('app-spot-map')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('iframe')).toBeNull();
     fixture.destroy();
   });
 
