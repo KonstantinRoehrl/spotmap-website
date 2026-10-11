@@ -1,0 +1,101 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          20.4461733,
+          44.8151886
+        ]
+      },
+      "properties": {
+        "id": "big-bank-6b49ed",
+        "name": "Big Bank",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          20.468557,
+          44.7980122
+        ]
+      },
+      "properties": {
+        "id": "7-stair-and-curbs-3fb721",
+        "name": "7 Stair and Curbs",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          20.4568104,
+          44.8083316
+        ]
+      },
+      "properties": {
+        "id": "curbs-60a7d6",
+        "name": "Curbs",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19.8431345,
+          45.2548245
+        ]
+      },
+      "properties": {
+        "id": "novi-sad-stairs-and-big-double-set-a4ca90",
+        "name": "Novi Sad: Stairs and Big Double Set",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          20.4311446,
+          44.8067345
+        ]
+      },
+      "properties": {
+        "id": "crusty-rail-531396",
+        "name": "Crusty Rail",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          20.424144,
+          44.8071334
+        ]
+      },
+      "properties": {
+        "id": "vulcano-a26f3a",
+        "name": "Vulcano",
+        "status": "active",
+        "photos": []
+      }
+    }
+  ]
+}

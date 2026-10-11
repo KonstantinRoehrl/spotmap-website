@@ -46,7 +46,9 @@ Thumbs.db
 src/.impeccable/
 
 # Spot extraction tool (tools/extract-spots): photos and caches stay local;
-# data/spots/*.geojson, *.report.json and sources.json are committed.
+# data/spots/*.geojson, *.report.json and sources.json are committed, and so are
+# their promoted copies public/spots/<city>.geojson (promote.mjs).
 /data/.cache/
 /data/spots/*/
 /data/**/*.tmp
+/public/spots/*.tmp

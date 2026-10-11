@@ -30,11 +30,15 @@ export interface SpotProperties {
   id: string;
   name: string;
   status: SpotStatus;
-  /** Base-relative asset paths, never a leading slash — production runs under /spotmap-website/. */
+  /**
+   * Base-relative asset paths, never a leading slash — production runs under /spotmap-website/.
+   * Always empty in the served `public/spots/` copies until photos have a host; only
+   * data/spots/ lists them.
+   */
   photos: string[];
   /**
-   * One record per map that holds the spot, the city's own map first. Optional because the
-   * promoted `public/spots/` datasets predate it.
+   * One record per map that holds the spot, the city's own map first. Only data/spots/ carries
+   * it: the served `public/spots/` copies omit it, which is why it is optional.
    */
   sources?: SpotSource[];
 }
@@ -51,9 +55,10 @@ export interface SpotFeature {
 }
 
 /**
- * The GeoJSON `FeatureCollection` of a city's spots, served as the static asset
- * `spots/{city}.geojson` and fetched by `SpotsService.loadSpots()`; `SpotMapComponent` feeds
- * it straight into MapLibre as the pins source.
+ * The GeoJSON `FeatureCollection` of a city's spots. Every city's is served as the static asset
+ * `spots/{city}.geojson`, promoted from data/spots/ by tools/extract-spots/promote.mjs, and
+ * fetched by `SpotsService.loadSpots()`. `SpotMapComponent` feeds it straight into MapLibre as
+ * the pins source.
  */
 export interface SpotCollection {
   type: 'FeatureCollection';

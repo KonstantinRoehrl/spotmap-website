@@ -1,0 +1,101 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.5391099,
+          48.1790073
+        ]
+      },
+      "properties": {
+        "id": "diy-skatespot-5fb88a",
+        "name": "DIY Skatespot",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.5803006,
+          48.1405443
+        ]
+      },
+      "properties": {
+        "id": "spanische-curbs-6bf232",
+        "name": "Spanische Curbs",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.5338072,
+          48.17758
+        ]
+      },
+      "properties": {
+        "id": "curb-over-gap-495d23",
+        "name": "Curb over Gap",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.5915686,
+          48.1427288
+        ]
+      },
+      "properties": {
+        "id": "8er-stair-bb7577",
+        "name": "8er Stair",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.5368515,
+          48.1805668
+        ]
+      },
+      "properties": {
+        "id": "curb-f8d6f6",
+        "name": "Curb",
+        "status": "active",
+        "photos": []
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.5293467,
+          48.1781899
+        ]
+      },
+      "properties": {
+        "id": "rooftop-quaters-3b6b63",
+        "name": "Rooftop Quaters",
+        "status": "active",
+        "photos": []
+      }
+    }
+  ]
+}

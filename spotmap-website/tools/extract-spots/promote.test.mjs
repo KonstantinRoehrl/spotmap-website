@@ -2,16 +2,31 @@
  * Tests for the promote step: the served copy of a city's dataset keeps each spot's id, name,
  * status and geometry and nothing else, it is written where the app loads it, and the
  * `promote:spots` CLI promotes the named cities or every city, offline. Every test writes into
- * its own temporary folders, never into the real public/spots/.
+ * its own temporary folders, never into the real public/spots/. The drift test reads the real
+ * data/spots/ and public/spots/ and writes nothing, so the committed served copies can never fall
+ * behind their data files.
  */
 import { strict as assert } from 'node:assert';
 import { existsSync } from 'node:fs';
-import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import {
+  mkdir,
+  mkdtemp,
+  readdir,
+  readFile,
+  rm,
+  writeFile,
+} from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { toJsonText } from './dataset.mjs';
-import { promoteCity, promoteCollection, runPromotion } from './promote.mjs';
+import {
+  PUBLIC_SPOTS_DIR,
+  SPOTS_DIR,
+  promoteCity,
+  promoteCollection,
+  runPromotion,
+} from './promote.mjs';
 
 /** A lossless dataset as the extraction writes it: photos, sources with notes and folders. */
 const DATASET = {
@@ -194,4 +209,32 @@ test('runPromotion exits 1 on a missing dataset and still promotes the other cit
 
   assert.equal(code, 1);
   assert.ok(existsSync(join(publicDir, 'linz.geojson')));
+});
+
+test('every served dataset equals its promoted data file, and public/spots serves nothing else', async () => {
+  const { cities } = JSON.parse(
+    await readFile(join(SPOTS_DIR, 'sources.json'), 'utf8'),
+  );
+  const names = Object.keys(cities);
+  for (const city of names) {
+    const expected = toJsonText(
+      promoteCollection(
+        JSON.parse(await readFile(join(SPOTS_DIR, `${city}.geojson`), 'utf8')),
+      ),
+    );
+    const servedPath = join(PUBLIC_SPOTS_DIR, `${city}.geojson`);
+    const served = existsSync(servedPath)
+      ? await readFile(servedPath, 'utf8')
+      : undefined;
+    // A boolean check, so a stale 500-spot file fails with one line instead of a full diff.
+    assert.ok(
+      served === expected,
+      `public/spots/${city}.geojson is missing or stale: run npm run promote:spots -- ${city}`,
+    );
+  }
+  // Hidden files such as Finder's gitignored .DS_Store are local clutter, never served from git.
+  const entries = (await readdir(PUBLIC_SPOTS_DIR))
+    .filter((name) => !name.startsWith('.'))
+    .sort();
+  assert.deepEqual(entries, names.map((city) => `${city}.geojson`).sort());
 });
