@@ -16,7 +16,7 @@ export const TERMINAL_PALETTE = {
 } as const;
 
 /**
- * The Vienna basemap's colour roles: DESIGN.md §2's Map Palette, the one documented exception to
+ * The basemap's colour roles: DESIGN.md §2's Map Palette, the one documented exception to
  * the Two-Phosphor Rule. Roads and labels climb a P7 radar-phosphor afterglow ladder, water is
  * IBM 3279 blue-violet, and the area fills, contours and relief stay dim because they are
  * decoration — direct sun on a phone washes out anything dimmer than about `#00b800`, so meaning
