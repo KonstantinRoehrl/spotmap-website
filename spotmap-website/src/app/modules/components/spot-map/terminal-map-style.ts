@@ -56,10 +56,10 @@ interface RoadTier {
 /**
  * The road ranking, brightest and widest first, up the radar-phosphor afterglow ladder: motorway
  * and trunk carry the city, service roads and tracks barely register, and every road class the
- * tiles serve lands in exactly one tier. Brightness and width carry the rank between them — never
- * a dash pattern, which breaks a line up until it stops reading as one. Whatever the tiles carry
- * that is not a road — paths, piers, rails, bridge decks, unbuilt roads — is drawn by its own layer
- * below, or not at all.
+ * Vienna tiles serve lands in exactly one tier. Brightness and width carry the rank between them —
+ * never a dash pattern, which breaks a line up until it stops reading as one. Whatever the tiles
+ * carry that is not a road — paths, piers, rails, bridge decks, unbuilt roads — is drawn by its
+ * own layer below, or not at all.
  */
 const ROAD_TIERS: readonly RoadTier[] = [
   {
