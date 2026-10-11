@@ -26,6 +26,7 @@ interface CameraMove {
 const ELEVATION_TILES: ElevationTiles = {
   demTiles: 'dem-shared://{z}/{x}/{y}',
   contourTiles: 'dem-contour://{z}/{x}/{y}?thresholds=11*50*100',
+  demMaxzoom: 14,
 };
 
 /** The terrain layers, each with the basemap layer it belongs under (spec §3.2). */
@@ -98,6 +99,8 @@ class FakeMap {
   styleLoaded = false;
   removed = false;
   lastFitBounds?: { padding: number; duration: number; maxZoom: number };
+  /** The box the last `fitBounds` was asked to frame, as `[[west, south], [east, north]]`. */
+  lastBounds?: [[number, number], [number, number]];
   /**
    * Every camera move *the component* asked for, with the option bag it asked with, so the
    * reduced-motion spec can assert about all of them rather than about the one call site that
@@ -139,9 +142,10 @@ class FakeMap {
     return this.addedLayers.filter((added) => !added.id.startsWith('spots-'));
   }
   fitBounds(
-    _bounds: unknown,
+    bounds: [[number, number], [number, number]],
     options: { padding: number; duration: number; maxZoom: number },
   ) {
+    this.lastBounds = bounds;
     this.lastFitBounds = options;
     this.cameraMoves.push({ method: 'fitBounds', options });
   }
@@ -453,6 +457,28 @@ function tapOn(id: string) {
   return { features: [{ id, properties: { id } }] };
 }
 
+/** Gives the element a layout width, which jsdom-free Karma would otherwise measure for real. */
+function setWidth(host: HTMLElement, width: number) {
+  Object.defineProperty(host, 'offsetWidth', {
+    configurable: true,
+    value: width,
+  });
+}
+
+/**
+ * Stands in for the control MapLibre injects into the canvas host: open, as it opens on a map of
+ * any width until the first drag. The host's width is what the component reads to tell a phone
+ * from a desktop.
+ */
+function addAttributionControl(host: HTMLElement, width: number): HTMLElement {
+  setWidth(host, width);
+  const control = document.createElement('details');
+  control.className =
+    'maplibregl-ctrl maplibregl-ctrl-attrib maplibregl-compact maplibregl-compact-show';
+  host.append(control);
+  return control;
+}
+
 describe('SpotMapComponent', () => {
   let fixture: ComponentFixture<SpotMapComponent>;
   let fake: FakeMap;
@@ -464,7 +490,7 @@ describe('SpotMapComponent', () => {
   let popupFactoryRejects: boolean;
   let elevation: ElevationTiles | null;
   /** What the fake `ELEVATION_LOADER` hands back; resolves `elevation` unless a spec holds it. */
-  let loadElevation: () => Promise<ElevationTiles | null>;
+  let loadElevation: (demMaxzoom: number) => Promise<ElevationTiles | null>;
 
   beforeEach(async () => {
     elevation = null;
@@ -507,19 +533,22 @@ describe('SpotMapComponent', () => {
         },
         {
           provide: ELEVATION_LOADER,
-          useValue: () => loadElevation(),
+          useValue: (demMaxzoom: number) => loadElevation(demMaxzoom),
         },
       ],
     }).compileComponents();
     httpMock = TestBed.inject(HttpTestingController);
   });
 
-  async function create() {
+  async function create({
+    city = CityEnum.Vienna,
+    collection = COLLECTION,
+  }: { city?: CityEnum; collection?: object } = {}) {
     fixture = TestBed.createComponent(SpotMapComponent);
-    fixture.componentRef.setInput('city', CityEnum.Vienna);
+    fixture.componentRef.setInput('city', city);
     fixture.componentRef.setInput('retryToken', 0);
     fixture.detectChanges();
-    httpMock.expectOne('spots/vienna.geojson').flush(COLLECTION);
+    httpMock.expectOne(`spots/${city}.geojson`).flush(collection);
     await fixture.whenStable();
     fixture.detectChanges();
     return fixture.componentInstance;
@@ -590,6 +619,131 @@ describe('SpotMapComponent', () => {
     fake.emit('load');
     const ids = fake.layers.map((l) => l.id);
     expect(ids.indexOf('spots-hit')).toBeLessThan(ids.indexOf('spots-body'));
+  });
+
+  it('frames the city’s own spots and leaves a stray one to be panned to', async () => {
+    const spot = (id: string, lng: number, lat: number) => ({
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [lng, lat] },
+      properties: { id, name: id, status: 'active', photos: [] },
+    });
+    await create({
+      collection: {
+        type: 'FeatureCollection',
+        features: [
+          spot('a', 16.37, 48.2),
+          spot('b', 16.4, 48.22),
+          spot('c', 16.35, 48.19),
+          // Melk, ~75 km west of Vienna: the sort of stray the framing must not stretch for.
+          spot('stray', 15.33, 48.23),
+        ],
+      },
+    });
+    fake.emit('load');
+    expect(fake.lastBounds).toEqual([
+      [16.35, 48.19],
+      [16.4, 48.22],
+    ]);
+    expect(fake.sources['spots']).toEqual(
+      jasmine.objectContaining({
+        data: jasmine.objectContaining({
+          features: jasmine.arrayContaining([
+            jasmine.objectContaining({
+              properties: jasmine.objectContaining({ id: 'stray' }),
+            }),
+          ]),
+        }),
+      }),
+    );
+  });
+
+  it('collapses the attribution to its info button on a narrow map', async () => {
+    await create();
+    const attribution = addAttributionControl(
+      fixture.nativeElement.querySelector('.spot-map__canvas'),
+      360,
+    );
+    fake.emit('load');
+    expect(attribution.classList).not.toContain('maplibregl-compact-show');
+    expect(attribution.classList).toContain('maplibregl-compact');
+  });
+
+  it('collapses the attribution on a map exactly at the narrow-map width', async () => {
+    await create();
+    const attribution = addAttributionControl(
+      fixture.nativeElement.querySelector('.spot-map__canvas'),
+      640,
+    );
+    fake.emit('load');
+    expect(attribution.classList).not.toContain('maplibregl-compact-show');
+  });
+
+  it('leaves the attribution open on a map a pixel wider than the narrow-map width', async () => {
+    await create();
+    const attribution = addAttributionControl(
+      fixture.nativeElement.querySelector('.spot-map__canvas'),
+      641,
+    );
+    fake.emit('load');
+    expect(attribution.classList).toContain('maplibregl-compact-show');
+  });
+
+  it('collapses the attribution when a map that opened wide is narrowed', async () => {
+    await create();
+    const host = fixture.nativeElement.querySelector('.spot-map__canvas');
+    const attribution = addAttributionControl(host, 844);
+    fake.emit('load');
+    expect(attribution.classList).toContain('maplibregl-compact-show');
+    setWidth(host, 390);
+    fake.emit('resize');
+    expect(attribution.classList).not.toContain('maplibregl-compact-show');
+  });
+
+  it('does not close the attribution again on a resize while the map stays narrow', async () => {
+    await create();
+    const host = fixture.nativeElement.querySelector('.spot-map__canvas');
+    const attribution = addAttributionControl(host, 390);
+    fake.emit('load');
+    // The visitor taps the info button open; a later resize (the address bar sliding away) is
+    // not a reason to shut it on them.
+    attribution.classList.add('maplibregl-compact-show');
+    setWidth(host, 392);
+    fake.emit('resize');
+    expect(attribution.classList).toContain('maplibregl-compact-show');
+  });
+
+  it('leaves the attribution open on a map wide enough to spare the room', async () => {
+    await create();
+    const attribution = addAttributionControl(
+      fixture.nativeElement.querySelector('.spot-map__canvas'),
+      1200,
+    );
+    fake.emit('load');
+    expect(attribution.classList).toContain('maplibregl-compact-show');
+  });
+
+  it('asks for the DEM depth its city has, so no city requests tiles that do not exist', async () => {
+    const asked: number[] = [];
+    loadElevation = (demMaxzoom) => {
+      asked.push(demMaxzoom);
+      return Promise.resolve(null);
+    };
+    await create({ city: CityEnum.Split });
+    fake.emit('load');
+    await fixture.whenStable();
+    expect(asked).toEqual([12, 12]);
+  });
+
+  it('asks for the survey depth for a city Mapterhorn has a survey for', async () => {
+    const asked: number[] = [];
+    loadElevation = (demMaxzoom) => {
+      asked.push(demMaxzoom);
+      return Promise.resolve(null);
+    };
+    await create();
+    fake.emit('load');
+    await fixture.whenStable();
+    expect(asked).toEqual([14, 14]);
   });
 
   it('fits the viewport to the loaded spots instead of a hardcoded centre', async () => {

@@ -4,9 +4,12 @@ import {
   CONTOUR_THRESHOLDS,
   createElevationLoader,
   type ElevationImporters,
+  demMaxzoomFor,
   type ElevationTiles,
+  GLO30_DEM_MAXZOOM,
   MAPTERHORN_DEM,
 } from './elevation';
+import { CityEnum } from '../../../models/enums/map-enum';
 
 /** Records what the loader asks of maplibre-contour's `DemSource`, without generating anything. */
 class FakeDemSource {
@@ -57,7 +60,7 @@ describe('createElevationLoader', () => {
   });
 
   it('opens one DEM source on the Mapterhorn tiles, its worker on', async () => {
-    await createElevationLoader(importers(), 4000)();
+    await createElevationLoader(importers(), 4000)(14);
     expect(FakeDemSource.created.length).toBe(1);
     expect(FakeDemSource.created[0]?.options).toEqual({
       url: MAPTERHORN_DEM.url,
@@ -69,9 +72,9 @@ describe('createElevationLoader', () => {
 
   it('registers its protocols on maplibre-gl once, however often it is asked', async () => {
     const loader = createElevationLoader(importers(), 4000);
-    await loader();
-    await loader();
-    await loader();
+    await loader(14);
+    await loader(14);
+    await loader(14);
     expect(FakeDemSource.created.length).toBe(1);
     expect(FakeDemSource.created[0]?.setupMaplibre).toHaveBeenCalledOnceWith(
       maplibre,
@@ -79,10 +82,11 @@ describe('createElevationLoader', () => {
   });
 
   it('hands back the shared DEM URL and a contour URL in the style’s contour schema', async () => {
-    const tiles = await createElevationLoader(importers(), 4000)();
+    const tiles = await createElevationLoader(importers(), 4000)(14);
     expect(tiles).toEqual({
       demTiles: 'dem-shared://{z}/{x}/{y}',
       contourTiles: 'dem-contour://{z}/{x}/{y}?thresholds=11*50*100',
+      demMaxzoom: 14,
     });
     expect(FakeDemSource.created[0]?.contourOptions).toEqual({
       thresholds: CONTOUR_THRESHOLDS,
@@ -101,7 +105,7 @@ describe('createElevationLoader', () => {
       }),
       4000,
     );
-    expect(await loader()).toBeNull();
+    expect(await loader(14)).toBeNull();
     expect(logged).toHaveBeenCalled();
   });
 
@@ -119,7 +123,7 @@ describe('createElevationLoader', () => {
       }),
       4000,
     );
-    expect(await loader()).toBeNull();
+    expect(await loader(14)).toBeNull();
   });
 
   it('gives up with null once the timeout passes on a stalled import', fakeAsync(() => {
@@ -129,7 +133,7 @@ describe('createElevationLoader', () => {
     );
     // Asserted, not inferred, so TypeScript does not narrow it to 'pending' for good.
     let result = 'pending' as ElevationTiles | null | 'pending';
-    void loader().then((value) => (result = value));
+    void loader(14).then((value) => (result = value));
     tick(3999);
     flushMicrotasks();
     expect(result)
@@ -149,18 +153,96 @@ describe('createElevationLoader', () => {
       4000,
     );
     let first = 'pending' as ElevationTiles | null | 'pending';
-    void loader().then((value) => (first = value));
+    void loader(14).then((value) => (first = value));
     tick(4000);
     flushMicrotasks();
     expect(first).toBeNull();
     arrive(maplibre);
     flushMicrotasks();
     let second = 'pending' as ElevationTiles | null | 'pending';
-    void loader().then((value) => (second = value));
+    void loader(14).then((value) => (second = value));
     flushMicrotasks();
     expect(second).toEqual(
       jasmine.objectContaining({ demTiles: 'dem-shared://{z}/{x}/{y}' }),
     );
     expect(FakeDemSource.created.length).toBe(1);
   }));
+
+  it('opens a second DEM source for a city the survey tiles do not reach', async () => {
+    const loader = createElevationLoader(importers(), 4000);
+    const surveyed = await loader(MAPTERHORN_DEM.maxzoom);
+    const planetOnly = await loader(GLO30_DEM_MAXZOOM);
+    expect(FakeDemSource.created.map((source) => source.options)).toEqual([
+      jasmine.objectContaining({ maxzoom: 14 }),
+      jasmine.objectContaining({ maxzoom: 12 }),
+    ]);
+    expect(surveyed?.demMaxzoom).toBe(14);
+    expect(planetOnly?.demMaxzoom).toBe(12);
+  });
+
+  it('opens each DEM zoom once however often cities of either kind are visited', async () => {
+    const loader = createElevationLoader(importers(), 4000);
+    for (const zoom of [14, 12, 14, 12, 12]) {
+      await loader(zoom);
+    }
+    expect(FakeDemSource.created.length).toBe(2);
+  });
+  it('resolves null, not a throw, when an importer throws synchronously', async () => {
+    spyOn(console, 'error');
+    const loader = createElevationLoader(
+      importers({
+        maplibre: () => {
+          throw new Error('importer exploded');
+        },
+      }),
+      4000,
+    );
+    expect(await loader(14)).toBeNull();
+    expect(await loader(12)).toBeNull();
+  });
+
+  it('resolves every zoom null when the shared import fails', async () => {
+    spyOn(console, 'error');
+    const loader = createElevationLoader(
+      importers({
+        contour: () => Promise.reject(new Error('chunk gone after a redeploy')),
+      }),
+      4000,
+    );
+    const [survey, planet] = await Promise.all([loader(14), loader(12)]);
+    expect(survey).toBeNull();
+    expect(planet).toBeNull();
+  });
+});
+
+describe('demMaxzoomFor', () => {
+  it('takes the survey DEMs’ full depth where Mapterhorn has one', () => {
+    for (const city of [
+      CityEnum.Vienna,
+      CityEnum.Salzburg,
+      CityEnum.Bratislava,
+      CityEnum.Prague,
+      CityEnum.Munich,
+      CityEnum.Paris,
+      CityEnum.Barcelona,
+      CityEnum.Lisbon,
+    ]) {
+      expect(demMaxzoomFor(city)).withContext(city).toBe(14);
+    }
+  });
+
+  it('stops at the planet archive’s zoom where only Copernicus covers the city', () => {
+    for (const city of [
+      CityEnum.Split,
+      CityEnum.Zagreb,
+      CityEnum.Rijeka,
+      CityEnum.Zadar,
+      CityEnum.Vodice,
+      CityEnum.Sibenik,
+      CityEnum.Belgrad,
+      CityEnum.Sarajevo,
+    ]) {
+      expect(demMaxzoomFor(city)).withContext(city).toBe(12);
+    }
+  });
 });

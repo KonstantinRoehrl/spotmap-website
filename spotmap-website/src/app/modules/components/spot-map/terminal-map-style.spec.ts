@@ -13,6 +13,7 @@ import {
 const ELEVATION: ElevationTiles = {
   demTiles: 'dem-shared://{z}/{x}/{y}',
   contourTiles: 'dem-contour://{z}/{x}/{y}?thresholds=11*50*100',
+  demMaxzoom: 14,
 };
 
 /** Every layer id, in draw order, of the basemap once elevation is added to it (spec §3.2). */
@@ -578,6 +579,13 @@ describe('buildTerminalStyle', () => {
       tiles: [ELEVATION.contourTiles],
       maxzoom: 15,
     });
+  });
+
+  it('stops asking for DEM tiles at the zoom the elevation was set up for', () => {
+    const additions = buildElevationAdditions({ ...ELEVATION, demMaxzoom: 12 });
+    expect(additions.sources['dem']).toEqual(
+      jasmine.objectContaining({ maxzoom: 12 }),
+    );
   });
 
   it("credits Mapterhorn, every survey DEM behind the picker's cities, and Copernicus wherever terrain is drawn", () => {

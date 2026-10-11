@@ -1,6 +1,8 @@
 import type mlcontour from 'maplibre-contour';
+import { SUPPORTED_CITIES } from '../../../models/enums/config';
+import { CityEnum, CountryCodeEnum } from '../../../models/enums/map-enum';
 
-/** maplibre-contour's DEM source; the loader creates exactly one per page. */
+/** maplibre-contour's DEM source; the loader creates one per DEM zoom, so at most two per page. */
 type DemSource = InstanceType<typeof mlcontour.DemSource>;
 
 /**
@@ -24,7 +26,12 @@ export const MAPTERHORN_DEM = {
   url: 'https://tiles.mapterhorn.com/{z}/{x}/{y}.webp',
   encoding: 'terrarium',
   tileSize: 512,
-  /** Smoother contours, and a faint hillshade gains nothing beyond it. */
+  /**
+   * The deepest tiles Mapterhorn serves anywhere, which is only where a survey DEM exists —
+   * smoother contours than the planet archive, and a faint hillshade gains nothing beyond it.
+   * Use {@link demMaxzoomFor} for a city: elsewhere the tiles stop at {@link GLO30_DEM_MAXZOOM},
+   * and asking for deeper ones is a 404 per tile.
+   */
   maxzoom: 14,
   attribution:
     '<a href="https://mapterhorn.com/attribution/" target="_blank" rel="noopener">© Mapterhorn</a>' +
@@ -38,6 +45,32 @@ export const MAPTERHORN_DEM = {
     ' · Copernicus GLO-30 © DLR e.V. 2010–2014, © Airbus Defence and Space GmbH 2014–2018,' +
     ' provided under COPERNICUS by the EU and ESA',
 } as const;
+
+/** The deepest zoom of the planet archive, which is Copernicus GLO-30 alone. */
+export const GLO30_DEM_MAXZOOM = 12;
+
+/**
+ * The countries whose cities have no survey DEM at Mapterhorn, so only the planet archive covers
+ * them (see {@link MAPTERHORN_DEM}). A country missing here is asked for survey depth, which costs
+ * a few 404s if Mapterhorn turns out not to have one and never costs detail where it does; a city
+ * in a new country means checking Mapterhorn's attribution list again.
+ */
+const GLO30_ONLY_COUNTRIES: ReadonlySet<CountryCodeEnum> = new Set([
+  CountryCodeEnum.Croatia,
+  CountryCodeEnum.Serbia,
+  CountryCodeEnum.Bosnia,
+]);
+
+/**
+ * The deepest DEM zoom that exists for a city: the survey depth where Mapterhorn has a survey
+ * source for its country, and the planet archive's depth where it does not. Past it MapLibre
+ * overzooms what it has instead of requesting tiles Mapterhorn will 404.
+ */
+export function demMaxzoomFor(city: CityEnum): number {
+  return GLO30_ONLY_COUNTRIES.has(SUPPORTED_CITIES[city].countryCode)
+    ? GLO30_DEM_MAXZOOM
+    : MAPTERHORN_DEM.maxzoom;
+}
 
 /**
  * `[minor, major]` contour spacing in metres, keyed by the zoom it starts at: maplibre-contour
@@ -70,10 +103,23 @@ export interface ElevationTiles {
   readonly demTiles: string;
   /** The contour tile URL, generated in a worker from the same DEM. */
   readonly contourTiles: string;
+  /** The deepest DEM zoom these URLs reach; the style must not ask the DEM source past it. */
+  readonly demMaxzoom: number;
 }
 
-/** Resolves the elevation tile URLs, or `null` when elevation is unavailable. Never rejects. */
-export type ElevationLoader = () => Promise<ElevationTiles | null>;
+/**
+ * Resolves the elevation tile URLs for a DEM of the given depth ({@link demMaxzoomFor}), or `null`
+ * when elevation is unavailable. Never rejects.
+ */
+export type ElevationLoader = (
+  demMaxzoom: number,
+) => Promise<ElevationTiles | null>;
+
+/** The two libraries the loader sets a DEM source up from, once imported. */
+type ImportedLibraries = readonly [
+  Awaited<ReturnType<ElevationImporters['maplibre']>>,
+  Awaited<ReturnType<ElevationImporters['contour']>>,
+];
 
 /** The two lazy imports the loader needs, passed in so specs can drive it with fakes. */
 export interface ElevationImporters {
@@ -84,40 +130,56 @@ export interface ElevationImporters {
 }
 
 /**
- * Builds the page's elevation loader. The first call imports both libraries, creates one
- * `DemSource` with its worker on and registers its protocols on maplibre-gl; every later call
- * reuses that setup, because a protocol can only be registered once per page. A call resolves
- * `null` instead of rejecting — on an import or setup failure, or when `timeoutMs` passes first —
- * because elevation is decoration and the map draws without it. A setup that outlasts one call's
- * timeout keeps running, so a later build (a RETRY, a city switch) still picks it up.
+ * Builds the page's elevation loader. The first call imports both libraries; each DEM zoom asked
+ * for creates one `DemSource` with its worker on and registers its protocols on maplibre-gl, and
+ * every later call for that zoom reuses it, because a protocol can only be registered once per
+ * source. The two zooms in use are two sources, since a source overzooms from its own `maxzoom`
+ * and cannot serve a city with survey tiles and one without. A call resolves `null` instead of
+ * rejecting — on an import or setup failure, or when `timeoutMs` passes first — because elevation
+ * is decoration and the map draws without it. A setup that outlasts one call's timeout keeps
+ * running, so a later build (a RETRY, a city switch) still picks it up.
  */
 export function createElevationLoader(
   importers: ElevationImporters,
   timeoutMs: number,
 ): ElevationLoader {
-  let setup: Promise<ElevationTiles | null> | undefined;
-  return () => {
-    setup ??= setUpElevation(importers);
+  let libraries: Promise<ImportedLibraries> | undefined;
+  const setups = new Map<number, Promise<ElevationTiles | null>>();
+  return (demMaxzoom) => {
+    libraries ??= importLibraries(importers);
+    let setup = setups.get(demMaxzoom);
+    if (!setup) {
+      setup = setUpElevation(libraries, demMaxzoom);
+      setups.set(demMaxzoom, setup);
+    }
     return resolveWithin(setup, timeoutMs);
   };
 }
 
 /**
- * Imports both libraries, creates the page's one `DemSource` and registers its protocols.
- * Resolves `null`, after logging the cause, on any failure.
+ * Imports both libraries. Async so that an importer throwing synchronously rejects rather than
+ * escaping the loader, which promises never to throw.
+ */
+async function importLibraries(
+  importers: ElevationImporters,
+): Promise<ImportedLibraries> {
+  return Promise.all([importers.maplibre(), importers.contour()]);
+}
+
+/**
+ * Creates the page's `DemSource` for one DEM zoom and registers its protocols. Resolves `null`,
+ * after logging the cause, on any failure — including the import having failed.
  */
 async function setUpElevation(
-  importers: ElevationImporters,
+  libraries: Promise<ImportedLibraries>,
+  demMaxzoom: number,
 ): Promise<ElevationTiles | null> {
   try {
-    const [maplibre, contour] = await Promise.all([
-      importers.maplibre(),
-      importers.contour(),
-    ]);
+    const [maplibre, contour] = await libraries;
     const demSource = new contour.default.DemSource({
       url: MAPTERHORN_DEM.url,
       encoding: MAPTERHORN_DEM.encoding,
-      maxzoom: MAPTERHORN_DEM.maxzoom,
+      maxzoom: demMaxzoom,
       worker: true,
     });
     demSource.setupMaplibre(maplibre);
@@ -130,6 +192,7 @@ async function setUpElevation(
         levelKey: CONTOUR_LEVEL_KEY,
         multiplier: 1,
       }),
+      demMaxzoom,
     };
   } catch (error) {
     // Catching the failure took the browser's own report of it away, and the map goes on to
