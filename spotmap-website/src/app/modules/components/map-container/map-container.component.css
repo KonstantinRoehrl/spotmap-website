@@ -12,6 +12,23 @@
   transition: opacity 0.4s ease-in-out;
 }
 
+/* Loader and failure overlay crossfade in and out of each other and of the map (DESIGN.md motion rule). */
+.map-container__overlay {
+  position: absolute;
+  inset: 0;
+  transition: opacity 300ms ease-in-out;
+}
+
+@starting-style {
+  .map-container__overlay {
+    opacity: 0;
+  }
+}
+
+.map-container__overlay--leaving {
+  opacity: 0;
+}
+
 /* Error / timeout overlay — opaque near-black surface over the failed map. */
 .map-error {
   background: var(--color-surface);

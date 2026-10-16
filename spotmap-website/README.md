@@ -33,7 +33,7 @@ npm test          # unit tests (Karma/Jasmine, headless-capable)
 src/
   app/
     modules/
-      components/   # nav-bar, map-container, loading-bar, ascii-animation-text
+      components/   # nav-bar, map-container, map-loader, ascii-rain, ascii-animation-text
       pages/        # home, map, about (routed)
       directives/   # glitch-text (per-character scramble)
     models/enums/   # city / country / config data (SUPPORTED_CITIES)
