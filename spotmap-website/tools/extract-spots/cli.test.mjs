@@ -371,7 +371,15 @@ test('a successful city writes its promoted copy into the public folder', async 
   const promoted = JSON.parse(await readFile(ws.promotedPath, 'utf8'));
   assert.deepEqual(
     promoted.features.map((feature) => feature.properties),
-    [{ id: SPOT_ID, name: 'Murinsel', status: 'active', photos: [] }],
+    [
+      {
+        id: SPOT_ID,
+        name: 'Murinsel',
+        status: 'active',
+        notes: null,
+        photos: [`graz/${PHOTO_A.file}`],
+      },
+    ],
   );
 });
 

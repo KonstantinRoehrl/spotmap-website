@@ -10,6 +10,7 @@ function spot(overrides: Partial<SpotProperties> = {}): SpotFeature {
       id: 'donaupark',
       name: 'Donaupark',
       status: 'active',
+      notes: null,
       photos: [
         'spots/vienna/donaupark-1.webp',
         'spots/vienna/donaupark-2.webp',

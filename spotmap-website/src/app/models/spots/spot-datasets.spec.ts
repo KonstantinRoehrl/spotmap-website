@@ -10,7 +10,7 @@ const STATUSES: SpotStatus[] = ['active', 'demolished', 'unclassified'];
 /**
  * Every city's served dataset, `public/spots/<city>.geojson`, is promoted from data/spots/ by
  * tools/extract-spots/promote.mjs. Each one loads the way SpotsService loads it and holds what
- * SpotMapComponent and SpotPopupComponent rely on. Photos stay empty until they have a host.
+ * SpotMapComponent and SpotPopupComponent rely on. Photos are object keys of the city's own photos, never URLs.
  */
 describe('served spot datasets', () => {
   for (const city of Object.keys(SUPPORTED_CITIES) as CityEnum[]) {
@@ -51,9 +51,16 @@ describe('served spot datasets', () => {
         }
       });
 
-      it('serves no photos and no source records', () => {
+      it('serves notes and photo keys of its own city, and no source records', () => {
+        const photoKey = new RegExp(`^${city}/[^/]+\\.webp$`);
         for (const f of collection.features) {
-          expect(f.properties.photos).withContext(f.properties.id).toEqual([]);
+          const { notes, photos } = f.properties;
+          expect(notes === null || notes.trim().length > 0)
+            .withContext(`${f.properties.id} notes`)
+            .toBe(true);
+          for (const key of photos) {
+            expect(key).withContext(f.properties.id).toMatch(photoKey);
+          }
           expect('sources' in f.properties)
             .withContext(f.properties.id)
             .toBe(false);
