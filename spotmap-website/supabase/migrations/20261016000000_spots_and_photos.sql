@@ -22,7 +22,8 @@ create table public.spots (
   status public.spot_status not null,
   location extensions.geography (point, 4326) not null,
   -- The feature's index in its city's dataset, so city_spots() reproduces the snapshot's order.
-  -- Deferred: a sync that reorders spots swaps positions within one statement.
+  -- Deferred: a sync that reorders spots swaps positions within one statement. sync_spots
+  -- rejects a payload that repeats a pair up front, so the check at commit is the backstop only.
   sort_order int not null,
   -- The first non-empty description across the spot's sources, shown verbatim.
   notes text,
@@ -117,8 +118,8 @@ grant execute on function public.city_spots(text) to anon, authenticated;
 -- photo rows, deletes spots and cities the payload no longer holds. Payload:
 --   { "cities": [slug…],
 --     "spots": [{ id, city, sort_order, name, status, lng, lat, notes, sources, photos: [key…] }] }
--- Raises, rolling everything back, on a malformed payload, a duplicate spot id, a spot whose city
--- is not in "cities", or a duplicate photo key. Returns
+-- Raises, rolling everything back, on a malformed payload, a duplicate spot id, a duplicate
+-- (city, sort_order) pair, a spot whose city is not in "cities", or a duplicate photo key. Returns
 --   { spots: { inserted, updated, deleted }, photos: { inserted, deleted } },
 -- all zero on a re-run with unchanged data.
 create function public.sync_spots(payload jsonb)
@@ -134,6 +135,7 @@ declare
   photos_inserted int;
   photos_deleted int;
   culprit text;
+  culprit_sort_order jsonb;
 begin
   if jsonb_typeof(payload -> 'cities') is distinct from 'array'
      or jsonb_typeof(payload -> 'spots') is distinct from 'array' then
@@ -176,6 +178,17 @@ begin
   limit 1;
   if found then
     raise exception 'sync_spots: duplicate spot id %', culprit;
+  end if;
+
+  -- The unique (city, sort_order) constraint is deferred, so without this check a repeated pair
+  -- would only fail at commit, after the whole body ran and reported counts.
+  select e ->> 'city', e -> 'sort_order' into culprit, culprit_sort_order
+  from jsonb_array_elements(payload -> 'spots') e
+  group by e ->> 'city', e -> 'sort_order'
+  having count(*) > 1
+  limit 1;
+  if found then
+    raise exception 'sync_spots: duplicate sort_order % in city %', culprit_sort_order, culprit;
   end if;
 
   select e ->> 'id' into culprit

@@ -1,7 +1,16 @@
 -- sync_spots(), run as the secret key's service_role: inserts, re-runs as a no-op, updates only
--- what changed, diffs photos, deletes what vanished, and rolls back entirely on a bad payload.
+-- what changed, diffs photos, deletes what vanished, swaps positions without tripping the unique
+-- (city, sort_order) constraint, and rolls back entirely on a bad payload (a repeated
+-- (city, sort_order) pair included).
+-- Passes on an empty database and on one already synced with the real spots.
 begin;
-select plan(17);
+select plan(22);
+
+-- Start from empty tables whatever the database already holds (a synced local stack has the real
+-- spots): the superuser bypasses row-level security, photos go by cascade, and the rollback at
+-- the end puts the real rows back.
+delete from public.spots;
+delete from public.cities;
 
 set local role service_role;
 
@@ -29,6 +38,21 @@ select is(
   public.sync_spots((select payload from first_payload)),
   '{"spots": {"inserted": 0, "updated": 0, "deleted": 0}, "photos": {"inserted": 0, "deleted": 0}}'::jsonb,
   'a re-run with unchanged data changes nothing');
+
+-- The unique (city, sort_order) constraint is deferred, so two spots may trade positions in one sync.
+select is(
+  public.sync_spots(jsonb_set(
+    jsonb_set((select payload from first_payload), '{spots,0,sort_order}', '1'),
+    '{spots,1,sort_order}', '0')),
+  '{"spots": {"inserted": 0, "updated": 2, "deleted": 0}, "photos": {"inserted": 0, "deleted": 0}}'::jsonb,
+  'two spots trading sort_order is a legitimate reorder');
+select is(
+  (select array_agg(id order by sort_order) from public.spots where city = 'vienna'), array['b-2', 'a-1'],
+  'and the new order is stored');
+select is(
+  public.sync_spots((select payload from first_payload)),
+  '{"spots": {"inserted": 0, "updated": 2, "deleted": 0}, "photos": {"inserted": 0, "deleted": 0}}'::jsonb,
+  'trading them back restores the first payload');
 
 update public.spots set updated_at = '2000-01-01' where id in ('a-1', 'b-2');
 
@@ -71,6 +95,17 @@ select throws_ok(
       {"id": "b-2", "city": "vienna", "sort_order": 1, "name": "Beta", "status": "active",
        "lng": 16.4, "lat": 48.22, "notes": null, "sources": [], "photos": []}]}')$$,
   'P0001', 'sync_spots: duplicate spot id b-2', 'a duplicate spot id raises');
+select throws_ok(
+  $$select public.sync_spots('{"cities": ["vienna"], "spots": [
+      {"id": "d-1", "city": "vienna", "sort_order": 4, "name": "D", "status": "active",
+       "lng": 16.3, "lat": 48.2, "notes": null, "sources": [], "photos": []},
+      {"id": "d-2", "city": "vienna", "sort_order": 4, "name": "E", "status": "active",
+       "lng": 16.3, "lat": 48.2, "notes": null, "sources": [], "photos": []}]}')$$,
+  'P0001', 'sync_spots: duplicate sort_order 4 in city vienna',
+  'a repeated (city, sort_order) pair raises up front, not at commit');
+select is(
+  (select count(*) from public.spots where id in ('d-1', 'd-2')), 0::bigint,
+  'and writes nothing');
 select throws_ok(
   $$select public.sync_spots('{"cities": ["vienna"], "spots": [
       {"id": "x-1", "city": "linz", "sort_order": 0, "name": "X", "status": "active",
