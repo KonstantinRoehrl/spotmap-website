@@ -108,7 +108,7 @@ describe('SpotPhotoGalleryComponent', () => {
     el.style.display = 'block';
     el.style.width = '160px';
     failCurrentImage();
-    const lines =Array.from(
+    const lines = Array.from(
       el.querySelectorAll('.gallery__placeholder-line'),
     ).map((line) => line.getBoundingClientRect());
     const arrows = Array.from(el.querySelectorAll('button')).map((button) =>
