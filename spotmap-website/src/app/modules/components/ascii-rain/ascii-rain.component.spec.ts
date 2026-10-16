@@ -53,11 +53,11 @@ describe('AsciiRainComponent', () => {
   });
 
   describe('filling the host width', () => {
-    async function createFilling(widthPx: number) {
+    async function createFilling(widthPx: number, columns = 3) {
       fixture = TestBed.createComponent(AsciiRainComponent);
       fixture.componentRef.setInput('fillWidth', true);
-      // Far too few to cover any host, so only the measured count can pass.
-      fixture.componentRef.setInput('columns', 3);
+      // By default far too few to cover any host, so only the measured count can pass.
+      fixture.componentRef.setInput('columns', columns);
       const host = fixture.nativeElement as HTMLElement;
       host.style.width = `${widthPx}px`;
       fixture.detectChanges();
@@ -68,13 +68,40 @@ describe('AsciiRainComponent', () => {
 
     /** The total width the host's columns take side by side. */
     function coveredWidth(host: HTMLElement): number {
-      const columns = host.querySelectorAll('.rain__column');
-      return columns.length * columns[0].getBoundingClientRect().width;
+      return Array.from(host.querySelectorAll('.rain__column')).reduce(
+        (total, column) => total + column.getBoundingClientRect().width,
+        0,
+      );
     }
+
+    // Column widths are laid out in 1/64 px steps, so a squeezed row can fall a hair short.
+    const LAYOUT_TOLERANCE_PX = 0.5;
 
     it('covers a wide host', async () => {
       const host = await createFilling(1300);
-      expect(coveredWidth(host)).toBeGreaterThanOrEqual(1300 - 0.01);
+      expect(coveredWidth(host)).toBeGreaterThanOrEqual(
+        1300 - LAYOUT_TOLERANCE_PX,
+      );
+    });
+
+    it('keeps the dense look on a phone: all `columns` squeezed to fit, not fewer at full width', async () => {
+      const host = await createFilling(330, 40);
+      const columns = host.querySelectorAll<HTMLElement>('.rain__column');
+      expect(columns.length).toBe(40);
+      expect(getComputedStyle(columns[0]).flexShrink).not.toBe('0');
+      expect(coveredWidth(host)).toBeGreaterThanOrEqual(
+        330 - LAYOUT_TOLERANCE_PX,
+      );
+    });
+
+    it('caps the column count on a huge host, which the columns then stretch to cover', async () => {
+      const host = await createFilling(5120, 40);
+      const count = host.querySelectorAll('.rain__column').length;
+      expect(count).toBeGreaterThan(40);
+      expect(count).toBeLessThanOrEqual(160);
+      expect(coveredWidth(host)).toBeGreaterThanOrEqual(
+        5120 - LAYOUT_TOLERANCE_PX,
+      );
     });
 
     it('still renders, and with fewer columns, for a narrow host', async () => {
@@ -86,7 +113,9 @@ describe('AsciiRainComponent', () => {
       const narrowColumns = narrow.querySelectorAll('.rain__column').length;
       expect(narrowColumns).toBeGreaterThan(0);
       expect(narrowColumns).toBeLessThan(wideColumns);
-      expect(coveredWidth(narrow)).toBeGreaterThanOrEqual(300 - 0.01);
+      expect(coveredWidth(narrow)).toBeGreaterThanOrEqual(
+        300 - LAYOUT_TOLERANCE_PX,
+      );
     });
 
     it('keeps `columns` when it is not asked to fill', async () => {

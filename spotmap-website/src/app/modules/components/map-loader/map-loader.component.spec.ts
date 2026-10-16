@@ -97,6 +97,15 @@ describe('MapLoaderComponent', () => {
     expect(fill(host)?.style.width).toBe('30%');
   });
 
+  it('rounds the bar fill less than half its height, so its ends are not pills', () => {
+    const host = create({ progress: 0.3 });
+    const barFill = fill(host)!;
+    const radius = parseFloat(getComputedStyle(barFill).borderTopLeftRadius);
+    // Positive, so a missing --radius-sm cannot pass this by resolving to no rounding at all.
+    expect(radius).toBeGreaterThan(0);
+    expect(radius).toBeLessThan(barFill.getBoundingClientRect().height / 2);
+  });
+
   it("signals finished once the bar's ease to 100 % ends", () => {
     const host = create({ step: 'map', progress: 0.9 });
     expect(fill(host)).not.toBeNull();

@@ -120,29 +120,105 @@ describe('MapContainerComponent', () => {
     fixture.destroy();
   });
 
-  it('has the status region in place and empty before it announces the first step', () => {
+  /**
+   * Replaces the animation-frame clock with one the test drives. `flush` runs every callback that
+   * has not been cancelled, as the browser would on its next frame.
+   */
+  function stubAnimationFrames() {
+    const pending = new Map<number, FrameRequestCallback>();
+    let nextId = 1;
+    spyOn(window, 'requestAnimationFrame').and.callFake((callback) => {
+      pending.set(nextId, callback);
+      return nextId++;
+    });
+    spyOn(window, 'cancelAnimationFrame').and.callFake((id) => {
+      pending.delete(id);
+    });
+    return {
+      flush: () => {
+        const callbacks = [...pending.values()];
+        pending.clear();
+        callbacks.forEach((callback) => callback(performance.now()));
+      },
+    };
+  }
+  const statusOf = (fixture: ComponentFixture<MapContainerComponent>) =>
+    fixture.nativeElement.querySelector('[role="status"]') as HTMLElement;
+
+  it('has the status region in place and empty until a frame has been painted, then announces the first step', () => {
+    const frames = stubAnimationFrames();
     const fixture = create(true);
-    const status: HTMLElement | null =
-      fixture.nativeElement.querySelector('[role="status"]');
+    const status = statusOf(fixture);
     expect(status).toBeTruthy();
     // A live region announces changes made after it exists, not what it was inserted with.
-    expect(status?.textContent?.trim()).toBe('');
+    expect(status.textContent?.trim()).toBe('');
 
-    // The first render has finished, so the region exists; now it may speak. (No whenStable: the
-    // load watchdog's timer would keep the fixture unstable for its whole 15 s.)
+    // Further change detection in the same frame must not speak yet: the region has to survive a
+    // painted frame empty. (No whenStable: the load watchdog's timer would keep the fixture
+    // unstable for its whole 15 s.)
     fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('[role="status"]')).toBe(status);
-    expect(status?.textContent?.trim()).toBe('Loading spots for Vienna');
+    expect(status.textContent?.trim()).toBe('');
+
+    frames.flush();
+    fixture.detectChanges();
+    expect(statusOf(fixture)).toBe(status);
+    expect(status.textContent?.trim()).toBe('Loading spots for Vienna');
+    fixture.destroy();
+  });
+
+  it('cancels the pending first announcement when destroyed before the frame', () => {
+    const frames = stubAnimationFrames();
+    const fixture = create(true);
+    const c = fixture.componentInstance;
+    fixture.destroy();
+    frames.flush();
+    expect(
+      (c as unknown as { announcement: () => string }).announcement(),
+    ).toBe('');
+  });
+
+  it('keeps the status region empty once the map shows or the load has failed', () => {
+    const frames = stubAnimationFrames();
+    const fixture = create(true);
+    frames.flush();
+    fixture.detectChanges();
+    expect(statusOf(fixture).textContent?.trim()).toBe(
+      'Loading spots for Vienna',
+    );
+
+    rendererFailed(fixture.componentInstance, 'unreachable');
+    fixture.detectChanges();
+    expect(statusOf(fixture).textContent?.trim()).toBe('');
+    fixture.destroy();
+  });
+
+  it('announces a later load at once, without waiting for another frame', () => {
+    const frames = stubAnimationFrames();
+    const fixture = create(true);
+    frames.flush();
+    fixture.detectChanges();
+
+    fixture.componentRef.setInput('city', CityEnum.Graz);
+    fixture.detectChanges();
+    expect(statusOf(fixture).textContent?.trim()).toBe(
+      'Loading spots for Graz',
+    );
+
+    rendererFailed(fixture.componentInstance, 'unreachable');
+    fixture.componentInstance.retry();
+    fixture.detectChanges();
+    expect(statusOf(fixture).textContent?.trim()).toBe(
+      'Loading spots for Graz',
+    );
     fixture.destroy();
   });
 
   it('names the archive copy, then the map, then the drawing', () => {
+    const frames = stubAnimationFrames();
     const fixture = create(true);
+    frames.flush();
     const c = fixture.componentInstance;
-    const statusText = () =>
-      fixture.nativeElement
-        .querySelector('[role="status"]')
-        ?.textContent?.trim();
+    const statusText = () => statusOf(fixture)?.textContent?.trim();
 
     applyEvent(c, { kind: 'spots-fallback' });
     fixture.detectChanges();

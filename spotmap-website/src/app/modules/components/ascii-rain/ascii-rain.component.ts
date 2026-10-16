@@ -31,6 +31,14 @@ export const RAIN_CHARACTERS = '01ABCDEFGHJKLMNPQRSTUVXYZ#$%&*+=<>?';
 const SLOW_PLAYBACK_RATE = 0.4;
 
 /**
+ * The most columns a host-filling field draws. The map frame is at most the viewport's 9/12, so
+ * 160 columns of about 17 px cover a frame up to ~2700 px, which is every ordinary screen; a wider
+ * host stretches them. Uncapped, a 5120 px host would draw ~300 columns of a 120-line strip each,
+ * about 70 000 glyph nodes, for a backdrop at 35 % opacity.
+ */
+const MAX_FILL_COLUMNS = 160;
+
+/**
  * A field of falling ASCII characters, drawn as CSS sprites: each column is a fixed random strip
  * moved by `steps()` keyframes, so no timer and no change detection runs while it falls. Decoration
  * only — hidden from assistive technology.
@@ -56,12 +64,18 @@ export class AsciiRainComponent {
   /** Falling, slowed, or frozen on a still frame. */
   pace = input<RainPace>('run');
   /**
-   * Cover the host's width instead of drawing `columns`: after the first render the column count
-   * is measured from the host once, and `columns` stays only as the count until then.
+   * Cover the host's width: after the first render the host is measured once, and the field draws
+   * as many columns as cover it, but never fewer than `columns` (up to {@link MAX_FILL_COLUMNS}),
+   * which stays the count until then. A host narrower than `columns` natural-width columns keeps
+   * all of them, squeezed together, so a phone gets the dense look rather than a sparse one.
+   *
+   * The host is measured once per instance, so a resize during one load leaves the field as
+   * measured (a band, or columns squeezed or cut off); the next instance, for a city switch or a
+   * retry, measures afresh.
    */
   fillWidth = input(false);
 
-  /** The column count that covers the host, once measured; `null` until then and when not filling. */
+  /** The column count that covers the host, once measured; `null` until then, when not filling, and when `columns` already suffices. */
   private readonly measuredColumns = signal<number | null>(null);
 
   /** The columns, generated once per instance and kept until their count changes. */
@@ -77,13 +91,25 @@ export class AsciiRainComponent {
     // would cost the very JavaScript the CSS sprites avoid. A zero width (host not laid out) keeps
     // `columns`.
     afterNextRender(() => {
-      if (!this.fillWidth()) {
+      const column = host.querySelector<HTMLElement>('.rain__column');
+      if (!this.fillWidth() || !column || host.clientWidth <= 0) {
         return;
       }
-      const column = host.querySelector('.rain__column');
-      const columnWidth = column?.getBoundingClientRect().width;
-      if (columnWidth && host.clientWidth > 0) {
-        this.measuredColumns.set(Math.ceil(host.clientWidth / columnWidth));
+      // The column's natural width: laid out as it is, a narrow host would have squeezed it.
+      column.style.flex = 'none';
+      const columnWidth = column.getBoundingClientRect().width;
+      column.style.flex = '';
+      if (columnWidth <= 0) {
+        return;
+      }
+      const covering = Math.ceil(host.clientWidth / columnWidth);
+      const count = Math.min(
+        MAX_FILL_COLUMNS,
+        Math.max(this.columns(), covering),
+      );
+      // The same count keeps the columns already drawn, rather than redrawing them as new strips.
+      if (count !== this.columns()) {
+        this.measuredColumns.set(count);
       }
     });
     // After render, so the CSS animations exist; the playback rate eases the fall rather than

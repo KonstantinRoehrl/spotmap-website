@@ -107,7 +107,11 @@
   display: block;
   width: 0;
   height: 100%;
-  border-radius: var(--radius-sm);
+  /*
+   * Concentric with the track: its radius less the 1px border and 2px padding between them. The
+   * fill is only 8px tall, so the track's own radius would round both ends into semicircles.
+   */
+  border-radius: calc(var(--radius-sm) - 3px);
   background: repeating-linear-gradient(
     90deg,
     var(--color-phosphor) 0 6px,

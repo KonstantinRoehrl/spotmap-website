@@ -70,12 +70,14 @@ export class MapContainerComponent {
     }
     return step === 'map' ? `Loading the map of ${city}` : 'Drawing the map';
   });
-  /** Whether the status region has been rendered, so that what it receives next is announced. */
+  /** Whether the status region has been on screen for a frame, so that what it receives is announced. */
   private readonly statusRegionRendered = signal(false);
   /**
-   * What the status region holds: nothing until it exists, then {@link statusText}. Assistive
-   * technology announces changes to a live region but not the text it was inserted with, so the
-   * first message must arrive after the region does.
+   * What the status region holds: nothing until it has been painted empty, then {@link statusText}.
+   * Assistive technology announces changes to a live region but not the text it was inserted with,
+   * and the browser builds its accessibility tree once per frame, so the first message waits one
+   * animation frame after the region renders. This defers only the announcement: nothing in the
+   * load waits on it, and neither the progress nor the reveal reads it.
    */
   protected readonly announcement = computed(() =>
     this.statusRegionRendered() ? this.statusText() : '',
@@ -89,9 +91,15 @@ export class MapContainerComponent {
   private timeoutId?: number;
 
   constructor() {
-    inject(DestroyRef).onDestroy(() => this.clearTimer());
+    const destroyRef = inject(DestroyRef);
+    destroyRef.onDestroy(() => this.clearTimer());
     this.startTimer();
-    afterNextRender(() => this.statusRegionRendered.set(true));
+    afterNextRender(() => {
+      const frame = requestAnimationFrame(() =>
+        this.statusRegionRendered.set(true),
+      );
+      destroyRef.onDestroy(() => cancelAnimationFrame(frame));
+    });
 
     // The component instance is reused across dropdown selections (only the
     // `city` input changes, the component is not recreated). Reset the load on

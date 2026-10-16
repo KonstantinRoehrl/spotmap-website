@@ -17,10 +17,10 @@ const SWIPE_THRESHOLD_PX = 40;
  * A spot's photos as one 4:3 slide at a time, with arrows, an `[n/N]` counter and swipe on
  * touch. `photos` are image URLs (the popup builds them from photo keys). While a slide's photo
  * loads, the slide shows a small block of ASCII rain, and the photo crossfades in once it has
- * loaded; a photo already in the browser's cache shows at once, whichever slide it is. A photo that fails to load — the
- * photo host paused, or the object gone — shows an in-style placeholder in its slide; the others
- * and the navigation keep working. The panel is 4:3 unless the popup fits it to a height through
- * `--spot-popup-gallery-height`.
+ * loaded; a photo already in the browser's cache shows at once, whichever slide it is. A photo
+ * that fails to load — the photo host paused, or the object gone — shows an in-style placeholder
+ * in its slide; the others and the navigation keep working. The panel is 4:3 unless the popup
+ * fits it to a height through `--spot-popup-gallery-height`.
  */
 @Component({
   selector: 'app-spot-photo-gallery',

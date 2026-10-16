@@ -8,9 +8,13 @@
   --rain-line: 16px;
 }
 
-/* Columns keep their width when filling, so the host's width measures in whole columns. */
+/*
+ * Columns that do not all fit squeeze together, which keeps a narrow frame dense. Only when the
+ * count is capped on a very wide frame do they have room to spare, and then they stretch to
+ * cover it rather than leaving a bare band either side.
+ */
 :host(.rain--fill) .rain__column {
-  flex: none;
+  flex-grow: 1;
 }
 
 /* Fades towards the top, so each column reads as a trail behind its head. */
