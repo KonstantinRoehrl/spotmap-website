@@ -89,7 +89,7 @@ class FakeMap {
       .and.callFake(() => {
         this.keyboardRotatePitch = false;
       }),
-    /** Whether an arrow-key move is under way; the specs never press one. */
+    /** Never active, as MapLibre's keyboard handler never is (maplibre-gl-dev.mjs:21517). */
     isActive: () => false,
   };
   /**
@@ -99,8 +99,13 @@ class FakeMap {
    * camera has moved.
    */
   readonly dragPan = { isActive: () => this.fingerDown };
-  /** The wheel, shift-drag box and double-click zooms, which the specs never drive. */
-  readonly scrollZoom = { isActive: () => false };
+  /**
+   * The wheel and trackpad-pinch zoom. Active from the first wheel event until its finish timeout
+   * runs out (`isActive`, maplibre-gl-dev.mjs:21606), and counted by `map.isMoving()` for as long
+   * as it zooms (`:22587`, `:25356`).
+   */
+  readonly scrollZoom = { isActive: () => this.wheelZooming };
+  /** The shift-drag box and double-click zooms, which the specs never drive. */
   readonly boxZoom = { isActive: () => false };
   readonly doubleClickZoom = { isActive: () => false };
   pitch = 0;
@@ -153,6 +158,18 @@ class FakeMap {
   /** Whether a finger or button is down on the map, so a pan handler is active. */
   private fingerDown = false;
 
+  /** Whether a wheel or trackpad-pinch zoom is under way, so the scroll-zoom handler is active. */
+  private wheelZooming = false;
+
+  /**
+   * Only the pan handler turning active, as a finger or button goes down: the instant before
+   * MapLibre's manager stops the camera's ease. {@link grab} is this plus that stop; on its own it
+   * is the state a re-fit meets if it runs between the two.
+   */
+  touchDown() {
+    this.fingerDown = true;
+  }
+
   /**
    * The visitor putting a finger or button down on the map, without moving it yet. MapLibre's
    * manager sees an active handler and stops the camera's ease (`handleEvent`, `:22392`), which
@@ -161,10 +178,29 @@ class FakeMap {
    * moving under the finger only afterwards, once the pointer travels.
    */
   grab() {
-    this.fingerDown = true;
+    this.touchDown();
     if (this.panning) {
       this.emit('moveend');
     }
+  }
+
+  /**
+   * The visitor turning the wheel, or pinching a trackpad, on the map. `ScrollZoomHandler._start`
+   * sets `_zooming` before the manager stops the camera's ease (`:21681`, `:22392`), so the stopped
+   * ease's `moveend` fires with the scroll-zoom handler active and `isMoving()` already true
+   * (`:22587`): the zoom itself has no `moveend` yet.
+   */
+  wheel() {
+    this.wheelZooming = true;
+    if (this.panning) {
+      this.emit('moveend');
+    }
+  }
+
+  /** The wheel zoom running out: the handler goes inactive and the zoom's own `moveend` fires. */
+  endWheel() {
+    this.wheelZooming = false;
+    this.emit('moveend');
   }
 
   /** The grabbed map starting to travel under the finger: a drag's camera move begins. */
@@ -201,6 +237,7 @@ class FakeMap {
     // `easeTo` stops the gestures too (`_stop(false)` → `_stopHandlers`, `:23384`): a pan the
     // component starts under a visitor's finger takes the drag away from them.
     this.fingerDown = false;
+    this.wheelZooming = false;
     this.cameraMoves.push({ method: 'panBy', options: { ...options, offset } });
     this.panning = true;
     const reducedMotion = window.matchMedia(
@@ -217,7 +254,7 @@ class FakeMap {
   }
   /** Whether the camera is mid-move, as MapLibre's `isMoving()` reports it. */
   isMoving() {
-    return this.panning;
+    return this.panning || this.wheelZooming;
   }
   queryRenderedFeatures() {
     return this.renderedPins;
@@ -1780,6 +1817,25 @@ describe('SpotMapComponent', () => {
         .toBe(1);
     });
 
+    it('is fitted but not panned when the visitor grabs the map with the wheel, even once the zoom has ended', async () => {
+      await tapBWhileAPans();
+      // The wheel stops a's ease with the zoom already under way, so b sees a moving camera.
+      fake.wheel();
+      expect(popups[1]?.isPending())
+        .withContext('b keeps waiting while the zoom runs')
+        .toBe(true);
+      fake.endWheel();
+      expect(pansRequested().length)
+        .withContext(
+          'the wheel grab wins even though the zoom has finished by the time b is fitted',
+        )
+        .toBe(1);
+      expect(popups[1]?.isPending()).toBe(false);
+      expect(popups[1]?.getElement().getAnimations().length)
+        .withContext('revealed exactly once')
+        .toBe(1);
+    });
+
     it('is fitted and panned as usual by a tap after the visitor let go of the map', async () => {
       await tapBWhileAPans();
       fake.grab();
@@ -1808,6 +1864,107 @@ describe('SpotMapComponent', () => {
         .withContext('a pan would reset the visitor’s hold on the map')
         .toEqual([]);
       expect(popups[0]?.isPending()).toBe(false);
+    });
+  });
+
+  describe('a resize while the visitor holds the map', () => {
+    /** Runs the animation frame the resize asked the re-fit for. */
+    function runRefitFrame() {
+      const frames = window.requestAnimationFrame as jasmine.Spy;
+      (frames.calls.mostRecent().args[0] as FrameRequestCallback)(0);
+    }
+
+    /** Opens `a` at the left edge with a finger resting on the map: fitted, revealed, not panned. */
+    async function openAtEdgeUnderFinger() {
+      requestReducedMotion(false);
+      holdAnimationFrames();
+      await create();
+      fake.emit('load');
+      fake.projected = { x: 20, y: 500 };
+      fake.grab();
+      await tap('a');
+      expect(pansRequested()).toEqual([]);
+      expect(popups[0]?.isPending()).toBe(false);
+    }
+
+    it('re-fits the popup without panning, and does not pan it in after the finger comes up', async () => {
+      await openAtEdgeUnderFinger();
+      const capsBefore = popups[0]?.maxWidths.length ?? 0;
+      fake.emit('resize');
+      runRefitFrame();
+      expect(popups[0]?.maxWidths.length)
+        .withContext('the width cap is re-measured all the same')
+        .toBeGreaterThan(capsBefore);
+      expect(pansRequested())
+        .withContext("a pan would take the drag from the visitor's finger")
+        .toEqual([]);
+      fake.drag();
+      fake.release();
+      expect(pansRequested())
+        .withContext('the gesture won: nothing pans the popup in afterwards')
+        .toEqual([]);
+    });
+
+    it('pans the popup back into view on a resize once nothing holds the map', async () => {
+      await openAtEdgeUnderFinger();
+      fake.release();
+      fake.emit('resize');
+      runRefitFrame();
+      expect(pansRequested().length).toBe(1);
+      expect(pansRequested()[0]?.options.offset?.[0]).toBeLessThan(0);
+    });
+
+    it('re-fits a popup still waiting on its pan without panning, and reveals it once when that settles', async () => {
+      requestReducedMotion(false);
+      holdAnimationFrames();
+      await create();
+      fake.emit('load');
+      fake.projected = { x: 20, y: 500 };
+      await tap('a');
+      expect(popups[0]?.isPending())
+        .withContext('a is still panning')
+        .toBe(true);
+      fake.touchDown();
+      fake.emit('resize');
+      runRefitFrame();
+      expect(pansRequested().length)
+        .withContext("a re-fit pan would replace the visitor's hold on the map")
+        .toBe(1);
+      expect(popups[0]?.isPending())
+        .withContext("still waiting on the pan's end")
+        .toBe(true);
+      fake.emit('moveend');
+      expect(popups[0]?.isPending()).toBe(false);
+      fake.emit('moveend');
+      expect(popups[0]?.getElement().getAnimations().length)
+        .withContext('revealed exactly once')
+        .toBe(1);
+    });
+
+    it('swaps the popup to the other side without panning it, even when the drag ends before it is fitted', async () => {
+      requestReducedMotion(false);
+      holdAnimationFrames();
+      await create();
+      fake.emit('load');
+      fake.projected = { x: 500, y: 40 };
+      fake.grab();
+      await tap('a');
+      expect(popups[0]?.options.anchor).toBe('top');
+      // The pin ends up in the corner, off the side the popup opened on, as the drag goes on.
+      fake.drag();
+      fake.projected = { x: 20, y: 560 };
+      fake.emit('resize');
+      runRefitFrame();
+      await fixture.whenStable();
+      expect(popups[1]?.options.anchor).toBe('bottom');
+      expect(popups[1]?.isPending())
+        .withContext('the swapped popup waits for the drag to end')
+        .toBe(true);
+      fake.release();
+      expect(pansRequested())
+        .withContext('the visitor held the map when it was swapped: no pan')
+        .toEqual([]);
+      expect(popups[1]?.isPending()).toBe(false);
     });
   });
 

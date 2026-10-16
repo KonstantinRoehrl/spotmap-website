@@ -104,13 +104,17 @@ interface OpenPopup {
 
 /**
  * The MapLibre handlers a visitor moves the map through. Each reports itself active from the
- * moment a finger or button goes down or a key or wheel starts, before the camera has moved.
+ * moment a finger or button goes down or the wheel starts, before the camera has moved.
+ *
+ * The keyboard handler is left out: it never reports itself active (`KeyboardHandler.isActive`
+ * returns a flag nothing sets, maplibre-gl-dev.mjs:21517), so an arrow key cannot be told from
+ * no input. Its ease replaces a pan this component has just started instead, which loses nothing:
+ * the popup is revealed when the key's ease ends.
  */
 const GESTURE_HANDLERS = [
   'dragPan',
   'touchZoomRotate',
   'scrollZoom',
-  'keyboard',
   'doubleClickZoom',
   'boxZoom',
 ] as const;
@@ -562,6 +566,7 @@ export class SpotMapComponent {
     spot: SpotFeature,
     ref: ComponentRef<SpotPopupComponent>,
     generation: number,
+    visitorHeldMap = false,
   ): Promise<void> {
     const frame = popupFrame(
       this.fitBox(),
@@ -619,7 +624,7 @@ export class SpotMapComponent {
         this.scheduleRefit(map, generation);
       }
     });
-    this.fitWhenSettled(map, open);
+    this.fitWhenSettled(map, open, visitorHeldMap);
   }
 
   /**
@@ -631,18 +636,21 @@ export class SpotMapComponent {
    * A visitor with hold of the map wins: the popup is fitted and revealed where the map is, never
    * panned. That is also what a grab during the wait looks like - it stops the ease being waited
    * on, which fires its `moveend` before the drag has moved the camera - and a pan then would take
-   * the drag away from the visitor's finger.
+   * the drag away from the visitor's finger. A wheel grab is seen the same way, but its zoom keeps
+   * the camera moving, so the wait goes on past it; `visitorHeldMap` carries what an earlier check
+   * saw into the fit that finally runs, once the gesture has let go.
    */
-  private fitWhenSettled(map: MapLibreMap, open: OpenPopup): void {
+  private fitWhenSettled(
+    map: MapLibreMap,
+    open: OpenPopup,
+    visitorHeldMap = false,
+  ): void {
     this.armedReveal = undefined;
+    const held = visitorHeldMap || isGestureActive(map);
     if (!map.isMoving()) {
-      const fit = this.fitToCamera(map, open);
+      const fit = this.fitToCamera(map, open, held);
       if (fit) {
-        this.panThenReveal(
-          map,
-          open,
-          isGestureActive(map) ? [0, 0] : fit.panBy,
-        );
+        this.panThenReveal(map, open, held ? [0, 0] : fit.panBy);
       }
       return;
     }
@@ -652,7 +660,7 @@ export class SpotMapComponent {
       }
       this.armedReveal = undefined;
       if (this.open === open) {
-        this.fitWhenSettled(map, open);
+        this.fitWhenSettled(map, open, held);
       }
     };
     this.armedReveal = onSettle;
@@ -662,9 +670,14 @@ export class SpotMapComponent {
   /**
    * Fits `open` against the camera as it is now: the width cap, then the measured fit. Returns
    * the fit, or `undefined` when its side ran out of room and it was swapped for a fresh popup on
-   * the other side (MapLibre has no public anchor setter), which fits itself the same way.
+   * the other side (MapLibre has no public anchor setter), which fits itself the same way and
+   * inherits `visitorHeldMap`.
    */
-  private fitToCamera(map: MapLibreMap, open: OpenPopup): PopupFit | undefined {
+  private fitToCamera(
+    map: MapLibreMap,
+    open: OpenPopup,
+    visitorHeldMap = false,
+  ): PopupFit | undefined {
     const box = this.fitBox();
     const pin = map.project(open.spot.geometry.coordinates);
     open.popup.setMaxWidth(`${popupFrame(box, pin).maxWidth}px`);
@@ -676,7 +689,7 @@ export class SpotMapComponent {
     this.closePopup({ keepSelection: true });
     const ref = this.createContent(open.spot);
     this.pendingRef = ref;
-    void this.showPopup(map, open.spot, ref, this.generation);
+    void this.showPopup(map, open.spot, ref, this.generation, visitorHeldMap);
     return undefined;
   }
 
@@ -875,14 +888,19 @@ export class SpotMapComponent {
    * part pushed out back into view; when that side ran out of room the popup is swapped for one on
    * the other side, the old one fading out as the new one rises. A popup still waiting for the
    * camera to settle is fitted then, against the resized map.
+   *
+   * A visitor with hold of the map wins here too: the caps and the side are re-fitted, but nothing
+   * pans, since a pan would take the drag from their finger. The popup is not panned in once they
+   * let go either; a pending popup still reveals when the pan it waits on ends.
    */
   private refit(map: MapLibreMap): void {
     const open = this.open;
     if (!open?.fitted) {
       return;
     }
-    const fit = this.fitToCamera(map, open);
-    if (fit && (fit.panBy[0] !== 0 || fit.panBy[1] !== 0)) {
+    const held = isGestureActive(map);
+    const fit = this.fitToCamera(map, open, held);
+    if (!held && fit && (fit.panBy[0] !== 0 || fit.panBy[1] !== 0)) {
       // This pan stops the one a pending popup waits on, so its reveal moves to this pan's end.
       if (isPending(open)) {
         this.panRevealing(map, open, fit.panBy);

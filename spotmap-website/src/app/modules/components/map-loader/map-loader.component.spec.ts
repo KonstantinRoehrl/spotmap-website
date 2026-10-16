@@ -146,6 +146,9 @@ describe('MapLoaderComponent', () => {
       return host;
     }
 
+    // Column widths are laid out in 1/64 px steps, so a squeezed row can fall a hair short.
+    const LAYOUT_TOLERANCE_PX = 0.5;
+
     function rainWidth(host: HTMLElement): number {
       const columns = host.querySelectorAll('.rain__column');
       return columns.length * columns[0].getBoundingClientRect().width;
@@ -153,12 +156,14 @@ describe('MapLoaderComponent', () => {
 
     it('covers a wide map frame', async () => {
       const host = await createAtWidth(1300);
-      expect(rainWidth(host)).toBeGreaterThanOrEqual(1300 - 0.01);
+      expect(rainWidth(host)).toBeGreaterThanOrEqual(
+        1300 - LAYOUT_TOLERANCE_PX,
+      );
     });
 
     it('still covers a phone-width map frame', async () => {
       const host = await createAtWidth(360);
-      expect(rainWidth(host)).toBeGreaterThanOrEqual(360 - 0.01);
+      expect(rainWidth(host)).toBeGreaterThanOrEqual(360 - LAYOUT_TOLERANCE_PX);
     });
   });
 
