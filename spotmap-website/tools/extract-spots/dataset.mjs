@@ -177,8 +177,7 @@ export function reportMatchEntries(
 
 /**
  * Builds a city's GeoJSON and run report. Written photos become base-relative paths
- * (`spots/<city>/<file>`, the `DatasetSpotProperties.photos` contract in
- * src/app/models/spots/spot.ts); dead ones are left out of the GeoJSON and listed in the report by
+ * (`spots/<city>/<file>.webp`); dead ones are left out of the GeoJSON and listed in the report by
  * spot, map and number. Per spot, in source order, a written
  * photo whose file equals a kept one is an exact duplicate; an extra-map photo within
  * {@link NEAR_DUPLICATE_MAX_DISTANCE} bits of a kept photo of another map is a near-duplicate

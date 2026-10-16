@@ -45,21 +45,6 @@ export interface SpotProperties {
 }
 
 /**
- * One spot as tools/extract-spots records it in `data/spots/<city>.geojson`: the lossless record
- * the served `SpotProperties` are built from. The app never loads it; it documents the contract
- * the extraction writes and the served record is derived from.
- */
-export interface DatasetSpotProperties {
-  id: string;
-  name: string;
-  status: SpotStatus;
-  /** Photo paths relative to `data/`, `spots/<city>/<file>.webp`; the files stay local. */
-  photos: string[];
-  /** One record per map that holds the spot, the city's own map first. */
-  sources: SpotSource[];
-}
-
-/**
  * A single spot as a GeoJSON `Point` Feature (one KML placemark from the original Google My
  * Maps export). Consumed directly by `SpotPopupComponent`, and, as a member of a
  * `SpotCollection`, drawn onto the map by `SpotMapComponent`.
