@@ -60,6 +60,12 @@ describe('SpotPhotoGalleryComponent', () => {
     expect(img.getAttribute('alt')).toBe('Hbf Curb, photo 1 of 2');
   });
 
+  /** Loads the image currently on screen, the way a reachable URL would. */
+  function loadCurrentImage() {
+    fixture.nativeElement.querySelector('img').dispatchEvent(new Event('load'));
+    fixture.detectChanges();
+  }
+
   /** Fails the image currently on screen, the way a dead URL would. */
   function failCurrentImage() {
     fixture.nativeElement
@@ -104,9 +110,10 @@ describe('SpotPhotoGalleryComponent', () => {
   it('keeps the placeholder text clear of the arrows', () => {
     create(['a.webp', 'b.webp']);
     const el: HTMLElement = fixture.nativeElement;
-    // The narrowest panel a popup produces, the arrows' worst case.
+    // The arrows' worst case: a 320 px phone, less the 16 px fit margins (288 px popup), less the
+    // popup's 8 px padding and 1 px border on each side.
     el.style.display = 'block';
-    el.style.width = '160px';
+    el.style.width = '270px';
     failCurrentImage();
     const lines = Array.from(
       el.querySelectorAll('.gallery__placeholder-line'),
@@ -123,11 +130,73 @@ describe('SpotPhotoGalleryComponent', () => {
     }
   });
 
+  it('shows the rain while the photo loads', () => {
+    create(['a.webp', 'b.webp']);
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.querySelector('.gallery__loading app-ascii-rain')).not.toBeNull();
+    expect(el.querySelector('.gallery__photo')?.classList).not.toContain(
+      'gallery__photo--loaded',
+    );
+  });
+
+  it('crossfades to the photo once it loads', () => {
+    create(['a.webp', 'b.webp']);
+    loadCurrentImage();
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.querySelector('.gallery__photo')?.classList).toContain(
+      'gallery__photo--loaded',
+    );
+    expect(el.querySelector('.gallery__loading')).toBeNull();
+    expect(el.querySelector('.gallery')?.classList).not.toContain(
+      'gallery--instant',
+    );
+  });
+
+  it('shows an image that is already complete at once', async () => {
+    spyOnProperty(HTMLImageElement.prototype, 'complete').and.returnValue(true);
+    spyOnProperty(HTMLImageElement.prototype, 'naturalWidth').and.returnValue(
+      640,
+    );
+    create(['a.webp', 'b.webp']);
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.querySelector('.gallery__photo')?.classList).toContain(
+      'gallery__photo--loaded',
+    );
+    expect(el.querySelector('.gallery')?.classList).toContain(
+      'gallery--instant',
+    );
+  });
+
+  it('shows the rain again for a slide not yet loaded, never for one that has', () => {
+    const c = create(['a.webp', 'b.webp']);
+    loadCurrentImage();
+    c.next();
+    fixture.detectChanges();
+    expect(
+      fixture.nativeElement.querySelector('.gallery__loading'),
+    ).not.toBeNull();
+    c.previous();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.gallery__loading')).toBeNull();
+  });
+
+  it('takes its height from the popup fit', () => {
+    create(['a.webp', 'b.webp']);
+    const el: HTMLElement = fixture.nativeElement;
+    el.style.display = 'block';
+    el.style.width = '302px';
+    el.style.setProperty('--spot-popup-gallery-height', '120px');
+    const gallery: HTMLElement = el.querySelector('.gallery')!;
+    expect(gallery.offsetHeight).toBe(120);
+  });
+
   it('claims the popup width itself, so a broken photo does not shrink the popup', () => {
     create(['a.webp', 'b.webp']);
     failCurrentImage();
     const gallery = fixture.nativeElement.querySelector('.gallery');
-    expect(getComputedStyle(gallery).maxWidth).toBe('302px');
+    expect(getComputedStyle(gallery).maxWidth).toBe('100%');
     expect(getComputedStyle(gallery).width).not.toBe('auto');
   });
 

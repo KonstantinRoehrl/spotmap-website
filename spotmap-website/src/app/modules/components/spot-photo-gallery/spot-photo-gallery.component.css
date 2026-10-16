@@ -5,11 +5,16 @@
   border-radius: var(--radius-sm);
   overflow: hidden;
   aspect-ratio: 4 / 3;
-  /* The popup is shrink-to-fit up to 320px (POPUP_MAX_WIDTH) minus its 8px padding and 1px
-     border: the photo used to supply that width, so a broken photo collapsed the popup to its
-     text. Claiming the width here keeps the popup the same size for photo and placeholder. */
+  /* Border-box, so the fitted height the map sets is the panel's whole height, border included,
+     and a full-width panel does not overflow the popup by its border. */
+  box-sizing: border-box;
+  /* The map fits the popup by setting this; unset, the 4:3 aspect ratio decides. */
+  height: var(--spot-popup-gallery-height, auto);
+  /* `width: 100vw` claims the popup's whole max width (so a broken photo cannot collapse it to
+     its text); `max-width: 100%` then holds it to the popup, however narrow the map makes it. */
   width: 100vw;
-  max-width: 302px;
+  max-width: 100%;
+  transition: height var(--dur-fast) ease-out;
 }
 
 .gallery__photo {
@@ -17,6 +22,35 @@
   height: 100%;
   object-fit: cover;
   display: block;
+  opacity: 0;
+  transition: opacity 300ms ease-out;
+}
+
+.gallery__photo--loaded {
+  opacity: 1;
+}
+
+/* A photo already in the cache shows at once: fading it in would only delay it. */
+.gallery--instant .gallery__photo {
+  transition: none;
+}
+
+.gallery__loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  transition: opacity 300ms ease-out;
+}
+
+.gallery__loading app-ascii-rain {
+  height: calc(6 * 13px);
+  font-size: 11px;
+  --rain-line: 13px;
+}
+
+.gallery__loading--leaving {
+  opacity: 0;
 }
 
 .gallery__nav {
