@@ -10645,7 +10645,7 @@
       "properties": {
         "id": "stollgasse-e99598",
         "name": "Stollgasse",
-        "status": "unclassified",
+        "status": "active",
         "notes": null,
         "photos": [
           "vienna/stollgasse-e99598-32b2d215.webp",
@@ -10671,7 +10671,7 @@
       "properties": {
         "id": "big-handrail-3ceff5",
         "name": "Big Handrail",
-        "status": "unclassified",
+        "status": "active",
         "notes": null,
         "photos": [
           "vienna/big-handrail-3ceff5-b0fe23e7.webp",
@@ -10692,7 +10692,7 @@
       "properties": {
         "id": "big-handrail-22fca7",
         "name": "Big Handrail",
-        "status": "unclassified",
+        "status": "active",
         "notes": null,
         "photos": [
           "vienna/big-handrail-22fca7-65c1e18e.webp"
@@ -10711,7 +10711,7 @@
       "properties": {
         "id": "deathdrop-b60fec",
         "name": "Deathdrop",
-        "status": "unclassified",
+        "status": "active",
         "notes": null,
         "photos": [
           "vienna/deathdrop-b60fec-23c617bf.webp",
@@ -10732,7 +10732,7 @@
       "properties": {
         "id": "crust-curb-over-gap-174e17",
         "name": "Crust Curb over Gap",
-        "status": "unclassified",
+        "status": "active",
         "notes": null,
         "photos": [
           "vienna/crust-curb-over-gap-174e17-c0335b96.webp",
@@ -10753,7 +10753,7 @@
       "properties": {
         "id": "slappy-hubba-917eac",
         "name": "Slappy Hubba",
-        "status": "unclassified",
+        "status": "active",
         "notes": null,
         "photos": [
           "vienna/slappy-hubba-917eac-9bcc916c.webp",
@@ -10773,7 +10773,7 @@
       "properties": {
         "id": "neue-wu-garage-e0ad2d",
         "name": "Neue WU Garage",
-        "status": "unclassified",
+        "status": "active",
         "notes": null,
         "photos": [
           "vienna/neue-wu-garage-e0ad2d-7f8a9ce5.webp",
@@ -10795,7 +10795,7 @@
       "properties": {
         "id": "manny-pad-909cb3",
         "name": "Manny Pad",
-        "status": "unclassified",
+        "status": "active",
         "notes": null,
         "photos": [
           "vienna/manny-pad-909cb3-32e55a26.webp",
@@ -10818,7 +10818,7 @@
       "properties": {
         "id": "wallride-c059f4",
         "name": "Wallride",
-        "status": "unclassified",
+        "status": "active",
         "notes": null,
         "photos": [
           "vienna/wallride-c059f4-c748544c.webp",
