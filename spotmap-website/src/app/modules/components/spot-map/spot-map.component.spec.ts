@@ -20,7 +20,11 @@ import { BASEMAP_SOURCE_ID } from './terminal-map-style';
 /** One camera move the component asked for, trimmed to the option that decides its motion. */
 interface CameraMove {
   method: string;
-  options: { duration?: number };
+  options: {
+    duration?: number;
+    essential?: boolean;
+    offset?: [number, number];
+  };
 }
 
 /** Stand-in tile URLs in the shape maplibre-contour hands out. */
@@ -112,6 +116,60 @@ class FakeMap {
   readonly cameraMoves: CameraMove[] = [];
   /** The style the component handed the factory. */
   style?: { sources: Record<string, unknown> };
+  /** Where `project()` puts every spot on screen; a spec moves it to place the tapped pin. */
+  projected = { x: 500, y: 300 };
+  /** What `queryRenderedFeatures()` finds under a map click: a pin, or nothing. */
+  renderedPins: unknown[] = [];
+  /** Makes every pan finish at zero duration, the way any path MapLibre runs instantly would. */
+  jumps = false;
+
+  project() {
+    return this.projected;
+  }
+  /** Whether a `panBy` ease is still running: started, and no `moveend` has ended it yet. */
+  private panning = false;
+
+  /**
+   * Recorded like every other camera move, with the offset folded into its options. A pan that
+   * starts while another is still running stops it first, and MapLibre fires the stopped ease's
+   * `moveend` synchronously from inside the new `panBy` (`easeTo` → `_stop` → `_afterEase`).
+   * MapLibre also zeroes the duration of an ease that is not `essential` when the visitor asks for
+   * reduced motion (`easeTo`, maplibre-gl-dev.mjs:23085), and a zero-duration ease finishes, firing
+   * its own `moveend`, before `panBy` returns (`_ease`, `:23387-23391`).
+   */
+  panBy(offset: [number, number], options: CameraMove['options']) {
+    if (this.panning) {
+      this.emit('moveend');
+    }
+    this.cameraMoves.push({ method: 'panBy', options: { ...options, offset } });
+    this.panning = true;
+    const reducedMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches;
+    if (
+      this.jumps ||
+      options.duration === 0 ||
+      (!options.essential && reducedMotion)
+    ) {
+      this.emit('moveend');
+    }
+    return this;
+  }
+  /** Whether a pan is still running, as MapLibre's `isMoving()` reports its camera. */
+  isMoving() {
+    return this.panning;
+  }
+  queryRenderedFeatures() {
+    return this.renderedPins;
+  }
+  /** A handler that removes itself after its first call, as MapLibre's `once` does. */
+  once(event: string, fn: (e?: unknown) => void) {
+    const wrapper = (e?: unknown) => {
+      this.off(event, wrapper);
+      fn(e);
+    };
+    return this.on(event, wrapper);
+  }
 
   on(event: string, layerOrFn: unknown, maybeFn?: unknown) {
     const layer = typeof layerOrFn === 'string' ? layerOrFn : undefined;
@@ -131,6 +189,9 @@ class FakeMap {
     return this;
   }
   emit(event: string, payload?: unknown, layer?: string) {
+    if (event === 'moveend') {
+      this.panning = false;
+    }
     for (const fn of this.handlers.get(this.key(event, layer)) ?? []) {
       fn(payload);
     }
@@ -360,48 +421,80 @@ class FakeMap {
   }
 }
 
-/** Records everything the component asks of a popup, without being one. */
+/**
+ * Records everything the component asks of a popup, without being one. Its container is built in
+ * `addTo` the way MapLibre builds one — the class names, a `.maplibregl-popup-content` box holding
+ * the content, the width cap — and laid out inside the fixture, so the component can measure it.
+ */
 class FakePopup {
   lngLat?: [number, number];
   content?: HTMLElement;
   addedTo?: unknown;
   removed = false;
-  private readonly closeHandlers: (() => void)[] = [];
+  /** Every width cap the component set after creating the popup. */
+  readonly maxWidths: string[] = [];
+  private container?: HTMLElement;
 
   constructor(
     readonly options: {
+      anchor: string;
       closeButton: boolean;
+      closeOnClick: boolean;
       maxWidth: string;
       className: string;
-      closeOnClick?: boolean;
-      anchor?: string;
     },
+    private readonly host: () => HTMLElement,
   ) {}
 
   setLngLat(lngLat: [number, number]) {
     this.lngLat = lngLat;
     return this;
   }
+  getLngLat() {
+    return this.lngLat;
+  }
   setDOMContent(node: HTMLElement) {
     this.content = node;
     return this;
   }
+  setMaxWidth(value: string) {
+    this.maxWidths.push(value);
+    if (this.container) {
+      this.container.style.maxWidth = value;
+    }
+    return this;
+  }
   addTo(map: unknown) {
     this.addedTo = map;
-    return this;
-  }
-  on(event: string, fn: () => void) {
-    if (event === 'close') {
-      this.closeHandlers.push(fn);
+    const container = document.createElement('div');
+    container.className = `maplibregl-popup maplibregl-popup-anchor-${this.options.anchor} ${this.options.className}`;
+    container.style.maxWidth = this.options.maxWidth;
+    const content = document.createElement('div');
+    content.className = 'maplibregl-popup-content';
+    if (this.content) {
+      content.append(this.content);
     }
+    container.append(content);
+    this.host().append(container);
+    this.container = container;
     return this;
   }
-  /** MapLibre fires `close` from `remove()`, so the fake does too. */
+  getElement(): HTMLElement {
+    if (!this.container) {
+      throw new Error(
+        'getElement() before addTo(): MapLibre has no container yet',
+      );
+    }
+    return this.container;
+  }
+  /** Whether the container still waits, hidden, for the component to reveal it. */
+  isPending() {
+    return this.getElement().classList.contains('spot-popup-frame--pending');
+  }
+  /** MapLibre takes the container out of the page synchronously. */
   remove() {
     this.removed = true;
-    for (const fn of this.closeHandlers) {
-      fn();
-    }
+    this.container?.remove();
     return this;
   }
 }
@@ -547,7 +640,7 @@ describe('SpotMapComponent', () => {
               // The realistic failure: the lazy maplibre-gl chunk never arrives.
               return Promise.reject(new Error('popup chunk failed to load'));
             }
-            const popup = new FakePopup(options);
+            const popup = new FakePopup(options, () => fixture.nativeElement);
             popups.push(popup);
             return Promise.resolve(popup);
           },
@@ -566,6 +659,23 @@ describe('SpotMapComponent', () => {
     collection = COLLECTION,
   }: { city?: CityEnum; collection?: object } = {}) {
     fixture = TestBed.createComponent(SpotMapComponent);
+    // A laid-out host, so the popup's fit box and the popup itself have real sizes to measure.
+    fixture.nativeElement.style.cssText =
+      'display:block;width:1000px;height:600px;position:relative';
+    // The Karma frame is smaller than this host and earlier specs can leave content above it, so
+    // the visual viewport is pinned around the host: the fit box is then the host inset by its
+    // margin, whatever frame the suite runs in.
+    spyOnProperty(window, 'visualViewport').and.callFake(() => {
+      const host = (
+        fixture.nativeElement as HTMLElement
+      ).getBoundingClientRect();
+      return {
+        offsetLeft: host.left,
+        offsetTop: host.top,
+        width: host.width,
+        height: host.height,
+      } as VisualViewport;
+    });
     fixture.componentRef.setInput('city', city);
     fixture.componentRef.setInput('retryToken', 0);
     fixture.detectChanges();
@@ -599,6 +709,17 @@ describe('SpotMapComponent', () => {
 
   async function tap(id: string) {
     fake.emit('click', tapOn(id), 'spots-hit');
+    await fixture.whenStable();
+  }
+
+  /** Lets every animation on the popup's container finish, and the component act on that. */
+  async function settleAnimations(popup: FakePopup | undefined) {
+    const element = popup?.getElement();
+    await Promise.all(
+      (element?.getAnimations() ?? []).map((animation) =>
+        animation.finished.catch(() => undefined),
+      ),
+    );
     await fixture.whenStable();
   }
 
@@ -1090,7 +1211,7 @@ describe('SpotMapComponent', () => {
     await tap('a');
     expect(popups.length).toBe(1);
     expect(popups[0]?.options.maxWidth).toBe('320px');
-    expect(popups[0]?.options.className).toBe('spot-popup-frame');
+    expect(popups[0]?.options.className).toContain('spot-popup-frame');
     expect(popups[0]?.lngLat).toEqual([16.37, 48.2]);
     expect(popups[0]?.addedTo === fake)
       .withContext('the popup was added to the live map')
@@ -1106,9 +1227,11 @@ describe('SpotMapComponent', () => {
     expect(popups[0]?.options.closeButton).toBe(false);
   });
 
-  it('closes the popup from its own close button', async () => {
+  it("closes with the animation from the popup's close button", async () => {
     await create();
     fake.emit('load');
+    const appRef = TestBed.inject(ApplicationRef);
+    const baseline = appRef.viewCount;
     await tap('a');
     const close =
       popups[0]?.content?.querySelector<HTMLElement>('.spot-popup__close');
@@ -1116,8 +1239,15 @@ describe('SpotMapComponent', () => {
       .withContext('the popup renders its close button')
       .toBeTruthy();
     close?.click();
+    expect(popups[0]?.removed)
+      .withContext('still on the map while it plays its close')
+      .toBe(false);
+    expect(fake.featureStates['a']?.['selected'])
+      .withContext('the selection drops at once')
+      .toBeUndefined();
+    await settleAnimations(popups[0]);
     expect(popups[0]?.removed).toBe(true);
-    expect(fake.featureStates['a']?.['selected']).toBeUndefined();
+    expect(appRef.viewCount).toBe(baseline);
   });
 
   it('moves the selection on a second tap instead of stacking popups', async () => {
@@ -1129,24 +1259,300 @@ describe('SpotMapComponent', () => {
     expect(appRef.viewCount).toBe(baseline + 1);
     await tap('b');
     expect(popups.length).toBe(2);
-    expect(popups[0]?.removed).toBe(true);
-    expect(popups[1]?.removed).toBe(false);
     expect(fake.featureStates['a']?.['selected']).toBeUndefined();
     expect(fake.featureStates['b']?.['selected']).toBe(true);
+    await settleAnimations(popups[0]);
+    expect(popups[0]?.removed).toBe(true);
+    expect(popups[1]?.removed).toBe(false);
     expect(appRef.viewCount).toBe(baseline + 1);
   });
 
-  it('drops the selection when the popup is closed', async () => {
+  it("creates the popup hidden, with a fixed side and MapLibre's own closing off", async () => {
     await create();
     fake.emit('load');
-    const appRef = TestBed.inject(ApplicationRef);
-    const baseline = appRef.viewCount;
+    fake.projected = { x: 20, y: 500 };
     await tap('a');
-    expect(fake.featureStates['a']?.['selected']).toBe(true);
-    expect(appRef.viewCount).toBe(baseline + 1);
-    popups[0]?.remove();
+    const options = popups[0]?.options;
+    expect(options?.anchor).toBe('bottom');
+    expect(options?.closeButton).toBe(false);
+    expect(options?.closeOnClick).toBe(false);
+    expect(options?.className).toContain('spot-popup-frame--pending');
+    expect(popups[0]?.isPending())
+      .withContext('hidden until the pan has settled')
+      .toBe(true);
+  });
+
+  it('opens below a pin near the top', async () => {
+    await create();
+    fake.emit('load');
+    fake.projected = { x: 500, y: 40 };
+    await tap('a');
+    expect(popups[0]?.options.anchor).toBe('top');
+  });
+
+  it('pans the popup into view, then reveals it when the camera settles', async () => {
+    requestReducedMotion(false);
+    await create();
+    fake.emit('load');
+    fake.projected = { x: 20, y: 500 };
+    await tap('a');
+    const pans = fake.cameraMoves.filter((move) => move.method === 'panBy');
+    expect(pans.length).toBe(1);
+    expect(pans[0]?.options.offset?.[0]).toBeLessThan(0);
+    expect(pans[0]?.options.duration).toBe(300);
+    expect(popups[0]?.isPending()).toBe(true);
+    fake.emit('moveend');
+    expect(popups[0]?.isPending()).toBe(false);
+  });
+
+  it('reveals at once when no pan is needed', async () => {
+    await create();
+    fake.emit('load');
+    await tap('a');
+    expect(fake.cameraMoves.filter((move) => move.method === 'panBy')).toEqual(
+      [],
+    );
+    expect(popups[0]?.isPending()).toBe(false);
+  });
+
+  it('shortens the pan under reduced motion, never to an instant jump', async () => {
+    requestReducedMotion(true);
+    await create();
+    fake.emit('load');
+    fake.projected = { x: 20, y: 500 };
+    await tap('a');
+    const pans = fake.cameraMoves.filter((move) => move.method === 'panBy');
+    expect(pans.map((move) => move.options.duration)).toEqual([200]);
+  });
+
+  it('opens where the visitor left the map when they grab it mid-pan', async () => {
+    await create();
+    fake.emit('load');
+    fake.projected = { x: 20, y: 500 };
+    await tap('a');
+    // A grab stops MapLibre's ease, which fires `moveend` with the camera wherever it stopped.
+    fake.projected = { x: 90, y: 500 };
+    fake.emit('moveend');
+    expect(popups[0]?.isPending()).toBe(false);
+    expect(
+      fake.cameraMoves.filter((move) => move.method === 'panBy').length,
+    ).toBe(1);
+  });
+
+  it("keeps a popup tapped during another's pan hidden until its own pan settles", async () => {
+    await create();
+    fake.emit('load');
+    fake.projected = { x: 20, y: 500 };
+    await tap('a');
+    expect(popups[0]?.isPending()).withContext('a is still panning').toBe(true);
+    // b's pan stops a's unfinished one, which fires a's `moveend` from inside b's `panBy`.
+    await tap('b');
+    expect(
+      fake.cameraMoves.filter((move) => move.method === 'panBy').length,
+    ).toBe(2);
+    expect(popups[1]?.isPending())
+      .withContext("a's interrupted pan does not reveal b")
+      .toBe(true);
+    fake.emit('moveend');
+    expect(popups[1]?.isPending()).toBe(false);
+  });
+
+  it('reveals a pending popup once, when a resize re-fit pan that interrupted its pan settles', async () => {
+    holdAnimationFrames();
+    await create();
+    fake.emit('load');
+    fake.projected = { x: 20, y: 500 };
+    await tap('a');
+    expect(popups[0]?.isPending()).withContext('a is still panning').toBe(true);
+    fake.emit('resize');
+    const frames = window.requestAnimationFrame as jasmine.Spy;
+    (frames.calls.mostRecent().args[0] as FrameRequestCallback)(0);
+    expect(fake.cameraMoves.filter((move) => move.method === 'panBy').length)
+      .withContext('the re-fit pans the popup back into view')
+      .toBe(2);
+    expect(popups[0]?.isPending())
+      .withContext("the re-fit pan's interruption does not reveal a")
+      .toBe(true);
+    fake.emit('moveend');
+    expect(popups[0]?.isPending())
+      .withContext('revealed when the re-fit pan settles')
+      .toBe(false);
+    fake.emit('moveend');
+    expect(popups[0]?.getElement().getAnimations().length)
+      .withContext('revealed exactly once')
+      .toBe(1);
+  });
+
+  it('eases an edge pan under reduced motion and reveals the popup when it settles', async () => {
+    requestReducedMotion(true);
+    await create();
+    fake.emit('load');
+    fake.projected = { x: 20, y: 500 };
+    await tap('a');
+    const pans = fake.cameraMoves.filter((move) => move.method === 'panBy');
+    expect(pans.map((move) => move.options.duration)).toEqual([200]);
+    expect(pans[0]?.options.essential)
+      .withContext('MapLibre would otherwise jump instead of easing')
+      .toBe(true);
+    expect(popups[0]?.isPending())
+      .withContext('hidden while the shortened pan runs')
+      .toBe(true);
+    fake.emit('moveend');
+    expect(popups[0]?.isPending()).toBe(false);
+  });
+
+  it('reveals the popup once when its pan ends before panBy returns', async () => {
+    await create();
+    fake.emit('load');
+    fake.projected = { x: 20, y: 500 };
+    // Any zero-duration path: the pan finishes, firing its `moveend`, inside `panBy`.
+    fake.jumps = true;
+    await tap('a');
+    expect(popups[0]?.isPending())
+      .withContext('revealed although its moveend has already fired')
+      .toBe(false);
+    fake.emit('moveend');
+    expect(popups[0]?.getElement().getAnimations().length)
+      .withContext('revealed exactly once')
+      .toBe(1);
+  });
+
+  it('reveals a pending popup once when a resize re-fit pan ends before panBy returns', async () => {
+    holdAnimationFrames();
+    await create();
+    fake.emit('load');
+    fake.projected = { x: 20, y: 500 };
+    await tap('a');
+    expect(popups[0]?.isPending()).withContext('a is still panning').toBe(true);
+    // Any zero-duration path: the pan finishes, firing its `moveend`, inside `panBy`.
+    fake.jumps = true;
+    fake.emit('resize');
+    const frames = window.requestAnimationFrame as jasmine.Spy;
+    (frames.calls.mostRecent().args[0] as FrameRequestCallback)(0);
+    expect(fake.cameraMoves.filter((move) => move.method === 'panBy').length)
+      .withContext('the re-fit pans the popup back into view')
+      .toBe(2);
+    expect(popups[0]?.isPending())
+      .withContext('revealed although the re-fit pan has already ended')
+      .toBe(false);
+    fake.emit('moveend');
+    expect(popups[0]?.getElement().getAnimations().length)
+      .withContext('revealed exactly once')
+      .toBe(1);
+  });
+
+  it('caps a tall popup and tells it to scroll', async () => {
+    const notes = 'A long ledge along the canal, waxed every summer. '.repeat(
+      40,
+    );
+    await create({
+      collection: {
+        type: 'FeatureCollection',
+        features: [
+          {
+            ...COLLECTION.features[0],
+            properties: { ...COLLECTION.features[0]?.properties, notes },
+          },
+        ],
+      },
+    });
+    fixture.nativeElement.style.height = '150px';
+    fake.emit('load');
+    fake.projected = { x: 500, y: 75 };
+    await tap('a');
+    const element = popups[0]?.getElement();
+    expect(element?.style.getPropertyValue('--spot-popup-max-height')).toMatch(
+      /^\d+(\.\d+)?px$/,
+    );
+    expect(popups[0]?.content?.querySelector('.spot-popup__body--more'))
+      .withContext('the capped body says more is below')
+      .toBeTruthy();
+  });
+
+  it('closes on a map click that misses every pin, not on one that hits a pin', async () => {
+    await create();
+    fake.emit('load');
+    await tap('a');
+    fake.renderedPins = [{}];
+    fake.emit('click', { point: { x: 1, y: 1 } });
+    expect(fake.featureStates['a']?.['selected'])
+      .withContext("a click on a pin is that pin's to handle")
+      .toBe(true);
+    fake.renderedPins = [];
+    fake.emit('click', { point: { x: 1, y: 1 } });
     expect(fake.featureStates['a']?.['selected']).toBeUndefined();
-    expect(appRef.viewCount).toBe(baseline);
+    await settleAnimations(popups[0]);
+    expect(popups[0]?.removed).toBe(true);
+  });
+
+  it("starts the old popup's close at once when another pin is tapped", async () => {
+    await create();
+    fake.emit('load');
+    await tap('a');
+    expect(popups[0]?.isPending()).withContext('a was revealed').toBe(false);
+    await tap('b');
+    expect(popups[1]).withContext('b exists').toBeDefined();
+    expect(popups[0]?.removed).toBe(false);
+    expect(
+      popups[0]
+        ?.getElement()
+        .getAnimations()
+        .some((animation) => animation.playState === 'running'),
+    )
+      .withContext('a is already playing its close')
+      .toBe(true);
+  });
+
+  it('removes every popup at once on teardown, a failure or a city switch', async () => {
+    await create();
+    fake.emit('load');
+    await tap('a');
+    popups[0]?.content
+      ?.querySelector<HTMLElement>('.spot-popup__close')
+      ?.click();
+    await tap('b');
+    expect(popups[0]?.removed).withContext('a is still closing').toBe(false);
+    fake = new FakeMap();
+    fixture.componentRef.setInput('retryToken', 1);
+    fixture.detectChanges();
+    expect(popups.map((popup) => popup.removed)).toEqual([true, true]);
+    httpMock.expectOne('spots/vienna.geojson').flush(COLLECTION);
+    await fixture.whenStable();
+  });
+
+  it('re-fits once per frame however many resizes arrive', async () => {
+    holdAnimationFrames();
+    await create();
+    fake.emit('load');
+    const frames = window.requestAnimationFrame as jasmine.Spy;
+    frames.calls.reset();
+    fake.emit('resize');
+    fake.emit('resize');
+    fake.emit('resize');
+    expect(frames).toHaveBeenCalledTimes(1);
+  });
+
+  it('swaps the popup to the other side when its side runs out of room on a resize', async () => {
+    requestReducedMotion(true);
+    holdAnimationFrames();
+    await create();
+    fake.emit('load');
+    fake.projected = { x: 500, y: 40 };
+    await tap('a');
+    expect(popups[0]?.options.anchor).toBe('top');
+    fake.projected = { x: 500, y: 560 };
+    fake.emit('resize');
+    const frames = window.requestAnimationFrame as jasmine.Spy;
+    (frames.calls.mostRecent().args[0] as FrameRequestCallback)(0);
+    await fixture.whenStable();
+    expect(popups[0]?.removed)
+      .withContext('a is closing, not gone')
+      .toBe(false);
+    expect(popups[0]?.getElement().getAnimations().length)
+      .withContext('a is playing its close')
+      .toBeGreaterThan(0);
+    expect(popups.length).toBe(2);
+    expect(popups[1]?.options.anchor).toBe('bottom');
   });
 
   it('destroys the popup and its view on destroy', async () => {
@@ -1401,7 +1807,9 @@ describe('SpotMapComponent', () => {
     await create();
     fake.emit('load');
     await tap('a');
-    popups[0]?.remove();
+    popups[0]?.content
+      ?.querySelector<HTMLElement>('.spot-popup__close')
+      ?.click();
     expect(cancelFrame).toHaveBeenCalled();
     expect(fake.lastLockOnPaint('circle-radius')).toBe(11.5);
     expect(fake.lastLockOnPaint('circle-stroke-opacity')).toEqual(

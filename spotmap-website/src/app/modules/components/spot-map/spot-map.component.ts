@@ -17,11 +17,12 @@ import {
 import type {
   Map as MapLibreMap,
   MapLayerMouseEvent,
+  MapMouseEvent,
   Popup as MapLibrePopup,
 } from 'maplibre-gl';
 import { filter, lastValueFrom, tap } from 'rxjs';
 import { CityEnum, MapFailureReason } from '../../../models/enums/map-enum';
-import { SpotCollection } from '../../../models/spots/spot';
+import { SpotCollection, SpotFeature } from '../../../models/spots/spot';
 import {
   SpotsLoaded,
   SpotsLoadEvent,
@@ -41,6 +42,18 @@ import {
   MAP_FACTORY,
   POPUP_FACTORY,
 } from './map-factory.token';
+import {
+  type Box,
+  fitBoxWithin,
+  fitPopup,
+  GALLERY_HEIGHT_VAR,
+  type PopupAnchor,
+  type PopupFit,
+  popupFrame,
+  POPUP_MAX_HEIGHT_VAR,
+  type ScreenPoint,
+} from './popup-fit';
+import { dismissPopup, POPUP_PENDING_CLASS, revealPopup } from './popup-motion';
 import { SPOT_HIT_LAYER_ID, SPOT_LAYERS, SPOT_SOURCE_ID } from './spot-layers';
 import {
   BASEMAP_SOURCE_ID,
@@ -62,8 +75,22 @@ const FIT_MAX_ZOOM = 16;
  */
 const NARROW_MAP_MAX_WIDTH_PX = 640;
 
-/** Wide enough for the photo gallery, narrow enough to leave the map readable behind it. */
-const POPUP_MAX_WIDTH = '320px';
+/** How long the pan that brings an opening popup into view takes. */
+const PAN_DURATION_MS = 300;
+
+/** Reduced motion shortens the pan, never to an instant jump: a cut would lose the visitor's place. */
+const PAN_REDUCED_DURATION_MS = 200;
+
+/** The pan's ease: fast off the mark, settling gently onto the framed popup. */
+const easeOutCubic = (t: number) => 1 - (1 - t) ** 3;
+
+/** A popup on screen or about to rise: MapLibre's popup, the component in it, its spot and side. */
+interface OpenPopup {
+  readonly popup: MapLibrePopup;
+  readonly ref: ComponentRef<SpotPopupComponent>;
+  readonly spot: SpotFeature;
+  readonly anchor: PopupAnchor;
+}
 
 /**
  * Whether a MapLibre `error` means a source the style cannot do without never came up — the one
@@ -94,7 +121,11 @@ function namesAnUnusableSource(
   );
 }
 
-/** Draws a city's spots on a MapLibre map. The container owns the loading and failure chrome. */
+/**
+ * Draws a city's spots on a MapLibre map, and owns opening, fitting and closing the popup of the
+ * tapped spot: fitted into the visible map, panned into view and animated in and out. The container
+ * owns the loading and failure chrome.
+ */
 @Component({
   selector: 'app-spot-map',
   imports: [],
@@ -141,9 +172,20 @@ export class SpotMapComponent {
    */
   private outcome: 'pending' | 'painted' | 'failed' = 'pending';
 
-  /** The open popup, the component inside it and the pin it belongs to — one spot at a time. */
-  private popup?: MapLibrePopup;
-  private popupRef?: ComponentRef<SpotPopupComponent>;
+  /** The popup that belongs to the selection, if any — one spot at a time. */
+  private open?: OpenPopup;
+  /** Popups playing their close animation; teardown removes them at once. */
+  private readonly closing = new Set<OpenPopup>();
+  /** The newest tap's component while its popup chunk loads; a later tap supersedes it. */
+  private pendingRef?: ComponentRef<SpotPopupComponent>;
+  /** The animation frame a coalesced resize re-fit waits on. */
+  private refitFrame?: number;
+  /**
+   * The `moveend` listener that may reveal the pending popup. Only the newest one acts, so a pan
+   * that interrupts the one a popup waits on can take over its reveal.
+   */
+  private armedReveal?: () => void;
+  /** The selected pin's spot id, whose `selected` feature state is set. */
   private selectedId?: string;
   /**
    * Stops the selected pin's lock-on pulse and puts its ring to rest; set while a pin is
@@ -381,10 +423,27 @@ export class SpotMapComponent {
       const narrow = this.isNarrow();
       this.collapseAttributionOnNarrowMap(narrow && !this.mapIsNarrow);
       this.mapIsNarrow = narrow;
+      this.scheduleRefit(map, generation);
     });
 
     map.on('click', SPOT_HIT_LAYER_ID, (event: MapLayerMouseEvent) => {
       void this.openPopup(map, collection, event, generation);
+    });
+
+    // MapLibre's own close-on-click is off because it removes the popup at once; this closes it
+    // with the animation instead.
+    map.on('click', (event: MapMouseEvent) => {
+      if (generation !== this.generation || this.open === undefined) {
+        return;
+      }
+      // A pin's own click handler is taking this one: switching, not closing.
+      if (
+        map.queryRenderedFeatures(event.point, { layers: [SPOT_HIT_LAYER_ID] })
+          .length > 0
+      ) {
+        return;
+      }
+      this.closePopup();
     });
 
     // A pointer over a pin should say it can be tapped; the hit layer is the 22 px thumb target.
@@ -397,17 +456,17 @@ export class SpotMapComponent {
   }
 
   /**
-   * Opens one popup for the tapped pin, carrying a {@link SpotPopupComponent}. The previous
-   * selection is dropped first, so a tap while another popup is open replaces it instead of
-   * leaving a second component alive on the map. MapLibre builds no close button: the component
-   * draws its own and asks through `closeRequested`.
+   * Opens one popup for the tapped pin, carrying a {@link SpotPopupComponent}. The open popup
+   * starts its close first, so a tap while another popup is open replaces it instead of leaving a
+   * second component alive on the map. MapLibre builds no close button: the component draws its own
+   * and asks through `closeRequested`.
    */
-  private async openPopup(
+  private openPopup(
     map: MapLibreMap,
     collection: SpotCollection,
     event: MapLayerMouseEvent,
     generation: number,
-  ): Promise<void> {
+  ): void {
     // The rendered feature only carries the id; the loaded collection is where the typed spot —
     // photo list included — actually lives.
     const tappedId = event.features?.[0]?.id;
@@ -418,7 +477,7 @@ export class SpotMapComponent {
       return;
     }
 
-    this.clearSelection();
+    this.closePopup();
     const id = spot.properties.id;
     map.setFeatureState({ source: SPOT_SOURCE_ID, id }, { selected: true });
     this.selectedId = id;
@@ -426,78 +485,247 @@ export class SpotMapComponent {
       reducedMotion: prefersReducedMotion(),
     });
 
-    const content = createComponent(SpotPopupComponent, {
+    const ref = this.createContent(spot);
+    this.pendingRef = ref;
+    void this.showPopup(map, spot, ref, generation);
+  }
+
+  /** Builds the popup's component for `spot`, attached and rendered, wired to close its popup. */
+  private createContent(spot: SpotFeature): ComponentRef<SpotPopupComponent> {
+    const ref = createComponent(SpotPopupComponent, {
       environmentInjector: this.environment,
     });
-    content.setInput('spot', spot);
+    ref.setInput('spot', spot);
     // The popup draws its own close button; the subscription ends with the component.
-    content.instance.closeRequested.subscribe(() => {
-      if (this.popupRef === content) {
-        this.clearSelection();
+    ref.instance.closeRequested.subscribe(() => {
+      if (this.open?.ref === ref) {
+        this.closePopup();
       }
     });
     // Built outside any template, so its view has to be attached by hand: without that nothing
     // would ever re-render the gallery's photo after an arrow is pressed.
-    this.applicationRef.attachView(content.hostView);
-    content.changeDetectorRef.detectChanges();
-    this.popupRef = content;
+    this.applicationRef.attachView(ref.hostView);
+    ref.changeDetectorRef.detectChanges();
+    return ref;
+  }
+
+  /**
+   * Creates the popup for `ref` hidden on the side with more room, adds it to the map, fits it into
+   * the visible map and pans it into view before it rises. A tap or a teardown that overtook it
+   * while maplibre-gl was loading throws it away.
+   */
+  private async showPopup(
+    map: MapLibreMap,
+    spot: SpotFeature,
+    ref: ComponentRef<SpotPopupComponent>,
+    generation: number,
+  ): Promise<void> {
+    const box = this.fitBox();
+    const pin = map.project(spot.geometry.coordinates);
+    const frame = popupFrame(box, pin);
 
     let popup: MapLibrePopup;
     try {
       popup = await this.popupFactory({
+        anchor: frame.anchor,
         closeButton: false,
-        maxWidth: POPUP_MAX_WIDTH,
-        className: SPOT_POPUP_FRAME_CLASS,
+        closeOnClick: false,
+        maxWidth: `${frame.maxWidth}px`,
+        className: `${SPOT_POPUP_FRAME_CLASS} ${POPUP_PENDING_CLASS}`,
       });
     } catch {
       // The popup's maplibre-gl chunk never arrived. Left alone this would show an amber pin
       // with nothing beside it, so the tap is unwound: the view released, the pin dropped.
-      if (this.popupRef === content) {
-        this.clearSelection();
-      } else if (!content.hostView.destroyed) {
-        content.destroy();
+      if (this.pendingRef === ref) {
+        this.pendingRef = undefined;
+        this.deselect();
       }
+      destroyRef(ref);
       return;
     }
-    if (generation !== this.generation || this.popupRef !== content) {
-      // A teardown or a second tap overtook this popup while maplibre-gl was loading.
+    if (generation !== this.generation || this.pendingRef !== ref) {
       popup.remove();
-      if (!content.hostView.destroyed) {
-        content.destroy();
-      }
+      destroyRef(ref);
       return;
     }
 
+    this.pendingRef = undefined;
     popup
       .setLngLat(spot.geometry.coordinates)
-      .setDOMContent(content.location.nativeElement)
+      .setDOMContent(ref.location.nativeElement)
       .addTo(map);
-    // MapLibre also closes on a tap on the map, and fires `close` either way. The identity check
-    // keeps a closing popup from clearing a selection that already belongs to its successor.
-    popup.on('close', () => {
-      if (this.popup === popup) {
-        this.clearSelection();
-      }
-    });
-    this.popup = popup;
+    const open: OpenPopup = { popup, ref, spot, anchor: frame.anchor };
+    this.open = open;
+    const fit = this.applyFit(open, box, pin);
+    this.panThenReveal(map, open, fit.panBy);
   }
 
   /**
-   * Closes the open popup, destroys the component inside it, stops the lock-on pulse and drops the
-   * pin's selected state. One popup is created per pin tap, so anything left behind here leaks on
-   * every tap (QC6).
+   * Measures the popup as it laid out and applies the fit: the height cap and the gallery's
+   * height go on the container as CSS variables, and the component learns whether its body
+   * scrolls. On a re-fit `keepAnchor` holds the side the popup opened on while it still has room.
    */
-  private clearSelection(): void {
-    const popup = this.popup;
-    this.popup = undefined;
-    popup?.remove();
-
-    const ref = this.popupRef;
-    this.popupRef = undefined;
-    if (ref && !ref.hostView.destroyed) {
-      ref.destroy();
+  private applyFit(
+    open: OpenPopup,
+    box: Box,
+    pin: ScreenPoint,
+    keepAnchor?: PopupAnchor,
+  ): PopupFit {
+    const { gallery, body } = open.ref.instance.naturalHeights();
+    const element = open.popup.getElement();
+    const content = element.querySelector<HTMLElement>(
+      '.maplibregl-popup-content',
+    );
+    // The frame's padding and border sit around the component, inside the capped content box.
+    const chrome =
+      (content?.offsetHeight ?? 0) -
+      (open.ref.location.nativeElement as HTMLElement).offsetHeight;
+    const fit = fitPopup({
+      box,
+      pin,
+      width: element.offsetWidth,
+      naturalGalleryHeight: gallery,
+      naturalBodyHeight: body + chrome,
+      keepAnchor,
+    });
+    element.style.setProperty(POPUP_MAX_HEIGHT_VAR, `${fit.maxHeight}px`);
+    if (gallery > 0) {
+      element.style.setProperty(GALLERY_HEIGHT_VAR, `${fit.galleryHeight}px`);
     }
+    open.ref.setInput('scrolls', fit.scrolls);
+    open.ref.changeDetectorRef.detectChanges();
+    return fit;
+  }
 
+  /**
+   * Reveals the popup once it is in view: at once when it already is, otherwise after the pan
+   * settles. A visitor grabbing the map stops the ease, which fires `moveend` too, so the popup
+   * opens where the map now is and is not panned again.
+   */
+  private panThenReveal(
+    map: MapLibreMap,
+    open: OpenPopup,
+    panBy: [number, number],
+  ): void {
+    if (panBy[0] === 0 && panBy[1] === 0) {
+      this.reveal(open);
+      return;
+    }
+    this.panRevealing(map, open, panBy);
+  }
+
+  /**
+   * Pans by `panBy` and reveals `open` when that pan settles. The listener is armed only after the
+   * pan has started: a `panBy` that stops a still-running ease fires that ease's `moveend`
+   * synchronously, and that one must not reveal `open`. A pan that has already ended by the time
+   * `panBy` returns fired its own `moveend` too, so the popup is revealed at once instead.
+   */
+  private panRevealing(
+    map: MapLibreMap,
+    open: OpenPopup,
+    panBy: [number, number],
+  ): void {
+    this.armedReveal = undefined;
+    this.pan(map, panBy);
+    if (map.isMoving()) {
+      this.revealOnSettle(map, open);
+    } else {
+      this.reveal(open);
+    }
+  }
+
+  /** Reveals `open` on the next `moveend`, unless a newer pan has taken the reveal over. */
+  private revealOnSettle(map: MapLibreMap, open: OpenPopup): void {
+    const reveal = () => {
+      if (this.armedReveal === reveal) {
+        this.armedReveal = undefined;
+        this.reveal(open);
+      }
+    };
+    this.armedReveal = reveal;
+    map.once('moveend', reveal);
+  }
+
+  /** Shows `open` with its animation, if it is still the open popup and not shown yet. */
+  private reveal(open: OpenPopup): void {
+    if (this.open === open && isPending(open)) {
+      revealPopup(open.popup.getElement(), prefersReducedMotion());
+    }
+  }
+
+  /**
+   * Eases the camera by `panBy`, shortened under reduced motion. `essential` because MapLibre
+   * otherwise turns every ease into an instant jump under reduced motion, and the shortened ease
+   * here already is the reduced-motion version.
+   */
+  private pan(map: MapLibreMap, panBy: [number, number]): void {
+    map.panBy(panBy, {
+      duration: prefersReducedMotion()
+        ? PAN_REDUCED_DURATION_MS
+        : PAN_DURATION_MS,
+      easing: easeOutCubic,
+      essential: true,
+    });
+  }
+
+  /**
+   * Closes the open popup with its animation and removes it once that has played. The pin's
+   * selection and lock-on drop at once, unless `keepSelection` — a popup swapping sides keeps its
+   * pin selected.
+   */
+  private closePopup({ keepSelection = false } = {}): void {
+    const open = this.open;
+    this.open = undefined;
+    if (!keepSelection) {
+      this.deselect();
+    }
+    if (!open) {
+      return;
+    }
+    this.closing.add(open);
+    void dismissPopup(open.popup.getElement(), prefersReducedMotion()).then(
+      () => this.discard(open),
+    );
+  }
+
+  /**
+   * Removes a popup from the map and destroys the component inside it. One popup is created per
+   * pin tap, so anything left behind here leaks on every tap (QC6).
+   */
+  private discard(open: OpenPopup): void {
+    this.closing.delete(open);
+    open.popup.remove();
+    destroyRef(open.ref);
+  }
+
+  /**
+   * Removes every popup — open, closing or still loading — at once, without animating, and drops
+   * the selection. The canvas host is reused across builds, so a popup left playing its close would
+   * sit on the next city's map.
+   */
+  private removePopupsNow(): void {
+    const open = this.open;
+    this.open = undefined;
+    if (open) {
+      this.discard(open);
+    }
+    for (const closing of [...this.closing]) {
+      this.discard(closing);
+    }
+    if (this.pendingRef) {
+      destroyRef(this.pendingRef);
+      this.pendingRef = undefined;
+    }
+    this.armedReveal = undefined;
+    this.deselect();
+    if (this.refitFrame !== undefined) {
+      cancelAnimationFrame(this.refitFrame);
+      this.refitFrame = undefined;
+    }
+  }
+
+  /** Stops the lock-on pulse and drops the selected pin's feature state. */
+  private deselect(): void {
     this.cancelLockOn?.();
     this.cancelLockOn = undefined;
 
@@ -506,6 +734,73 @@ export class SpotMapComponent {
     if (id !== undefined) {
       this.map?.removeFeatureState({ source: SPOT_SOURCE_ID, id }, 'selected');
     }
+  }
+
+  /** Re-fits the open popup on the next animation frame, once however many resizes arrive. */
+  private scheduleRefit(map: MapLibreMap, generation: number): void {
+    if (this.refitFrame !== undefined) {
+      return;
+    }
+    this.refitFrame = requestAnimationFrame(() => {
+      this.refitFrame = undefined;
+      if (generation === this.generation) {
+        this.refit(map);
+      }
+    });
+  }
+
+  /**
+   * Fits the open popup to the resized map. On the same side its caps change and the map pans any
+   * part pushed out back into view; when that side ran out of room the popup is swapped for one on
+   * the other side, the old one fading out as the new one rises.
+   */
+  private refit(map: MapLibreMap): void {
+    const open = this.open;
+    if (!open) {
+      return;
+    }
+    const box = this.fitBox();
+    const pin = map.project(open.spot.geometry.coordinates);
+    const frame = popupFrame(box, pin);
+    open.popup.setMaxWidth(`${frame.maxWidth}px`);
+    const fit = this.applyFit(open, box, pin, open.anchor);
+    if (fit.anchor === open.anchor) {
+      if (fit.panBy[0] !== 0 || fit.panBy[1] !== 0) {
+        // This pan stops the one a pending popup waits on, so its reveal moves to this pan's end.
+        if (isPending(open)) {
+          this.panRevealing(map, open, fit.panBy);
+        } else {
+          this.pan(map, fit.panBy);
+        }
+      }
+      return;
+    }
+    // MapLibre has no public anchor setter, so a side change is a fresh popup.
+    this.closePopup({ keepSelection: true });
+    const ref = this.createContent(open.spot);
+    this.pendingRef = ref;
+    void this.showPopup(map, open.spot, ref, this.generation);
+  }
+
+  /**
+   * The box a popup must fit in, in canvas-host pixels: the map frame intersected with the visual
+   * viewport, so a frame scrolled partly off screen or under a phone's on-screen keyboard counts
+   * only its visible part.
+   */
+  private fitBox(): Box {
+    const visual = window.visualViewport;
+    const viewport: Box = visual
+      ? {
+          left: visual.offsetLeft,
+          top: visual.offsetTop,
+          right: visual.offsetLeft + visual.width,
+          bottom: visual.offsetTop + visual.height,
+        }
+      : { left: 0, top: 0, right: innerWidth, bottom: innerHeight };
+    return fitBoxWithin(
+      this.canvasHost().nativeElement.getBoundingClientRect(),
+      viewport,
+    );
   }
 
   /**
@@ -518,7 +813,7 @@ export class SpotMapComponent {
       return;
     }
     this.outcome = 'failed';
-    this.clearSelection();
+    this.removePopupsNow();
     this.map?.remove();
     this.map = undefined;
     this.failed.emit(reason);
@@ -632,8 +927,20 @@ export class SpotMapComponent {
   private teardown(): void {
     this.generation += 1;
     this.outcome = 'pending';
-    this.clearSelection();
+    this.removePopupsNow();
     this.map?.remove();
     this.map = undefined;
+  }
+}
+
+/** Whether the popup is still hidden, waiting for its pan to settle before it rises. */
+function isPending(open: OpenPopup): boolean {
+  return open.popup.getElement().classList.contains(POPUP_PENDING_CLASS);
+}
+
+/** Destroys a popup's component unless something already has. */
+function destroyRef(ref: ComponentRef<SpotPopupComponent>): void {
+  if (!ref.hostView.destroyed) {
+    ref.destroy();
   }
 }
