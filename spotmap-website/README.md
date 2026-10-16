@@ -324,12 +324,17 @@ npm run sync:supabase -- --dry-run    # plan every step, write nothing
 npm run sync:supabase -- --db-only    # database only, from the committed datasets (no photos needed)
 npm run sync:supabase -- --hosted     # required whenever SUPABASE_URL is not the local stack
 npm run parity:supabase               # every city's live answer must equal its snapshot
+npm run parity:supabase -- --public   # the same, and fail unless it reads as the public
 ```
 
 `sync:supabase` and `parity:supabase` both read `SUPABASE_URL` and
 `SUPABASE_SECRET_KEY` from `.env.local` or the environment (the environment
 wins), so they target whichever project those two name: the local stack by
-default, the hosted project once `.env.local` points at it.
+default, the hosted project once `.env.local` points at it. `parity:supabase`
+reads with the secret key, which bypasses row-level security, unless
+`SUPABASE_PUBLISHABLE_KEY` (the project's publishable key) is set too; then it
+reads as the browser does. `--public` makes that a requirement: without the
+publishable key it exits 2 instead of falling back to the secret key.
 
 It prints the target first, then runs each step only after the previous one
 succeeded: load and check every referenced photo is on disk → derive missing or
@@ -360,13 +365,15 @@ before the branch that turns the backend on is merged:
    from the project's API settings, and `photoBaseUrl` as
    `<apiUrl>/storage/v1/object/public/spot-photos`. The key line keeps a
    trailing `// gitleaks:allow`, since the secret scan flags any committed key.
-4. Put `SUPABASE_URL` (the same `apiUrl`) and `SUPABASE_SECRET_KEY` into
-   `.env.local`. It is never committed.
-5. Fill the project, then check it:
+4. Put `SUPABASE_URL` (the same `apiUrl`), `SUPABASE_SECRET_KEY` and
+   `SUPABASE_PUBLISHABLE_KEY` (the same publishable key as in
+   `environment.prod.ts`) into `.env.local`. It is never committed.
+5. Fill the project, then check it as the public, the way the browser reads it
+   (the CI parity step runs the same `--public` command):
 
    ```bash
    npm run sync:supabase -- --hosted
-   npm run parity:supabase
+   npm run parity:supabase -- --public
    ```
 
 6. Merge to `main` only after the parity check passes. Without the rollout the

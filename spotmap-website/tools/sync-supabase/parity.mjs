@@ -4,13 +4,15 @@
  * deep-equal public/spots/<city>.geojson. The snapshot is what the frontend serves whenever the
  * backend is down, so the two must never disagree. Run after a sync:
  *
- *   npm run parity:supabase
+ *   npm run parity:supabase [-- --public]
  *
  * Reads SUPABASE_URL and SUPABASE_SECRET_KEY like sync:supabase, and only reads. When the optional
  * SUPABASE_PUBLISHABLE_KEY (sb_publishable_…) is set too, the reads send that key instead, so
- * they pass through the gateway and row-level security exactly as the browser's do; CI sets it.
- * Without it the secret key reads, which bypasses row-level security. Exits 0 when every city
- * matches, 1 naming the first city and the first difference, 2 on bad arguments or environment.
+ * they pass through the gateway and row-level security exactly as the browser's do. Without it
+ * the secret key reads, which bypasses row-level security. `--public` makes the public read a
+ * requirement: it exits 2 without a publishable key instead of falling back to the secret key.
+ * CI and the hosted rollout gate pass it. Exits 0 when every city matches, 1 naming the first
+ * city and the first difference, 2 on bad arguments or environment.
  */
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -95,7 +97,8 @@ function readPublishableKey(env) {
 /**
  * Runs the parity check over every city.
  *
- * @param {string[]} argv the arguments after the script name; none are accepted
+ * @param {string[]} argv the arguments after the script name; only `--public` is accepted, which
+ *   fails the run (exit 2, no request) unless SUPABASE_PUBLISHABLE_KEY is set to a non-empty value
  * @param {{ env?: Record<string, string | undefined>, cities: string[], publicDir?: string,
  *   createClient?: typeof createSupabaseClient, log?: (line: string) => void,
  *   error?: (line: string) => void }} deps
@@ -114,9 +117,18 @@ export async function runParity(
 ) {
   let client;
   try {
-    parseArgs({ args: argv, options: {}, allowPositionals: false });
+    const { values } = parseArgs({
+      args: argv,
+      options: { public: { type: 'boolean' } },
+      allowPositionals: false,
+    });
     const credentials = readCredentials(env);
     const publishableKey = readPublishableKey(env);
+    if (values.public && !publishableKey) {
+      throw new Error(
+        '--public needs SUPABASE_PUBLISHABLE_KEY (sb_publishable_…), which is unset or empty; refusing to read with the secret key',
+      );
+    }
     log(
       `target: ${new URL(credentials.url).host} (reading as ${publishableKey ? 'the public, with the publishable key' : 'the secret key'})`,
     );

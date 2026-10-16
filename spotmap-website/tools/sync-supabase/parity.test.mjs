@@ -1,12 +1,14 @@
 /**
  * Tests for the parity check: the first difference between the live city_spots() answer and the
- * bundled snapshot, and the command's exit codes. The client is a fake.
+ * bundled snapshot, and the command's exit codes. The client is a fake, except where a test
+ * checks the headers the real one sends.
  */
 import { strict as assert } from 'node:assert';
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
+import { createSupabaseClient } from './client.mjs';
 import { firstDifference, runParity } from './parity.mjs';
 
 const ENV = {
@@ -171,4 +173,64 @@ test('runParity refuses a publishable key that is not one', async (t) => {
     );
     assert.ok(!lines.join('\n').includes(wrong), 'the value is not echoed');
   }
+});
+
+test('runParity --public without a publishable key exits 2 and reads nothing', async (t) => {
+  for (const env of [ENV, { ...ENV, SUPABASE_PUBLISHABLE_KEY: '' }]) {
+    let clientCreated = false;
+    const { code, lines } = await parity(t, {
+      live: COLLECTION,
+      argv: ['--public'],
+      env,
+      onCreateClient: () => (clientCreated = true),
+    });
+    assert.equal(code, 2);
+    assert.equal(clientCreated, false, 'no client, so no request');
+    assert.match(
+      lines.at(-1),
+      /^ERR parity:supabase: --public needs SUPABASE_PUBLISHABLE_KEY/,
+    );
+    assert.ok(
+      !lines.join('\n').includes(ENV.SUPABASE_SECRET_KEY),
+      'no key value is echoed',
+    );
+  }
+});
+
+test('runParity --public reads with the publishable key and never sends Authorization', async (t) => {
+  let options;
+  const { code } = await parity(t, {
+    live: structuredClone(COLLECTION),
+    argv: ['--public'],
+    env: { ...ENV, SUPABASE_PUBLISHABLE_KEY: PUBLISHABLE },
+    onCreateClient: (given) => (options = given),
+  });
+  assert.equal(code, 0);
+  assert.equal(options.publishableKey, PUBLISHABLE);
+
+  const requests = [];
+  const client = createSupabaseClient({
+    ...options,
+    fetch: async (url, init) => {
+      requests.push(init.headers);
+      return new Response('{}', { status: 200 });
+    },
+  });
+  await client.rpc('city_spots', { p_city: 'vienna' });
+  assert.equal(requests.length, 1);
+  assert.equal(requests[0].apikey, PUBLISHABLE);
+  assert.ok(
+    !Object.keys(requests[0]).some((name) => /^authorization$/i.test(name)),
+    'Authorization is not sent',
+  );
+});
+
+test('runParity --public still refuses a publishable key that is not one', async (t) => {
+  const { code, lines } = await parity(t, {
+    live: COLLECTION,
+    argv: ['--public'],
+    env: { ...ENV, SUPABASE_PUBLISHABLE_KEY: ENV.SUPABASE_SECRET_KEY },
+  });
+  assert.equal(code, 2);
+  assert.match(lines.at(-1), /must be a publishable key/);
 });

@@ -129,10 +129,11 @@ jobs:
       - name: Seed the database from the committed datasets (no photos)
         run: npm run sync:supabase -- --db-only
 
-      # SUPABASE_PUBLISHABLE_KEY is set, so the reads go through the gateway and row-level security
-      # as the browser's anonymous ones do, not with the secret key.
+      # --public fails the step when SUPABASE_PUBLISHABLE_KEY is empty, instead of reading with the
+      # secret key: the reads must go through the gateway and row-level security as the browser's
+      # anonymous ones do.
       - name: Check every city's live spots, read as the public, equal its bundled snapshot
-        run: npm run parity:supabase
+        run: npm run parity:supabase -- --public
 
   secrets:
     name: Secret scan (gitleaks)
