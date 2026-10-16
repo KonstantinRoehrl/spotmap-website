@@ -145,7 +145,10 @@
   text-shadow: var(--glow-text-hot);
 }
 
+/* The link sits flush against the scroller's edge, which clips anything outside it, so the ring
+   is pulled inside like the close button's instead of being cut off on the left. The link is
+   44 px tall, so an inset ring leaves it readable. */
 .spot-popup__directions:focus-visible {
   outline: 1px solid var(--color-phosphor);
-  outline-offset: 2px;
+  outline-offset: -2px;
 }

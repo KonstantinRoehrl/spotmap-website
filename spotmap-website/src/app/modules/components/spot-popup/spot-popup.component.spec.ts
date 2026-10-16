@@ -55,6 +55,39 @@ function nextFrames(): Promise<void> {
   );
 }
 
+/**
+ * The declarations the stylesheets give `selector` inside a `prefers-reduced-motion: reduce` block,
+ * read from the loaded rules because Karma cannot switch the OS preference on. `selector` is matched
+ * against each comma-separated selector with Angular's component-scope attribute stripped, so a
+ * component rule and a global one are found the same way.
+ */
+function reducedMotionRules(selector: string): CSSStyleDeclaration[] {
+  const found: CSSStyleDeclaration[] = [];
+  const scan = (rules: CSSRuleList, reduced: boolean) => {
+    for (const rule of Array.from(rules)) {
+      if (rule instanceof CSSMediaRule) {
+        scan(
+          rule.cssRules,
+          reduced || rule.conditionText.includes('prefers-reduced-motion'),
+        );
+      } else if (rule instanceof CSSStyleRule && reduced) {
+        const selectors = rule.selectorText
+          .split(',')
+          .map((part) => part.replace(/\[_ng[a-z]+-[^\]]*\]/g, '').trim());
+        if (selectors.includes(selector)) found.push(rule.style);
+      }
+    }
+  };
+  for (const sheet of Array.from(document.styleSheets)) {
+    try {
+      scan(sheet.cssRules, false);
+    } catch {
+      // A cross-origin sheet has no readable rules and none of ours.
+    }
+  }
+  return found;
+}
+
 describe('SpotPopupComponent', () => {
   let fixture: ComponentFixture<SpotPopupComponent>;
 
@@ -356,6 +389,59 @@ describe('SpotPopupComponent', () => {
     } finally {
       el.remove();
       ref.destroy();
+    }
+  });
+
+  it('draws the directions link focus ring inside the scroller, so its clip never cuts it', () => {
+    const el = create(spot());
+    const link = el.querySelector<HTMLElement>('.spot-popup__directions')!;
+    link.focus();
+    expect(link.matches(':focus-visible'))
+      .withContext('the link shows its keyboard focus ring')
+      .toBeTrue();
+
+    const ring = getComputedStyle(link);
+    const reach =
+      parseFloat(ring.outlineOffset) + parseFloat(ring.outlineWidth);
+    const box = link.getBoundingClientRect();
+    const clip = body(el).getBoundingClientRect();
+    expect(box.left - reach)
+      .withContext('ring left edge')
+      .toBeGreaterThanOrEqual(clip.left);
+    expect(box.right + reach)
+      .withContext('ring right edge')
+      .toBeLessThanOrEqual(clip.right);
+    expect(box.top - reach)
+      .withContext('ring top edge')
+      .toBeGreaterThanOrEqual(clip.top);
+    expect(box.bottom + reach)
+      .withContext('ring bottom edge')
+      .toBeLessThanOrEqual(clip.bottom);
+  });
+
+  it('eases the popup frame height under reduced motion, since the net would snap it', () => {
+    const frame = reducedMotionRules(
+      '.spot-popup-frame .maplibregl-popup-content',
+    );
+    expect(frame.length)
+      .withContext('a reduced-motion rule for the popup frame content')
+      .toBeGreaterThan(0);
+    for (const rule of frame) {
+      expect(rule.transitionProperty).toContain('max-height');
+      expect(rule.getPropertyPriority('transition-property')).toBe('important');
+      expect(rule.transitionDuration).toBe('var(--dur-fade)');
+    }
+  });
+
+  it('eases the gallery height under reduced motion, since the net would snap it', () => {
+    const gallery = reducedMotionRules('.spot-popup-frame .gallery');
+    expect(gallery.length)
+      .withContext('a reduced-motion rule for the gallery')
+      .toBeGreaterThan(0);
+    for (const rule of gallery) {
+      expect(rule.transitionProperty).toBe('height');
+      expect(rule.getPropertyPriority('transition-property')).toBe('important');
+      expect(rule.transitionDuration).toBe('var(--dur-fade)');
     }
   });
 

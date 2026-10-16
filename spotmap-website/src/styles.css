@@ -171,6 +171,21 @@ body {
   transition: max-height var(--dur-fast) ease-out;
 }
 
+/* The cap's ease and the gallery's height ease are a fit settling, not movement: both survive the
+   reduced-motion net below, at the net's --dur-fade. The gallery's rule is gated behind the popup
+   frame so no other gallery use is affected. */
+@media (prefers-reduced-motion: reduce) {
+  .spot-popup-frame .maplibregl-popup-content {
+    transition-property: max-height !important;
+    transition-duration: var(--dur-fade) !important;
+  }
+
+  .spot-popup-frame .gallery {
+    transition-property: height !important;
+    transition-duration: var(--dur-fade) !important;
+  }
+}
+
 /* MapLibre writes a re-fit's width cap (Popup.setMaxWidth) to this container's max-width, so the
    width eases here while the cap and gallery height ease on the content box above. */
 .spot-popup-frame {
