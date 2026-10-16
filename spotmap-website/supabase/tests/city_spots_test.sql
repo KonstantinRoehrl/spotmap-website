@@ -1,5 +1,6 @@
--- city_spots(): the snapshot's GeoJSON shape, dataset order, gallery order, and a raise for an
--- unknown city. Passes on an empty database and on one already synced with the real spots.
+-- city_spots(): the snapshot's GeoJSON shape, dataset order, gallery order, full-precision
+-- coordinates whatever the session's extra_float_digits, and a raise for an unknown city. Passes
+-- on an empty database and on one already synced with the real spots.
 begin;
 select plan(8);
 
@@ -38,10 +39,11 @@ select is(
 select is(
   public.city_spots('vienna') #>> '{features,0,geometry,coordinates,0}', '16.3785491',
   'keeps the coordinate''s JSON text');
--- Shortest round-trip text (extra_float_digits 1), which is how the snapshot writes doubles. The
--- local Supabase stack defaults to 0, where a 15-digit cut hides the float8-versus-numeric
--- difference, so the session pins 1 for these two assertions.
-set local extra_float_digits = 1;
+-- The shortest round-trip text, which is how the snapshot writes doubles, whatever the caller's
+-- session setting: the session is deliberately at 0 (the local Supabase stack's default, where
+-- to_jsonb cuts float8 to 15 digits), so these two assertions prove city_spots pins its own
+-- extra_float_digits, and still fail should a ::numeric cast come back.
+set local extra_float_digits = 0;
 select is(
   public.city_spots('linz') #>> '{features,0,geometry,coordinates,0}', '16.37854912345679',
   'keeps a 16-digit longitude''s JSON text (a numeric cast would print 16.3785491234568)');

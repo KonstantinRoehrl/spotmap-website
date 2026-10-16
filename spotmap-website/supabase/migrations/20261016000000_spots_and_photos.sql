@@ -61,12 +61,15 @@ grant select on table public.cities, public.spots, public.spot_photos to anon, a
 -- shape of the bundled public/spots/<city>.geojson snapshot: features in dataset order, notes as
 -- JSON null when absent, photos as object keys in gallery order. An unknown city raises, which
 -- PostgREST answers with HTTP 400, so the client falls back to the snapshot.
+-- extra_float_digits is pinned to 1 so to_jsonb prints a coordinate's shortest round-trip text, as
+-- the snapshot does; at the session default 0 it would cut a 16- or 17-digit coordinate to 15.
 create function public.city_spots(p_city text)
 returns jsonb
 language plpgsql
 stable
 security invoker
 set search_path = ''
+set extra_float_digits = 1
 as $$
 declare
   collection jsonb;
@@ -82,7 +85,8 @@ begin
         'type', 'Feature',
         'geometry', jsonb_build_object(
           'type', 'Point',
-          -- float8 through to_jsonb keeps the snapshot's JSON text; ::numeric would not.
+          -- float8 through to_jsonb (with the pinned extra_float_digits) keeps the snapshot's JSON text;
+          -- ::numeric would not.
           'coordinates', jsonb_build_array(
             to_jsonb(extensions.st_x(s.location::extensions.geometry)),
             to_jsonb(extensions.st_y(s.location::extensions.geometry))
