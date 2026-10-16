@@ -11,6 +11,10 @@
     "verify:dev-map-worker": "node tools/verify-dev-server-map-worker.mjs",
     "extract:spots": "node tools/extract-spots/cli.mjs",
     "promote:spots": "node tools/extract-spots/promote.mjs",
+    "db:start": "supabase start -x studio,mailpit,realtime,edge-runtime,logflare,vector,supavisor,imgproxy",
+    "db:stop": "supabase stop",
+    "db:reset": "supabase db reset",
+    "db:test": "supabase test db",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "test:tools": "node --test \"tools/**/*.test.mjs\"",
@@ -55,6 +59,7 @@
     "karma-jasmine-html-reporter": "~2.1.0",
     "prettier": "^3.9.4",
     "sharp": "^0.35.4",
+    "supabase": "2.119.0",
     "tailwindcss": "^4.3.2",
     "typescript": "~6.0.3"
   }
