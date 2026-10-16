@@ -399,7 +399,8 @@ export class SpotMapComponent {
   /**
    * Opens one popup for the tapped pin, carrying a {@link SpotPopupComponent}. The previous
    * selection is dropped first, so a tap while another popup is open replaces it instead of
-   * leaving a second component alive on the map.
+   * leaving a second component alive on the map. MapLibre builds no close button: the component
+   * draws its own and asks through `closeRequested`.
    */
   private async openPopup(
     map: MapLibreMap,
@@ -429,6 +430,12 @@ export class SpotMapComponent {
       environmentInjector: this.environment,
     });
     content.setInput('spot', spot);
+    // The popup draws its own close button; the subscription ends with the component.
+    content.instance.closeRequested.subscribe(() => {
+      if (this.popupRef === content) {
+        this.clearSelection();
+      }
+    });
     // Built outside any template, so its view has to be attached by hand: without that nothing
     // would ever re-render the gallery's photo after an arrow is pressed.
     this.applicationRef.attachView(content.hostView);
@@ -438,7 +445,7 @@ export class SpotMapComponent {
     let popup: MapLibrePopup;
     try {
       popup = await this.popupFactory({
-        closeButton: true,
+        closeButton: false,
         maxWidth: POPUP_MAX_WIDTH,
         className: SPOT_POPUP_FRAME_CLASS,
       });

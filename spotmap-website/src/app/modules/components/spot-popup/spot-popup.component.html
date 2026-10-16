@@ -1,28 +1,51 @@
 <div class="spot-popup">
   @if (thumbnails().length > 0) {
     <app-spot-photo-gallery
+      class="spot-popup__gallery"
       [photos]="thumbnails()"
       [spotName]="properties().name"
     />
-    <p class="spot-popup__rights">© all rights reserved</p>
   }
 
-  <p class="spot-popup__name">{{ properties().name }}</p>
-
-  @if (properties().notes; as notes) {
-    <p class="spot-popup__notes">{{ notes }}</p>
-  }
-
-  @if (isDemolished()) {
-    <p class="spot-popup__status">&gt; DEMOLISHED</p>
-  }
-
-  <a
-    class="spot-popup__directions"
-    [href]="directionsHref()"
-    target="_blank"
-    rel="noopener noreferrer"
-    [attr.aria-label]="'Directions to ' + properties().name"
-    >&gt; DIRECTIONS</a
+  <div
+    #body
+    class="spot-popup__body"
+    [class.spot-popup__body--more]="moreBelow()"
+    (scroll)="onBodyScroll(body)"
   >
+    @if (thumbnails().length > 0) {
+      <p class="spot-popup__rights">© all rights reserved</p>
+    }
+
+    <p class="spot-popup__name">{{ properties().name }}</p>
+
+    @if (properties().notes; as notes) {
+      <p class="spot-popup__notes">{{ notes }}</p>
+    }
+
+    @if (isDemolished()) {
+      <p class="spot-popup__status">&gt; DEMOLISHED</p>
+    }
+
+    <a
+      class="spot-popup__directions"
+      [href]="directionsHref()"
+      target="_blank"
+      rel="noopener noreferrer"
+      [attr.aria-label]="'Directions to ' + properties().name"
+      >&gt; DIRECTIONS</a
+    >
+
+    <div class="spot-popup__fade" aria-hidden="true"></div>
+  </div>
+
+  <!-- Last in DOM order, so MapLibre's focus-after-open still lands on the gallery or directions. -->
+  <button
+    type="button"
+    class="spot-popup__close"
+    [attr.aria-label]="'Close ' + properties().name"
+    (click)="closeRequested.emit()"
+  >
+    ×
+  </button>
 </div>

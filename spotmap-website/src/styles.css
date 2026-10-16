@@ -145,8 +145,8 @@ body {
 
 /* --------------------
    MapLibre popup frame — the one piece of map chrome MapLibre paints itself
-   It builds the popup's content box, tip and close button outside any component's
-   DOM and ships them white (maplibre-gl.css: `.maplibregl-popup-content{...
+   It builds the popup's content box and tip outside any component's DOM and ships
+   them white (maplibre-gl.css: `.maplibregl-popup-content{...
    background:#fff}`, `.maplibregl-popup-anchor-* .maplibregl-popup-tip{...
    border-*-color:#fff}`), which the No-White Rule forbids. Repainting it therefore
    belongs here, in the global layer, rather than in a component's scoped styles.
@@ -161,6 +161,19 @@ body {
   border-radius: var(--radius-md);
   box-shadow: var(--glow-edge-frame);
   padding: 8px;
+  /* The map caps the box to the visible map through this variable (POPUP_MAX_HEIGHT_VAR);
+     border-box so the cap includes padding and border, and a flex column so the cap reaches
+     SpotPopupComponent's scroller instead of overflowing the frame. */
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  max-height: var(--spot-popup-max-height, none);
+  transition: max-height var(--dur-fast) ease-out;
+}
+
+/* A popup is created hidden while the map measures and fits it, then faded in. */
+.spot-popup-frame--pending {
+  opacity: 0;
 }
 
 .spot-popup-frame.maplibregl-popup-anchor-top .maplibregl-popup-tip,
@@ -181,27 +194,6 @@ body {
 
 .spot-popup-frame.maplibregl-popup-anchor-right .maplibregl-popup-tip {
   border-left-color: var(--color-line);
-}
-
-/* Thumb-sized and phosphor, with the repo's focus ring pulled inside the frame's border. */
-.spot-popup-frame .maplibregl-popup-close-button {
-  width: 44px;
-  height: 44px;
-  font-family: var(--font-mono);
-  font-size: 1.25rem;
-  line-height: 1;
-  color: var(--color-phosphor-dim);
-  background: transparent;
-}
-
-.spot-popup-frame .maplibregl-popup-close-button:hover {
-  color: var(--color-phosphor);
-  background: transparent;
-}
-
-.spot-popup-frame .maplibregl-popup-close-button:focus-visible {
-  outline: 1px solid var(--color-phosphor);
-  outline-offset: -2px;
 }
 
 /* --------------------

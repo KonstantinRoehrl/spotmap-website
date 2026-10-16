@@ -373,6 +373,8 @@ class FakePopup {
       closeButton: boolean;
       maxWidth: string;
       className: string;
+      closeOnClick?: boolean;
+      anchor?: string;
     },
   ) {}
 
@@ -1087,7 +1089,6 @@ describe('SpotMapComponent', () => {
     fake.emit('load');
     await tap('a');
     expect(popups.length).toBe(1);
-    expect(popups[0]?.options.closeButton).toBe(true);
     expect(popups[0]?.options.maxWidth).toBe('320px');
     expect(popups[0]?.options.className).toBe('spot-popup-frame');
     expect(popups[0]?.lngLat).toEqual([16.37, 48.2]);
@@ -1096,6 +1097,27 @@ describe('SpotMapComponent', () => {
       .toBe(true);
     expect(popups[0]?.content?.textContent).toContain('Alpha Bank');
     expect(fake.featureStates['a']?.['selected']).toBe(true);
+  });
+
+  it('asks MapLibre for no close button of its own', async () => {
+    await create();
+    fake.emit('load');
+    await tap('a');
+    expect(popups[0]?.options.closeButton).toBe(false);
+  });
+
+  it('closes the popup from its own close button', async () => {
+    await create();
+    fake.emit('load');
+    await tap('a');
+    const close =
+      popups[0]?.content?.querySelector<HTMLElement>('.spot-popup__close');
+    expect(close)
+      .withContext('the popup renders its close button')
+      .toBeTruthy();
+    close?.click();
+    expect(popups[0]?.removed).toBe(true);
+    expect(fake.featureStates['a']?.['selected']).toBeUndefined();
   });
 
   it('moves the selection on a second tap instead of stacking popups', async () => {
