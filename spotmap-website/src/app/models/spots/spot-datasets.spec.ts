@@ -5,7 +5,7 @@ import { SUPPORTED_CITIES } from '../enums/config';
 import { CityEnum } from '../enums/map-enum';
 import { SpotCollection, SpotStatus } from './spot';
 
-const STATUSES: SpotStatus[] = ['active', 'demolished', 'unclassified'];
+const STATUSES: SpotStatus[] = ['active', 'demolished'];
 
 /**
  * Every city's served dataset, `public/spots/<city>.geojson`, is promoted from data/spots/ by

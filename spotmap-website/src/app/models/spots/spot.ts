@@ -1,5 +1,8 @@
-/** Pin taxonomy. `unclassified` is the KML's green group, whose meaning is Decision 1's call. */
-export type SpotStatus = 'active' | 'demolished' | 'unclassified';
+/**
+ * Pin taxonomy, Decision 1 (2026-10-16): every blue pin, and My Maps' green "New added Spots"
+ * marker, is `active`; orange is `demolished`. There is no third state.
+ */
+export type SpotStatus = 'active' | 'demolished';
 
 /**
  * One map's record of a spot, kept so the extraction drops nothing: the folder and notes of the
