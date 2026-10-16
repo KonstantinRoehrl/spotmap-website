@@ -14,6 +14,7 @@ import sharp from 'sharp';
 import {
   averageHash,
   createLimiter,
+  deriveThumbnail,
   encodePhoto,
   fetchPhoto,
   fingerprintUrl,
@@ -250,4 +251,56 @@ test('the hash distance counts differing bits', () => {
     () => hashDistance('00', '000'),
     /different lengths \(2 and 3\)/,
   );
+});
+
+test('deriveThumbnail shrinks the long edge to 640 px and keeps the aspect ratio', async () => {
+  const sourcePath = join(workDir, 'thumb-landscape.webp');
+  await sharp({
+    create: { width: 1400, height: 1050, channels: 3, background: '#00aa00' },
+  })
+    .webp()
+    .toFile(sourcePath);
+  const outPath = join(workDir, 'thumb-landscape-out.webp');
+
+  await deriveThumbnail(sourcePath, outPath);
+
+  const { format, width, height } = await sharp(outPath).metadata();
+  assert.deepEqual(
+    { format, width, height },
+    { format: 'webp', width: 640, height: 480 },
+  );
+});
+
+test('deriveThumbnail never enlarges a source smaller than a thumbnail', async () => {
+  const sourcePath = join(workDir, 'thumb-small.webp');
+  await sharp({
+    create: { width: 300, height: 200, channels: 3, background: '#00aa00' },
+  })
+    .webp()
+    .toFile(sourcePath);
+  const outPath = join(workDir, 'thumb-small-out.webp');
+
+  await deriveThumbnail(sourcePath, outPath);
+
+  const { width, height } = await sharp(outPath).metadata();
+  assert.deepEqual({ width, height }, { width: 300, height: 200 });
+});
+
+test('deriveThumbnail carries no metadata over', async () => {
+  const sourcePath = join(workDir, 'thumb-exif.webp');
+  await sharp({
+    create: { width: 900, height: 900, channels: 3, background: '#00aa00' },
+  })
+    .withExif({ IFD0: { Copyright: 'spotmap test' } })
+    .webp()
+    .toFile(sourcePath);
+  assert.ok(
+    (await sharp(sourcePath).metadata()).exif,
+    'the source carries EXIF',
+  );
+  const outPath = join(workDir, 'thumb-exif-out.webp');
+
+  await deriveThumbnail(sourcePath, outPath);
+
+  assert.equal((await sharp(outPath).metadata()).exif, undefined);
 });

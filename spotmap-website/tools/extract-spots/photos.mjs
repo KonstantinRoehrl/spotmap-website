@@ -1,5 +1,5 @@
 /**
- * Downloads My Maps photos, fingerprints them and re-encodes them to WebP, and hashes encoded
+ * Downloads My Maps photos, fingerprints them and re-encodes them to WebP, derives the popup's thumbnails from the encoded files, and hashes encoded
  * photos perceptually, so an extra map's re-encoded copy of a photo can be recognised.
  *
  * Google rotates every photo URL on each KML export, so a photo is recognised by a fingerprint of
@@ -21,6 +21,10 @@ const RETRY_DELAYS_MS = [1000, 2000, 4000];
 const FINGERPRINT_RENDITION = 'fife=s32';
 const LONG_EDGE_PX = 1400;
 const WEBP_QUALITY = 72;
+/** Long edge of the popup's thumbnail rendition, in pixels (the popup is at most 320 CSS px wide). */
+export const THUMB_LONG_EDGE_PX = 640;
+/** WebP quality of a thumbnail: a step under the 1400 px encode's 72, invisible at popup size. */
+export const THUMB_WEBP_QUALITY = 70;
 /** Side of the greyscale square a photo is shrunk to before hashing; 16 × 16 gives 256 bits. */
 const HASH_EDGE_PX = 16;
 
@@ -256,4 +260,28 @@ export function hashDistance(a, b) {
     }
   }
   return distance;
+}
+
+/**
+ * Derives the popup's thumbnail from an encoded photo on disk: long edge capped at
+ * {@link THUMB_LONG_EDGE_PX} (never enlarged), WebP quality {@link THUMB_WEBP_QUALITY}, no
+ * metadata carried over. The source was already oriented and stripped by {@link encodePhoto}, so
+ * nothing is rotated here. Supabase's free tier has no image transformations, so thumbnails are
+ * made offline by tools/sync-supabase and uploaded beside the full-size file. Written atomically.
+ *
+ * @param {string} sourcePath an encoded `.webp` under data/spots/<city>/
+ * @param {string} outPath the thumbnail to write; its directory must exist
+ * @returns {Promise<void>}
+ */
+export async function deriveThumbnail(sourcePath, outPath) {
+  const webp = await sharp(sourcePath)
+    .resize({
+      width: THUMB_LONG_EDGE_PX,
+      height: THUMB_LONG_EDGE_PX,
+      fit: 'inside',
+      withoutEnlargement: true,
+    })
+    .webp({ quality: THUMB_WEBP_QUALITY })
+    .toBuffer();
+  await writeFileAtomic(outPath, webp);
 }
