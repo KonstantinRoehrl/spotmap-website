@@ -1,6 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { AsciiRainComponent } from '../ascii-rain/ascii-rain.component';
+import {
+  AsciiRainComponent,
+  RAIN_CHARACTERS,
+} from '../ascii-rain/ascii-rain.component';
 import { MapLoadState } from '../map-container/map-load-progress';
 import { MapLoaderComponent } from './map-loader.component';
 
@@ -119,5 +122,45 @@ describe('MapLoaderComponent', () => {
   it('hides all of it from assistive technology', () => {
     const host = create();
     expect(host.getAttribute('aria-hidden')).toBe('true');
+  });
+
+  describe('rain backdrop', () => {
+    /** Creates the loader in a host of the given width and lets the rain measure it. */
+    async function createAtWidth(widthPx: number): Promise<HTMLElement> {
+      fixture = TestBed.createComponent(MapLoaderComponent);
+      fixture.componentRef.setInput('city', 'vienna');
+      const host = fixture.nativeElement as HTMLElement;
+      host.style.width = `${widthPx}px`;
+      setState({});
+      await fixture.whenStable();
+      fixture.detectChanges();
+      return host;
+    }
+
+    function rainWidth(host: HTMLElement): number {
+      const columns = host.querySelectorAll('.rain__column');
+      return columns.length * columns[0].getBoundingClientRect().width;
+    }
+
+    it('covers a wide map frame', async () => {
+      const host = await createAtWidth(1300);
+      expect(rainWidth(host)).toBeGreaterThanOrEqual(1300 - 0.01);
+    });
+
+    it('still covers a phone-width map frame', async () => {
+      const host = await createAtWidth(360);
+      expect(rainWidth(host)).toBeGreaterThanOrEqual(360 - 0.01);
+    });
+  });
+
+  it("scrambles through the rain's characters", () => {
+    const host = create();
+    const glyphs = Array.from(host.querySelectorAll('.loader__scramble'))
+      .map((strip) => strip.textContent!.replace(/\s/g, ''))
+      .join('');
+    expect(glyphs.length).toBeGreaterThan(0);
+    expect([...glyphs].every((glyph) => RAIN_CHARACTERS.includes(glyph))).toBe(
+      true,
+    );
   });
 });

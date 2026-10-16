@@ -120,11 +120,18 @@ describe('MapContainerComponent', () => {
     fixture.destroy();
   });
 
-  it('announces the first step from the start', () => {
+  it('has the status region in place and empty before it announces the first step', () => {
     const fixture = create(true);
     const status: HTMLElement | null =
       fixture.nativeElement.querySelector('[role="status"]');
     expect(status).toBeTruthy();
+    // A live region announces changes made after it exists, not what it was inserted with.
+    expect(status?.textContent?.trim()).toBe('');
+
+    // The first render has finished, so the region exists; now it may speak. (No whenStable: the
+    // load watchdog's timer would keep the fixture unstable for its whole 15 s.)
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[role="status"]')).toBe(status);
     expect(status?.textContent?.trim()).toBe('Loading spots for Vienna');
     fixture.destroy();
   });

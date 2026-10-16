@@ -7,19 +7,15 @@ import {
 } from '@angular/core';
 import {
   AsciiRainComponent,
+  RAIN_CHARACTERS,
   RainPace,
 } from '../ascii-rain/ascii-rain.component';
 import {
   lockedLetterCount,
   MapLoadState,
   MapLoadStep,
+  STEP_ORDER,
 } from '../map-container/map-load-progress';
-
-/** The steps in the order a load passes through them. */
-const STEP_ORDER: readonly MapLoadStep[] = ['spots', 'map', 'draw', 'done'];
-
-/** The glyphs a letter cell scrambles through — the rain's set, so both read as one signal. */
-const SCRAMBLE_CHARACTERS = '01ABCDEFGHJKLMNPQRSTUVXYZ#$%&*+=<>?';
 
 /** Lines in one scramble strip: the 12 `steps()` frames plus the line the strip comes to rest on. */
 const SCRAMBLE_LINES = 13;
@@ -79,6 +75,7 @@ export class MapLoaderComponent {
     return step === 'spots' ? 'run' : step === 'map' ? 'slow' : 'frozen';
   });
 
+  /** Whether {@link finished} has been emitted, so the fill's later transitions cannot repeat it. */
   private finishedReported = false;
 
   /** The fill's width ease has ended; at 100 % that is the cue to reveal the map, reported once. */
@@ -99,9 +96,6 @@ export class MapLoaderComponent {
 function scrambleStrip(): string {
   return Array.from(
     { length: SCRAMBLE_LINES },
-    () =>
-      SCRAMBLE_CHARACTERS[
-        Math.floor(Math.random() * SCRAMBLE_CHARACTERS.length)
-      ],
+    () => RAIN_CHARACTERS[Math.floor(Math.random() * RAIN_CHARACTERS.length)],
   ).join('\n');
 }

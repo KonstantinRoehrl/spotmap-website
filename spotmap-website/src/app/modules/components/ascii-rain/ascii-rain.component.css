@@ -8,6 +8,11 @@
   --rain-line: 16px;
 }
 
+/* Columns keep their width when filling, so the host's width measures in whole columns. */
+:host(.rain--fill) .rain__column {
+  flex: none;
+}
+
 /* Fades towards the top, so each column reads as a trail behind its head. */
 .rain__column {
   width: 2.2ch;

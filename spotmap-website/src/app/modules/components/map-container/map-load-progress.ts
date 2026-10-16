@@ -36,17 +36,35 @@ export const INITIAL_MAP_LOAD_STATE: MapLoadState = {
   fallback: false,
 };
 
-const STEP_ORDER: readonly MapLoadStep[] = ['spots', 'map', 'draw', 'done'];
+/** The steps in the order a load passes through them; a step never goes back to an earlier one. */
+export const STEP_ORDER: readonly MapLoadStep[] = [
+  'spots',
+  'map',
+  'draw',
+  'done',
+];
 
-/** Where each segment ends: the spots, then the map up to its first paint, then the pins. */
+/** Where the SPOTS segment ends: the spot data is in, and the MAP segment starts. */
 const SPOTS_END = 0.3;
+/** Where the MAP segment ends: the framed city has painted, and the DRAW segment starts. */
 const MAP_END = 0.9;
 
-/** How far into what is left of the spots segment the request and its headers take it. */
+/**
+ * How far into what is left of the SPOTS segment the request being sent takes it (15 %) — the
+ * milestone before any response exists.
+ */
 const SENT_SHARE = 0.15;
+/** How far into what is left of the SPOTS segment the response headers take it (60 %). */
 const HEADERS_SHARE = 0.6;
 
+/**
+ * Progress once the renderer module is loaded and the map is constructed. The spec orders the MAP
+ * events (renderer, then style, then tiles) but gives no numbers; this and {@link STYLE_LOADED}
+ * place the two events before the tiles, which fill the rest of the segment up to
+ * {@link TILES_CEILING}.
+ */
 const RENDERER_READY = 0.38;
+/** Progress once the style is loaded; the tiles' share of the segment starts from here. */
 const STYLE_LOADED = 0.46;
 
 /** Tiles shape the bar inside the map segment but never reach the paint, which alone completes it. */
@@ -104,6 +122,7 @@ export class MapLoadProgress {
     }
   }
 
+  /** The progress that `share` of what is left of the SPOTS segment, from {@link spotsBase}, reaches. */
   private spotsAt(share: number): number {
     return this.spotsBase + (SPOTS_END - this.spotsBase) * share;
   }

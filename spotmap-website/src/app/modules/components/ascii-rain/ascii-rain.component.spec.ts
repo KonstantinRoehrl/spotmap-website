@@ -51,4 +51,50 @@ describe('AsciiRainComponent', () => {
     expect(rates.length).toBeGreaterThan(0);
     expect(rates.every((rate) => rate < 1)).toBeTrue();
   });
+
+  describe('filling the host width', () => {
+    async function createFilling(widthPx: number) {
+      fixture = TestBed.createComponent(AsciiRainComponent);
+      fixture.componentRef.setInput('fillWidth', true);
+      // Far too few to cover any host, so only the measured count can pass.
+      fixture.componentRef.setInput('columns', 3);
+      const host = fixture.nativeElement as HTMLElement;
+      host.style.width = `${widthPx}px`;
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      return host;
+    }
+
+    /** The total width the host's columns take side by side. */
+    function coveredWidth(host: HTMLElement): number {
+      const columns = host.querySelectorAll('.rain__column');
+      return columns.length * columns[0].getBoundingClientRect().width;
+    }
+
+    it('covers a wide host', async () => {
+      const host = await createFilling(1300);
+      expect(coveredWidth(host)).toBeGreaterThanOrEqual(1300 - 0.01);
+    });
+
+    it('still renders, and with fewer columns, for a narrow host', async () => {
+      const wide = await createFilling(1300);
+      const wideColumns = wide.querySelectorAll('.rain__column').length;
+      fixture.destroy();
+
+      const narrow = await createFilling(300);
+      const narrowColumns = narrow.querySelectorAll('.rain__column').length;
+      expect(narrowColumns).toBeGreaterThan(0);
+      expect(narrowColumns).toBeLessThan(wideColumns);
+      expect(coveredWidth(narrow)).toBeGreaterThanOrEqual(300 - 0.01);
+    });
+
+    it('keeps `columns` when it is not asked to fill', async () => {
+      const host = await create({ columns: 3 });
+      host.style.width = '1300px';
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(host.querySelectorAll('.rain__column').length).toBe(3);
+    });
+  });
 });

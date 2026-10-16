@@ -92,7 +92,7 @@ html {
   --mat-sys-error: var(--color-danger);
   --mat-sys-on-error: var(--color-bg);
 
-  // Soft corners on the R1 scale (DESIGN §4): the outlined field reads its
+  // Soft corners on the R1 scale (DESIGN §1 + the §5 field): the outlined field reads its
   // radius from `--mat-sys-corner-extra-small`; pin it to --radius-md.
   --mat-sys-corner-extra-small: var(--radius-md);
 

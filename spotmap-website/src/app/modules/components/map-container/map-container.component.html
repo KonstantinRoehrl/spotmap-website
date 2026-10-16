@@ -12,8 +12,8 @@
     (failed)="onRendererFailed($event)"
   ></app-spot-map>
 
-  <!-- Outside every @if so the region exists before the first announcement. -->
-  <p class="sr-only" role="status" aria-live="polite">{{ statusText() }}</p>
+  <!-- Outside every @if and empty at first, so the region exists before the first announcement. -->
+  <p class="sr-only" role="status" aria-live="polite">{{ announcement() }}</p>
 
   <!-- loading: the city's name decoding over ASCII rain, with the real load progress -->
   @if (!mapReady() && failureReason() === null) {

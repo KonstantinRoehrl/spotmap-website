@@ -16,6 +16,7 @@
 .map-container__overlay {
   position: absolute;
   inset: 0;
+  /* 300 ms is the spec's crossfade into the map, longer than the tokens' 200 ms. */
   transition: opacity 300ms ease-in-out;
 }
 

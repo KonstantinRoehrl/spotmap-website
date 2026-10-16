@@ -1,4 +1,5 @@
 import {
+  afterNextRender,
   afterRenderEffect,
   ChangeDetectionStrategy,
   Component,
@@ -6,6 +7,7 @@ import {
   ElementRef,
   inject,
   input,
+  signal,
 } from '@angular/core';
 
 /** How the rain moves: falling, slowed once the spots are in, or stopped on a still frame. */
@@ -19,8 +21,11 @@ interface RainColumn {
   readonly offsetMs: number;
 }
 
-/** The glyphs the rain is made of — the matrix loader's set, minus the look-alikes I/O. */
-const RAIN_CHARACTERS = '01ABCDEFGHJKLMNPQRSTUVXYZ#$%&*+=<>?';
+/**
+ * The glyphs the rain is made of — the matrix loader's set, minus the look-alikes I/O. Shared with
+ * the map loader's scrambling letters, so both read as one signal.
+ */
+export const RAIN_CHARACTERS = '01ABCDEFGHJKLMNPQRSTUVXYZ#$%&*+=<>?';
 
 /** The playback rate of the slowed rain, relative to its own pace. */
 const SLOW_PLAYBACK_RATE = 0.4;
@@ -39,6 +44,7 @@ const SLOW_PLAYBACK_RATE = 0.4;
   host: {
     'aria-hidden': 'true',
     '[class.rain--frozen]': "pace() === 'frozen'",
+    '[class.rain--fill]': 'fillWidth()',
     '[style.--rain-rows]': 'rows()',
   },
 })
@@ -49,19 +55,43 @@ export class AsciiRainComponent {
   rows = input(20);
   /** Falling, slowed, or frozen on a still frame. */
   pace = input<RainPace>('run');
+  /**
+   * Cover the host's width instead of drawing `columns`: after the first render the column count
+   * is measured from the host once, and `columns` stays only as the count until then.
+   */
+  fillWidth = input(false);
 
-  /** The columns, generated once per instance and kept until an input changes their count. */
+  /** The column count that covers the host, once measured; `null` until then and when not filling. */
+  private readonly measuredColumns = signal<number | null>(null);
+
+  /** The columns, generated once per instance and kept until their count changes. */
   protected readonly strips = computed(() =>
-    Array.from({ length: this.columns() }, () => randomColumn(this.rows())),
+    Array.from({ length: this.measuredColumns() ?? this.columns() }, () =>
+      randomColumn(this.rows()),
+    ),
   );
 
   constructor() {
     const host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
+    // Measured once: the host's width is the frame's, and a width read per frame or per resize
+    // would cost the very JavaScript the CSS sprites avoid. A zero width (host not laid out) keeps
+    // `columns`.
+    afterNextRender(() => {
+      if (!this.fillWidth()) {
+        return;
+      }
+      const column = host.querySelector('.rain__column');
+      const columnWidth = column?.getBoundingClientRect().width;
+      if (columnWidth && host.clientWidth > 0) {
+        this.measuredColumns.set(Math.ceil(host.clientWidth / columnWidth));
+      }
+    });
     // After render, so the CSS animations exist; the playback rate eases the fall rather than
     // restarting it, which rewriting `animation-duration` would. A still-pending animation (not
     // yet started, so nothing to jump) takes the rate at once: `updatePlaybackRate` would defer it
     // until the animation starts.
     afterRenderEffect(() => {
+      this.strips(); // columns redrawn after measuring are new animations and need the rate too
       const rate = this.pace() === 'run' ? 1 : SLOW_PLAYBACK_RATE;
       for (const animation of host.getAnimations({ subtree: true })) {
         if (animation.pending) {
@@ -88,6 +118,7 @@ function randomColumn(rows: number): RainColumn {
   };
 }
 
+/** One random glyph from {@link RAIN_CHARACTERS}. */
 function randomCharacter(): string {
   return RAIN_CHARACTERS[Math.floor(Math.random() * RAIN_CHARACTERS.length)];
 }

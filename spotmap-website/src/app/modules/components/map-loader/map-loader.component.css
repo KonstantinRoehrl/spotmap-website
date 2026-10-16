@@ -62,6 +62,7 @@
   text-shadow: none;
   animation: cell-cycle var(--cell-duration) steps(12) infinite;
   animation-delay: var(--cell-offset);
+  /* 160 ms is the spec's letter-lock time, which is none of the design tokens' 200 ms. */
   transition: opacity 160ms;
 }
 
@@ -106,12 +107,13 @@
   display: block;
   width: 0;
   height: 100%;
-  border-radius: calc(var(--radius-sm) - 2px);
+  border-radius: var(--radius-sm);
   background: repeating-linear-gradient(
     90deg,
     var(--color-phosphor) 0 6px,
     transparent 6px 8px
   );
+  /* 250 ms is the spec's bar ease, not a token's 200 ms. */
   transition: width 250ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 

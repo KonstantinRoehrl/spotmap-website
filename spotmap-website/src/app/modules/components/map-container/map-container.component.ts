@@ -1,4 +1,5 @@
 import {
+  afterNextRender,
   Component,
   DestroyRef,
   computed,
@@ -69,6 +70,16 @@ export class MapContainerComponent {
     }
     return step === 'map' ? `Loading the map of ${city}` : 'Drawing the map';
   });
+  /** Whether the status region has been rendered, so that what it receives next is announced. */
+  private readonly statusRegionRendered = signal(false);
+  /**
+   * What the status region holds: nothing until it exists, then {@link statusText}. Assistive
+   * technology announces changes to a live region but not the text it was inserted with, so the
+   * first message must arrive after the region does.
+   */
+  protected readonly announcement = computed(() =>
+    this.statusRegionRendered() ? this.statusText() : '',
+  );
 
   /** Folds the current load's events into {@link loadState}; replaced for every new load. */
   private progress = new MapLoadProgress();
@@ -80,6 +91,7 @@ export class MapContainerComponent {
   constructor() {
     inject(DestroyRef).onDestroy(() => this.clearTimer());
     this.startTimer();
+    afterNextRender(() => this.statusRegionRendered.set(true));
 
     // The component instance is reused across dropdown selections (only the
     // `city` input changes, the component is not recreated). Reset the load on
