@@ -1,0 +1,365 @@
+{
+  "city": "rijeka",
+  "map": "rijeka",
+  "mid": "1EpSHyJXOp2H35Dn_HwdC0EzHfnHgojI",
+  "placemarks": 10,
+  "spotsWritten": 10,
+  "photosLinked": 68,
+  "photosWritten": 34,
+  "photosDead": [],
+  "photosRecovered": [],
+  "photosDuplicate": [
+    {
+      "spotId": "miniramp-am-dach-3e2255",
+      "map": "balkan",
+      "n": 1,
+      "sameAs": {
+        "map": "rijeka",
+        "n": 1
+      }
+    },
+    {
+      "spotId": "miniramp-am-dach-3e2255",
+      "map": "balkan",
+      "n": 2,
+      "sameAs": {
+        "map": "rijeka",
+        "n": 2
+      }
+    },
+    {
+      "spotId": "plaza-mit-curb-c69f1a",
+      "map": "balkan",
+      "n": 1,
+      "sameAs": {
+        "map": "rijeka",
+        "n": 1
+      }
+    },
+    {
+      "spotId": "stair-heaven-072e67",
+      "map": "balkan",
+      "n": 1,
+      "sameAs": {
+        "map": "rijeka",
+        "n": 1
+      }
+    },
+    {
+      "spotId": "stair-heaven-072e67",
+      "map": "balkan",
+      "n": 2,
+      "sameAs": {
+        "map": "rijeka",
+        "n": 2
+      }
+    },
+    {
+      "spotId": "stair-heaven-072e67",
+      "map": "balkan",
+      "n": 3,
+      "sameAs": {
+        "map": "rijeka",
+        "n": 3
+      }
+    },
+    {
+      "spotId": "stair-heaven-072e67",
+      "map": "balkan",
+      "n": 4,
+      "sameAs": {
+        "map": "rijeka",
+        "n": 4
+      }
+    },
+    {
+      "spotId": "stair-heaven-072e67",
+      "map": "balkan",
+      "n": 5,
+      "sameAs": {
+        "map": "rijeka",
+        "n": 5
+      }
+    },
+    {
+      "spotId": "stair-heaven-072e67",
+      "map": "balkan",
+      "n": 6,
+      "sameAs": {
+        "map": "rijeka",
+        "n": 6
+      }
+    },
+    {
+      "spotId": "stair-heaven-072e67",
+      "map": "balkan",
+      "n": 7,
+      "sameAs": {
+        "map": "rijeka",
+        "n": 7
+      }
+    },
+    {
+      "spotId": "stair-heaven-072e67",
+      "map": "balkan",
+      "n": 8,
+      "sameAs": {
+        "map": "rijeka",
+        "n": 8
+      }
+    },
+    {
+      "spotId": "stair-heaven-072e67",
+      "map": "balkan",
+      "n": 9,
+      "sameAs": {
+        "map": "rijeka",
+        "n": 9
+      }
+    },
+    {
+      "spotId": "stair-heaven-072e67",
+      "map": "balkan",
+      "n": 10,
+      "sameAs": {
+        "map": "rijeka",
+        "n": 10
+      }
+    },
+    {
+      "spotId": "curb-a587b7",
+      "map": "balkan",
+      "n": 1,
+      "sameAs": {
+        "map": "rijeka",
+        "n": 1
+      }
+    },
+    {
+      "spotId": "diy-0880ca",
+      "map": "balkan",
+      "n": 1,
+      "sameAs": {
+        "map": "rijeka",
+        "n": 1
+      }
+    },
+    {
+      "spotId": "diy-0880ca",
+      "map": "balkan",
+      "n": 2,
+      "sameAs": {
+        "map": "rijeka",
+        "n": 2
+      }
+    },
+    {
+      "spotId": "diy-0880ca",
+      "map": "balkan",
+      "n": 3,
+      "sameAs": {
+        "map": "rijeka",
+        "n": 3
+      }
+    },
+    {
+      "spotId": "diy-0880ca",
+      "map": "balkan",
+      "n": 4,
+      "sameAs": {
+        "map": "rijeka",
+        "n": 4
+      }
+    },
+    {
+      "spotId": "studenski-centar-dee0de",
+      "map": "balkan",
+      "n": 1,
+      "sameAs": {
+        "map": "rijeka",
+        "n": 1
+      }
+    },
+    {
+      "spotId": "studenski-centar-dee0de",
+      "map": "balkan",
+      "n": 2,
+      "sameAs": {
+        "map": "rijeka",
+        "n": 2
+      }
+    },
+    {
+      "spotId": "studenski-centar-dee0de",
+      "map": "balkan",
+      "n": 3,
+      "sameAs": {
+        "map": "rijeka",
+        "n": 3
+      }
+    },
+    {
+      "spotId": "studenski-centar-dee0de",
+      "map": "balkan",
+      "n": 4,
+      "sameAs": {
+        "map": "rijeka",
+        "n": 4
+      }
+    },
+    {
+      "spotId": "studenski-centar-dee0de",
+      "map": "balkan",
+      "n": 5,
+      "sameAs": {
+        "map": "rijeka",
+        "n": 5
+      }
+    },
+    {
+      "spotId": "studenski-centar-dee0de",
+      "map": "balkan",
+      "n": 6,
+      "sameAs": {
+        "map": "rijeka",
+        "n": 6
+      }
+    },
+    {
+      "spotId": "studenski-centar-dee0de",
+      "map": "balkan",
+      "n": 7,
+      "sameAs": {
+        "map": "rijeka",
+        "n": 7
+      }
+    },
+    {
+      "spotId": "main-plaza-d7bfab",
+      "map": "balkan",
+      "n": 1,
+      "sameAs": {
+        "map": "rijeka",
+        "n": 1
+      }
+    },
+    {
+      "spotId": "main-plaza-d7bfab",
+      "map": "balkan",
+      "n": 2,
+      "sameAs": {
+        "map": "rijeka",
+        "n": 2
+      }
+    },
+    {
+      "spotId": "main-plaza-d7bfab",
+      "map": "balkan",
+      "n": 3,
+      "sameAs": {
+        "map": "rijeka",
+        "n": 3
+      }
+    },
+    {
+      "spotId": "low-to-high-ledge-614a10",
+      "map": "balkan",
+      "n": 1,
+      "sameAs": {
+        "map": "rijeka",
+        "n": 1
+      }
+    },
+    {
+      "spotId": "low-to-high-ledge-614a10",
+      "map": "balkan",
+      "n": 2,
+      "sameAs": {
+        "map": "rijeka",
+        "n": 2
+      }
+    },
+    {
+      "spotId": "strand-gap-f4264b",
+      "map": "balkan",
+      "n": 1,
+      "sameAs": {
+        "map": "rijeka",
+        "n": 1
+      }
+    },
+    {
+      "spotId": "strand-gap-f4264b",
+      "map": "balkan",
+      "n": 2,
+      "sameAs": {
+        "map": "rijeka",
+        "n": 2
+      }
+    },
+    {
+      "spotId": "curbs-9503a4",
+      "map": "balkan",
+      "n": 1,
+      "sameAs": {
+        "map": "rijeka",
+        "n": 1
+      }
+    },
+    {
+      "spotId": "curbs-9503a4",
+      "map": "balkan",
+      "n": 2,
+      "sameAs": {
+        "map": "rijeka",
+        "n": 2
+      }
+    }
+  ],
+  "photosNearDuplicate": [],
+  "spotsWithoutPhotos": [],
+  "statusCounts": {
+    "active": 10,
+    "demolished": 0
+  },
+  "extraMaps": [
+    {
+      "map": "balkan",
+      "mid": "1IDO4AGmCsN_D-zcXPjpU1eXqwQYTh1A",
+      "placemarks": 140,
+      "matched": 10
+    }
+  ],
+  "matches": {
+    "conflicts": [],
+    "ambiguous": [],
+    "unmatched": []
+  },
+  "linkCounts": {
+    "rijeka": {
+      "miniramp-am-dach-3e2255": 2,
+      "plaza-mit-curb-c69f1a": 1,
+      "stair-heaven-072e67": 10,
+      "curb-a587b7": 1,
+      "diy-0880ca": 4,
+      "studenski-centar-dee0de": 7,
+      "main-plaza-d7bfab": 3,
+      "low-to-high-ledge-614a10": 2,
+      "strand-gap-f4264b": 2,
+      "curbs-9503a4": 2
+    },
+    "balkan": {
+      "miniramp-am-dach-3e2255": 2,
+      "plaza-mit-curb-c69f1a": 1,
+      "stair-heaven-072e67": 10,
+      "curb-a587b7": 1,
+      "diy-0880ca": 4,
+      "studenski-centar-dee0de": 7,
+      "main-plaza-d7bfab": 3,
+      "low-to-high-ledge-614a10": 2,
+      "strand-gap-f4264b": 2,
+      "curbs-9503a4": 2
+    }
+  },
+  "warnings": []
+}

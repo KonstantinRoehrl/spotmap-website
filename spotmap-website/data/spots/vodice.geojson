@@ -1,0 +1,103 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          15.785471,
+          43.754653
+        ]
+      },
+      "properties": {
+        "id": "7-stair-daf680",
+        "name": "7 Stair",
+        "status": "active",
+        "photos": [
+          "spots/vodice/7-stair-daf680-a81e1f4c.webp"
+        ],
+        "sources": [
+          {
+            "map": "balkan",
+            "folder": "Kroatien"
+          }
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          15.7739482,
+          43.7559348
+        ]
+      },
+      "properties": {
+        "id": "low-to-high-ledge-b9d825",
+        "name": "Low to High Ledge",
+        "status": "active",
+        "photos": [
+          "spots/vodice/low-to-high-ledge-b9d825-e5d9ede4.webp"
+        ],
+        "sources": [
+          {
+            "map": "balkan",
+            "folder": "Kroatien"
+          }
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          15.7848795,
+          43.7554237
+        ]
+      },
+      "properties": {
+        "id": "11-stair-c62a72",
+        "name": "11 Stair",
+        "status": "active",
+        "photos": [
+          "spots/vodice/11-stair-c62a72-1644a8e3.webp",
+          "spots/vodice/11-stair-c62a72-2c506f91.webp"
+        ],
+        "sources": [
+          {
+            "map": "balkan",
+            "folder": "Kroatien",
+            "description": "Perfect"
+          }
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          15.7855018,
+          43.7552048
+        ]
+      },
+      "properties": {
+        "id": "8-stair-f38064",
+        "name": "8 Stair",
+        "status": "active",
+        "photos": [
+          "spots/vodice/8-stair-f38064-590aa58f.webp"
+        ],
+        "sources": [
+          {
+            "map": "balkan",
+            "folder": "Kroatien"
+          }
+        ]
+      }
+    }
+  ]
+}

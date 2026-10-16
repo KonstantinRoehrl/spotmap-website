@@ -1,0 +1,2796 @@
+{
+  "city": "split",
+  "map": "split",
+  "mid": "1dgfVkXz-ruy1aoQePV7j2lhv5QzEfFw",
+  "placemarks": 105,
+  "spotsWritten": 105,
+  "photosLinked": 566,
+  "photosWritten": 283,
+  "photosDead": [],
+  "photosRecovered": [
+    {
+      "spotId": "curbs-6f08d1",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "curbs-6f08d1",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "curbs-6f08d1",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "dardin-8009e3",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "dardin-8009e3",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "dardin-8009e3",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "dardin-8009e3",
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "lidl-ledge-2cec1f",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "bloecke-964c23",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "diy-quater-151a97",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "diy-quater-151a97",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "stairsets-b97c4e",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "stairsets-b97c4e",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "stairsets-b97c4e",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "curb-9ad19e",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "curb-9ad19e",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "curb-9ad19e",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "curb-9ad19e",
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "5-stair-55a788",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "5-stair-55a788",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "5-stair-55a788",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "little-vulcano-3c7041",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "dropledge-09a89f",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "dropledge-09a89f",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "pyramide-595094",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "pyramide-595094",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "little-stairs-and-curbs-fd1412",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "little-stairs-and-curbs-fd1412",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "little-stairs-and-curbs-fd1412",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "little-stairs-and-curbs-fd1412",
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "little-stairs-and-curbs-fd1412",
+      "map": "split",
+      "n": 5,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "pop-over-rail-8e00ca",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "pop-over-rail-8e00ca",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "gap-to-dropledge-df02ba",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "gap-to-dropledge-df02ba",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "long-ledge-5d84c2",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "long-ledge-5d84c2",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "crust-ledge-198eea",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "crust-ledge-198eea",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "manny-pad-ledges-3596c8",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "manny-pad-ledges-3596c8",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "manny-pad-ledges-3596c8",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "manny-pad-ledges-3596c8",
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "small-dropledge-45477b",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "stairsets-double-set-ledges-thrashcan-gap-cddef3",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "stairsets-double-set-ledges-thrashcan-gap-cddef3",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "stairsets-double-set-ledges-thrashcan-gap-cddef3",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "stairsets-double-set-ledges-thrashcan-gap-cddef3",
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "stairsets-double-set-ledges-thrashcan-gap-cddef3",
+      "map": "split",
+      "n": 5,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "stairsets-double-set-ledges-thrashcan-gap-cddef3",
+      "map": "split",
+      "n": 6,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "stairsets-double-set-ledges-thrashcan-gap-cddef3",
+      "map": "split",
+      "n": 7,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "stairsets-double-set-ledges-thrashcan-gap-cddef3",
+      "map": "split",
+      "n": 8,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "stairsets-double-set-ledges-thrashcan-gap-cddef3",
+      "map": "split",
+      "n": 9,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "stairsets-double-set-ledges-thrashcan-gap-cddef3",
+      "map": "split",
+      "n": 10,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "13er-handrail-21273a",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "13er-handrail-21273a",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "10er-handrail-bbb3d2",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "10er-handrail-bbb3d2",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "10er-handrail-bbb3d2",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "low-to-high-ledge-de1430",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "low-to-high-ledge-de1430",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "long-hubba-ab198c",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "long-hubba-ab198c",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "long-crusty-banana-ledge-357895",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "long-crusty-banana-ledge-357895",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "bump-to-bar-5663aa",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "6-stairs-with-plants-37ae16",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "6-stairs-with-plants-37ae16",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "6-stairs-with-plants-37ae16",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "low-to-high-rail-5503ca",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "low-to-high-rail-5503ca",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "low-to-high-rail-5503ca",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "low-to-high-rail-5503ca",
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "pyramids-94b5c3",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "pyramids-94b5c3",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "pyramids-94b5c3",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "pyramids-94b5c3",
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "pyramids-94b5c3",
+      "map": "split",
+      "n": 5,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "double-set-51ccc1",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "low-to-high-manny-pad-b2ed56",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "low-to-high-manny-pad-b2ed56",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "gap-over-water-supply-9dd80c",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "gap-over-water-supply-9dd80c",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "gap-over-water-supply-9dd80c",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "gap-over-thrashcan-and-bench-rails-ea945a",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "gap-over-thrashcan-and-bench-rails-ea945a",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "gap-over-thrashcan-and-bench-rails-ea945a",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "gap-over-thrashcan-and-bench-rails-ea945a",
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "gap-over-thrashcan-and-bench-rails-ea945a",
+      "map": "split",
+      "n": 5,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "flatgap-15eee5",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "flatgap-15eee5",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "water-pads-e6db44",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "harbour-curbs-314da1",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "harbour-curbs-314da1",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "mannypad-1cc473",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "mannypad-1cc473",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "mannypad-1cc473",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "mini-manny-pads-27e16e",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "4-and-8-stairs-a5aa6e",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "4-and-8-stairs-a5aa6e",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "4-and-8-stairs-a5aa6e",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "4-and-8-stairs-a5aa6e",
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "6-stair-0b85de",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "ledge-555085",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "ledge-555085",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "9er-handrail-dfb217",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "small-handrail-and-boardslide-hubba-04705d",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "small-handrail-and-boardslide-hubba-04705d",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "11-stair-hubba-974d02",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "11-stair-hubba-974d02",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "11-stair-hubba-974d02",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "11-stair-hubba-974d02",
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "11-stair-hubba-974d02",
+      "map": "split",
+      "n": 5,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "stairs-and-dropledge-291612",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "stairs-and-dropledge-291612",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "stairs-and-dropledge-291612",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "stairs-and-dropledge-291612",
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "stairs-and-dropledge-291612",
+      "map": "split",
+      "n": 5,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "stairs-and-dropledge-291612",
+      "map": "split",
+      "n": 6,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "long-ledge-728a14",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "double-set-roll-in-3ee0a7",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "manny-pad-a33517",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "jack-o-grady-spot-cb5f20",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "jack-o-grady-spot-cb5f20",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "jack-o-grady-spot-cb5f20",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "volcanos-and-curb-2cbb95",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "big-gap-4f9f33",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "big-gap-4f9f33",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "big-gap-4f9f33",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "handrail-5dfaa3",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "handrail-5dfaa3",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "handrail-5dfaa3",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "handrail-be19f3",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "handrail-be19f3",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "stairsets-165837",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "downhill-curb-9a6c86",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "downhill-curb-9a6c86",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "downhill-curb-9a6c86",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "downhill-curb-9a6c86",
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "downhill-curb-9a6c86",
+      "map": "split",
+      "n": 5,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "downhill-curb-9a6c86",
+      "map": "split",
+      "n": 6,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "downhill-curb-9a6c86",
+      "map": "split",
+      "n": 7,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "10-stair-5e99f5",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "10-stair-5e99f5",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "10-stair-5e99f5",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "diy-4e5e9d",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "miniramp-b9f5d6",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "miniramp-b9f5d6",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "gap-over-fence-21fda7",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "gap-over-fence-21fda7",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "gap-over-fence-21fda7",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "gap-over-rail-114dcc",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "gap-over-rail-114dcc",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "downledge-fd246c",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "downledge-fd246c",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "downledge-fd246c",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "downledge-fd246c",
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "habour-small-ledge-bca562",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "crusty-11-stair-6c1c51",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "crusty-11-stair-6c1c51",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "crusty-11-stair-6c1c51",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "bump-to-bar-8965c8",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "bump-to-bar-8965c8",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "bump-to-bar-8965c8",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "bump-to-bar-8965c8",
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "skatepark-8cb2ec",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "double-set-ledge-eee085",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "double-set-ledge-eee085",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "double-set-ledge-eee085",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "double-set-ledge-eee085",
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "double-set-ledge-eee085",
+      "map": "split",
+      "n": 5,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "low-to-high-rail-a0d8b8",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "low-to-high-rail-a0d8b8",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "low-to-high-rail-a0d8b8",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "10er-handrail-71c596",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "chris-pfanner-double-set-4bc65b",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "chris-pfanner-double-set-4bc65b",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "chris-pfanner-double-set-4bc65b",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "crusty-10-stair-54f5cb",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "crusty-10-stair-54f5cb",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "crusty-10-stair-54f5cb",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "dropledge-91576a",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "dropledge-91576a",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "dropledge-91576a",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "bank-267211",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "bank-267211",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "8-stairs-96bf59",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "8-stairs-96bf59",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "steep-hubba-012b54",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "steep-hubba-012b54",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "dropledge-3c7321",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "dropledge-3c7321",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "dropledge-3c7321",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "dropledge-3c7321",
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "skatepark-curb-e7234b",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "skatepark-curb-e7234b",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "super-crust-ledge-d05f6c",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "super-crust-ledge-d05f6c",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "gangster-manny-pad-ab1364",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "gangster-manny-pad-ab1364",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "gangster-manny-pad-ab1364",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "slappy-banks-bc5884",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "slappy-banks-bc5884",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "slappy-banks-bc5884",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "slappy-banks-bc5884",
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "slappy-banks-bc5884",
+      "map": "split",
+      "n": 5,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "slappy-banks-bc5884",
+      "map": "split",
+      "n": 6,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "dropledge-adebf6",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "dropledge-adebf6",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "dropledge-adebf6",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "dropledge-adebf6",
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "stairs-f6dca8",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "wallride-a76b32",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "wallride-a76b32",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "bump-to-bar-6b74b1",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "bump-to-bar-6b74b1",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "manny-pads-2d017b",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "manny-pads-2d017b",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "handrail-5c5dfb",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "handrail-5c5dfb",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "bank-to-flatbar-51511a",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "blue-bank-472a6c",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "curb-paradise-dce684",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "curb-paradise-dce684",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "manny-pad-stairs-8f82f5",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "manny-pad-stairs-8f82f5",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "manny-pad-stairs-8f82f5",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "manny-pad-stairs-8f82f5",
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "manny-pad-stairs-8f82f5",
+      "map": "split",
+      "n": 5,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "hubba-99ff20",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "hubba-99ff20",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "hubba-99ff20",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "hubba-99ff20",
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "handrail-11d5fc",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "death-drop-in-e199c3",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "death-drop-in-e199c3",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "death-drop-in-e199c3",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "big-hubba-0fda5c",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "big-hubba-0fda5c",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "big-hubba-0fda5c",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "6-stair-manny-pad-into-bank-b40947",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "6-stair-manny-pad-into-bank-b40947",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "6-stair-manny-pad-into-bank-b40947",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "6-stair-manny-pad-into-bank-b40947",
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "6-stair-manny-pad-into-bank-b40947",
+      "map": "split",
+      "n": 5,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "big-handrail-2d24ac",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "big-handrail-2d24ac",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "big-handrail-2d24ac",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "big-handrail-2d24ac",
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "university-downhill-flatgap-ae593e",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "university-downhill-flatgap-ae593e",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "university-downhill-flatgap-ae593e",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "university-downhill-flatgap-ae593e",
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "university-downhill-flatgap-ae593e",
+      "map": "split",
+      "n": 5,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "university-downhill-flatgap-ae593e",
+      "map": "split",
+      "n": 6,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "low-to-high-ledge-b2de7e",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "low-to-high-ledge-b2de7e",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "low-to-high-ledge-b2de7e",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "4-stair-handrail-a80ead",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "4-stair-handrail-a80ead",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "4-stair-handrail-a80ead",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "4-stair-handrail-a80ead",
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "super-crust-kink-hubba-b82147",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "super-crust-kink-hubba-b82147",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "super-crust-kink-hubba-b82147",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "super-crust-kink-hubba-b82147",
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "hubba-0518f4",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "hubba-0518f4",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "hubba-0518f4",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "handrail-0c4be3",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "handrail-0c4be3",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "handrail-0c4be3",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "wobble-metal-thing-d35958",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "big-stairset-gap-c429c0",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "big-stairset-gap-c429c0",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "big-stairset-gap-c429c0",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "steep-handrail-9c11f4",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "steep-handrail-9c11f4",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "steep-handrail-9c11f4",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "manny-pad-4c0c7d",
+      "map": "split",
+      "n": 1,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "manny-pad-4c0c7d",
+      "map": "split",
+      "n": 2,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "manny-pad-4c0c7d",
+      "map": "split",
+      "n": 3,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    },
+    {
+      "spotId": "manny-pad-4c0c7d",
+      "map": "split",
+      "n": 4,
+      "reason": "http 404",
+      "from": [
+        "balkan"
+      ]
+    }
+  ],
+  "photosDuplicate": [],
+  "photosNearDuplicate": [],
+  "spotsWithoutPhotos": [
+    "punkt-46-753e20"
+  ],
+  "statusCounts": {
+    "active": 105,
+    "demolished": 0
+  },
+  "extraMaps": [
+    {
+      "map": "balkan",
+      "mid": "1IDO4AGmCsN_D-zcXPjpU1eXqwQYTh1A",
+      "placemarks": 140,
+      "matched": 105
+    }
+  ],
+  "matches": {
+    "conflicts": [],
+    "ambiguous": [],
+    "unmatched": []
+  },
+  "linkCounts": {
+    "split": {
+      "curbs-6f08d1": 3,
+      "dardin-8009e3": 4,
+      "lidl-ledge-2cec1f": 1,
+      "bloecke-964c23": 1,
+      "diy-quater-151a97": 2,
+      "stairsets-b97c4e": 3,
+      "curb-9ad19e": 4,
+      "5-stair-55a788": 3,
+      "little-vulcano-3c7041": 1,
+      "dropledge-09a89f": 2,
+      "pyramide-595094": 2,
+      "little-stairs-and-curbs-fd1412": 5,
+      "pop-over-rail-8e00ca": 2,
+      "gap-to-dropledge-df02ba": 2,
+      "long-ledge-5d84c2": 2,
+      "crust-ledge-198eea": 2,
+      "manny-pad-ledges-3596c8": 4,
+      "small-dropledge-45477b": 1,
+      "stairsets-double-set-ledges-thrashcan-gap-cddef3": 10,
+      "13er-handrail-21273a": 2,
+      "10er-handrail-bbb3d2": 3,
+      "low-to-high-ledge-de1430": 2,
+      "long-hubba-ab198c": 2,
+      "long-crusty-banana-ledge-357895": 2,
+      "bump-to-bar-5663aa": 1,
+      "6-stairs-with-plants-37ae16": 3,
+      "low-to-high-rail-5503ca": 4,
+      "pyramids-94b5c3": 5,
+      "double-set-51ccc1": 1,
+      "low-to-high-manny-pad-b2ed56": 2,
+      "gap-over-water-supply-9dd80c": 3,
+      "gap-over-thrashcan-and-bench-rails-ea945a": 5,
+      "flatgap-15eee5": 2,
+      "water-pads-e6db44": 1,
+      "harbour-curbs-314da1": 2,
+      "mannypad-1cc473": 3,
+      "mini-manny-pads-27e16e": 1,
+      "4-and-8-stairs-a5aa6e": 4,
+      "6-stair-0b85de": 1,
+      "ledge-555085": 2,
+      "9er-handrail-dfb217": 1,
+      "small-handrail-and-boardslide-hubba-04705d": 2,
+      "11-stair-hubba-974d02": 5,
+      "stairs-and-dropledge-291612": 6,
+      "long-ledge-728a14": 1,
+      "double-set-roll-in-3ee0a7": 1,
+      "manny-pad-a33517": 1,
+      "jack-o-grady-spot-cb5f20": 3,
+      "volcanos-and-curb-2cbb95": 1,
+      "big-gap-4f9f33": 3,
+      "handrail-5dfaa3": 3,
+      "handrail-be19f3": 2,
+      "stairsets-165837": 1,
+      "downhill-curb-9a6c86": 7,
+      "10-stair-5e99f5": 3,
+      "diy-4e5e9d": 1,
+      "miniramp-b9f5d6": 2,
+      "gap-over-fence-21fda7": 3,
+      "gap-over-rail-114dcc": 2,
+      "downledge-fd246c": 4,
+      "habour-small-ledge-bca562": 1,
+      "crusty-11-stair-6c1c51": 3,
+      "bump-to-bar-8965c8": 4,
+      "skatepark-8cb2ec": 1,
+      "double-set-ledge-eee085": 5,
+      "low-to-high-rail-a0d8b8": 3,
+      "10er-handrail-71c596": 1,
+      "chris-pfanner-double-set-4bc65b": 3,
+      "crusty-10-stair-54f5cb": 3,
+      "dropledge-91576a": 3,
+      "bank-267211": 2,
+      "8-stairs-96bf59": 2,
+      "steep-hubba-012b54": 2,
+      "dropledge-3c7321": 4,
+      "skatepark-curb-e7234b": 2,
+      "super-crust-ledge-d05f6c": 2,
+      "gangster-manny-pad-ab1364": 3,
+      "slappy-banks-bc5884": 6,
+      "dropledge-adebf6": 4,
+      "stairs-f6dca8": 1,
+      "wallride-a76b32": 2,
+      "bump-to-bar-6b74b1": 2,
+      "manny-pads-2d017b": 2,
+      "handrail-5c5dfb": 2,
+      "bank-to-flatbar-51511a": 1,
+      "blue-bank-472a6c": 1,
+      "curb-paradise-dce684": 2,
+      "manny-pad-stairs-8f82f5": 5,
+      "hubba-99ff20": 4,
+      "handrail-11d5fc": 1,
+      "death-drop-in-e199c3": 3,
+      "big-hubba-0fda5c": 3,
+      "6-stair-manny-pad-into-bank-b40947": 5,
+      "big-handrail-2d24ac": 4,
+      "university-downhill-flatgap-ae593e": 6,
+      "low-to-high-ledge-b2de7e": 3,
+      "4-stair-handrail-a80ead": 4,
+      "super-crust-kink-hubba-b82147": 4,
+      "hubba-0518f4": 3,
+      "handrail-0c4be3": 3,
+      "wobble-metal-thing-d35958": 1,
+      "big-stairset-gap-c429c0": 3,
+      "steep-handrail-9c11f4": 3,
+      "manny-pad-4c0c7d": 4
+    },
+    "balkan": {
+      "curbs-6f08d1": 3,
+      "dardin-8009e3": 4,
+      "lidl-ledge-2cec1f": 1,
+      "bloecke-964c23": 1,
+      "diy-quater-151a97": 2,
+      "stairsets-b97c4e": 3,
+      "curb-9ad19e": 4,
+      "5-stair-55a788": 3,
+      "little-vulcano-3c7041": 1,
+      "dropledge-09a89f": 2,
+      "pyramide-595094": 2,
+      "little-stairs-and-curbs-fd1412": 5,
+      "pop-over-rail-8e00ca": 2,
+      "gap-to-dropledge-df02ba": 2,
+      "long-ledge-5d84c2": 2,
+      "crust-ledge-198eea": 2,
+      "manny-pad-ledges-3596c8": 4,
+      "small-dropledge-45477b": 1,
+      "stairsets-double-set-ledges-thrashcan-gap-cddef3": 10,
+      "13er-handrail-21273a": 2,
+      "10er-handrail-bbb3d2": 3,
+      "low-to-high-ledge-de1430": 2,
+      "long-hubba-ab198c": 2,
+      "long-crusty-banana-ledge-357895": 2,
+      "bump-to-bar-5663aa": 1,
+      "6-stairs-with-plants-37ae16": 3,
+      "low-to-high-rail-5503ca": 4,
+      "pyramids-94b5c3": 5,
+      "double-set-51ccc1": 1,
+      "low-to-high-manny-pad-b2ed56": 2,
+      "gap-over-water-supply-9dd80c": 3,
+      "gap-over-thrashcan-and-bench-rails-ea945a": 5,
+      "flatgap-15eee5": 2,
+      "water-pads-e6db44": 1,
+      "harbour-curbs-314da1": 2,
+      "mannypad-1cc473": 3,
+      "mini-manny-pads-27e16e": 1,
+      "4-and-8-stairs-a5aa6e": 4,
+      "6-stair-0b85de": 1,
+      "ledge-555085": 2,
+      "9er-handrail-dfb217": 1,
+      "small-handrail-and-boardslide-hubba-04705d": 2,
+      "11-stair-hubba-974d02": 5,
+      "stairs-and-dropledge-291612": 6,
+      "long-ledge-728a14": 1,
+      "double-set-roll-in-3ee0a7": 1,
+      "manny-pad-a33517": 1,
+      "jack-o-grady-spot-cb5f20": 3,
+      "volcanos-and-curb-2cbb95": 1,
+      "big-gap-4f9f33": 3,
+      "handrail-5dfaa3": 3,
+      "handrail-be19f3": 2,
+      "stairsets-165837": 1,
+      "downhill-curb-9a6c86": 7,
+      "10-stair-5e99f5": 3,
+      "diy-4e5e9d": 1,
+      "miniramp-b9f5d6": 2,
+      "gap-over-fence-21fda7": 3,
+      "gap-over-rail-114dcc": 2,
+      "downledge-fd246c": 4,
+      "habour-small-ledge-bca562": 1,
+      "crusty-11-stair-6c1c51": 3,
+      "bump-to-bar-8965c8": 4,
+      "skatepark-8cb2ec": 1,
+      "double-set-ledge-eee085": 5,
+      "low-to-high-rail-a0d8b8": 3,
+      "10er-handrail-71c596": 1,
+      "chris-pfanner-double-set-4bc65b": 3,
+      "crusty-10-stair-54f5cb": 3,
+      "dropledge-91576a": 3,
+      "bank-267211": 2,
+      "8-stairs-96bf59": 2,
+      "steep-hubba-012b54": 2,
+      "dropledge-3c7321": 4,
+      "skatepark-curb-e7234b": 2,
+      "super-crust-ledge-d05f6c": 2,
+      "gangster-manny-pad-ab1364": 3,
+      "slappy-banks-bc5884": 6,
+      "dropledge-adebf6": 4,
+      "stairs-f6dca8": 1,
+      "wallride-a76b32": 2,
+      "bump-to-bar-6b74b1": 2,
+      "manny-pads-2d017b": 2,
+      "handrail-5c5dfb": 2,
+      "bank-to-flatbar-51511a": 1,
+      "blue-bank-472a6c": 1,
+      "curb-paradise-dce684": 2,
+      "manny-pad-stairs-8f82f5": 5,
+      "hubba-99ff20": 4,
+      "handrail-11d5fc": 1,
+      "death-drop-in-e199c3": 3,
+      "big-hubba-0fda5c": 3,
+      "6-stair-manny-pad-into-bank-b40947": 5,
+      "big-handrail-2d24ac": 4,
+      "university-downhill-flatgap-ae593e": 6,
+      "low-to-high-ledge-b2de7e": 3,
+      "4-stair-handrail-a80ead": 4,
+      "super-crust-kink-hubba-b82147": 4,
+      "hubba-0518f4": 3,
+      "handrail-0c4be3": 3,
+      "wobble-metal-thing-d35958": 1,
+      "big-stairset-gap-c429c0": 3,
+      "steep-handrail-9c11f4": 3,
+      "manny-pad-4c0c7d": 4
+    }
+  },
+  "warnings": []
+}

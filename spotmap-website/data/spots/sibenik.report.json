@@ -1,0 +1,31 @@
+{
+  "city": "sibenik",
+  "map": "balkan",
+  "mid": "1IDO4AGmCsN_D-zcXPjpU1eXqwQYTh1A",
+  "placemarks": 2,
+  "spotsWritten": 2,
+  "photosLinked": 8,
+  "photosWritten": 8,
+  "photosDead": [],
+  "photosRecovered": [],
+  "photosDuplicate": [],
+  "photosNearDuplicate": [],
+  "spotsWithoutPhotos": [],
+  "statusCounts": {
+    "active": 2,
+    "demolished": 0
+  },
+  "extraMaps": [],
+  "matches": {
+    "conflicts": [],
+    "ambiguous": [],
+    "unmatched": []
+  },
+  "linkCounts": {
+    "balkan": {
+      "homeplaza-1ad084": 5,
+      "5-stair-and-10-stair-413e9e": 3
+    }
+  },
+  "warnings": []
+}

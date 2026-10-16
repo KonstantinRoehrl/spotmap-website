@@ -1,7 +1,7 @@
 /* About — static terminal README. Shared window chrome (.term, .term-window,
    .term-titlebar, .term-title, .dim, .line, .line.care, .cursor) lives in
    ../terminal-window.css; only About-specific rules are below. The only motion is
-   the idle cursor, frozen by the global reduced-motion net in styles.css. */
+   the idle cursor, frozen by the global reduced-motion net in styles.css; the only link is the photo section's mail address. */
 .term-body {
   display: flex;
   flex-direction: column;
@@ -33,4 +33,28 @@
 
 .footer {
   margin-top: 0.25rem;
+}
+
+/* The page's one link. Underlined, so it reads as a link without a second colour (Two-Phosphor
+   Rule); it brightens on hover and focus the way the popup's > DIRECTIONS link does. inline-flex
+   with a 44px floor keeps it a thumb target inside a line of prose, and the address may break
+   anywhere so a phone-width line never overflows. */
+.mail-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--color-phosphor);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  overflow-wrap: anywhere;
+}
+
+.mail-link:hover {
+  color: var(--color-phosphor-bright);
+  text-shadow: var(--glow-text-hot);
+}
+
+.mail-link:focus-visible {
+  outline: 1px solid var(--color-phosphor);
+  outline-offset: 2px;
 }

@@ -1,0 +1,93 @@
+.gallery {
+  position: relative;
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+  /* The popup is shrink-to-fit up to 320px (POPUP_MAX_WIDTH) minus its 8px padding and 1px
+     border: the photo used to supply that width, so a broken photo collapsed the popup to its
+     text. Claiming the width here keeps the popup the same size for photo and placeholder. */
+  width: 100vw;
+  max-width: 302px;
+}
+
+.gallery__photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.gallery__nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  min-width: 44px;
+  min-height: 44px;
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--color-phosphor);
+  background: color-mix(in srgb, var(--color-surface) 80%, transparent);
+  border: 1px solid var(--color-phosphor-deep);
+  cursor: pointer;
+  text-shadow: var(--glow-text-rest);
+}
+
+.gallery__nav--prev {
+  left: 4px;
+}
+
+.gallery__nav--next {
+  right: 4px;
+}
+
+.gallery__nav:hover,
+.gallery__nav:focus-visible {
+  color: var(--color-phosphor-bright);
+  border-color: var(--color-phosphor);
+}
+
+.gallery__nav:focus-visible {
+  outline: 1px solid var(--color-phosphor);
+  outline-offset: 2px;
+}
+
+.gallery__counter {
+  position: absolute;
+  right: 6px;
+  bottom: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  color: var(--color-phosphor-dim);
+  background: color-mix(in srgb, var(--color-surface) 80%, transparent);
+  padding: 1px 4px;
+}
+
+/* A photo that did not load gets the map's own failure voice instead of the browser's
+   broken-image glyph, inside the same 4:3 panel so the popup does not jump. The side padding
+   keeps the text clear of the prev/next arrows (44px wide, 4px from the edge). */
+.gallery__placeholder {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  padding-inline: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-align: center;
+  color: var(--color-phosphor);
+  text-shadow: var(--glow-text-rest);
+}
+
+.gallery__placeholder-line--dim {
+  color: var(--color-phosphor-dim);
+  text-shadow: none;
+}

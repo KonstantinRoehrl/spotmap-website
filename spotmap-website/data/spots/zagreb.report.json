@@ -1,0 +1,88 @@
+{
+  "city": "zagreb",
+  "map": "zagreb",
+  "mid": "1yVLyImhI2XOE7yg80PvGdwe-dDBfa5I",
+  "placemarks": 7,
+  "spotsWritten": 7,
+  "photosLinked": 23,
+  "photosWritten": 19,
+  "photosDead": [],
+  "photosRecovered": [],
+  "photosDuplicate": [
+    {
+      "spotId": "kreisverkehr-curbs-af9198",
+      "map": "balkan",
+      "n": 3,
+      "sameAs": {
+        "map": "balkan",
+        "n": 2
+      }
+    },
+    {
+      "spotId": "kreisverkehr-curbs-af9198",
+      "map": "balkan",
+      "n": 4,
+      "sameAs": {
+        "map": "balkan",
+        "n": 1
+      }
+    }
+  ],
+  "photosNearDuplicate": [
+    {
+      "spotId": "irgendwo-ditch-7869ce",
+      "map": "balkan",
+      "n": 1,
+      "sameAs": {
+        "map": "zagreb",
+        "n": 1
+      },
+      "distance": 1
+    },
+    {
+      "spotId": "low-to-high-ledges-264650",
+      "map": "balkan",
+      "n": 1,
+      "sameAs": {
+        "map": "zagreb",
+        "n": 2
+      },
+      "distance": 0
+    }
+  ],
+  "spotsWithoutPhotos": [
+    "pavillion-8-stair-85f7d1"
+  ],
+  "statusCounts": {
+    "active": 7,
+    "demolished": 0
+  },
+  "extraMaps": [
+    {
+      "map": "balkan",
+      "mid": "1IDO4AGmCsN_D-zcXPjpU1eXqwQYTh1A",
+      "placemarks": 140,
+      "matched": 7
+    }
+  ],
+  "matches": {
+    "conflicts": [],
+    "ambiguous": [],
+    "unmatched": []
+  },
+  "linkCounts": {
+    "zagreb": {
+      "irgendwo-ditch-7869ce": 1,
+      "low-to-high-ledges-264650": 2
+    },
+    "balkan": {
+      "irgendwo-ditch-7869ce": 2,
+      "kreisverkehr-curbs-af9198": 4,
+      "12-stair-b8905f": 3,
+      "curb-c8e276": 1,
+      "low-to-high-ledges-264650": 5,
+      "musikakademie-092068": 5
+    }
+  },
+  "warnings": []
+}

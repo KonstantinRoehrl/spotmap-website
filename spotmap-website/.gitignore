@@ -44,3 +44,16 @@ Thumbs.db
 # Impeccable hook cache (design tooling scratch)
 **/.impeccable/hook.cache.json
 src/.impeccable/
+
+# Spot extraction tool (tools/extract-spots): photos and caches stay local;
+# data/spots/*.geojson, *.report.json and sources.json are committed, and so are
+# their promoted copies public/spots/<city>.geojson (promote.mjs).
+# data/thumbs/ holds the sync's derived thumbnails (tools/sync-supabase), local like the photos.
+/data/.cache/
+/data/spots/*/
+/data/thumbs/
+/data/**/*.tmp
+/public/spots/*.tmp
+
+# The Supabase sync's secret key (tools/sync-supabase, see .env.example). Never committed.
+.env.local

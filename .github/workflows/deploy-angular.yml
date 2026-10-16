@@ -10,29 +10,30 @@ concurrency:
   group: pages-${{ github.ref }}
   cancel-in-progress: true
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+# Least privilege: the build job only reads. The deploy job elevates for itself below.
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 jobs:
   build:
     name: Build Angular production bundle
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: read
     steps:
       - name: Check out repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Node.js (version from .nvmrc) + npm cache
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version-file: spotmap-website/.nvmrc
           cache: 'npm'
           cache-dependency-path: spotmap-website/package-lock.json
 
       - name: Configure GitHub Pages
-        uses: actions/configure-pages@v6
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
 
       - name: Install dependencies (npm ci — clean, from lockfile)
         run: npm ci
@@ -46,7 +47,7 @@ jobs:
         run: cp ./dist/spotmap-website/browser/index.html ./dist/spotmap-website/browser/404.html
 
       - name: Upload Pages artifact (dist browser/)
-        uses: actions/upload-pages-artifact@v5
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: ./dist/spotmap-website/browser
 
@@ -56,8 +57,11 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     needs: build
     steps:
       - name: Publish artifact to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v5
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

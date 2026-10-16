@@ -1,0 +1,50 @@
+:host {
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+/* The gesture fix. Scoped to the canvas host ONLY: the page keeps native pinch-zoom
+   everywhere else, which is an accessibility requirement, while every touch that lands on
+   the map belongs to the map. overscroll-behavior stops a pan at the edge from chaining
+   into pull-to-refresh. */
+.spot-map__canvas {
+  height: 100%;
+  width: 100%;
+  touch-action: none;
+  overscroll-behavior: none;
+  background: var(--color-bg);
+}
+
+/* MapLibre injects the attribution control into the canvas host itself, so it carries no
+   Angular scoping attribute and ::ng-deep is the only way to reach it from here. It ships
+   white-on-black; the rules below repaint it in the terminal palette and keep it legible —
+   it is a licence condition, so it is restyled, never hidden. */
+:host ::ng-deep .maplibregl-ctrl-attrib,
+:host ::ng-deep .maplibregl-ctrl-attrib.maplibregl-compact {
+  background-color: var(--color-surface);
+  color: var(--color-phosphor-dim);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+
+:host ::ng-deep .maplibregl-ctrl-attrib a {
+  color: var(--color-phosphor-dim);
+}
+
+:host ::ng-deep .maplibregl-ctrl-attrib a:hover,
+:host ::ng-deep .maplibregl-ctrl-attrib a:focus-visible {
+  color: var(--color-phosphor);
+}
+
+/* The compact toggle: MapLibre's own info glyph, re-fetched with a phosphor fill so the
+   icon stays visible on the dark button. */
+:host ::ng-deep .maplibregl-ctrl-attrib-button,
+:host
+  ::ng-deep
+  .maplibregl-ctrl-attrib.maplibregl-compact-show
+  .maplibregl-ctrl-attrib-button {
+  background-color: var(--color-surface-raised);
+  background-image: url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20fill%3D%22%2300b800%22%20fill-rule%3D%22evenodd%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20d%3D%22M4%2010a6%206%200%201%200%2012%200%206%206%200%201%200-12%200m5-3a1%201%200%201%200%202%200%201%201%200%201%200-2%200m0%203a1%201%200%201%201%202%200v3a1%201%200%201%201-2%200%22%2F%3E%3C%2Fsvg%3E');
+}
