@@ -281,8 +281,9 @@ encode) and `thumb/<city>/<file>.webp` (640px, what the popup shows); with no
 photo host configured, popups show no gallery.
 
 Each build's backend is set in `src/environments/`. The production one,
-`environment.prod.ts`, stays empty until the hosted project is set up; until
-then the deployed site serves the snapshot and shows no photos.
+`environment.prod.ts`, stays empty until the hosted project is set up (see
+[Rollout to the hosted project](#rollout-to-the-hosted-project)); until then
+the deployed site serves the snapshot and shows no photos.
 
 Until the maintainer tool replaces it, Google My Maps stays the editing surface
 (roadmap Decision 1), so the database is a **mirror** of `data/spots/`:
@@ -325,6 +326,11 @@ npm run sync:supabase -- --hosted     # required whenever SUPABASE_URL is not th
 npm run parity:supabase               # every city's live answer must equal its snapshot
 ```
 
+`sync:supabase` and `parity:supabase` both read `SUPABASE_URL` and
+`SUPABASE_SECRET_KEY` from `.env.local` or the environment (the environment
+wins), so they target whichever project those two name: the local stack by
+default, the hosted project once `.env.local` points at it.
+
 It prints the target first, then runs each step only after the previous one
 succeeded: load and check every referenced photo is on disk → derive missing or
 outdated thumbnails into `data/thumbs/` and delete orphaned ones → upload every
@@ -335,6 +341,37 @@ references any more, only after the database sync succeeded. A re-run with
 unchanged data reports zero everywhere. Exit codes: 0 done, 1 a step failed
 (named), 2 bad arguments or environment. CI runs the pgTAP tests, a `--db-only`
 sync and the parity check on every pull request.
+
+### Rollout to the hosted project
+
+`main` deploys to GitHub Pages, so the hosted project is set up and verified
+before the branch that turns the backend on is merged:
+
+1. Create the Supabase project (EU region, free tier).
+2. Apply the migrations to it:
+
+   ```bash
+   npx supabase login
+   npx supabase link --project-ref <project-ref>
+   npx supabase db push
+   ```
+
+3. Fill `src/environments/environment.prod.ts`: `apiUrl` and `publishableKey`
+   from the project's API settings, and `photoBaseUrl` as
+   `<apiUrl>/storage/v1/object/public/spot-photos`. The key line keeps a
+   trailing `// gitleaks:allow`, since the secret scan flags any committed key.
+4. Put `SUPABASE_URL` (the same `apiUrl`) and `SUPABASE_SECRET_KEY` into
+   `.env.local`. It is never committed.
+5. Fill the project, then check it:
+
+   ```bash
+   npm run sync:supabase -- --hosted
+   npm run parity:supabase
+   ```
+
+6. Merge to `main` only after the parity check passes. Without the rollout the
+   site still degrades safely (snapshot pins, no photos), but it is not the
+   photo release.
 
 ## Design system
 
