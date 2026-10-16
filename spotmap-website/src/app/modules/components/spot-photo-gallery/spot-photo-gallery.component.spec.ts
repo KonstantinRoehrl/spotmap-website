@@ -169,6 +169,112 @@ describe('SpotPhotoGalleryComponent', () => {
     );
   });
 
+  describe('with only the first photo already complete', () => {
+    beforeEach(() => {
+      // `complete` and `naturalWidth` follow the element's own src, so only a.webp is cached.
+      spyOnProperty(HTMLImageElement.prototype, 'complete').and.callFake(
+        function (this: HTMLImageElement) {
+          return this.getAttribute('src') === 'a.webp';
+        },
+      );
+      spyOnProperty(HTMLImageElement.prototype, 'naturalWidth').and.callFake(
+        function (this: HTMLImageElement) {
+          return this.getAttribute('src') === 'a.webp' ? 640 : 0;
+        },
+      );
+    });
+
+    /** Renders and runs the after-render check for whatever slide is on screen. */
+    async function settle() {
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+    }
+
+    it('crossfades an uncached slide that follows an instant one', async () => {
+      const c = create(['a.webp', 'b.webp']);
+      await settle();
+      const el: HTMLElement = fixture.nativeElement;
+      expect(el.querySelector('.gallery')?.classList).toContain(
+        'gallery--instant',
+      );
+      c.next();
+      await settle();
+      expect(el.querySelector('.gallery')?.classList).not.toContain(
+        'gallery--instant',
+      );
+      expect(
+        el.querySelector('.gallery__loading app-ascii-rain'),
+      ).not.toBeNull();
+      expect(el.querySelector('.gallery__photo')?.classList).not.toContain(
+        'gallery__photo--loaded',
+      );
+      loadCurrentImage();
+      expect(el.querySelector('.gallery__photo')?.classList).toContain(
+        'gallery__photo--loaded',
+      );
+      expect(el.querySelector('.gallery')?.classList).not.toContain(
+        'gallery--instant',
+      );
+    });
+
+    it('shows the cached slide at once again when swiping back to it', async () => {
+      const c = create(['a.webp', 'b.webp']);
+      await settle();
+      c.next();
+      await settle();
+      loadCurrentImage();
+      c.previous();
+      await settle();
+      const el: HTMLElement = fixture.nativeElement;
+      expect(el.querySelector('.gallery')?.classList).toContain(
+        'gallery--instant',
+      );
+      expect(el.querySelector('.gallery__photo')?.classList).toContain(
+        'gallery__photo--loaded',
+      );
+      expect(el.querySelector('.gallery__loading')).toBeNull();
+    });
+
+    it('keeps the rain from fading out over an instant slide', async () => {
+      create(['a.webp', 'b.webp']);
+      await settle();
+      const el: HTMLElement = fixture.nativeElement;
+      // The rain of an instant slide is gone or leaves without a transition; probe the rule that
+      // governs it with a stand-in element.
+      const gallery = el.querySelector('.gallery')!;
+      const rain = document.createElement('div');
+      rain.className = 'gallery__loading gallery__loading--leaving';
+      // The component's styles are scoped by an attribute the stand-in must carry too.
+      for (const name of gallery.getAttributeNames()) {
+        if (name.startsWith('_ngcontent')) {
+          rain.setAttribute(name, '');
+        }
+      }
+      gallery.appendChild(rain);
+      expect(getComputedStyle(rain).transitionDuration).toBe('0s');
+    });
+  });
+
+  it('rounds the arrows and the counter on the soft radius scale', () => {
+    create(['a.webp', 'b.webp']);
+    const probe = document.createElement('div');
+    probe.style.borderRadius = 'var(--radius-sm)';
+    document.body.appendChild(probe);
+    const softRadius = getComputedStyle(probe).borderTopLeftRadius;
+    probe.remove();
+    expect(softRadius).not.toBe('0px');
+    const el: HTMLElement = fixture.nativeElement;
+    const rounded = [
+      ...Array.from(el.querySelectorAll('.gallery__nav')),
+      el.querySelector('.gallery__counter')!,
+    ];
+    expect(rounded.length).toBe(3);
+    for (const element of rounded) {
+      expect(getComputedStyle(element).borderTopLeftRadius).toBe(softRadius);
+    }
+  });
+
   it('shows the rain again for a slide not yet loaded, never for one that has', () => {
     const c = create(['a.webp', 'b.webp']);
     loadCurrentImage();

@@ -30,9 +30,20 @@
   opacity: 1;
 }
 
-/* A photo already in the cache shows at once: fading it in would only delay it. */
-.gallery--instant .gallery__photo {
+/* A photo already in the cache shows at once: fading it in would only delay it. The rain, which
+   renders for one pass before the slide is known to be complete, must not fade out over it. */
+.gallery--instant .gallery__photo,
+.gallery--instant .gallery__loading {
   transition: none;
+}
+
+/* The global reduced-motion net would give these a short fade; a cached photo has nothing to
+   fade from, so the net's !important is answered with a more specific one. */
+@media (prefers-reduced-motion: reduce) {
+  .gallery--instant .gallery__photo,
+  .gallery--instant .gallery__loading {
+    transition: none !important;
+  }
 }
 
 .gallery__loading {
@@ -65,6 +76,7 @@
   color: var(--color-phosphor);
   background: color-mix(in srgb, var(--color-surface) 80%, transparent);
   border: 1px solid var(--color-phosphor-deep);
+  border-radius: var(--radius-sm);
   cursor: pointer;
   text-shadow: var(--glow-text-rest);
 }
@@ -98,6 +110,7 @@
   color: var(--color-phosphor-dim);
   background: color-mix(in srgb, var(--color-surface) 80%, transparent);
   padding: 1px 4px;
+  border-radius: var(--radius-sm);
 }
 
 /* A photo that did not load gets the map's own failure voice instead of the browser's
