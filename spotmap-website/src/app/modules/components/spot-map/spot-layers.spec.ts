@@ -9,7 +9,7 @@ import {
 /** A spot as the pin layers see it: its id, its status, and whether it is the selected one. */
 interface Pin {
   id: string;
-  status: 'active' | 'unclassified' | 'demolished';
+  status: 'active' | 'demolished';
   selected: boolean;
 }
 
@@ -67,7 +67,6 @@ function drawsPin(id: string, pin: Pin): boolean {
 }
 
 const active: Pin = { id: 'a', status: 'active', selected: false };
-const unclassified: Pin = { id: 'u', status: 'unclassified', selected: false };
 const demolished: Pin = { id: 'd', status: 'demolished', selected: false };
 const selected = (pin: Pin): Pin => ({ ...pin, selected: true });
 
@@ -93,9 +92,6 @@ describe('SPOT_LAYERS', () => {
   });
 
   it('tells a spot’s status by shape, not by hue', () => {
-    expect(paintFor('spots-body', 'circle-radius', unclassified))
-      .withContext('an unclassified dot is smaller than an active one')
-      .toBeLessThan(paintFor('spots-body', 'circle-radius', active) as number);
     expect(paintFor('spots-body', 'circle-opacity', active)).toBe(1);
     expect(paintFor('spots-body', 'circle-color', active)).toBe(
       MAP_PALETTE.pinActive,
@@ -106,7 +102,7 @@ describe('SPOT_LAYERS', () => {
     expect(paintFor('spots-body', 'circle-stroke-width', demolished)).toBe(2);
     expect(drawsPin('spots-demolished-mark', demolished)).toBe(true);
     expect(drawsPin('spots-demolished-mark', active)).toBe(false);
-    for (const pin of [active, unclassified, selected(active)]) {
+    for (const pin of [active, selected(active)]) {
       expect(drawsPin('spots-glow', pin)).withContext(pin.status).toBe(true);
     }
     expect(drawsPin('spots-glow', demolished))
@@ -115,9 +111,6 @@ describe('SPOT_LAYERS', () => {
     expect(layer('spots-glow').filter as unknown)
       .withContext('the glow reuses the one demolished test')
       .toEqual(['!', ['==', ['get', 'status'], 'demolished']]);
-    expect(paintFor('spots-glow', 'circle-opacity', unclassified))
-      .withContext('an unclassified spot glows weaker than an active one')
-      .toBeLessThan(paintFor('spots-glow', 'circle-opacity', active) as number);
   });
 
   it('cuts a demolished pin out of the roads with black, as the basemap labels are', () => {
@@ -138,9 +131,22 @@ describe('SPOT_LAYERS', () => {
 
   it('grows the selected pin a step', () => {
     expect(paintFor('spots-body', 'circle-radius', selected(active))).toBe(7.5);
+    expect(paintFor('spots-body', 'circle-radius', active)).toBe(6);
+  });
+
+  it('draws every standing spot alike: Decision 1 left two states', () => {
+    expect(JSON.stringify(SPOT_LAYERS)).not.toContain('unclassified');
     expect(
-      paintFor('spots-body', 'circle-radius', selected(unclassified)),
-    ).toBe(6);
+      (layer('spots-glow').paint as Record<string, unknown>)['circle-opacity'],
+    ).toBe(0.5);
+    expect(
+      (layer('spots-body').paint as Record<string, unknown>)['circle-radius'],
+    ).toEqual([
+      'case',
+      ['boolean', ['feature-state', 'selected'], false],
+      7.5,
+      6,
+    ]);
   });
 
   it('cuts only the selected pin out of a thick amber ring with a black gap', () => {
