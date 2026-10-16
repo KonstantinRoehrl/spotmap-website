@@ -14,7 +14,12 @@
         "id": "curbs-6f08d1",
         "name": "Curbs",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/curbs-6f08d1-0451d19f.webp",
+          "split/curbs-6f08d1-3861161e.webp",
+          "split/curbs-6f08d1-b2c1bca3.webp"
+        ]
       }
     },
     {
@@ -30,7 +35,13 @@
         "id": "dardin-8009e3",
         "name": "Dardin",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/dardin-8009e3-40751d7f.webp",
+          "split/dardin-8009e3-71571e16.webp",
+          "split/dardin-8009e3-6580335e.webp",
+          "split/dardin-8009e3-f47a91ff.webp"
+        ]
       }
     },
     {
@@ -46,7 +57,10 @@
         "id": "lidl-ledge-2cec1f",
         "name": "Lidl Ledge",
         "status": "active",
-        "photos": []
+        "notes": "Last plate missing",
+        "photos": [
+          "split/lidl-ledge-2cec1f-1c2b694c.webp"
+        ]
       }
     },
     {
@@ -62,7 +76,10 @@
         "id": "bloecke-964c23",
         "name": "Blöcke",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/bloecke-964c23-e7fc5430.webp"
+        ]
       }
     },
     {
@@ -78,7 +95,11 @@
         "id": "diy-quater-151a97",
         "name": "DIY Quater",
         "status": "active",
-        "photos": []
+        "notes": "rough",
+        "photos": [
+          "split/diy-quater-151a97-eeb96e7c.webp",
+          "split/diy-quater-151a97-f6c8eb60.webp"
+        ]
       }
     },
     {
@@ -94,7 +115,12 @@
         "id": "stairsets-b97c4e",
         "name": "Stairsets",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/stairsets-b97c4e-ad08f91b.webp",
+          "split/stairsets-b97c4e-8f2fd153.webp",
+          "split/stairsets-b97c4e-544cfdd2.webp"
+        ]
       }
     },
     {
@@ -110,7 +136,13 @@
         "id": "curb-9ad19e",
         "name": "Curb",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/curb-9ad19e-89a9f11a.webp",
+          "split/curb-9ad19e-978fbbd4.webp",
+          "split/curb-9ad19e-57ce53ca.webp",
+          "split/curb-9ad19e-fb32a30d.webp"
+        ]
       }
     },
     {
@@ -126,7 +158,12 @@
         "id": "5-stair-55a788",
         "name": "5 Stair",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/5-stair-55a788-e31c24d6.webp",
+          "split/5-stair-55a788-20575211.webp",
+          "split/5-stair-55a788-deea44f9.webp"
+        ]
       }
     },
     {
@@ -142,7 +179,10 @@
         "id": "little-vulcano-3c7041",
         "name": "Little Vulcano",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/little-vulcano-3c7041-7beff0ec.webp"
+        ]
       }
     },
     {
@@ -158,7 +198,11 @@
         "id": "dropledge-09a89f",
         "name": "Dropledge",
         "status": "active",
-        "photos": []
+        "notes": "New Plaza, most likely big bust",
+        "photos": [
+          "split/dropledge-09a89f-77adc0e3.webp",
+          "split/dropledge-09a89f-fe5cbde5.webp"
+        ]
       }
     },
     {
@@ -174,7 +218,11 @@
         "id": "pyramide-595094",
         "name": "Pyramide",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/pyramide-595094-f3552a3e.webp",
+          "split/pyramide-595094-1d6a1b26.webp"
+        ]
       }
     },
     {
@@ -190,7 +238,14 @@
         "id": "little-stairs-and-curbs-fd1412",
         "name": "Little Stairs and Curbs",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/little-stairs-and-curbs-fd1412-01cb7173.webp",
+          "split/little-stairs-and-curbs-fd1412-90297330.webp",
+          "split/little-stairs-and-curbs-fd1412-187b3f41.webp",
+          "split/little-stairs-and-curbs-fd1412-4b47561e.webp",
+          "split/little-stairs-and-curbs-fd1412-4426ed50.webp"
+        ]
       }
     },
     {
@@ -206,7 +261,11 @@
         "id": "pop-over-rail-8e00ca",
         "name": "Pop Over Rail",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/pop-over-rail-8e00ca-232d7826.webp",
+          "split/pop-over-rail-8e00ca-1cc35244.webp"
+        ]
       }
     },
     {
@@ -222,7 +281,11 @@
         "id": "gap-to-dropledge-df02ba",
         "name": "Gap to Dropledge",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/gap-to-dropledge-df02ba-0026781f.webp",
+          "split/gap-to-dropledge-df02ba-a8839b0d.webp"
+        ]
       }
     },
     {
@@ -238,7 +301,11 @@
         "id": "long-ledge-5d84c2",
         "name": "Long Ledge",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/long-ledge-5d84c2-4ad51f99.webp",
+          "split/long-ledge-5d84c2-f884bbf9.webp"
+        ]
       }
     },
     {
@@ -254,7 +321,11 @@
         "id": "crust-ledge-198eea",
         "name": "Crust Ledge",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/crust-ledge-198eea-0226db9d.webp",
+          "split/crust-ledge-198eea-827085da.webp"
+        ]
       }
     },
     {
@@ -270,7 +341,13 @@
         "id": "manny-pad-ledges-3596c8",
         "name": "Manny Pad, Ledges",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/manny-pad-ledges-3596c8-dd69d4e6.webp",
+          "split/manny-pad-ledges-3596c8-6ea198bb.webp",
+          "split/manny-pad-ledges-3596c8-7dff6bc1.webp",
+          "split/manny-pad-ledges-3596c8-b34ac8ba.webp"
+        ]
       }
     },
     {
@@ -286,7 +363,10 @@
         "id": "small-dropledge-45477b",
         "name": "Small Dropledge",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/small-dropledge-45477b-cda33729.webp"
+        ]
       }
     },
     {
@@ -302,7 +382,19 @@
         "id": "stairsets-double-set-ledges-thrashcan-gap-cddef3",
         "name": "Stairsets, Double Set, Ledges, Thrashcan Gap",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/stairsets-double-set-ledges-thrashcan-gap-cddef3-024cabd7.webp",
+          "split/stairsets-double-set-ledges-thrashcan-gap-cddef3-eddad753.webp",
+          "split/stairsets-double-set-ledges-thrashcan-gap-cddef3-addded8e.webp",
+          "split/stairsets-double-set-ledges-thrashcan-gap-cddef3-f005cbeb.webp",
+          "split/stairsets-double-set-ledges-thrashcan-gap-cddef3-686fa635.webp",
+          "split/stairsets-double-set-ledges-thrashcan-gap-cddef3-931666c7.webp",
+          "split/stairsets-double-set-ledges-thrashcan-gap-cddef3-6af16949.webp",
+          "split/stairsets-double-set-ledges-thrashcan-gap-cddef3-3c8dc61b.webp",
+          "split/stairsets-double-set-ledges-thrashcan-gap-cddef3-bed67c00.webp",
+          "split/stairsets-double-set-ledges-thrashcan-gap-cddef3-809d892f.webp"
+        ]
       }
     },
     {
@@ -318,6 +410,7 @@
         "id": "punkt-46-753e20",
         "name": "Punkt 46",
         "status": "active",
+        "notes": null,
         "photos": []
       }
     },
@@ -334,7 +427,11 @@
         "id": "13er-handrail-21273a",
         "name": "13er Handrail",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/13er-handrail-21273a-8e8a1d12.webp",
+          "split/13er-handrail-21273a-aef28d8e.webp"
+        ]
       }
     },
     {
@@ -350,7 +447,12 @@
         "id": "10er-handrail-bbb3d2",
         "name": "10er Handrail",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/10er-handrail-bbb3d2-617b9e27.webp",
+          "split/10er-handrail-bbb3d2-362e906f.webp",
+          "split/10er-handrail-bbb3d2-eeb6803b.webp"
+        ]
       }
     },
     {
@@ -366,7 +468,11 @@
         "id": "low-to-high-ledge-de1430",
         "name": "Low To High Ledge",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/low-to-high-ledge-de1430-74ee77ba.webp",
+          "split/low-to-high-ledge-de1430-966ea23a.webp"
+        ]
       }
     },
     {
@@ -382,7 +488,11 @@
         "id": "long-hubba-ab198c",
         "name": "Long Hubba",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/long-hubba-ab198c-eb3abb48.webp",
+          "split/long-hubba-ab198c-005f8925.webp"
+        ]
       }
     },
     {
@@ -398,7 +508,11 @@
         "id": "long-crusty-banana-ledge-357895",
         "name": "Long Crusty Banana Ledge",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/long-crusty-banana-ledge-357895-707e7a3f.webp",
+          "split/long-crusty-banana-ledge-357895-88123e19.webp"
+        ]
       }
     },
     {
@@ -414,7 +528,10 @@
         "id": "bump-to-bar-5663aa",
         "name": "Bump to Bar",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/bump-to-bar-5663aa-0c340cde.webp"
+        ]
       }
     },
     {
@@ -430,7 +547,12 @@
         "id": "6-stairs-with-plants-37ae16",
         "name": "6 Stairs with Plants",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/6-stairs-with-plants-37ae16-281cd979.webp",
+          "split/6-stairs-with-plants-37ae16-a4fb67dd.webp",
+          "split/6-stairs-with-plants-37ae16-93c3e719.webp"
+        ]
       }
     },
     {
@@ -446,7 +568,13 @@
         "id": "low-to-high-rail-5503ca",
         "name": "Low to High Rail",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/low-to-high-rail-5503ca-fcd23aab.webp",
+          "split/low-to-high-rail-5503ca-b5d41bec.webp",
+          "split/low-to-high-rail-5503ca-ffc6c775.webp",
+          "split/low-to-high-rail-5503ca-d0499c20.webp"
+        ]
       }
     },
     {
@@ -462,7 +590,14 @@
         "id": "pyramids-94b5c3",
         "name": "Pyramids",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/pyramids-94b5c3-41a90f8f.webp",
+          "split/pyramids-94b5c3-dda1e8d6.webp",
+          "split/pyramids-94b5c3-3051fb8b.webp",
+          "split/pyramids-94b5c3-fc2f9754.webp",
+          "split/pyramids-94b5c3-dbc5c835.webp"
+        ]
       }
     },
     {
@@ -478,7 +613,10 @@
         "id": "double-set-51ccc1",
         "name": "Double Set",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/double-set-51ccc1-8fb48ff8.webp"
+        ]
       }
     },
     {
@@ -494,7 +632,11 @@
         "id": "low-to-high-manny-pad-b2ed56",
         "name": "Low to High Manny Pad",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/low-to-high-manny-pad-b2ed56-8cb61663.webp",
+          "split/low-to-high-manny-pad-b2ed56-7654df73.webp"
+        ]
       }
     },
     {
@@ -510,7 +652,12 @@
         "id": "gap-over-water-supply-9dd80c",
         "name": "Gap over Water Supply",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/gap-over-water-supply-9dd80c-21f666c2.webp",
+          "split/gap-over-water-supply-9dd80c-6baebafb.webp",
+          "split/gap-over-water-supply-9dd80c-42406069.webp"
+        ]
       }
     },
     {
@@ -526,7 +673,14 @@
         "id": "gap-over-thrashcan-and-bench-rails-ea945a",
         "name": "Gap over Thrashcan and Bench Rails",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/gap-over-thrashcan-and-bench-rails-ea945a-57b8cb78.webp",
+          "split/gap-over-thrashcan-and-bench-rails-ea945a-c05ade9b.webp",
+          "split/gap-over-thrashcan-and-bench-rails-ea945a-0fc32b8b.webp",
+          "split/gap-over-thrashcan-and-bench-rails-ea945a-c8819c1f.webp",
+          "split/gap-over-thrashcan-and-bench-rails-ea945a-3905d2d7.webp"
+        ]
       }
     },
     {
@@ -542,7 +696,11 @@
         "id": "flatgap-15eee5",
         "name": "Flatgap",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/flatgap-15eee5-ced10b5b.webp",
+          "split/flatgap-15eee5-e866b6f0.webp"
+        ]
       }
     },
     {
@@ -558,7 +716,10 @@
         "id": "water-pads-e6db44",
         "name": "Water Pads",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/water-pads-e6db44-2e74d334.webp"
+        ]
       }
     },
     {
@@ -574,7 +735,11 @@
         "id": "harbour-curbs-314da1",
         "name": "Harbour Curbs",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/harbour-curbs-314da1-b82c2436.webp",
+          "split/harbour-curbs-314da1-85270769.webp"
+        ]
       }
     },
     {
@@ -590,7 +755,12 @@
         "id": "mannypad-1cc473",
         "name": "MannyPad",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/mannypad-1cc473-6cc5d0fc.webp",
+          "split/mannypad-1cc473-b1ae3dfc.webp",
+          "split/mannypad-1cc473-fab4fdd8.webp"
+        ]
       }
     },
     {
@@ -606,7 +776,10 @@
         "id": "mini-manny-pads-27e16e",
         "name": "Mini Manny Pads",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/mini-manny-pads-27e16e-c7e62a5b.webp"
+        ]
       }
     },
     {
@@ -622,7 +795,13 @@
         "id": "4-and-8-stairs-a5aa6e",
         "name": "4 and 8 Stairs",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/4-and-8-stairs-a5aa6e-e6ef4fb8.webp",
+          "split/4-and-8-stairs-a5aa6e-98b25f60.webp",
+          "split/4-and-8-stairs-a5aa6e-95d3e2fe.webp",
+          "split/4-and-8-stairs-a5aa6e-b528ae19.webp"
+        ]
       }
     },
     {
@@ -638,7 +817,10 @@
         "id": "6-stair-0b85de",
         "name": "6 Stair",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/6-stair-0b85de-f4aeb410.webp"
+        ]
       }
     },
     {
@@ -654,7 +836,11 @@
         "id": "ledge-555085",
         "name": "Ledge",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/ledge-555085-7056143d.webp",
+          "split/ledge-555085-8961334c.webp"
+        ]
       }
     },
     {
@@ -670,7 +856,10 @@
         "id": "9er-handrail-dfb217",
         "name": "9er Handrail",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/9er-handrail-dfb217-084e6396.webp"
+        ]
       }
     },
     {
@@ -686,7 +875,11 @@
         "id": "small-handrail-and-boardslide-hubba-04705d",
         "name": "Small Handrail and Boardslide Hubba",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/small-handrail-and-boardslide-hubba-04705d-efd99b42.webp",
+          "split/small-handrail-and-boardslide-hubba-04705d-c5ac7215.webp"
+        ]
       }
     },
     {
@@ -702,7 +895,14 @@
         "id": "11-stair-hubba-974d02",
         "name": "11 Stair Hubba",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/11-stair-hubba-974d02-323af867.webp",
+          "split/11-stair-hubba-974d02-3f43728d.webp",
+          "split/11-stair-hubba-974d02-368dc14e.webp",
+          "split/11-stair-hubba-974d02-d5c7d417.webp",
+          "split/11-stair-hubba-974d02-9e952a63.webp"
+        ]
       }
     },
     {
@@ -718,7 +918,15 @@
         "id": "stairs-and-dropledge-291612",
         "name": "Stairs and Dropledge",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/stairs-and-dropledge-291612-f8437c33.webp",
+          "split/stairs-and-dropledge-291612-c7b1e38d.webp",
+          "split/stairs-and-dropledge-291612-a7964d7d.webp",
+          "split/stairs-and-dropledge-291612-cd187a58.webp",
+          "split/stairs-and-dropledge-291612-6952da91.webp",
+          "split/stairs-and-dropledge-291612-2082f36e.webp"
+        ]
       }
     },
     {
@@ -734,7 +942,10 @@
         "id": "long-ledge-728a14",
         "name": "Long Ledge",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/long-ledge-728a14-bad4a481.webp"
+        ]
       }
     },
     {
@@ -750,7 +961,10 @@
         "id": "double-set-roll-in-3ee0a7",
         "name": "Double Set Roll In",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/double-set-roll-in-3ee0a7-e479f305.webp"
+        ]
       }
     },
     {
@@ -766,7 +980,10 @@
         "id": "manny-pad-a33517",
         "name": "Manny Pad",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/manny-pad-a33517-5d3115f1.webp"
+        ]
       }
     },
     {
@@ -782,7 +999,12 @@
         "id": "jack-o-grady-spot-cb5f20",
         "name": "Jack O'Grady Spot",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/jack-o-grady-spot-cb5f20-f722bdc0.webp",
+          "split/jack-o-grady-spot-cb5f20-2218124f.webp",
+          "split/jack-o-grady-spot-cb5f20-c47cf3e1.webp"
+        ]
       }
     },
     {
@@ -798,7 +1020,10 @@
         "id": "volcanos-and-curb-2cbb95",
         "name": "Volcanos and Curb",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/volcanos-and-curb-2cbb95-ce936de8.webp"
+        ]
       }
     },
     {
@@ -814,7 +1039,12 @@
         "id": "big-gap-4f9f33",
         "name": "Big Gap",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/big-gap-4f9f33-6a5c202d.webp",
+          "split/big-gap-4f9f33-5265479f.webp",
+          "split/big-gap-4f9f33-039e3d3f.webp"
+        ]
       }
     },
     {
@@ -830,7 +1060,12 @@
         "id": "handrail-5dfaa3",
         "name": "Handrail",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/handrail-5dfaa3-05c6011d.webp",
+          "split/handrail-5dfaa3-a2ee3348.webp",
+          "split/handrail-5dfaa3-dd110189.webp"
+        ]
       }
     },
     {
@@ -846,7 +1081,11 @@
         "id": "handrail-be19f3",
         "name": "Handrail",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/handrail-be19f3-6d58511c.webp",
+          "split/handrail-be19f3-f5ed538e.webp"
+        ]
       }
     },
     {
@@ -862,7 +1101,10 @@
         "id": "stairsets-165837",
         "name": "Stairsets",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/stairsets-165837-dff8f260.webp"
+        ]
       }
     },
     {
@@ -878,7 +1120,16 @@
         "id": "downhill-curb-9a6c86",
         "name": "Downhill Curb",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/downhill-curb-9a6c86-c726eaa8.webp",
+          "split/downhill-curb-9a6c86-1a6be72a.webp",
+          "split/downhill-curb-9a6c86-fb184c0d.webp",
+          "split/downhill-curb-9a6c86-edc6ceb4.webp",
+          "split/downhill-curb-9a6c86-1117dc57.webp",
+          "split/downhill-curb-9a6c86-97de41b3.webp",
+          "split/downhill-curb-9a6c86-93d86b0a.webp"
+        ]
       }
     },
     {
@@ -894,7 +1145,12 @@
         "id": "10-stair-5e99f5",
         "name": "10 Stair",
         "status": "active",
-        "photos": []
+        "notes": "Short Runup",
+        "photos": [
+          "split/10-stair-5e99f5-fed114ca.webp",
+          "split/10-stair-5e99f5-c0226b5b.webp",
+          "split/10-stair-5e99f5-cc426170.webp"
+        ]
       }
     },
     {
@@ -910,7 +1166,10 @@
         "id": "diy-4e5e9d",
         "name": "DIY",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/diy-4e5e9d-3122ef90.webp"
+        ]
       }
     },
     {
@@ -926,7 +1185,11 @@
         "id": "miniramp-b9f5d6",
         "name": "Miniramp",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/miniramp-b9f5d6-91ac0938.webp",
+          "split/miniramp-b9f5d6-957fe870.webp"
+        ]
       }
     },
     {
@@ -942,7 +1205,12 @@
         "id": "gap-over-fence-21fda7",
         "name": "Gap over Fence",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/gap-over-fence-21fda7-e1a62c9f.webp",
+          "split/gap-over-fence-21fda7-908aed63.webp",
+          "split/gap-over-fence-21fda7-793dc358.webp"
+        ]
       }
     },
     {
@@ -958,7 +1226,11 @@
         "id": "gap-over-rail-114dcc",
         "name": "Gap over Rail",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/gap-over-rail-114dcc-6f8b0044.webp",
+          "split/gap-over-rail-114dcc-8c0f186d.webp"
+        ]
       }
     },
     {
@@ -974,7 +1246,13 @@
         "id": "downledge-fd246c",
         "name": "Downledge",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/downledge-fd246c-f82fc22d.webp",
+          "split/downledge-fd246c-9a545a42.webp",
+          "split/downledge-fd246c-b0d9ad33.webp",
+          "split/downledge-fd246c-4e432e5c.webp"
+        ]
       }
     },
     {
@@ -990,7 +1268,10 @@
         "id": "habour-small-ledge-bca562",
         "name": "Habour Small Ledge",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/habour-small-ledge-bca562-3fb301fa.webp"
+        ]
       }
     },
     {
@@ -1006,7 +1287,12 @@
         "id": "crusty-11-stair-6c1c51",
         "name": "Crusty 11 Stair",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/crusty-11-stair-6c1c51-488ff0fa.webp",
+          "split/crusty-11-stair-6c1c51-a2e6e76c.webp",
+          "split/crusty-11-stair-6c1c51-6e53b7f6.webp"
+        ]
       }
     },
     {
@@ -1022,7 +1308,13 @@
         "id": "bump-to-bar-8965c8",
         "name": "Bump to Bar",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/bump-to-bar-8965c8-3678b81d.webp",
+          "split/bump-to-bar-8965c8-3638e554.webp",
+          "split/bump-to-bar-8965c8-2df52f22.webp",
+          "split/bump-to-bar-8965c8-ec955c5f.webp"
+        ]
       }
     },
     {
@@ -1038,7 +1330,10 @@
         "id": "skatepark-8cb2ec",
         "name": "Skatepark",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/skatepark-8cb2ec-ad10ec8b.webp"
+        ]
       }
     },
     {
@@ -1054,7 +1349,14 @@
         "id": "double-set-ledge-eee085",
         "name": "Double Set Ledge",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/double-set-ledge-eee085-dde97797.webp",
+          "split/double-set-ledge-eee085-32046b24.webp",
+          "split/double-set-ledge-eee085-572cc708.webp",
+          "split/double-set-ledge-eee085-f766bd4f.webp",
+          "split/double-set-ledge-eee085-2b9c7f70.webp"
+        ]
       }
     },
     {
@@ -1070,7 +1372,12 @@
         "id": "low-to-high-rail-a0d8b8",
         "name": "Low to High Rail",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/low-to-high-rail-a0d8b8-4faf4285.webp",
+          "split/low-to-high-rail-a0d8b8-f0e43a5f.webp",
+          "split/low-to-high-rail-a0d8b8-d3501da5.webp"
+        ]
       }
     },
     {
@@ -1086,7 +1393,10 @@
         "id": "10er-handrail-71c596",
         "name": "10er Handrail",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/10er-handrail-71c596-a12bd3df.webp"
+        ]
       }
     },
     {
@@ -1102,7 +1412,12 @@
         "id": "chris-pfanner-double-set-4bc65b",
         "name": "Chris Pfanner Double Set",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/chris-pfanner-double-set-4bc65b-607bc074.webp",
+          "split/chris-pfanner-double-set-4bc65b-d6466f54.webp",
+          "split/chris-pfanner-double-set-4bc65b-12c7f984.webp"
+        ]
       }
     },
     {
@@ -1118,7 +1433,12 @@
         "id": "crusty-10-stair-54f5cb",
         "name": "Crusty 10 Stair",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/crusty-10-stair-54f5cb-93b41233.webp",
+          "split/crusty-10-stair-54f5cb-248c0419.webp",
+          "split/crusty-10-stair-54f5cb-ab6ca4ea.webp"
+        ]
       }
     },
     {
@@ -1134,7 +1454,12 @@
         "id": "dropledge-91576a",
         "name": "Dropledge",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/dropledge-91576a-00f2524e.webp",
+          "split/dropledge-91576a-2b21fbbe.webp",
+          "split/dropledge-91576a-f74236b9.webp"
+        ]
       }
     },
     {
@@ -1150,7 +1475,11 @@
         "id": "bank-267211",
         "name": "Bank",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/bank-267211-0eeb1908.webp",
+          "split/bank-267211-79a627b6.webp"
+        ]
       }
     },
     {
@@ -1166,7 +1495,11 @@
         "id": "8-stairs-96bf59",
         "name": "8 Stairs",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/8-stairs-96bf59-f71c2f48.webp",
+          "split/8-stairs-96bf59-eb893797.webp"
+        ]
       }
     },
     {
@@ -1182,7 +1515,11 @@
         "id": "steep-hubba-012b54",
         "name": "Steep Hubba",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/steep-hubba-012b54-0fbead4d.webp",
+          "split/steep-hubba-012b54-bc508fa1.webp"
+        ]
       }
     },
     {
@@ -1198,7 +1535,13 @@
         "id": "dropledge-3c7321",
         "name": "Dropledge",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/dropledge-3c7321-d00e6f1e.webp",
+          "split/dropledge-3c7321-b3e27c1e.webp",
+          "split/dropledge-3c7321-4e0946ae.webp",
+          "split/dropledge-3c7321-ce9c5228.webp"
+        ]
       }
     },
     {
@@ -1214,7 +1557,11 @@
         "id": "skatepark-curb-e7234b",
         "name": "Skatepark Curb",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/skatepark-curb-e7234b-fde61140.webp",
+          "split/skatepark-curb-e7234b-9b169c97.webp"
+        ]
       }
     },
     {
@@ -1230,7 +1577,11 @@
         "id": "super-crust-ledge-d05f6c",
         "name": "Super Crust Ledge",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/super-crust-ledge-d05f6c-a627cd0a.webp",
+          "split/super-crust-ledge-d05f6c-0f7e40e8.webp"
+        ]
       }
     },
     {
@@ -1246,7 +1597,12 @@
         "id": "gangster-manny-pad-ab1364",
         "name": "Gangster Manny Pad",
         "status": "active",
-        "photos": []
+        "notes": "Stopped with the benches",
+        "photos": [
+          "split/gangster-manny-pad-ab1364-bdd7fe87.webp",
+          "split/gangster-manny-pad-ab1364-70ce1b1b.webp",
+          "split/gangster-manny-pad-ab1364-fa9889c2.webp"
+        ]
       }
     },
     {
@@ -1262,7 +1618,15 @@
         "id": "slappy-banks-bc5884",
         "name": "Slappy Banks",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/slappy-banks-bc5884-69b38650.webp",
+          "split/slappy-banks-bc5884-345ccacd.webp",
+          "split/slappy-banks-bc5884-dcd1967b.webp",
+          "split/slappy-banks-bc5884-23176f43.webp",
+          "split/slappy-banks-bc5884-77fd217f.webp",
+          "split/slappy-banks-bc5884-2f0662f9.webp"
+        ]
       }
     },
     {
@@ -1278,7 +1642,13 @@
         "id": "dropledge-adebf6",
         "name": "Dropledge",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/dropledge-adebf6-2dd1edbf.webp",
+          "split/dropledge-adebf6-7ceeab76.webp",
+          "split/dropledge-adebf6-12d7a0be.webp",
+          "split/dropledge-adebf6-1f558345.webp"
+        ]
       }
     },
     {
@@ -1294,7 +1664,10 @@
         "id": "stairs-f6dca8",
         "name": "Stairs",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/stairs-f6dca8-2e4473b8.webp"
+        ]
       }
     },
     {
@@ -1310,7 +1683,11 @@
         "id": "wallride-a76b32",
         "name": "Wallride",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/wallride-a76b32-83de8bbd.webp",
+          "split/wallride-a76b32-1e86ee47.webp"
+        ]
       }
     },
     {
@@ -1326,7 +1703,11 @@
         "id": "bump-to-bar-6b74b1",
         "name": "Bump to Bar",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/bump-to-bar-6b74b1-28e49eb6.webp",
+          "split/bump-to-bar-6b74b1-8c2e3bf0.webp"
+        ]
       }
     },
     {
@@ -1342,7 +1723,11 @@
         "id": "manny-pads-2d017b",
         "name": "Manny Pads",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/manny-pads-2d017b-a12dd265.webp",
+          "split/manny-pads-2d017b-a8ef8acc.webp"
+        ]
       }
     },
     {
@@ -1358,7 +1743,11 @@
         "id": "handrail-5c5dfb",
         "name": "Handrail",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/handrail-5c5dfb-53274bba.webp",
+          "split/handrail-5c5dfb-4977bcc1.webp"
+        ]
       }
     },
     {
@@ -1374,7 +1763,10 @@
         "id": "bank-to-flatbar-51511a",
         "name": "Bank to Flatbar",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/bank-to-flatbar-51511a-b87ee1fe.webp"
+        ]
       }
     },
     {
@@ -1390,7 +1782,10 @@
         "id": "blue-bank-472a6c",
         "name": "Blue Bank",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/blue-bank-472a6c-814d4baa.webp"
+        ]
       }
     },
     {
@@ -1406,7 +1801,11 @@
         "id": "curb-paradise-dce684",
         "name": "Curb Paradise",
         "status": "active",
-        "photos": []
+        "notes": "It's a school so probably only possible on sunday",
+        "photos": [
+          "split/curb-paradise-dce684-fc91971e.webp",
+          "split/curb-paradise-dce684-c81e6c9f.webp"
+        ]
       }
     },
     {
@@ -1422,7 +1821,14 @@
         "id": "manny-pad-stairs-8f82f5",
         "name": "Manny Pad + Stairs",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/manny-pad-stairs-8f82f5-e7d7c711.webp",
+          "split/manny-pad-stairs-8f82f5-b59341b7.webp",
+          "split/manny-pad-stairs-8f82f5-ba07f4e4.webp",
+          "split/manny-pad-stairs-8f82f5-9dc7d8ec.webp",
+          "split/manny-pad-stairs-8f82f5-d6dba35c.webp"
+        ]
       }
     },
     {
@@ -1438,7 +1844,13 @@
         "id": "hubba-99ff20",
         "name": "Hubba",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/hubba-99ff20-69e8388d.webp",
+          "split/hubba-99ff20-09481676.webp",
+          "split/hubba-99ff20-06a28a2e.webp",
+          "split/hubba-99ff20-3c2873fa.webp"
+        ]
       }
     },
     {
@@ -1454,7 +1866,10 @@
         "id": "handrail-11d5fc",
         "name": "Handrail",
         "status": "active",
-        "photos": []
+        "notes": "Short runup",
+        "photos": [
+          "split/handrail-11d5fc-947fae0a.webp"
+        ]
       }
     },
     {
@@ -1470,7 +1885,12 @@
         "id": "death-drop-in-e199c3",
         "name": "Death Drop In",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/death-drop-in-e199c3-3bc99aaf.webp",
+          "split/death-drop-in-e199c3-102becc1.webp",
+          "split/death-drop-in-e199c3-31b7462c.webp"
+        ]
       }
     },
     {
@@ -1486,7 +1906,12 @@
         "id": "big-hubba-0fda5c",
         "name": "Big Hubba",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/big-hubba-0fda5c-90e9e258.webp",
+          "split/big-hubba-0fda5c-bb06020d.webp",
+          "split/big-hubba-0fda5c-d1a4f55d.webp"
+        ]
       }
     },
     {
@@ -1502,7 +1927,14 @@
         "id": "6-stair-manny-pad-into-bank-b40947",
         "name": "6 Stair + Manny Pad into Bank",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/6-stair-manny-pad-into-bank-b40947-61a7fc6f.webp",
+          "split/6-stair-manny-pad-into-bank-b40947-9531a3fa.webp",
+          "split/6-stair-manny-pad-into-bank-b40947-d170eb97.webp",
+          "split/6-stair-manny-pad-into-bank-b40947-9f59a5c9.webp",
+          "split/6-stair-manny-pad-into-bank-b40947-b5534b48.webp"
+        ]
       }
     },
     {
@@ -1518,7 +1950,13 @@
         "id": "big-handrail-2d24ac",
         "name": "Big Handrail",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/big-handrail-2d24ac-379e0d6c.webp",
+          "split/big-handrail-2d24ac-278c3a57.webp",
+          "split/big-handrail-2d24ac-a52cce5f.webp",
+          "split/big-handrail-2d24ac-ae1d4c3c.webp"
+        ]
       }
     },
     {
@@ -1534,7 +1972,15 @@
         "id": "university-downhill-flatgap-ae593e",
         "name": "University Downhill Flatgap",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/university-downhill-flatgap-ae593e-6e32ecd4.webp",
+          "split/university-downhill-flatgap-ae593e-e059d64d.webp",
+          "split/university-downhill-flatgap-ae593e-e96cd3ca.webp",
+          "split/university-downhill-flatgap-ae593e-32fcdab9.webp",
+          "split/university-downhill-flatgap-ae593e-973cd417.webp",
+          "split/university-downhill-flatgap-ae593e-758f729e.webp"
+        ]
       }
     },
     {
@@ -1550,7 +1996,12 @@
         "id": "low-to-high-ledge-b2de7e",
         "name": "Low to High Ledge",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/low-to-high-ledge-b2de7e-db8b450d.webp",
+          "split/low-to-high-ledge-b2de7e-a8a787df.webp",
+          "split/low-to-high-ledge-b2de7e-3a9ce7ba.webp"
+        ]
       }
     },
     {
@@ -1566,7 +2017,13 @@
         "id": "4-stair-handrail-a80ead",
         "name": "4 Stair Handrail",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/4-stair-handrail-a80ead-09bb4ec8.webp",
+          "split/4-stair-handrail-a80ead-2351c2fb.webp",
+          "split/4-stair-handrail-a80ead-c32d8203.webp",
+          "split/4-stair-handrail-a80ead-82b77548.webp"
+        ]
       }
     },
     {
@@ -1582,7 +2039,13 @@
         "id": "super-crust-kink-hubba-b82147",
         "name": "Super Crust Kink Hubba",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/super-crust-kink-hubba-b82147-d39f6773.webp",
+          "split/super-crust-kink-hubba-b82147-8b2fb11b.webp",
+          "split/super-crust-kink-hubba-b82147-4a3b93f7.webp",
+          "split/super-crust-kink-hubba-b82147-b1015f97.webp"
+        ]
       }
     },
     {
@@ -1598,7 +2061,12 @@
         "id": "hubba-0518f4",
         "name": "Hubba",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/hubba-0518f4-7255212d.webp",
+          "split/hubba-0518f4-07d57754.webp",
+          "split/hubba-0518f4-42ae2484.webp"
+        ]
       }
     },
     {
@@ -1614,7 +2082,12 @@
         "id": "handrail-0c4be3",
         "name": "Handrail",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/handrail-0c4be3-6a452679.webp",
+          "split/handrail-0c4be3-1647caa2.webp",
+          "split/handrail-0c4be3-69dd6b6e.webp"
+        ]
       }
     },
     {
@@ -1630,7 +2103,10 @@
         "id": "wobble-metal-thing-d35958",
         "name": "Wobble Metal Thing",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/wobble-metal-thing-d35958-a2f73e4a.webp"
+        ]
       }
     },
     {
@@ -1646,7 +2122,12 @@
         "id": "big-stairset-gap-c429c0",
         "name": "Big Stairset Gap",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/big-stairset-gap-c429c0-5e0aaf46.webp",
+          "split/big-stairset-gap-c429c0-0bd1ce9e.webp",
+          "split/big-stairset-gap-c429c0-af1d15cc.webp"
+        ]
       }
     },
     {
@@ -1662,7 +2143,12 @@
         "id": "steep-handrail-9c11f4",
         "name": "Steep Handrail",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "split/steep-handrail-9c11f4-0ad041e8.webp",
+          "split/steep-handrail-9c11f4-6f3ae1d9.webp",
+          "split/steep-handrail-9c11f4-291c743c.webp"
+        ]
       }
     },
     {
@@ -1678,7 +2164,13 @@
         "id": "manny-pad-4c0c7d",
         "name": "Manny Pad",
         "status": "active",
-        "photos": []
+        "notes": "Probably a very high bust factor",
+        "photos": [
+          "split/manny-pad-4c0c7d-b684facf.webp",
+          "split/manny-pad-4c0c7d-20a32a8e.webp",
+          "split/manny-pad-4c0c7d-737e4922.webp",
+          "split/manny-pad-4c0c7d-993eff2f.webp"
+        ]
       }
     }
   ]

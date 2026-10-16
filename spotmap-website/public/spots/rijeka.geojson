@@ -14,7 +14,11 @@
         "id": "miniramp-am-dach-3e2255",
         "name": "Miniramp am Dach",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "rijeka/miniramp-am-dach-3e2255-e9a1fb5a.webp",
+          "rijeka/miniramp-am-dach-3e2255-f05ef1f6.webp"
+        ]
       }
     },
     {
@@ -30,7 +34,10 @@
         "id": "plaza-mit-curb-c69f1a",
         "name": "Plaza mit Curb",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "rijeka/plaza-mit-curb-c69f1a-9e9eac3c.webp"
+        ]
       }
     },
     {
@@ -46,7 +53,19 @@
         "id": "stair-heaven-072e67",
         "name": "Stair Heaven",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "rijeka/stair-heaven-072e67-2e518900.webp",
+          "rijeka/stair-heaven-072e67-ea192e1d.webp",
+          "rijeka/stair-heaven-072e67-df028c96.webp",
+          "rijeka/stair-heaven-072e67-ec278ff1.webp",
+          "rijeka/stair-heaven-072e67-7eee7da6.webp",
+          "rijeka/stair-heaven-072e67-263d69b0.webp",
+          "rijeka/stair-heaven-072e67-fe7669de.webp",
+          "rijeka/stair-heaven-072e67-42e825a2.webp",
+          "rijeka/stair-heaven-072e67-04e46544.webp",
+          "rijeka/stair-heaven-072e67-568f16cf.webp"
+        ]
       }
     },
     {
@@ -62,7 +81,10 @@
         "id": "curb-a587b7",
         "name": "Curb",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "rijeka/curb-a587b7-5af7ef03.webp"
+        ]
       }
     },
     {
@@ -78,7 +100,13 @@
         "id": "diy-0880ca",
         "name": "DIY",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "rijeka/diy-0880ca-8b08a289.webp",
+          "rijeka/diy-0880ca-b5dbc857.webp",
+          "rijeka/diy-0880ca-01c1a81d.webp",
+          "rijeka/diy-0880ca-72e5a96d.webp"
+        ]
       }
     },
     {
@@ -94,7 +122,16 @@
         "id": "studenski-centar-dee0de",
         "name": "Studenski Centar",
         "status": "active",
-        "photos": []
+        "notes": "Stairs, Ledge, Gap, Flatrail",
+        "photos": [
+          "rijeka/studenski-centar-dee0de-1cd7c9e0.webp",
+          "rijeka/studenski-centar-dee0de-d63a30fd.webp",
+          "rijeka/studenski-centar-dee0de-89e34028.webp",
+          "rijeka/studenski-centar-dee0de-fbd3b38f.webp",
+          "rijeka/studenski-centar-dee0de-7c42e14f.webp",
+          "rijeka/studenski-centar-dee0de-566b353b.webp",
+          "rijeka/studenski-centar-dee0de-4ace4174.webp"
+        ]
       }
     },
     {
@@ -110,7 +147,12 @@
         "id": "main-plaza-d7bfab",
         "name": "Main Plaza",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "rijeka/main-plaza-d7bfab-14a7fd4e.webp",
+          "rijeka/main-plaza-d7bfab-0e943dac.webp",
+          "rijeka/main-plaza-d7bfab-a578d6fa.webp"
+        ]
       }
     },
     {
@@ -126,7 +168,11 @@
         "id": "low-to-high-ledge-614a10",
         "name": "Low to High Ledge",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "rijeka/low-to-high-ledge-614a10-15c24c21.webp",
+          "rijeka/low-to-high-ledge-614a10-fd6804e6.webp"
+        ]
       }
     },
     {
@@ -142,7 +188,11 @@
         "id": "strand-gap-f4264b",
         "name": "Strand Gap",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "rijeka/strand-gap-f4264b-b7dc876e.webp",
+          "rijeka/strand-gap-f4264b-fd504fe9.webp"
+        ]
       }
     },
     {
@@ -158,7 +208,11 @@
         "id": "curbs-9503a4",
         "name": "Curbs",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "rijeka/curbs-9503a4-a7878579.webp",
+          "rijeka/curbs-9503a4-f8f764be.webp"
+        ]
       }
     }
   ]

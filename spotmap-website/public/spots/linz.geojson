@@ -14,7 +14,12 @@
         "id": "wels-12-stair-bank-gap-82db98",
         "name": "Wels: 12 Stair Bank Gap",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "linz/wels-12-stair-bank-gap-82db98-bfac490b.webp",
+          "linz/wels-12-stair-bank-gap-82db98-7fc7c31b.webp",
+          "linz/wels-12-stair-bank-gap-82db98-855a5931.webp"
+        ]
       }
     },
     {
@@ -30,7 +35,12 @@
         "id": "tabakfabrik-stairs-7e5950",
         "name": "Tabakfabrik Stairs",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "linz/tabakfabrik-stairs-7e5950-2d5ca4d7.webp",
+          "linz/tabakfabrik-stairs-7e5950-4f86dfad.webp",
+          "linz/tabakfabrik-stairs-7e5950-a2d7962c.webp"
+        ]
       }
     },
     {
@@ -46,7 +56,11 @@
         "id": "musiktheater-curbs-64d106",
         "name": "Musiktheater Curbs",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "linz/musiktheater-curbs-64d106-45453049.webp",
+          "linz/musiktheater-curbs-64d106-edfdf7ef.webp"
+        ]
       }
     },
     {
@@ -62,7 +76,11 @@
         "id": "urfahr-wiesengap-c3a6c8",
         "name": "Urfahr Wiesengap",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "linz/urfahr-wiesengap-c3a6c8-3be8df63.webp",
+          "linz/urfahr-wiesengap-c3a6c8-c80d8f72.webp"
+        ]
       }
     },
     {
@@ -78,7 +96,11 @@
         "id": "irgendwo-pollham-kirche-59374b",
         "name": "Irgendwo: Pollham Kirche",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "linz/irgendwo-pollham-kirche-59374b-697c083a.webp",
+          "linz/irgendwo-pollham-kirche-59374b-3b0bd4c2.webp"
+        ]
       }
     },
     {
@@ -94,6 +116,7 @@
         "id": "wels-low-to-high-ledges-2bbc33",
         "name": "Wels: Low to High Ledges",
         "status": "active",
+        "notes": null,
         "photos": []
       }
     },
@@ -110,7 +133,10 @@
         "id": "kepler-klinik-8-stair-a55d23",
         "name": "Kepler Klinik 8 Stair",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "linz/kepler-klinik-8-stair-a55d23-9282fca3.webp"
+        ]
       }
     },
     {
@@ -126,6 +152,7 @@
         "id": "antispot-blumauergarage-01cdbd",
         "name": "Antispot Blumauergarage",
         "status": "active",
+        "notes": null,
         "photos": []
       }
     },
@@ -142,7 +169,12 @@
         "id": "irgendwo-htl-griesskirchen-1ae144",
         "name": "Irgendwo: HTL Grießkirchen",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "linz/irgendwo-htl-griesskirchen-1ae144-7f623a73.webp",
+          "linz/irgendwo-htl-griesskirchen-1ae144-d3e87340.webp",
+          "linz/irgendwo-htl-griesskirchen-1ae144-8fb3f79d.webp"
+        ]
       }
     },
     {
@@ -158,7 +190,12 @@
         "id": "griesskirchen-moebelhaendler-manny-pad-107548",
         "name": "Grießkirchen: Möbelhändler Manny Pad",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "linz/griesskirchen-moebelhaendler-manny-pad-107548-9218a5c4.webp",
+          "linz/griesskirchen-moebelhaendler-manny-pad-107548-45f416e2.webp",
+          "linz/griesskirchen-moebelhaendler-manny-pad-107548-8a97b85b.webp"
+        ]
       }
     },
     {
@@ -174,7 +211,11 @@
         "id": "gallspach-volksschule-d6931c",
         "name": "Gallspach: Volksschule",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "linz/gallspach-volksschule-d6931c-5d50f816.webp",
+          "linz/gallspach-volksschule-d6931c-be411c7e.webp"
+        ]
       }
     },
     {
@@ -190,7 +231,11 @@
         "id": "gallspach-courthouse-6d46b4",
         "name": "Gallspach: Courthouse",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "linz/gallspach-courthouse-6d46b4-4600ee0f.webp",
+          "linz/gallspach-courthouse-6d46b4-44ebe2ac.webp"
+        ]
       }
     },
     {
@@ -206,7 +251,10 @@
         "id": "wels-loadingdock-63eb2f",
         "name": "Wels: Loadingdock",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "linz/wels-loadingdock-63eb2f-6c592408.webp"
+        ]
       }
     },
     {
@@ -222,7 +270,11 @@
         "id": "wels-hauptschule-43603a",
         "name": "Wels: Hauptschule",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "linz/wels-hauptschule-43603a-50215677.webp",
+          "linz/wels-hauptschule-43603a-bd6ea70d.webp"
+        ]
       }
     },
     {
@@ -238,7 +290,10 @@
         "id": "wels-holzcurbs-81f80d",
         "name": "Wels: Holzcurbs",
         "status": "active",
-        "photos": []
+        "notes": "Hoch",
+        "photos": [
+          "linz/wels-holzcurbs-81f80d-2a6ac619.webp"
+        ]
       }
     },
     {
@@ -254,7 +309,13 @@
         "id": "wels-brg-wallererstrasse-f4886e",
         "name": "Wels: BRG Wallererstraße",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "linz/wels-brg-wallererstrasse-f4886e-89273a59.webp",
+          "linz/wels-brg-wallererstrasse-f4886e-0619e810.webp",
+          "linz/wels-brg-wallererstrasse-f4886e-35b87c1c.webp",
+          "linz/wels-brg-wallererstrasse-f4886e-b06f1da5.webp"
+        ]
       }
     }
   ]

@@ -14,7 +14,11 @@
         "id": "11-stair-d9311e",
         "name": "11 Stair",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "graz/11-stair-d9311e-5f8de928.webp",
+          "graz/11-stair-d9311e-f1b438c7.webp"
+        ]
       }
     },
     {
@@ -30,7 +34,10 @@
         "id": "lendplatz-c07aa3",
         "name": "Lendplatz",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "graz/lendplatz-c07aa3-f8e3850d.webp"
+        ]
       }
     },
     {
@@ -46,7 +53,11 @@
         "id": "unistairs-1087f2",
         "name": "Unistairs",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "graz/unistairs-1087f2-2cde0b05.webp",
+          "graz/unistairs-1087f2-2a9eba6e.webp"
+        ]
       }
     },
     {
@@ -62,7 +73,14 @@
         "id": "uni-gap-holzcurbs-462694",
         "name": "Uni Gap + Holzcurbs",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "graz/uni-gap-holzcurbs-462694-39a4e073.webp",
+          "graz/uni-gap-holzcurbs-462694-f3075039.webp",
+          "graz/uni-gap-holzcurbs-462694-1664d161.webp",
+          "graz/uni-gap-holzcurbs-462694-a307d85c.webp",
+          "graz/uni-gap-holzcurbs-462694-13025eaf.webp"
+        ]
       }
     },
     {
@@ -78,7 +96,12 @@
         "id": "minibankcurbs-14-stair-b3ed61",
         "name": "Minibankcurbs + 14 Stair",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "graz/minibankcurbs-14-stair-b3ed61-e69bf1ca.webp",
+          "graz/minibankcurbs-14-stair-b3ed61-95962bd5.webp",
+          "graz/minibankcurbs-14-stair-b3ed61-8128fb7d.webp"
+        ]
       }
     },
     {
@@ -94,7 +117,13 @@
         "id": "gap-16f29f",
         "name": "Gap",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "graz/gap-16f29f-88b8d44d.webp",
+          "graz/gap-16f29f-3cb6c47f.webp",
+          "graz/gap-16f29f-e227a2aa.webp",
+          "graz/gap-16f29f-da283fc6.webp"
+        ]
       }
     },
     {
@@ -110,7 +139,12 @@
         "id": "curbs-4ae93f",
         "name": "Curbs",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "graz/curbs-4ae93f-c6cbcf2e.webp",
+          "graz/curbs-4ae93f-6e161aa5.webp",
+          "graz/curbs-4ae93f-3eaaaa54.webp"
+        ]
       }
     }
   ]
