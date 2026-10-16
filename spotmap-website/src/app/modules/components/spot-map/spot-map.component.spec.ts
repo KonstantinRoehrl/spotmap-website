@@ -6,6 +6,7 @@ import {
 import { ApplicationRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CityEnum } from '../../../models/enums/map-enum';
+import type { MapLoadEvent } from '../map-container/map-load-progress';
 import type { ElevationTiles } from './elevation';
 import {
   ELEVATION_LOADER,
@@ -98,9 +99,8 @@ class FakeMap {
    */
   styleLoaded = false;
   removed = false;
-  lastFitBounds?: { padding: number; duration: number; maxZoom: number };
-  /** The box the last `fitBounds` was asked to frame, as `[[west, south], [east, north]]`. */
-  lastBounds?: [[number, number], [number, number]];
+  /** The sources whose data MapLibre would report loaded; `drawPins()` adds the spots. */
+  readonly loadedSources = new Set<string>();
   /**
    * Every camera move *the component* asked for, with the option bag it asked with, so the
    * reduced-motion spec can assert about all of them rather than about the one call site that
@@ -122,10 +122,26 @@ class FakeMap {
     this.handlers.set(key, [...(this.handlers.get(key) ?? []), fn]);
     return this;
   }
+  off(event: string, fn: unknown) {
+    const handlers = this.handlers.get(event) ?? [];
+    this.handlers.set(
+      event,
+      handlers.filter((handler) => handler !== fn),
+    );
+    return this;
+  }
   emit(event: string, payload?: unknown, layer?: string) {
     for (const fn of this.handlers.get(this.key(event, layer)) ?? []) {
       fn(payload);
     }
+  }
+  isSourceLoaded(id: string) {
+    return this.loadedSources.has(id);
+  }
+  /** The spot source finishing and the next frame painting it: what ends DRAW. */
+  drawPins() {
+    this.loadedSources.add('spots');
+    this.emit('render');
   }
   private key(event: string, layer?: string) {
     return layer ? `${event}:${layer}` : event;
@@ -142,11 +158,9 @@ class FakeMap {
     return this.addedLayers.filter((added) => !added.id.startsWith('spots-'));
   }
   fitBounds(
-    bounds: [[number, number], [number, number]],
-    options: { padding: number; duration: number; maxZoom: number },
+    _bounds: [[number, number], [number, number]],
+    options: CameraMove['options'],
   ) {
-    this.lastBounds = bounds;
-    this.lastFitBounds = options;
     this.cameraMoves.push({ method: 'fitBounds', options });
   }
   easeTo(options: CameraMove['options']) {
@@ -419,10 +433,15 @@ const COLLECTION = {
 /**
  * Answers the media query `prefersReducedMotion()` asks — the same `window.matchMedia` fake the
  * ascii-animation-text spec drives its reduced-motion branch with. Call before `create()`: the
- * preference is read while the map draws.
+ * preference is read while the map draws. A second call within one spec changes the answer.
  */
 function requestReducedMotion(reduce: boolean) {
-  spyOn(window, 'matchMedia').and.callFake(
+  const matchMedia: jasmine.Spy<typeof window.matchMedia> = jasmine.isSpy(
+    window.matchMedia,
+  )
+    ? (window.matchMedia as jasmine.Spy<typeof window.matchMedia>)
+    : spyOn(window, 'matchMedia');
+  matchMedia.and.callFake(
     (query: string) =>
       ({
         matches: reduce && query.includes('prefers-reduced-motion'),
@@ -639,11 +658,11 @@ describe('SpotMapComponent', () => {
         ],
       },
     });
-    fake.emit('load');
-    expect(fake.lastBounds).toEqual([
+    expect(mapFactory.calls.mostRecent().args[0].bounds).toEqual([
       [16.35, 48.19],
       [16.4, 48.22],
     ]);
+    fake.emit('load');
     expect(fake.sources['spots']).toEqual(
       jasmine.objectContaining({
         data: jasmine.objectContaining({
@@ -746,57 +765,46 @@ describe('SpotMapComponent', () => {
     expect(asked).toEqual([14, 14]);
   });
 
-  it('fits the viewport to the loaded spots instead of a hardcoded centre', async () => {
+  it('builds the map already framed', async () => {
     await create();
+    expect(mapFactory.calls.mostRecent().args[0]).toEqual(
+      jasmine.objectContaining({
+        bounds: [
+          [16.37, 48.2],
+          [16.4, 48.22],
+        ],
+        fitBoundsOptions: { padding: 48, maxZoom: 16 },
+      }),
+    );
     fake.emit('load');
-    expect(fake.lastFitBounds).toBeDefined();
-    expect(fake.lastFitBounds!.maxZoom).toBeLessThanOrEqual(16);
+    expect(fake.cameraMoves).toEqual([]);
   });
 
-  it('asks for no animation on the camera moves it makes when reduced motion is asked for', async () => {
-    // The map's only motion concession in JS. CSS cannot reach a MapLibre camera ease, so the
-    // app-wide `prefers-reduced-motion` block in styles.css does nothing for this one.
-    //
-    // What this covers is the option bags the component hands the map, and only those — the rest
-    // of the map's motion is MapLibre's to guard, and 6.9.0 does guard most of it: `Camera`
-    // zeroes its own duration when the media query matches and the move is not marked
-    // `essential` (maplibre-gl-dev.mjs:23085 for `easeTo`, `:23254` for `flyTo`, reading
-    // `browser.prefersReducedMotion` at `:78-83`), which covers the keyboard handler's 300 ms
-    // ease on every arrow press (`:21463-21474`), drag-pan inertia (`:22789`) and `fitBounds`,
-    // which routes through both (`:23023`, `:23032`). One animation stays unguarded: scroll zoom
-    // smooths each wheel notch over 200 ms in its own render loop, with no reduced-motion check
-    // (`:21716-21731`), and 6.9.0 offers no option for it — the handler takes zoom rates, not
-    // durations (`:21584`, `:21596`) — short of `scrollZoom.disable()`, which would cost the user
-    // who asked for less motion their wheel zoom. It is left open knowingly.
+  it('opens on the framed city with no opening camera move, reduced motion or not', async () => {
+    // MapLibre applies the `bounds` option with `duration: 0` in its constructor
+    // (maplibre-gl-dev.mjs:24156), so `load` paints the city already framed and nothing is left to
+    // ease into view, whichever motion preference is set.
     requestReducedMotion(true);
     await create();
     fake.emit('load');
-    expect(fake.cameraMoves.length)
-      .withContext('the map framed the spots at all')
-      .toBeGreaterThan(0);
-    expect(fake.cameraMoves.filter((move) => move.options.duration !== 0))
-      .withContext(
-        'camera moves the component asked for that would still animate',
-      )
+    expect(fake.cameraMoves)
+      .withContext('camera moves with reduced motion asked for')
+      .toEqual([]);
+
+    requestReducedMotion(false);
+    await retry(1);
+    fake.emit('load');
+    expect(fake.cameraMoves)
+      .withContext('camera moves with reduced motion not asked for')
       .toEqual([]);
   });
 
-  it('eases the camera when reduced motion is not asked for', async () => {
-    // The other half of the same branch: the concession is made for the users who asked for it,
-    // and for nobody else. The duration itself is a tuning value, so only the ease is pinned.
-    requestReducedMotion(false);
-    await create();
-    fake.emit('load');
-    expect(fake.lastFitBounds?.duration)
-      .withContext('the opening fit eases into place instead of cutting')
-      .toBeGreaterThan(0);
-  });
-
-  it('emits ready once the map reports load', async () => {
+  it('emits ready once the map reports load and its pins are drawn', async () => {
     const c = await create();
     const ready = jasmine.createSpy('ready');
     c.ready.subscribe(ready);
     fake.emit('load');
+    fake.drawPins();
     expect(ready).toHaveBeenCalled();
   });
 
@@ -827,6 +835,7 @@ describe('SpotMapComponent', () => {
     fake.loadBasemapMetadata();
     fake.failOneResource();
     fake.emit('load');
+    fake.drawPins();
     expect(failed).not.toHaveBeenCalled();
     expect(ready).toHaveBeenCalled();
     expect(fake.removed).toBe(false);
@@ -842,6 +851,7 @@ describe('SpotMapComponent', () => {
     // entirely; an error that names the tile it was loading is still one tile, not the basemap.
     fake.failOneResource();
     fake.emit('load');
+    fake.drawPins();
     expect(failed).not.toHaveBeenCalled();
     expect(ready).toHaveBeenCalled();
     expect(fake.removed).toBe(false);
@@ -855,6 +865,7 @@ describe('SpotMapComponent', () => {
     c.ready.subscribe(ready);
     fake.failStyleValidation();
     fake.emit('load');
+    fake.drawPins();
     expect(failed).not.toHaveBeenCalled();
     expect(fake.removed).toBe(false);
     expect(ready).toHaveBeenCalled();
@@ -900,6 +911,7 @@ describe('SpotMapComponent', () => {
     // MapLibre fires `load` even for a map whose source died, because `Map.loaded()` reads the
     // same short-circuited `Style.loaded()` (maplibre-gl-dev.mjs:27046-27047, :27140-27142).
     fake.emit('load');
+    fake.drawPins();
     expect(failed).toHaveBeenCalledWith('unreachable');
     expect(ready).not.toHaveBeenCalled();
   });
@@ -1161,6 +1173,7 @@ describe('SpotMapComponent', () => {
     c.ready.subscribe(ready);
     expect(Object.keys(fake.style?.sources ?? {})).toEqual(['openmaptiles']);
     fake.emit('load');
+    fake.drawPins();
     expect(ready).toHaveBeenCalled();
   });
 
@@ -1181,11 +1194,12 @@ describe('SpotMapComponent', () => {
     const ready = jasmine.createSpy('ready');
     c.ready.subscribe(ready);
     fake.emit('load');
+    fake.drawPins();
     expect(ready).toHaveBeenCalled();
     expect(fake.sources['spots'])
       .withContext('the pins are drawn')
       .toBeDefined();
-    expect(fake.lastFitBounds)
+    expect(mapFactory.calls.mostRecent().args[0].bounds)
       .withContext('the spots are framed')
       .toBeDefined();
   });
@@ -1299,6 +1313,7 @@ describe('SpotMapComponent', () => {
     c.failed.subscribe(failed);
     c.ready.subscribe(ready);
     fake.emit('load');
+    fake.drawPins();
     await fixture.whenStable();
     expect(fake.sources['dem'])
       .withContext('the terrain was added')
@@ -1410,5 +1425,108 @@ describe('SpotMapComponent', () => {
     ).toEqual([]);
     expect(fake.filterCalls).toEqual([]);
     expect(fake.featureStates['a']?.['selected']).toBe(true);
+  });
+
+  describe('load progress', () => {
+    /** Builds the map with every load event recorded from the very first one. */
+    async function createRecording() {
+      fixture = TestBed.createComponent(SpotMapComponent);
+      const events: MapLoadEvent[] = [];
+      fixture.componentInstance.loadEvent.subscribe((event) =>
+        events.push(event),
+      );
+      fixture.componentRef.setInput('city', CityEnum.Vienna);
+      fixture.componentRef.setInput('retryToken', 0);
+      fixture.detectChanges();
+      httpMock.expectOne('spots/vienna.geojson').flush(COLLECTION);
+      await fixture.whenStable();
+      fixture.detectChanges();
+      return events;
+    }
+
+    /** One basemap tile event, in the shape MapLibre re-fires on the map. */
+    const basemapTile = { sourceId: BASEMAP_SOURCE_ID, tile: {} };
+
+    const tileEvents = (events: MapLoadEvent[]) =>
+      events.filter((event) => event.kind === 'tiles');
+
+    it('reports the load milestones in order', async () => {
+      const events = await createRecording();
+      fake.emit('style.load');
+      fake.emit('sourcedataloading', basemapTile);
+      fake.emit('sourcedataloading', basemapTile);
+      fake.emit('sourcedata', basemapTile);
+      fake.emit('load');
+      expect(events.map((event) => event.kind)).toEqual([
+        'spots-sent',
+        'spots-done',
+        'renderer-ready',
+        'style-loaded',
+        'tiles',
+        'tiles',
+        'tiles',
+        'painted',
+      ]);
+      expect(tileEvents(events).at(-1)).toEqual({
+        kind: 'tiles',
+        loaded: 1,
+        requested: 2,
+      });
+    });
+
+    it('counts an aborted tile out of the total', async () => {
+      const events = await createRecording();
+      fake.emit('sourcedataloading', basemapTile);
+      fake.emit('sourcedataloading', basemapTile);
+      fake.emit('sourcedataabort', basemapTile);
+      expect(tileEvents(events).at(-1)).toEqual({
+        kind: 'tiles',
+        loaded: 0,
+        requested: 1,
+      });
+    });
+
+    it('ignores tiles of any source but the basemap', async () => {
+      // Relief is decoration and must never hold the reveal, so its tiles never count.
+      const events = await createRecording();
+      fake.emit('sourcedataloading', { sourceId: 'dem', tile: {} });
+      fake.emit('sourcedata', { sourceId: 'dem', tile: {} });
+      expect(tileEvents(events)).toEqual([]);
+    });
+
+    it('ignores tiles after the paint', async () => {
+      const events = await createRecording();
+      fake.emit('load');
+      fake.emit('sourcedataloading', basemapTile);
+      fake.emit('sourcedata', basemapTile);
+      expect(tileEvents(events)).toEqual([]);
+    });
+
+    it('reports ready only once the pins are drawn, not on load', async () => {
+      const c = await create();
+      const ready = jasmine.createSpy('ready');
+      c.ready.subscribe(ready);
+      fake.emit('load');
+      expect(ready).withContext('on load').not.toHaveBeenCalled();
+      fake.emit('render');
+      expect(ready)
+        .withContext('a frame before the spot source loaded')
+        .not.toHaveBeenCalled();
+      fake.drawPins();
+      expect(ready).toHaveBeenCalledTimes(1);
+      fake.emit('render');
+      expect(ready).toHaveBeenCalledTimes(1);
+    });
+
+    it('never reports ready for a map torn down before its pins were drawn', async () => {
+      const c = await create();
+      const ready = jasmine.createSpy('ready');
+      c.ready.subscribe(ready);
+      fake.emit('load');
+      const old = fake;
+      await retry(1);
+      old.drawPins();
+      expect(ready).not.toHaveBeenCalled();
+    });
   });
 });

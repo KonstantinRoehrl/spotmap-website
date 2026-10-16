@@ -19,16 +19,21 @@ import type {
   MapLayerMouseEvent,
   Popup as MapLibrePopup,
 } from 'maplibre-gl';
-import { filter, lastValueFrom } from 'rxjs';
+import { filter, lastValueFrom, tap } from 'rxjs';
 import { CityEnum, MapFailureReason } from '../../../models/enums/map-enum';
 import { SpotCollection } from '../../../models/spots/spot';
-import { SpotsLoaded, SpotsService } from '../../../services/spots.service';
+import {
+  SpotsLoaded,
+  SpotsLoadEvent,
+  SpotsService,
+} from '../../../services/spots.service';
 import { prefersReducedMotion } from '../../../utils/prefers-reduced-motion';
 import {
   SPOT_POPUP_FRAME_CLASS,
   SpotPopupComponent,
 } from '../spot-popup/spot-popup.component';
 import { demMaxzoomFor, type ElevationTiles } from './elevation';
+import type { MapLoadEvent } from '../map-container/map-load-progress';
 import { framingBounds } from './fit-bounds';
 import { startLockOn } from './lock-on-pulse';
 import {
@@ -56,9 +61,6 @@ const FIT_MAX_ZOOM = 16;
  * unset. On a phone the expanded credits, which run to fourteen lines, would cover half the map.
  */
 const NARROW_MAP_MAX_WIDTH_PX = 640;
-
-/** How long the opening fit-to-spots camera move takes, unless reduced motion is requested. */
-const FIT_DURATION_MS = 600;
 
 /** Wide enough for the photo gallery, narrow enough to leave the map readable behind it. */
 const POPUP_MAX_WIDTH = '320px';
@@ -106,8 +108,14 @@ export class SpotMapComponent {
   /** Bumped by the container on RETRY; any change rebuilds the map from scratch. */
   retryToken = input.required<number>();
 
+  /** The pins are on the painted map — the end of DRAW. */
   ready = output<void>();
   failed = output<MapFailureReason>();
+  /**
+   * Every real loading milestone of the current build, for the loader's progress; DRAW's
+   * completion is `ready`.
+   */
+  loadEvent = output<MapLoadEvent>();
 
   private readonly canvasHost =
     viewChild.required<ElementRef<HTMLDivElement>>('canvasHost');
@@ -187,9 +195,10 @@ export class SpotMapComponent {
     let collection: SpotCollection;
     try {
       const loaded = await lastValueFrom(
-        this.spots
-          .loadSpots(city)
-          .pipe(filter((event): event is SpotsLoaded => event.type === 'done')),
+        this.spots.loadSpots(city).pipe(
+          tap((event) => this.reportSpots(event, generation)),
+          filter((event): event is SpotsLoaded => event.type === 'done'),
+        ),
       );
       collection = loaded.collection;
     } catch {
@@ -208,6 +217,13 @@ export class SpotMapComponent {
       return;
     }
 
+    // The map is built already framed on the city: MapLibre applies `bounds` in its constructor
+    // with no animation (maplibre-gl-dev.mjs:24156), so its first paint is the framed city and
+    // no opening camera move follows it.
+    const bounds = framingBounds(
+      collection.features.map((feature) => feature.geometry.coordinates),
+    );
+
     const style = buildTerminalStyle();
     // The basemap owes the map its metadata — the TileJSON — before anything can be drawn from
     // it, and it is the one source the map cannot paint without. A DEM or contour source that
@@ -219,6 +235,8 @@ export class SpotMapComponent {
       map = await this.mapFactory({
         container: this.canvasHost().nativeElement,
         style,
+        bounds: bounds ?? undefined,
+        fitBoundsOptions: { padding: FIT_PADDING_PX, maxZoom: FIT_MAX_ZOOM },
         // Attribution is a licence condition of the OSM-derived tiles, never optional.
         attributionControl: { compact: true },
       });
@@ -242,6 +260,13 @@ export class SpotMapComponent {
       return;
     }
     this.map = map;
+    this.reportLoad({ kind: 'renderer-ready' }, generation);
+
+    // A style passed as an object is loaded a frame after construction
+    // (maplibre-gl-dev.mjs:14802-14809), so this listener still hears it.
+    map.on('style.load', () => {
+      this.reportLoad({ kind: 'style-loaded' }, generation);
+    });
 
     // Rotation and pitch are off: the map stays flat and north-up whatever the gesture. Four
     // handlers can move those two degrees of freedom and each needs its own switch — MapLibre
@@ -256,11 +281,45 @@ export class SpotMapComponent {
     map.touchPitch.disable();
     map.keyboard.disableRotation();
 
+    // Basemap tiles only, and only until the paint: relief tiles must never hold the reveal. A
+    // tile request fires `sourcedataloading` with its tile only on a cache miss, a loaded tile
+    // `sourcedata` with its tile, and an aborted one `sourcedataabort`; a 404 fires nothing
+    // (maplibre-gl-dev.mjs:6776, :6501, :6431, :6422-6423).
+    let tilesRequested = 0;
+    let tilesLoaded = 0;
+    const countsAsBasemapTile = (event: { sourceId: string; tile?: unknown }) =>
+      this.outcome === 'pending' &&
+      event.sourceId === BASEMAP_SOURCE_ID &&
+      event.tile !== undefined;
+    const reportTiles = () =>
+      this.reportLoad(
+        { kind: 'tiles', loaded: tilesLoaded, requested: tilesRequested },
+        generation,
+      );
+
+    map.on('sourcedataloading', (event) => {
+      if (countsAsBasemapTile(event)) {
+        tilesRequested += 1;
+        reportTiles();
+      }
+    });
+
+    map.on('sourcedataabort', (event) => {
+      if (countsAsBasemapTile(event)) {
+        tilesRequested = Math.max(0, tilesRequested - 1);
+        reportTiles();
+      }
+    });
+
     map.on('sourcedata', (event) => {
-      // No generation guard: the set belongs to this build, and only this build's own error
-      // handler reads it.
+      // No generation guard on the metadata: the set belongs to this build, and only this build's
+      // own error handler reads it.
       if (event.sourceDataType === 'metadata') {
         sourcesAwaitingMetadata.delete(event.sourceId);
+      }
+      if (countsAsBasemapTile(event)) {
+        tilesLoaded += 1;
+        reportTiles();
       }
     });
 
@@ -288,10 +347,24 @@ export class SpotMapComponent {
         return;
       }
       this.outcome = 'painted';
+      this.reportLoad({ kind: 'painted' }, generation);
       this.drawSpots(map, collection);
+      // The pins are drawn on the first frame rendered once their source has loaded. MapLibre's
+      // `idle` would also wait for every DEM tile, and relief must never hold the reveal.
+      const pinsDrawn = () => {
+        if (generation !== this.generation || this.map !== map) {
+          map.off('render', pinsDrawn);
+          return;
+        }
+        if (!map.isSourceLoaded(SPOT_SOURCE_ID)) {
+          return;
+        }
+        map.off('render', pinsDrawn);
+        this.ready.emit();
+      };
+      map.on('render', pinsDrawn);
       this.mapIsNarrow = this.isNarrow();
       this.collapseAttributionOnNarrowMap(this.mapIsNarrow);
-      this.ready.emit();
       // Only now: `load` waits on every visible source's tiles, so terrain in the opening style
       // would hold the pins back behind the slowest DEM tile.
       // A missing terrain library resolves `null` — the loader never rejects — and leaves the map
@@ -444,7 +517,7 @@ export class SpotMapComponent {
     this.failed.emit(reason);
   }
 
-  /** Adds the spot source and its pins, then frames the spots that make up the city. */
+  /** Adds the spot source and its pins. */
   private drawSpots(map: MapLibreMap, collection: SpotCollection): void {
     map.addSource(SPOT_SOURCE_ID, {
       type: 'geojson',
@@ -455,16 +528,23 @@ export class SpotMapComponent {
     for (const layer of SPOT_LAYERS) {
       map.addLayer(layer);
     }
+  }
 
-    const bounds = framingBounds(
-      collection.features.map((feature) => feature.geometry.coordinates),
-    );
-    if (bounds) {
-      map.fitBounds(bounds, {
-        padding: FIT_PADDING_PX,
-        maxZoom: FIT_MAX_ZOOM,
-        duration: prefersReducedMotion() ? 0 : FIT_DURATION_MS,
-      });
+  /** Reports one spot-load milestone as the matching load event. */
+  private reportSpots(event: SpotsLoadEvent, generation: number): void {
+    const kinds = {
+      sent: 'spots-sent',
+      headers: 'spots-headers',
+      fallback: 'spots-fallback',
+      done: 'spots-done',
+    } as const;
+    this.reportLoad({ kind: kinds[event.type] }, generation);
+  }
+
+  /** Reports one load event for the container's loader, unless this build has been replaced. */
+  private reportLoad(event: MapLoadEvent, generation: number): void {
+    if (generation === this.generation) {
+      this.loadEvent.emit(event);
     }
   }
 
