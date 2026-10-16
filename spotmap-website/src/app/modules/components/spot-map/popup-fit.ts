@@ -46,16 +46,21 @@ export const GALLERY_HEIGHT_VAR = '--spot-popup-gallery-height';
  * The fit box: the map frame intersected with the visual viewport, inset by `margin`, in the frame's
  * own coordinates. On a page scrolled so the frame is partly off screen it is the visible part.
  * Both inputs are client rectangles. A visible part thinner than the margins collapses to a line.
+ *
+ * `bottomInset` is a strip along the frame's bottom edge that something else occupies, such as the
+ * map's attribution control: it counts as outside the visible map, so the margin starts above it.
  */
 export function fitBoxWithin(
   host: Box,
   viewport: Box,
   margin = POPUP_FIT_MARGIN_PX,
+  bottomInset = 0,
 ): Box {
   const left = Math.max(host.left, viewport.left) - host.left + margin;
   const top = Math.max(host.top, viewport.top) - host.top + margin;
   const right = Math.min(host.right, viewport.right) - host.left - margin;
-  const bottom = Math.min(host.bottom, viewport.bottom) - host.top - margin;
+  const bottom =
+    Math.min(host.bottom - bottomInset, viewport.bottom) - host.top - margin;
   return {
     left,
     top,

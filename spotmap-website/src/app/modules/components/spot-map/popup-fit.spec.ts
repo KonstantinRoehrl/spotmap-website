@@ -4,6 +4,7 @@ import {
   fitPopup,
   GALLERY_MIN_HEIGHT_PX,
   popupFrame,
+  POPUP_FIT_MARGIN_PX,
   POPUP_TIP_HEIGHT_PX,
 } from './popup-fit';
 
@@ -43,6 +44,47 @@ describe('fitBoxWithin', () => {
     expect(box.right).toBe(box.left);
     expect(box.bottom).toBe(box.top);
   });
+
+  describe('with a strip at the bottom of the frame reserved', () => {
+    const frame = { left: 100, top: 50, right: 1100, bottom: 650 };
+    const onScreen = { left: 0, top: 0, right: 1400, bottom: 900 };
+
+    it('ends the box above the strip, and keeps the margin above that too', () => {
+      expect(
+        fitBoxWithin(frame, onScreen, POPUP_FIT_MARGIN_PX, 78).bottom,
+      ).toBe(600 - 78 - 16);
+    });
+
+    it('leaves the other three edges where the margin puts them', () => {
+      const { left, top, right } = fitBoxWithin(
+        frame,
+        onScreen,
+        POPUP_FIT_MARGIN_PX,
+        78,
+      );
+      expect({ left, top, right }).toEqual({ left: 16, top: 16, right: 984 });
+    });
+
+    it('is the same box as before when nothing is reserved', () => {
+      expect(fitBoxWithin(frame, onScreen, POPUP_FIT_MARGIN_PX, 0)).toEqual(
+        fitBoxWithin(frame, onScreen),
+      );
+    });
+
+    it('ignores a strip that sits below the visible part of a scrolled frame', () => {
+      // The frame's bottom edge, strip included, is below the screen: the screen is what ends the box.
+      const scrolled = { left: 0, top: 0, right: 400, bottom: 700 };
+      const tall = { left: 0, top: 0, right: 400, bottom: 1200 };
+      expect(fitBoxWithin(tall, scrolled, POPUP_FIT_MARGIN_PX, 40).bottom).toBe(
+        700 - 16,
+      );
+    });
+
+    it('collapses rather than inverts when the strip leaves no room', () => {
+      const box = fitBoxWithin(frame, onScreen, POPUP_FIT_MARGIN_PX, 700);
+      expect(box.bottom).toBe(box.top);
+    });
+  });
 });
 
 describe('popupFrame', () => {
@@ -68,6 +110,27 @@ describe('popupFrame', () => {
 });
 
 describe('fitPopup', () => {
+  it('flips above a pin whose room below is taken by a reserved bottom strip', () => {
+    const frame = { left: 100, top: 50, right: 1100, bottom: 650 };
+    const onScreen = { left: 0, top: 0, right: 1400, bottom: 900 };
+    const popup = {
+      pin: { x: 500, y: 450 },
+      width: 300,
+      naturalGalleryHeight: 0,
+      naturalBodyHeight: 100,
+      keepAnchor: 'top' as const,
+    };
+    expect(fitPopup({ box: fitBoxWithin(frame, onScreen), ...popup }).anchor)
+      .withContext('with the whole frame to use, the popup stays below the pin')
+      .toBe('top');
+    const fit = fitPopup({
+      box: fitBoxWithin(frame, onScreen, POPUP_FIT_MARGIN_PX, 78),
+      ...popup,
+    });
+    expect(fit.anchor).toBe('bottom');
+    expect(fit.panBy).toEqual([0, 0]);
+  });
+
   it('needs no pan for a pin with room on its side', () => {
     const fit = fitPopup({ box: BOX, pin: { x: 500, y: 40 }, ...PHOTO_POPUP });
     expect(fit.anchor).toBe('top');

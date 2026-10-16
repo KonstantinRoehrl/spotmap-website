@@ -57,6 +57,12 @@ class FakeMap {
   readonly featureStates: Record<string, Record<string, unknown>> = {};
   readonly canvas = document.createElement('canvas');
   /**
+   * MapLibre's canvas container, which its handlers listen on and which holds the canvas but not
+   * the popups or controls (`getCanvasContainer`, maplibre-gl-dev.mjs:26893). Attached to the page
+   * so a pointer released away from the map still bubbles to the window; `remove()` takes it off.
+   */
+  readonly canvasContainer = document.createElement('div');
+  /**
    * The four handlers that can tilt or turn the map, each gated on the one call that actually
    * switches it off. MapLibre wires them as separate handlers in `_addDefaultHandlers`
    * (maplibre-gl-dev.mjs:22512-22561) and skips any reporting `isEnabled() === false`
@@ -145,8 +151,17 @@ class FakeMap {
   /** Makes every pan finish at zero duration, the way any path MapLibre runs instantly would. */
   jumps = false;
 
+  constructor() {
+    this.canvasContainer.append(this.canvas);
+    document.body.append(this.canvasContainer);
+  }
+
   project() {
     return this.projected;
+  }
+
+  getCanvasContainer() {
+    return this.canvasContainer;
   }
   /**
    * Whether the camera is mid-move: a `panBy` ease or a gesture's move began, and no `moveend`
@@ -164,10 +179,33 @@ class FakeMap {
   /**
    * Only the pan handler turning active, as a finger or button goes down: the instant before
    * MapLibre's manager stops the camera's ease. {@link grab} is this plus that stop; on its own it
-   * is the state a re-fit meets if it runs between the two.
+   * is the state a re-fit meets if it runs between the two. The pointer goes down on the canvas
+   * container too, which is what the component tracks independently of the handlers.
    */
   touchDown() {
     this.fingerDown = true;
+    this.firePointer('pointerdown', this.canvasContainer);
+  }
+
+  /** One pointer event for the single pointer the specs ever press, bubbling as the real ones do. */
+  private firePointer(type: string, target: EventTarget) {
+    target.dispatchEvent(
+      new PointerEvent(type, { pointerId: 7, bubbles: true }),
+    );
+  }
+
+  /**
+   * MapLibre's `Map.resize()`: an idle map stops its camera first, and that stop resets every
+   * gesture handler (`resize` → `stop` → `_stopHandlers` → `HandlerManager.stop`,
+   * maplibre-gl-dev.mjs:24950-24953, :23384, :24095), finger down or not. A map already moving
+   * skips the stop. Then the `resize` event fires.
+   */
+  resize() {
+    if (!this.isMoving()) {
+      this.fingerDown = false;
+      this.wheelZooming = false;
+    }
+    this.emit('resize');
   }
 
   /**
@@ -208,10 +246,27 @@ class FakeMap {
     this.panning = true;
   }
 
-  /** The finger or button coming up: the pan handler resets and the drag's move ends. */
+  /** The finger or button coming up on the map: the pan handler resets and the drag's move ends. */
   release() {
     this.fingerDown = false;
+    this.firePointer('pointerup', this.canvasContainer);
     this.emit('moveend');
+  }
+
+  /**
+   * The button coming up after the pointer was dragged off the map: the pointer event lands on
+   * whatever is under it, never on the canvas container.
+   */
+  releaseOutsideMap() {
+    this.fingerDown = false;
+    this.firePointer('pointerup', document.body);
+    this.emit('moveend');
+  }
+
+  /** The browser taking the touch over, for a scroll or a system gesture: `pointercancel`, no `pointerup`. */
+  cancelTouch() {
+    this.fingerDown = false;
+    this.firePointer('pointercancel', this.canvasContainer);
   }
 
   /**
@@ -355,6 +410,7 @@ class FakeMap {
   }
   remove() {
     this.removed = true;
+    this.canvasContainer.remove();
   }
   /**
    * Every paint property the component set on the live map, in order — the lock-on pulse's
@@ -676,6 +732,35 @@ function painted(property: 'border-radius', token: string): string {
   const value = getComputedStyle(probe).getPropertyValue(property);
   probe.remove();
   return value;
+}
+
+/**
+ * Replaces `ResizeObserver` with one a spec reports through by hand, recording what each
+ * observer watches and whether it was disconnected.
+ */
+function stubResizeObserver() {
+  const created: {
+    observed: Element[];
+    disconnect: jasmine.Spy;
+    report: () => void;
+  }[] = [];
+  spyOn(window, 'ResizeObserver').and.callFake(function (
+    callback: ResizeObserverCallback,
+  ) {
+    const observed: Element[] = [];
+    const observer = {
+      observe: (element: Element) => observed.push(element),
+      unobserve: () => {},
+      disconnect: jasmine.createSpy('disconnect'),
+    };
+    created.push({
+      observed,
+      disconnect: observer.disconnect,
+      report: () => callback([], observer as unknown as ResizeObserver),
+    });
+    return observer;
+  } as never);
+  return created;
 }
 
 /** Gives the element a layout width, which jsdom-free Karma would otherwise measure for real. */
@@ -1048,6 +1133,117 @@ describe('SpotMapComponent', () => {
     );
     fake.emit('load');
     expect(attribution.classList).toContain('maplibregl-compact-show');
+  });
+
+  describe('the attribution control along the bottom of the map', () => {
+    /** Runs the animation frame the resize asked the re-fit for. */
+    function runRefitFrame() {
+      const frames = window.requestAnimationFrame as jasmine.Spy;
+      (frames.calls.mostRecent().args[0] as FrameRequestCallback)(0);
+    }
+
+    /**
+     * Stands the control in at the map's bottom-right corner, `height` tall: the open bar on a
+     * desktop map, or the info button on a phone. Its box is real, so the component measures it.
+     */
+    function placeAttribution(height: number): HTMLElement {
+      const attribution = addAttributionControl(
+        fixture.nativeElement.querySelector('.spot-map__canvas'),
+        1000,
+      );
+      setAttributionHeight(attribution, height);
+      return attribution;
+    }
+
+    function setAttributionHeight(attribution: HTMLElement, height: number) {
+      attribution.style.cssText = `display:block;position:absolute;right:0;bottom:0;width:200px;height:${height}px`;
+    }
+
+    /** The height cap the popup was fitted to: the visible map less its margins and the tip. */
+    function popupMaxHeight(): number {
+      return parseFloat(
+        popups[0]?.getElement().style.getPropertyValue(POPUP_MAX_HEIGHT_VAR) ??
+          '',
+      );
+    }
+
+    it('fits the popup to the whole frame when the control is not there', async () => {
+      requestReducedMotion(false);
+      await create();
+      fake.emit('load');
+      await tap('a');
+      // 600 px frame, less a 16 px margin each side and the 10 px tip.
+      expect(popupMaxHeight()).toBe(558);
+    });
+
+    it('keeps the popup above the control, which takes its strip out of the visible map', async () => {
+      requestReducedMotion(false);
+      await create();
+      placeAttribution(78);
+      fake.emit('load');
+      await tap('a');
+      // The 78 px strip comes off the bottom: 558 - 78.
+      expect(popupMaxHeight()).toBe(480);
+    });
+
+    it('pans a pin near the bottom up until its popup and tip clear the control', async () => {
+      requestReducedMotion(false);
+      await create();
+      placeAttribution(78);
+      fake.emit('load');
+      fake.projected = { x: 500, y: 540 };
+      await tap('a');
+      // The pin sits 34 px below the fit box's bottom edge at 506 (600 - 78 - 16).
+      expect(pansRequested().length).toBe(1);
+      expect(pansRequested()[0]?.options.offset).toEqual([0, 34]);
+    });
+
+    it('reserves only the info button on a phone map, where the control is collapsed', async () => {
+      requestReducedMotion(false);
+      await create();
+      placeAttribution(29);
+      fake.emit('load');
+      await tap('a');
+      expect(popupMaxHeight()).toBe(558 - 29);
+    });
+
+    it('re-fits the popup when the control changes size, then pans it clear of the bar', async () => {
+      requestReducedMotion(false);
+      holdAnimationFrames();
+      const observers = stubResizeObserver();
+      await create();
+      const attribution = placeAttribution(29);
+      fake.emit('load');
+      fake.projected = { x: 500, y: 540 };
+      await tap('a');
+      expect(pansRequested())
+        .withContext('the collapsed button leaves room for the popup')
+        .toEqual([]);
+      const watcher = observers.find((observer) =>
+        observer.observed.includes(attribution),
+      );
+      expect(watcher).withContext('the control is watched').toBeDefined();
+
+      // The observer reports once when it starts watching; only a later report is a change.
+      watcher?.report();
+      setAttributionHeight(attribution, 78);
+      watcher?.report();
+      runRefitFrame();
+      expect(pansRequested().length).toBe(1);
+      expect(pansRequested()[0]?.options.offset).toEqual([0, 34]);
+    });
+
+    it('stops watching the control when the component is destroyed', async () => {
+      const observers = stubResizeObserver();
+      await create();
+      const attribution = placeAttribution(29);
+      fake.emit('load');
+      const watcher = observers.find((observer) =>
+        observer.observed.includes(attribution),
+      );
+      fixture.destroy();
+      expect(watcher?.disconnect).toHaveBeenCalled();
+    });
   });
 
   for (const corner of ['bottom-right', 'bottom-left'] as const) {
@@ -1890,7 +2086,7 @@ describe('SpotMapComponent', () => {
     it('re-fits the popup without panning, and does not pan it in after the finger comes up', async () => {
       await openAtEdgeUnderFinger();
       const capsBefore = popups[0]?.maxWidths.length ?? 0;
-      fake.emit('resize');
+      fake.resize();
       runRefitFrame();
       expect(popups[0]?.maxWidths.length)
         .withContext('the width cap is re-measured all the same')
@@ -1908,10 +2104,105 @@ describe('SpotMapComponent', () => {
     it('pans the popup back into view on a resize once nothing holds the map', async () => {
       await openAtEdgeUnderFinger();
       fake.release();
-      fake.emit('resize');
+      fake.resize();
       runRefitFrame();
       expect(pansRequested().length).toBe(1);
       expect(pansRequested()[0]?.options.offset?.[0]).toBeLessThan(0);
+    });
+
+    it('still holds the map after the resize has reset the handlers, until the pointer comes up', async () => {
+      await openAtEdgeUnderFinger();
+      fake.resize();
+      runRefitFrame();
+      expect(pansRequested()).toEqual([]);
+      fake.resize();
+      runRefitFrame();
+      expect(pansRequested())
+        .withContext('a second resize under the same finger still pans nothing')
+        .toEqual([]);
+    });
+
+    it('pans normally on a later resize once the finger has come up', async () => {
+      await openAtEdgeUnderFinger();
+      fake.resize();
+      runRefitFrame();
+      expect(pansRequested()).toEqual([]);
+      fake.release();
+      fake.resize();
+      runRefitFrame();
+      expect(pansRequested().length).toBe(1);
+      expect(pansRequested()[0]?.options.offset?.[0]).toBeLessThan(0);
+    });
+
+    it('pans normally on a later resize once the browser has cancelled the touch', async () => {
+      await openAtEdgeUnderFinger();
+      fake.resize();
+      runRefitFrame();
+      fake.cancelTouch();
+      fake.resize();
+      runRefitFrame();
+      expect(pansRequested().length).toBe(1);
+    });
+
+    it('pans normally on a later resize once the button was let go off the map', async () => {
+      await openAtEdgeUnderFinger();
+      fake.resize();
+      runRefitFrame();
+      fake.releaseOutsideMap();
+      fake.resize();
+      runRefitFrame();
+      expect(pansRequested().length).toBe(1);
+    });
+
+    it('keeps holding the map while one of two fingers is still down', async () => {
+      await openAtEdgeUnderFinger();
+      // A second finger goes down and comes up; the first is still resting.
+      fake.canvasContainer.dispatchEvent(
+        new PointerEvent('pointerdown', { pointerId: 8, bubbles: true }),
+      );
+      document.body.dispatchEvent(
+        new PointerEvent('pointerup', { pointerId: 8, bubbles: true }),
+      );
+      fake.resize();
+      runRefitFrame();
+      expect(pansRequested()).toEqual([]);
+    });
+
+    it('does not count a finger that went down on a control or popup rather than the map', async () => {
+      await openAtEdgeUnderFinger();
+      fake.release();
+      popups[0]
+        ?.getElement()
+        .dispatchEvent(
+          new PointerEvent('pointerdown', { pointerId: 9, bubbles: true }),
+        );
+      fake.resize();
+      runRefitFrame();
+      expect(pansRequested().length).toBe(1);
+    });
+
+    it('forgets a finger left on the map of an earlier build', async () => {
+      requestReducedMotion(false);
+      holdAnimationFrames();
+      await create();
+      fake.emit('load');
+      fake.grab();
+      await retry(1);
+      fake.emit('load');
+      fake.projected = { x: 20, y: 500 };
+      await tap('a');
+      expect(pansRequested().length)
+        .withContext('nothing holds the rebuilt map, so the popup is panned in')
+        .toBe(1);
+    });
+
+    it('stops listening for pointers once the component is destroyed', async () => {
+      await create();
+      const removed = spyOn(window, 'removeEventListener').and.callThrough();
+      fixture.destroy();
+      const types = removed.calls.allArgs().map(([type]) => type);
+      expect(types).toContain('pointerup');
+      expect(types).toContain('pointercancel');
     });
 
     it('re-fits a popup still waiting on its pan without panning, and reveals it once when that settles', async () => {
@@ -1925,7 +2216,7 @@ describe('SpotMapComponent', () => {
         .withContext('a is still panning')
         .toBe(true);
       fake.touchDown();
-      fake.emit('resize');
+      fake.resize();
       runRefitFrame();
       expect(pansRequested().length)
         .withContext("a re-fit pan would replace the visitor's hold on the map")
@@ -1953,7 +2244,7 @@ describe('SpotMapComponent', () => {
       // The pin ends up in the corner, off the side the popup opened on, as the drag goes on.
       fake.drag();
       fake.projected = { x: 20, y: 560 };
-      fake.emit('resize');
+      fake.resize();
       runRefitFrame();
       await fixture.whenStable();
       expect(popups[1]?.options.anchor).toBe('bottom');

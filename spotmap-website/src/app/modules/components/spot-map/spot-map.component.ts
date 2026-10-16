@@ -50,6 +50,7 @@ import {
   type PopupAnchor,
   type PopupFit,
   popupFrame,
+  POPUP_FIT_MARGIN_PX,
   POPUP_MAX_HEIGHT_VAR,
   type ScreenPoint,
 } from './popup-fit';
@@ -120,10 +121,14 @@ const GESTURE_HANDLERS = [
 ] as const;
 
 /**
- * Whether the visitor has hold of the map. MapLibre stops a running ease the instant a gesture
- * handler turns active (`HandlerManager.handleEvent`, maplibre-gl-dev.mjs:22392) - firing that
- * ease's `moveend` synchronously, with `isMoving()` already false and no `movestart` of the
+ * Whether a MapLibre gesture handler is active. MapLibre stops a running ease the instant a
+ * gesture handler turns active (`HandlerManager.handleEvent`, maplibre-gl-dev.mjs:22392) - firing
+ * that ease's `moveend` synchronously, with `isMoving()` already false and no `movestart` of the
  * gesture yet - so this is the only way to tell that `moveend` from an ease running to its end.
+ *
+ * It is not enough to know a finger is down: `Map.resize()` on an idle map stops the camera, which
+ * resets every handler (`:24950-24953`, `:23384`, `:24095`) while the finger stays where it is.
+ * {@link SpotMapComponent} therefore pairs this with the pointers it tracks itself.
  */
 function isGestureActive(map: MapLibreMap): boolean {
   return GESTURE_HANDLERS.some((name) => map[name].isActive());
@@ -219,6 +224,16 @@ export class SpotMapComponent {
   private pendingRef?: ComponentRef<SpotPopupComponent>;
   /** The animation frame a coalesced resize re-fit waits on. */
   private refitFrame?: number;
+  /**
+   * The pointers currently down on the map's canvas container, by pointer id. Kept apart from
+   * MapLibre's gesture handlers, which a resize resets under a resting finger: this is the fact
+   * that a visitor holds the map, and it ends only when the pointer does.
+   */
+  private readonly heldPointers = new Set<number>();
+  /** Removes the pointer listeners of the current map; set while a map is attached. */
+  private stopTrackingPointers?: () => void;
+  /** Disconnects the observer on the attribution control; set while a painted map is attached. */
+  private stopWatchingAttribution?: () => void;
   /**
    * The `moveend` listener that may fit or reveal the pending popup. Only the newest one acts, so
    * a pan that interrupts the one a popup waits on can take over its reveal, and a superseded or
@@ -348,6 +363,7 @@ export class SpotMapComponent {
       return;
     }
     this.map = map;
+    this.trackPointers(map);
     this.reportLoad({ kind: 'renderer-ready' }, generation);
 
     // A style passed as an object is loaded a frame after construction
@@ -453,6 +469,7 @@ export class SpotMapComponent {
       map.on('render', pinsDrawn);
       this.mapIsNarrow = this.isNarrow();
       this.collapseAttributionOnNarrowMap(this.mapIsNarrow);
+      this.watchAttributionSize(map, generation);
       // Only now: `load` waits on every visible source's tiles, so terrain in the opening style
       // would hold the pins back behind the slowest DEM tile.
       // A missing terrain library resolves `null` — the loader never rejects — and leaves the map
@@ -646,7 +663,7 @@ export class SpotMapComponent {
     visitorHeldMap = false,
   ): void {
     this.armedReveal = undefined;
-    const held = visitorHeldMap || isGestureActive(map);
+    const held = visitorHeldMap || this.isHeld(map);
     if (!map.isMoving()) {
       const fit = this.fitToCamera(map, open, held);
       if (fit) {
@@ -898,7 +915,7 @@ export class SpotMapComponent {
     if (!open?.fitted) {
       return;
     }
-    const held = isGestureActive(map);
+    const held = this.isHeld(map);
     const fit = this.fitToCamera(map, open, held);
     if (!held && fit && (fit.panBy[0] !== 0 || fit.panBy[1] !== 0)) {
       // This pan stops the one a pending popup waits on, so its reveal moves to this pan's end.
@@ -913,7 +930,7 @@ export class SpotMapComponent {
   /**
    * The box a popup must fit in, in canvas-host pixels: the map frame intersected with the visual
    * viewport, so a frame scrolled partly off screen or under a phone's on-screen keyboard counts
-   * only its visible part.
+   * only its visible part, less the strip along the bottom the attribution control occupies.
    */
   private fitBox(): Box {
     const visual = window.visualViewport;
@@ -925,10 +942,94 @@ export class SpotMapComponent {
           bottom: visual.offsetTop + visual.height,
         }
       : { left: 0, top: 0, right: innerWidth, bottom: innerHeight };
+    const host = this.canvasHost().nativeElement.getBoundingClientRect();
     return fitBoxWithin(
-      this.canvasHost().nativeElement.getBoundingClientRect(),
+      host,
       viewport,
+      POPUP_FIT_MARGIN_PX,
+      this.attributionStripHeight(host),
     );
+  }
+
+  /**
+   * How much of the map's bottom edge the attribution control covers, measured as it is laid out
+   * now: the open credits bar on a wide map, the info button on a narrow one, nothing when the
+   * control is absent or hidden. It is a licence condition and stays where it is, so popups are
+   * fitted around it instead.
+   */
+  private attributionStripHeight(host: DOMRect): number {
+    const attribution = this.attributionControl()?.getBoundingClientRect();
+    if (!attribution || attribution.width === 0 || attribution.height === 0) {
+      return 0;
+    }
+    return Math.max(0, host.bottom - attribution.top);
+  }
+
+  /** MapLibre's attribution control inside the canvas host, if it is there. */
+  private attributionControl(): HTMLElement | null {
+    return this.canvasHost().nativeElement.querySelector<HTMLElement>(
+      '.maplibregl-ctrl-attrib',
+    );
+  }
+
+  /**
+   * Whether the visitor has hold of the map: a pointer is down on it, or a MapLibre gesture
+   * handler is active. The pointer alone would miss a wheel zoom and the handler alone a resize,
+   * which resets the handlers under a finger that has not moved.
+   */
+  private isHeld(map: MapLibreMap): boolean {
+    return this.heldPointers.size > 0 || isGestureActive(map);
+  }
+
+  /**
+   * Tracks the pointers down on `map`'s canvas container until the component lets the map go. Their
+   * ends are heard on the window, in the capture phase: a mouse button let go away from the map
+   * ends on whatever is under it, and a touch the browser takes over for a scroll ends in
+   * `pointercancel`. A context menu or a lost window focus may swallow the end altogether, so
+   * both let go of every pointer rather than leave the map held for good.
+   */
+  private trackPointers(map: MapLibreMap): void {
+    const container = map.getCanvasContainer();
+    const down = (event: PointerEvent) =>
+      this.heldPointers.add(event.pointerId);
+    const up = (event: PointerEvent) =>
+      this.heldPointers.delete(event.pointerId);
+    const releaseAll = () => this.heldPointers.clear();
+    container.addEventListener('pointerdown', down);
+    container.addEventListener('contextmenu', releaseAll);
+    window.addEventListener('pointerup', up, true);
+    window.addEventListener('pointercancel', up, true);
+    window.addEventListener('blur', releaseAll);
+    this.stopTrackingPointers = () => {
+      container.removeEventListener('pointerdown', down);
+      container.removeEventListener('contextmenu', releaseAll);
+      window.removeEventListener('pointerup', up, true);
+      window.removeEventListener('pointercancel', up, true);
+      window.removeEventListener('blur', releaseAll);
+      this.heldPointers.clear();
+    };
+  }
+
+  /**
+   * Re-fits the open popup whenever the attribution control changes size - expanded, collapsed, or
+   * collapsed again by a narrowing - since its strip is part of the fit. The observer reports once
+   * as it starts watching, which is no change and is skipped.
+   */
+  private watchAttributionSize(map: MapLibreMap, generation: number): void {
+    const attribution = this.attributionControl();
+    if (!attribution) {
+      return;
+    }
+    let started = false;
+    const observer = new ResizeObserver(() => {
+      if (!started) {
+        started = true;
+        return;
+      }
+      this.scheduleRefit(map, generation);
+    });
+    observer.observe(attribution);
+    this.stopWatchingAttribution = () => observer.disconnect();
   }
 
   /**
@@ -1057,6 +1158,10 @@ export class SpotMapComponent {
     this.superseded.next();
     this.outcome = 'pending';
     this.removePopupsNow();
+    this.stopTrackingPointers?.();
+    this.stopTrackingPointers = undefined;
+    this.stopWatchingAttribution?.();
+    this.stopWatchingAttribution = undefined;
     this.map?.remove();
     this.map = undefined;
   }
