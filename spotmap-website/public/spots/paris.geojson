@@ -14,7 +14,10 @@
         "id": "ivry-316cc2",
         "name": "Ivry",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "paris/ivry-316cc2-98cfdcad.webp"
+        ]
       }
     },
     {
@@ -30,7 +33,10 @@
         "id": "republique-d9313b",
         "name": "Republique",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "paris/republique-d9313b-1417d97b.webp"
+        ]
       }
     },
     {
@@ -46,7 +52,11 @@
         "id": "malto-curbs-60d1db",
         "name": "Malto Curbs",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "paris/malto-curbs-60d1db-71f25434.webp",
+          "paris/malto-curbs-60d1db-0496193f.webp"
+        ]
       }
     }
   ]

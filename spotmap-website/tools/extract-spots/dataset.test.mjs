@@ -83,7 +83,7 @@ test('prepares spots in KML order with cleaned names, statuses and ids', () => {
       {
         id: spotId('Wels: Park', [14.0, 48.1]),
         name: 'Wels: Park',
-        status: 'unclassified',
+        status: 'active',
       },
     ],
   );
@@ -179,7 +179,7 @@ test('the report counts in KML order', () => {
     photosDuplicate: [],
     photosNearDuplicate: [],
     spotsWithoutPhotos: [spots[1].id, spots[2].id],
-    statusCounts: { active: 1, demolished: 1, unclassified: 1 },
+    statusCounts: { active: 2, demolished: 1 },
     extraMaps: [],
     matches: { conflicts: [], ambiguous: [], unmatched: [] },
     linkCounts: { vienna: { [spots[0].id]: 2, [spots[2].id]: 1 } },

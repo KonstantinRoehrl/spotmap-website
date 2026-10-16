@@ -14,7 +14,10 @@
         "id": "round-fountain-1a519e",
         "name": "Round Fountain",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "lisbon/round-fountain-1a519e-38b508a1.webp"
+        ]
       }
     },
     {
@@ -30,7 +33,10 @@
         "id": "cage-b1a840",
         "name": "Cage",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "lisbon/cage-b1a840-00dbbd56.webp"
+        ]
       }
     },
     {
@@ -46,7 +52,10 @@
         "id": "crust-curbs-c5b857",
         "name": "Crust Curbs",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "lisbon/crust-curbs-c5b857-b1517b32.webp"
+        ]
       }
     },
     {
@@ -62,7 +71,10 @@
         "id": "bench-c620fc",
         "name": "Bench",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "lisbon/bench-c620fc-8c311600.webp"
+        ]
       }
     },
     {
@@ -78,7 +90,16 @@
         "id": "angelina-diy-58f07e",
         "name": "Angelina DIY",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "lisbon/angelina-diy-58f07e-1e09303f.webp",
+          "lisbon/angelina-diy-58f07e-0ea5d0c5.webp",
+          "lisbon/angelina-diy-58f07e-f0921148.webp",
+          "lisbon/angelina-diy-58f07e-fada8b01.webp",
+          "lisbon/angelina-diy-58f07e-d4e3395d.webp",
+          "lisbon/angelina-diy-58f07e-73a001f3.webp",
+          "lisbon/angelina-diy-58f07e-88eabe99.webp"
+        ]
       }
     },
     {
@@ -94,7 +115,11 @@
         "id": "bank-5c2954",
         "name": "Bank",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "lisbon/bank-5c2954-52a0c050.webp",
+          "lisbon/bank-5c2954-bf874f0e.webp"
+        ]
       }
     },
     {
@@ -110,7 +135,10 @@
         "id": "marble-curbs-019fcc",
         "name": "Marble Curbs",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "lisbon/marble-curbs-019fcc-38b0bb13.webp"
+        ]
       }
     },
     {
@@ -126,7 +154,10 @@
         "id": "curb-7b0a64",
         "name": "Curb",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "lisbon/curb-7b0a64-e69b9fd5.webp"
+        ]
       }
     }
   ]

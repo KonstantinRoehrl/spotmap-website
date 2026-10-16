@@ -2,9 +2,11 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  inject,
   input,
 } from '@angular/core';
 import { SpotFeature } from '../../../models/spots/spot';
+import { photoUrl, SPOTMAP_BACKEND } from '../../../services/spotmap-backend';
 import { SpotPhotoGalleryComponent } from '../spot-photo-gallery/spot-photo-gallery.component';
 
 /**
@@ -13,7 +15,7 @@ import { SpotPhotoGalleryComponent } from '../spot-photo-gallery/spot-photo-gall
  */
 export const SPOT_POPUP_FRAME_CLASS = 'spot-popup-frame';
 
-/** A tapped spot: its photos, its name, whether it still stands, and how to get there. */
+/** A tapped spot: its photos, its name and notes, whether it still stands, and how to get there. */
 @Component({
   selector: 'app-spot-popup',
   imports: [SpotPhotoGalleryComponent],
@@ -22,7 +24,21 @@ export const SPOT_POPUP_FRAME_CLASS = 'spot-popup-frame';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SpotPopupComponent {
+  /** The tapped spot, as the map's source holds it. */
   spot = input.required<SpotFeature>();
+
+  private readonly backend = inject(SPOTMAP_BACKEND);
+
+  /**
+   * Thumbnail URLs of the spot's photos, in gallery order. Empty when the spot has none or no
+   * photo host is configured — then neither the gallery nor the photo mark renders.
+   */
+  protected readonly thumbnails = computed(() => {
+    const base = this.backend.photoBaseUrl;
+    return base
+      ? this.properties().photos.map((key) => photoUrl(base, key, 'thumb'))
+      : [];
+  });
 
   protected readonly properties = computed(() => this.spot().properties);
 

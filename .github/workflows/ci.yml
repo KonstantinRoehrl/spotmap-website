@@ -87,6 +87,54 @@ jobs:
       - name: Run unit tests once in headless Chrome
         run: npm test -- --no-watch --no-progress --browsers=ChromeHeadless
 
+  database:
+    name: 'Database: migrations, RLS and live-vs-snapshot parity'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: spotmap-website
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Node.js (version from .nvmrc) + npm cache
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version-file: spotmap-website/.nvmrc
+          cache: 'npm'
+          cache-dependency-path: spotmap-website/package-lock.json
+
+      # Also installs the Supabase CLI: it is a pinned devDependency, so Dependabot's npm group
+      # keeps it current and there is no setup action to pin separately.
+      - name: Install dependencies (npm ci — clean, from lockfile)
+        run: npm ci
+
+      - name: Start the local Supabase stack (database, REST API, Storage) and apply the migrations
+        run: npm run db:start
+
+      - name: Run the database tests (pgTAP — schema, row-level security, city_spots, sync_spots)
+        run: npm run db:test
+
+      - name: Point the sync at the local stack
+        run: |
+          eval "$(npx supabase status -o env 2>/dev/null)"
+          echo "SUPABASE_URL=$API_URL" >> "$GITHUB_ENV"
+          echo "SUPABASE_SECRET_KEY=$SECRET_KEY" >> "$GITHUB_ENV"
+          echo "SUPABASE_PUBLISHABLE_KEY=$PUBLISHABLE_KEY" >> "$GITHUB_ENV"
+          case "$PUBLISHABLE_KEY" in
+            sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH) ;; # gitleaks:allow
+            *) echo "::warning::The local publishable key differs from src/environments/environment.ts" ;;
+          esac
+
+      - name: Seed the database from the committed datasets (no photos)
+        run: npm run sync:supabase -- --db-only
+
+      # --public fails the step when SUPABASE_PUBLISHABLE_KEY is empty, instead of reading with the
+      # secret key: the reads must go through the gateway and row-level security as the browser's
+      # anonymous ones do.
+      - name: Check every city's live spots, read as the public, equal its bundled snapshot
+        run: npm run parity:supabase -- --public
+
   secrets:
     name: Secret scan (gitleaks)
     runs-on: ubuntu-latest

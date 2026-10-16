@@ -14,7 +14,10 @@
         "id": "diy-skatespot-5fb88a",
         "name": "DIY Skatespot",
         "status": "active",
-        "photos": []
+        "notes": "Perfect DIY Curb with metal edge",
+        "photos": [
+          "munich/diy-skatespot-5fb88a-ef3919f2.webp"
+        ]
       }
     },
     {
@@ -30,7 +33,10 @@
         "id": "spanische-curbs-6bf232",
         "name": "Spanische Curbs",
         "status": "active",
-        "photos": []
+        "notes": "Maybe Bust",
+        "photos": [
+          "munich/spanische-curbs-6bf232-97d61430.webp"
+        ]
       }
     },
     {
@@ -46,7 +52,10 @@
         "id": "curb-over-gap-495d23",
         "name": "Curb over Gap",
         "status": "active",
-        "photos": []
+        "notes": "Cracks between the concrete blocks, so not easy to skate. Curb itself is perfect.",
+        "photos": [
+          "munich/curb-over-gap-495d23-83495877.webp"
+        ]
       }
     },
     {
@@ -62,7 +71,12 @@
         "id": "8er-stair-bb7577",
         "name": "8er Stair",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "munich/8er-stair-bb7577-2f261ef9.webp",
+          "munich/8er-stair-bb7577-ab47c31f.webp",
+          "munich/8er-stair-bb7577-32a29c97.webp"
+        ]
       }
     },
     {
@@ -78,7 +92,10 @@
         "id": "curb-f8d6f6",
         "name": "Curb",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "munich/curb-f8d6f6-8c979266.webp"
+        ]
       }
     },
     {
@@ -94,7 +111,11 @@
         "id": "rooftop-quaters-3b6b63",
         "name": "Rooftop Quaters",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "munich/rooftop-quaters-3b6b63-39632c4e.webp",
+          "munich/rooftop-quaters-3b6b63-98e4f664.webp"
+        ]
       }
     }
   ]

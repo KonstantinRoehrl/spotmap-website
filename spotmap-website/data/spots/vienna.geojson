@@ -13316,7 +13316,7 @@
       "properties": {
         "id": "stollgasse-e99598",
         "name": "Stollgasse",
-        "status": "unclassified",
+        "status": "active",
         "photos": [
           "spots/vienna/stollgasse-e99598-32b2d215.webp",
           "spots/vienna/stollgasse-e99598-c17bb77d.webp",
@@ -13347,7 +13347,7 @@
       "properties": {
         "id": "big-handrail-3ceff5",
         "name": "Big Handrail",
-        "status": "unclassified",
+        "status": "active",
         "photos": [
           "spots/vienna/big-handrail-3ceff5-b0fe23e7.webp",
           "spots/vienna/big-handrail-3ceff5-4098dff7.webp",
@@ -13373,7 +13373,7 @@
       "properties": {
         "id": "big-handrail-22fca7",
         "name": "Big Handrail",
-        "status": "unclassified",
+        "status": "active",
         "photos": [
           "spots/vienna/big-handrail-22fca7-65c1e18e.webp"
         ],
@@ -13397,7 +13397,7 @@
       "properties": {
         "id": "deathdrop-b60fec",
         "name": "Deathdrop",
-        "status": "unclassified",
+        "status": "active",
         "photos": [
           "spots/vienna/deathdrop-b60fec-23c617bf.webp",
           "spots/vienna/deathdrop-b60fec-77467cea.webp",
@@ -13423,7 +13423,7 @@
       "properties": {
         "id": "crust-curb-over-gap-174e17",
         "name": "Crust Curb over Gap",
-        "status": "unclassified",
+        "status": "active",
         "photos": [
           "spots/vienna/crust-curb-over-gap-174e17-c0335b96.webp",
           "spots/vienna/crust-curb-over-gap-174e17-12924c50.webp",
@@ -13449,7 +13449,7 @@
       "properties": {
         "id": "slappy-hubba-917eac",
         "name": "Slappy Hubba",
-        "status": "unclassified",
+        "status": "active",
         "photos": [
           "spots/vienna/slappy-hubba-917eac-9bcc916c.webp",
           "spots/vienna/slappy-hubba-917eac-dfd7a04d.webp"
@@ -13474,7 +13474,7 @@
       "properties": {
         "id": "neue-wu-garage-e0ad2d",
         "name": "Neue WU Garage",
-        "status": "unclassified",
+        "status": "active",
         "photos": [
           "spots/vienna/neue-wu-garage-e0ad2d-7f8a9ce5.webp",
           "spots/vienna/neue-wu-garage-e0ad2d-2ffa9630.webp",
@@ -13501,7 +13501,7 @@
       "properties": {
         "id": "manny-pad-909cb3",
         "name": "Manny Pad",
-        "status": "unclassified",
+        "status": "active",
         "photos": [
           "spots/vienna/manny-pad-909cb3-32e55a26.webp",
           "spots/vienna/manny-pad-909cb3-c1049c90.webp",
@@ -13529,7 +13529,7 @@
       "properties": {
         "id": "wallride-c059f4",
         "name": "Wallride",
-        "status": "unclassified",
+        "status": "active",
         "photos": [
           "spots/vienna/wallride-c059f4-c748544c.webp",
           "spots/vienna/wallride-c059f4-a0c0809f.webp",

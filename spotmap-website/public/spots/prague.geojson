@@ -14,6 +14,7 @@
         "id": "stalin-plaza-2a8189",
         "name": "Stalin Plaza",
         "status": "active",
+        "notes": null,
         "photos": []
       }
     },
@@ -30,6 +31,7 @@
         "id": "perfect-8-stair-8688f3",
         "name": "Perfect 8 Stair",
         "status": "active",
+        "notes": null,
         "photos": []
       }
     },
@@ -46,6 +48,7 @@
         "id": "perfect-8-stair-57b917",
         "name": "Perfect 8 Stair",
         "status": "active",
+        "notes": null,
         "photos": []
       }
     },
@@ -62,6 +65,7 @@
         "id": "curbs-836bfd",
         "name": "Curbs",
         "status": "active",
+        "notes": null,
         "photos": []
       }
     }

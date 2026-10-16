@@ -14,7 +14,15 @@
         "id": "diy-1b64cb",
         "name": "DIY",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "zadar/diy-1b64cb-923abeb2.webp",
+          "zadar/diy-1b64cb-1d52249b.webp",
+          "zadar/diy-1b64cb-57d3263f.webp",
+          "zadar/diy-1b64cb-f891e8b8.webp",
+          "zadar/diy-1b64cb-a635c753.webp",
+          "zadar/diy-1b64cb-840985d8.webp"
+        ]
       }
     },
     {
@@ -30,7 +38,12 @@
         "id": "low-to-high-ledge-6f0013",
         "name": "Low to High Ledge",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "zadar/low-to-high-ledge-6f0013-6ce0ac11.webp",
+          "zadar/low-to-high-ledge-6f0013-4d371040.webp",
+          "zadar/low-to-high-ledge-6f0013-f56edd7b.webp"
+        ]
       }
     }
   ]

@@ -14,7 +14,11 @@
         "id": "big-bank-6b49ed",
         "name": "Big Bank",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "belgrade/big-bank-6b49ed-931c0abd.webp",
+          "belgrade/big-bank-6b49ed-fa7e265c.webp"
+        ]
       }
     },
     {
@@ -30,7 +34,15 @@
         "id": "7-stair-and-curbs-3fb721",
         "name": "7 Stair and Curbs",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "belgrade/7-stair-and-curbs-3fb721-5b7c6885.webp",
+          "belgrade/7-stair-and-curbs-3fb721-b31ffcc2.webp",
+          "belgrade/7-stair-and-curbs-3fb721-01e899ad.webp",
+          "belgrade/7-stair-and-curbs-3fb721-ffd74e78.webp",
+          "belgrade/7-stair-and-curbs-3fb721-8ba565e0.webp",
+          "belgrade/7-stair-and-curbs-3fb721-0e36fb2c.webp"
+        ]
       }
     },
     {
@@ -46,7 +58,11 @@
         "id": "curbs-60a7d6",
         "name": "Curbs",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "belgrade/curbs-60a7d6-ae180dbf.webp",
+          "belgrade/curbs-60a7d6-3ccb51c0.webp"
+        ]
       }
     },
     {
@@ -62,7 +78,13 @@
         "id": "novi-sad-stairs-and-big-double-set-a4ca90",
         "name": "Novi Sad: Stairs and Big Double Set",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "belgrade/novi-sad-stairs-and-big-double-set-a4ca90-4dc02041.webp",
+          "belgrade/novi-sad-stairs-and-big-double-set-a4ca90-504e20f6.webp",
+          "belgrade/novi-sad-stairs-and-big-double-set-a4ca90-4fa49085.webp",
+          "belgrade/novi-sad-stairs-and-big-double-set-a4ca90-90ad7041.webp"
+        ]
       }
     },
     {
@@ -78,7 +100,11 @@
         "id": "crusty-rail-531396",
         "name": "Crusty Rail",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "belgrade/crusty-rail-531396-f9c3e952.webp",
+          "belgrade/crusty-rail-531396-e4e2c270.webp"
+        ]
       }
     },
     {
@@ -94,7 +120,11 @@
         "id": "vulcano-a26f3a",
         "name": "Vulcano",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "belgrade/vulcano-a26f3a-77c35689.webp",
+          "belgrade/vulcano-a26f3a-121edb60.webp"
+        ]
       }
     }
   ]

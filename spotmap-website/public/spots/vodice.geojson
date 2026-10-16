@@ -14,7 +14,10 @@
         "id": "7-stair-daf680",
         "name": "7 Stair",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "vodice/7-stair-daf680-a81e1f4c.webp"
+        ]
       }
     },
     {
@@ -30,7 +33,10 @@
         "id": "low-to-high-ledge-b9d825",
         "name": "Low to High Ledge",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "vodice/low-to-high-ledge-b9d825-e5d9ede4.webp"
+        ]
       }
     },
     {
@@ -46,7 +52,11 @@
         "id": "11-stair-c62a72",
         "name": "11 Stair",
         "status": "active",
-        "photos": []
+        "notes": "Perfect",
+        "photos": [
+          "vodice/11-stair-c62a72-1644a8e3.webp",
+          "vodice/11-stair-c62a72-2c506f91.webp"
+        ]
       }
     },
     {
@@ -62,7 +72,10 @@
         "id": "8-stair-f38064",
         "name": "8 Stair",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "vodice/8-stair-f38064-590aa58f.webp"
+        ]
       }
     }
   ]

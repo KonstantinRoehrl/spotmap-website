@@ -53,17 +53,10 @@ const IS_DEMOLISHED: ExpressionSpecification = [
   'demolished',
 ];
 
-/** True for a spot whose `status` property is `unclassified`. */
-const IS_UNCLASSIFIED: ExpressionSpecification = [
-  '==',
-  ['get', 'status'],
-  'unclassified',
-];
-
 /**
  * The spot pins, drawn in paint order. Status reads by shape, so it survives every kind of colour
- * vision: a filled dot with a glow is active, a smaller dot with a weaker glow is unclassified,
- * and a hollow ring with a × is demolished. Selection leans on no hue either — under deuteranopia
+ * vision: a filled dot with a glow is active and a hollow ring with a × is demolished — the only
+ * two states since Decision 1 made My Maps' green marker active. Selection leans on no hue either — under deuteranopia
  * phosphor and amber collapse to the same ochre — so a black gap cuts the pin out of a thick amber
  * ring drawn over the glow's outer edge. The hit layer comes first so its transparent circle is
  * the thumb target under everything visible.
@@ -90,7 +83,7 @@ export const SPOT_LAYERS: readonly (
       'circle-radius': 14,
       'circle-blur': 1,
       'circle-color': MAP_PALETTE.pinActive,
-      'circle-opacity': ['case', IS_UNCLASSIFIED, 0.28, 0.5],
+      'circle-opacity': 0.5,
     },
   },
   {
@@ -143,12 +136,7 @@ export const SPOT_LAYERS: readonly (
     type: 'circle',
     source: SPOT_SOURCE_ID,
     paint: {
-      'circle-radius': [
-        'case',
-        IS_UNCLASSIFIED,
-        ['case', IS_SELECTED, 6, 4.5],
-        ['case', IS_SELECTED, 7.5, 6],
-      ],
+      'circle-radius': ['case', IS_SELECTED, 7.5, 6],
       // A demolished ring is filled with the ground, not left empty: it still reads as hollow on
       // the black basemap, and it masks the road that would otherwise run through it.
       'circle-color': [

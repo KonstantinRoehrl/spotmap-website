@@ -1,10 +1,10 @@
 /**
- * Tests for the promote step: the served copy of a city's dataset keeps each spot's id, name,
- * status and geometry and nothing else, it is written where the app loads it, and the
- * `promote:spots` CLI promotes the named cities or every city, offline. Every test writes into
- * its own temporary folders, never into the real public/spots/. The drift test reads the real
- * data/spots/ and public/spots/ and writes nothing, so the committed served copies can never fall
- * behind their data files.
+ * Tests for the promote step: the served copy of a city's dataset carries each spot's geometry
+ * and its served record (id, name, status, notes, photo keys) and nothing else, it is written
+ * where the app loads it, and the `promote:spots` CLI promotes the named cities or every city,
+ * offline. Every test writes into its own temporary folders, never into the real public/spots/.
+ * The drift test reads the real data/spots/ and public/spots/ and writes nothing, so the
+ * committed served copies can never fall behind their data files.
  */
 import { strict as assert } from 'node:assert';
 import { existsSync } from 'node:fs';
@@ -77,16 +77,23 @@ function quiet(t) {
   }
 }
 
-test('promoteCollection keeps id, name and status, empties photos and drops sources', () => {
+test('promoteCollection serves each spot through servedProperties and drops sources', () => {
   const promoted = promoteCollection(DATASET);
   assert.deepEqual(
     promoted.features.map((feature) => feature.properties),
     [
-      { id: 'murinsel-a1b2c3', name: 'Murinsel', status: 'active', photos: [] },
+      {
+        id: 'murinsel-a1b2c3',
+        name: 'Murinsel',
+        status: 'active',
+        notes: 'ledges by the river',
+        photos: ['graz/murinsel-a1b2c3-0f0f0f0f.webp'],
+      },
       {
         id: 'old-bank-d4e5f6',
         name: 'Old Bank',
         status: 'demolished',
+        notes: null,
         photos: [],
       },
     ],
@@ -95,6 +102,7 @@ test('promoteCollection keeps id, name and status, empties photos and drops sour
     'id',
     'name',
     'status',
+    'notes',
     'photos',
   ]);
 });

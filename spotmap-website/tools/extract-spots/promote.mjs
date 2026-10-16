@@ -7,10 +7,10 @@
  *
  * `extract:spots` promotes every city it writes. This re-promotes without touching the network:
  * every city in data/spots/sources.json, or only the named ones. data/spots/ stays the lossless
- * record. The served copy keeps each spot's geometry, id, name and status, and drops its source
- * records, notes and folders. An unknown city or flag exits 2 before anything is written. A city
- * whose dataset cannot be read or written is named, the others are still promoted, and the run
- * exits 1.
+ * record. The served copy keeps each spot's geometry and its served record — id, name, status,
+ * notes and photo keys — and drops its source records and folders. An unknown city or flag exits
+ * 2 before anything is written. A city whose dataset cannot be read or written is named, the
+ * others are still promoted, and the run exits 1.
  */
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -18,6 +18,7 @@ import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 import { writeFileAtomic } from './atomic.mjs';
 import { toJsonText } from './dataset.mjs';
+import { servedProperties } from './served-record.mjs';
 
 const APP_ROOT = fileURLToPath(new URL('../../', import.meta.url));
 /** Where the extraction writes each city's lossless dataset, report and photos. */
@@ -29,9 +30,10 @@ const SOURCES_PATH = join(SPOTS_DIR, 'sources.json');
 
 /**
  * The served copy of a city's dataset: every feature keeps its type and geometry, and its
- * properties shrink to `{ id, name, status, photos: [] }`, in that order. `photos` is emptied
- * because no photo host exists yet (Phase 6 changes this function to point at one). The input is
- * never mutated.
+ * properties become the served record (`servedProperties` in served-record.mjs) — `{ id, name,
+ * status, notes, photos }` with photos as object keys under the photo host. The same record goes
+ * into the database, so this snapshot is exactly what the app falls back to when the backend is
+ * down. The input is never mutated.
  *
  * @param {{ type: 'FeatureCollection', features: object[] }} collection a data/spots dataset
  * @returns {{ type: 'FeatureCollection', features: object[] }}
@@ -39,13 +41,11 @@ const SOURCES_PATH = join(SPOTS_DIR, 'sources.json');
 export function promoteCollection({ type, features }) {
   return {
     type,
-    features: features.map(
-      ({ type: featureType, geometry, properties: { id, name, status } }) => ({
-        type: featureType,
-        geometry,
-        properties: { id, name, status, photos: [] },
-      }),
-    ),
+    features: features.map(({ type: featureType, geometry, properties }) => ({
+      type: featureType,
+      geometry,
+      properties: servedProperties(properties),
+    })),
   };
 }
 

@@ -1,5 +1,8 @@
-/** Pin taxonomy. `unclassified` is the KML's green group, whose meaning is Decision 1's call. */
-export type SpotStatus = 'active' | 'demolished' | 'unclassified';
+/**
+ * Pin taxonomy, Decision 1 (2026-10-16): every blue pin, and My Maps' green "New added Spots"
+ * marker, is `active`; orange is `demolished`. There is no third state.
+ */
+export type SpotStatus = 'active' | 'demolished';
 
 /**
  * One map's record of a spot, kept so the extraction drops nothing: the folder and notes of the
@@ -22,25 +25,23 @@ export interface SpotSource {
 }
 
 /**
- * The non-geometric attributes of one spot pin: its stable id, display name, `SpotStatus`
- * classification, photo asset paths and per-map `SpotSource` records — carried on
+ * The served attributes of one spot pin — what the bundled `public/spots/<city>.geojson` snapshot
+ * and the live `city_spots()` query both carry, built by tools/extract-spots/served-record.mjs:
+ * its stable id, display name, `SpotStatus`, notes and photo keys. Carried on
  * `SpotFeature.properties` and rendered by `SpotPopupComponent`.
  */
 export interface SpotProperties {
+  /** The extraction's re-extraction-stable id, e.g. `hbf-curb-99f6e5`. */
   id: string;
   name: string;
   status: SpotStatus;
+  /** The spot's notes from My Maps, verbatim (may contain newlines); null when it has none. */
+  notes: string | null;
   /**
-   * Base-relative asset paths, never a leading slash — production runs under /spotmap-website/.
-   * Always empty in the served `public/spots/` copies until photos have a host; only
-   * data/spots/ lists them.
+   * Photo object keys under the photo host, `<city>/<file>.webp`, in gallery order — keys, never
+   * URLs: `photoUrl()` turns one into a thumbnail or full-size URL.
    */
   photos: string[];
-  /**
-   * One record per map that holds the spot, the city's own map first. Only data/spots/ carries
-   * it: the served `public/spots/` copies omit it, which is why it is optional.
-   */
-  sources?: SpotSource[];
 }
 
 /**
@@ -55,10 +56,11 @@ export interface SpotFeature {
 }
 
 /**
- * The GeoJSON `FeatureCollection` of a city's spots. Every city's is served as the static asset
- * `spots/{city}.geojson`, promoted from data/spots/ by tools/extract-spots/promote.mjs, and
- * fetched by `SpotsService.loadSpots()`. `SpotMapComponent` feeds it straight into MapLibre as
- * the pins source.
+ * The GeoJSON `FeatureCollection` of a city's spots: the live `city_spots()` answer, or the
+ * bundled `spots/{city}.geojson` snapshot promoted from data/spots/ by
+ * tools/extract-spots/promote.mjs — the same shape either way. Fetched by
+ * `SpotsService.loadSpots()`; `SpotMapComponent` feeds it straight into MapLibre as the pins
+ * source.
  */
 export interface SpotCollection {
   type: 'FeatureCollection';

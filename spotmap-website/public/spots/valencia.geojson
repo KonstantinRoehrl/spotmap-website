@@ -14,7 +14,10 @@
         "id": "muvim-museum-9873c9",
         "name": "Muvim Museum",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "valencia/muvim-museum-9873c9-18eb86fa.webp"
+        ]
       }
     },
     {
@@ -30,7 +33,12 @@
         "id": "metal-curb-0b0596",
         "name": "Metal Curb",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "valencia/metal-curb-0b0596-457d7017.webp",
+          "valencia/metal-curb-0b0596-cc10904c.webp",
+          "valencia/metal-curb-0b0596-fcfa5c66.webp"
+        ]
       }
     },
     {
@@ -46,7 +54,10 @@
         "id": "wood-benches-99a03a",
         "name": "Wood benches",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "valencia/wood-benches-99a03a-efcd6b28.webp"
+        ]
       }
     },
     {
@@ -62,7 +73,11 @@
         "id": "3-block-00f21e",
         "name": "3 Block",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "valencia/3-block-00f21e-65cda6c4.webp",
+          "valencia/3-block-00f21e-42f60175.webp"
+        ]
       }
     },
     {
@@ -78,7 +93,11 @@
         "id": "gap-over-block-rails-f6e377",
         "name": "Gap over Block, Rails",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "valencia/gap-over-block-rails-f6e377-b0d31f88.webp",
+          "valencia/gap-over-block-rails-f6e377-cd64ce55.webp"
+        ]
       }
     },
     {
@@ -94,7 +113,11 @@
         "id": "antispot-metal-pyramids-9d3ac1",
         "name": "Antispot Metal Pyramids",
         "status": "active",
-        "photos": []
+        "notes": null,
+        "photos": [
+          "valencia/antispot-metal-pyramids-9d3ac1-e240fb7d.webp",
+          "valencia/antispot-metal-pyramids-9d3ac1-08403624.webp"
+        ]
       }
     }
   ]

@@ -1,12 +1,17 @@
 <div class="spot-popup">
-  @if (properties().photos.length > 0) {
+  @if (thumbnails().length > 0) {
     <app-spot-photo-gallery
-      [photos]="properties().photos"
+      [photos]="thumbnails()"
       [spotName]="properties().name"
     />
+    <p class="spot-popup__rights">© all rights reserved</p>
   }
 
   <p class="spot-popup__name">{{ properties().name }}</p>
+
+  @if (properties().notes; as notes) {
+    <p class="spot-popup__notes">{{ notes }}</p>
+  }
 
   @if (isDemolished()) {
     <p class="spot-popup__status">&gt; DEMOLISHED</p>
