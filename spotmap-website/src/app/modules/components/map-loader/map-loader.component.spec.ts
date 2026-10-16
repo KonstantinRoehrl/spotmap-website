@@ -1,0 +1,123 @@
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
+import { AsciiRainComponent } from '../ascii-rain/ascii-rain.component';
+import { MapLoadState } from '../map-container/map-load-progress';
+import { MapLoaderComponent } from './map-loader.component';
+
+describe('MapLoaderComponent', () => {
+  let fixture: ComponentFixture<MapLoaderComponent>;
+
+  function create(state: Partial<MapLoadState> = {}): HTMLElement {
+    fixture = TestBed.createComponent(MapLoaderComponent);
+    fixture.componentRef.setInput('city', 'vienna');
+    setState(state);
+    return fixture.nativeElement as HTMLElement;
+  }
+
+  function setState(state: Partial<MapLoadState>): void {
+    fixture.componentRef.setInput('state', {
+      step: 'spots',
+      progress: 0,
+      fallback: false,
+      ...state,
+    });
+    fixture.detectChanges();
+  }
+
+  function cells(host: HTMLElement): HTMLElement[] {
+    return Array.from(host.querySelectorAll<HTMLElement>('.loader__cell'));
+  }
+
+  function fill(host: HTMLElement): HTMLElement | null {
+    return host.querySelector<HTMLElement>('.loader__fill');
+  }
+
+  it('spells the city in uppercase cells', () => {
+    const host = create();
+    expect(cells(host).length).toBe(6);
+    const letters = Array.from(
+      host.querySelectorAll('.loader__letter'),
+      (letter) => letter.textContent!.trim(),
+    ).join('');
+    expect(letters).toBe('VIENNA');
+  });
+
+  it('locks letters left to right as progress grows', () => {
+    const host = create({ progress: 0.45 });
+    const locked = () =>
+      cells(host).map((cell) =>
+        cell.classList.contains('loader__cell--locked'),
+      );
+    expect(locked()).toEqual([true, true, true, false, false, false]);
+
+    setState({ progress: 0.9 });
+    expect(locked()).toEqual([true, true, true, true, true, true]);
+  });
+
+  it('marks the steps pending, current and finished', () => {
+    const host = create({ step: 'map', progress: 0.5 });
+    const steps = host.querySelectorAll('.loader__steps span');
+    expect(steps.length).toBe(3);
+    expect(steps[0]?.textContent?.trim()).toBe('SPOTS');
+    expect(steps[0]?.className).toContain('loader__step--done');
+    expect(steps[1]?.textContent?.trim()).toBe('MAP');
+    expect(steps[1]?.className).toContain('loader__step--current');
+    expect(steps[2]?.textContent?.trim()).toBe('DRAW');
+    expect(steps[2]?.className).toContain('loader__step--pending');
+  });
+
+  it('shows the archive note only on fallback', () => {
+    const host = create();
+    const note = () => host.querySelector('.loader__note')?.textContent?.trim();
+    expect(note()).toBe('');
+
+    setState({ fallback: true });
+    expect(note()).toBe('LIVE FEED DOWN · ARCHIVE COPY');
+  });
+
+  it('eases the rain down once the spots are in and freezes it at DRAW', () => {
+    create({ step: 'spots' });
+    const rain = () =>
+      fixture.debugElement.query(By.directive(AsciiRainComponent))
+        ?.componentInstance as AsciiRainComponent | undefined;
+    expect(rain()?.pace()).toBe('run');
+
+    setState({ step: 'map' });
+    expect(rain()?.pace()).toBe('slow');
+
+    setState({ step: 'draw' });
+    expect(rain()?.pace()).toBe('frozen');
+  });
+
+  it('sizes the bar fill to the progress', () => {
+    const host = create({ progress: 0.3 });
+    expect(fill(host)?.style.width).toBe('30%');
+  });
+
+  it("signals finished once the bar's ease to 100 % ends", () => {
+    const host = create({ step: 'map', progress: 0.9 });
+    expect(fill(host)).not.toBeNull();
+    let emitted = 0;
+    fixture.componentInstance.finished.subscribe(() => emitted++);
+    const end = (propertyName: string) =>
+      fill(host)?.dispatchEvent(
+        new TransitionEvent('transitionend', { propertyName }),
+      );
+
+    end('width');
+    expect(emitted).toBe(0);
+
+    setState({ step: 'done', progress: 1 });
+    end('opacity');
+    expect(emitted).toBe(0);
+
+    end('width');
+    end('width');
+    expect(emitted).toBe(1);
+  });
+
+  it('hides all of it from assistive technology', () => {
+    const host = create();
+    expect(host.getAttribute('aria-hidden')).toBe('true');
+  });
+});
