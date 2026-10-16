@@ -2,8 +2,9 @@
 
 A skate-spot compendium for European cities, styled as a green-phosphor CRT
 terminal — "The Phosphor Archive". It's an Angular single-page app; every city's
-map is drawn by the site itself with MapLibre, from a static per-city GeoJSON
-file, framed in a dark, glowing terminal shell so a slow map never flashes white.
+map is drawn by the site itself with MapLibre, from per-city spot data served by
+a Supabase project (with a bundled GeoJSON snapshot as fallback), framed in a
+dark, glowing terminal shell so a slow map never flashes white.
 
 ## Tech stack
 
@@ -37,6 +38,7 @@ src/
       directives/   # glitch-text (per-character scramble)
     models/enums/   # city / country / config data (SUPPORTED_CITIES)
     app.routes.ts   # home · map · about · '' → home · ** → home
+  environments/     # the backend each build talks to (environment.prod.ts in production)
   styles.css        # Tailwind + @theme design tokens (OKLCH colors, glow, motion, radius)
   theme.scss        # Angular Material M3 green-terminal theme
   fonts/            # self-hosted IBM Plex Mono (woff2) — under src/, not public/,
@@ -46,9 +48,12 @@ src/
   index.html
 tools/
   extract-spots/    # npm run extract:spots / promote:spots — My Maps KML → data/spots/ → public/spots/ (see below)
+  sync-supabase/    # npm run sync:supabase / parity:supabase — data/spots/ → Supabase (see below)
   verify-*.mjs      # build:pages runs the dist guards; verify:dev-map-worker is manual
 data/
   spots/            # extracted per-city datasets (GeoJSON + run reports)
+  thumbs/           # derived 640px thumbnails (local, not committed)
+supabase/           # Supabase CLI project: config.toml, the migration, pgTAP tests
 ```
 
 ## Spot data extraction
@@ -67,8 +72,12 @@ npm run extract:spots -- vienna --reencode  # download and encode existing photo
 The tool lives in `tools/extract-spots/` and writes to `data/`. Each city it
 writes successfully is then **promoted**: `public/spots/<city>.geojson`, the file
 the app loads, is rewritten as a trimmed copy of the data file. Each spot keeps
-its geometry, `id`, `name` and `status`; `photos` is always empty until photos
-get a host, and source records, notes and folders stay in `data/` only.
+its geometry and its served record (`tools/extract-spots/served-record.mjs`):
+`id`, `name`, `status`, `notes` — the first non-empty description across its
+maps, verbatim, or `null` — and `photos` as object keys `<city>/<file>.webp`
+under the photo host. Source records and folders stay in `data/` only. The
+Supabase sync writes the same record, so the snapshot is exactly what the app
+falls back to.
 
 ```bash
 npm run promote:spots                 # re-promote every city, offline
@@ -88,12 +97,14 @@ anything other than one `<city>.geojson` per city.
 | `data/spots/<city>.geojson`        | yes       | the city's spots; photo paths are base-relative (`spots/<city>/…`)             |
 | `data/spots/<city>.report.json`    | yes       | counts, dead, recovered and repeated photos, match issues and warnings         |
 | `data/spots/<map>.map-report.json` | yes       | the placemarks of a shared or extra map that no city or several cities claim   |
-| `public/spots/<city>.geojson`      | yes       | the promoted copy the app serves: no photos, no sources                        |
+| `public/spots/<city>.geojson`      | yes       | the promoted copy the app serves as fallback: served records, no sources       |
 | `data/spots/<city>/*.webp`         | no        | the encoded photos                                                             |
+| `data/thumbs/<city>/*.webp`        | no        | the sync's 640px thumbnails of the encoded photos                              |
 | `data/.cache/kml/<map>.kml`        | no        | the raw KML of each map's last fetch that parsed                               |
 
 Photos are not committed: all cities together come to well over a thousand
-images, too heavy for git, and they get a real host later.
+images, too heavy for git. They are hosted in Supabase Storage — see "Spot data
+backend" below.
 
 ### The map registry
 
@@ -258,6 +269,72 @@ main-map photos are checked, against the spot's written, dead and duplicate
 photos of that run. A previous GeoJSON or report that cannot be read as
 expected fails the city, naming the file, instead of quietly weakening the
 check.
+
+## Spot data backend (Supabase)
+
+The map reads each city's spots live from a Supabase project — Postgres with
+PostGIS, row-level security and Storage — and falls back to the bundled
+`public/spots/<city>.geojson` when the backend errors, takes longer than 5 s,
+answers with no spots, or is not configured (`SpotsService`). Photos are served
+from the public `spot-photos` bucket as `full/<city>/<file>.webp` (the 1400px
+encode) and `thumb/<city>/<file>.webp` (640px, what the popup shows); with no
+photo host configured, popups show no gallery.
+
+Each build's backend is set in `src/environments/`. The production one,
+`environment.prod.ts`, stays empty until the hosted project is set up; until
+then the deployed site serves the snapshot and shows no photos.
+
+Until the maintainer tool replaces it, Google My Maps stays the editing surface
+(roadmap Decision 1), so the database is a **mirror** of `data/spots/`:
+
+1. edit My Maps → `npm run extract:spots`
+2. commit the datasets and snapshots
+3. `npm run sync:supabase -- --hosted`
+
+### Access
+
+The public (the publishable key the site ships in its bundle) can read the
+`cities`, `spots` and `spot_photos` tables and call `city_spots(city)`, and
+nothing else: no table, function or bucket write. Only the **secret key**
+(`sb_secret_…`, which bypasses row-level security) writes, through
+`sync_spots(payload)` and Storage uploads. It lives in
+`spotmap-website/.env.local` (gitignored; template `.env.example`) and is sent
+in the `apikey` header only.
+
+### Local stack
+
+Needs Docker.
+
+```bash
+npm run db:start   # db, REST API, Storage on http://127.0.0.1:54321 (applies the migrations)
+npm run db:test    # pgTAP: access rules, city_spots, sync_spots
+npm run db:reset   # re-apply the migrations from scratch
+npm run db:stop
+```
+
+`ng serve` talks to this stack (`src/environments/environment.ts`); with the
+stack down the map simply serves the snapshot.
+
+### The sync
+
+```bash
+npm run sync:supabase                 # local stack
+npm run sync:supabase -- --dry-run    # plan every step, write nothing
+npm run sync:supabase -- --db-only    # database only, from the committed datasets (no photos needed)
+npm run sync:supabase -- --hosted     # required whenever SUPABASE_URL is not the local stack
+npm run parity:supabase               # every city's live answer must equal its snapshot
+```
+
+It prints the target first, then runs each step only after the previous one
+succeeded: load and check every referenced photo is on disk → derive missing or
+outdated thumbnails into `data/thumbs/` and delete orphaned ones → upload every
+object the bucket lacks or holds with other bytes (compared by MD5, since a file
+name fingerprints Google's rendition, not the served bytes) → mirror the
+database in one `sync_spots()` transaction → delete bucket objects nothing
+references any more, only after the database sync succeeded. A re-run with
+unchanged data reports zero everywhere. Exit codes: 0 done, 1 a step failed
+(named), 2 bad arguments or environment. CI runs the pgTAP tests, a `--db-only`
+sync and the parity check on every pull request.
 
 ## Design system
 

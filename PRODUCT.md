@@ -33,7 +33,7 @@ Guiding metaphor: **time travel back to earlier days.** Everything the site cont
 - **Mainstream fitness / social apps** — Strava / Instagram / Komoot: rounded friendly cards, engagement feeds, gradients.
 - **Over-gamified / cutesy** — badges, mascots, confetti, bubbly rounded everything. Too toy-like for an archive.
 - **Generic dark-mode SaaS template** — "dark theme + one accent + card grid." Dark ≠ the matrix aesthetic; the difference is the retro-computing intent, not just low brightness.
-- **Constraint:** one renderer for every city — the site draws each map itself from a static per-city dataset. The retro shell holds our own map everywhere; there is no third-party map to wrap.
+- **Constraint:** one renderer for every city — the site draws each map itself from its per-city spot data — live from the site's own Supabase project, with a bundled snapshot that keeps every map working when the backend is down. The retro shell holds our own map everywhere; there is no third-party map to wrap.
 
 ## Design Principles
 
