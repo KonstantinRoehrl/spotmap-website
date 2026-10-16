@@ -101,6 +101,36 @@ describe('SpotPhotoGalleryComponent', () => {
     ).not.toBeNull();
   });
 
+  it('keeps the placeholder text clear of the arrows', () => {
+    create(['a.webp', 'b.webp']);
+    const el: HTMLElement = fixture.nativeElement;
+    // The narrowest panel a popup produces, the arrows' worst case.
+    el.style.display = 'block';
+    el.style.width = '160px';
+    failCurrentImage();
+    const lines =Array.from(
+      el.querySelectorAll('.gallery__placeholder-line'),
+    ).map((line) => line.getBoundingClientRect());
+    const arrows = Array.from(el.querySelectorAll('button')).map((button) =>
+      button.getBoundingClientRect(),
+    );
+    expect(lines.length).toBe(2);
+    for (const line of lines) {
+      for (const arrow of arrows) {
+        const overlaps = line.left < arrow.right && line.right > arrow.left;
+        expect(overlaps).toBeFalse();
+      }
+    }
+  });
+
+  it('claims the popup width itself, so a broken photo does not shrink the popup', () => {
+    create(['a.webp', 'b.webp']);
+    failCurrentImage();
+    const gallery = fixture.nativeElement.querySelector('.gallery');
+    expect(getComputedStyle(gallery).maxWidth).toBe('302px');
+    expect(getComputedStyle(gallery).width).not.toBe('auto');
+  });
+
   it('fails only the photo that broke', () => {
     const c = create(['a.webp', 'b.webp', 'c.webp']);
     c.next();
