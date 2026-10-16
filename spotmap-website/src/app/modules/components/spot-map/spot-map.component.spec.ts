@@ -14,6 +14,7 @@ import {
   MAP_FACTORY,
   POPUP_FACTORY,
 } from './map-factory.token';
+import { POPUP_MAX_HEIGHT_VAR } from './popup-fit';
 import { LOCK_ON_AT_REST_FILTER } from './spot-layers';
 import { SpotMapComponent } from './spot-map.component';
 import { BASEMAP_SOURCE_ID } from './terminal-map-style';
@@ -72,6 +73,8 @@ class FakeMap {
     disableRotation: jasmine.createSpy('disableRotation').and.callFake(() => {
       this.twoFingerRotate = false;
     }),
+    /** Whether a pinch is under way; the specs never pinch, only drag. */
+    isActive: () => false,
   };
   readonly touchPitch = {
     /** The two-finger tilt handler has no partial off switch — pitch is all it does. */
@@ -86,7 +89,20 @@ class FakeMap {
       .and.callFake(() => {
         this.keyboardRotatePitch = false;
       }),
+    /** Whether an arrow-key move is under way; the specs never press one. */
+    isActive: () => false,
   };
+  /**
+   * The one-finger and mouse pan handler. MapLibre's manager treats it as active from the moment a
+   * finger or button goes down — `activateOnStart` for the mouse (maplibre-gl-dev.mjs:21015,
+   * `:20865`), `_active` set by the first `touchstart` for touch (`:21098`) — long before the
+   * camera has moved.
+   */
+  readonly dragPan = { isActive: () => this.fingerDown };
+  /** The wheel, shift-drag box and double-click zooms, which the specs never drive. */
+  readonly scrollZoom = { isActive: () => false };
+  readonly boxZoom = { isActive: () => false };
+  readonly doubleClickZoom = { isActive: () => false };
   pitch = 0;
   bearing = 0;
   private mouseRotatePitch = true;
@@ -134,6 +150,34 @@ class FakeMap {
    */
   private panning = false;
 
+  /** Whether a finger or button is down on the map, so a pan handler is active. */
+  private fingerDown = false;
+
+  /**
+   * The visitor putting a finger or button down on the map, without moving it yet. MapLibre's
+   * manager sees an active handler and stops the camera's ease (`handleEvent`, `:22392`), which
+   * fires that ease's `moveend` synchronously: with `isMoving()` already false (`:23241`), the
+   * pan handler already active, and the drag's own `movestart` still to come. The camera starts
+   * moving under the finger only afterwards, once the pointer travels.
+   */
+  grab() {
+    this.fingerDown = true;
+    if (this.panning) {
+      this.emit('moveend');
+    }
+  }
+
+  /** The grabbed map starting to travel under the finger: a drag's camera move begins. */
+  drag() {
+    this.panning = true;
+  }
+
+  /** The finger or button coming up: the pan handler resets and the drag's move ends. */
+  release() {
+    this.fingerDown = false;
+    this.emit('moveend');
+  }
+
   /**
    * A move the component did not start — a drag, a fling's inertia, a wheel zoom — begins and runs
    * until the spec emits `moveend`.
@@ -154,6 +198,9 @@ class FakeMap {
     if (this.panning) {
       this.emit('moveend');
     }
+    // `easeTo` stops the gestures too (`_stop(false)` → `_stopHandlers`, `:23384`): a pan the
+    // component starts under a visitor's finger takes the drag away from them.
+    this.fingerDown = false;
     this.cameraMoves.push({ method: 'panBy', options: { ...options, offset } });
     this.panning = true;
     const reducedMotion = window.matchMedia(
@@ -602,18 +649,65 @@ function setWidth(host: HTMLElement, width: number) {
   });
 }
 
+/** The corners MapLibre stacks its controls in that the attribution can sit in. */
+type ControlCorner = 'bottom-right' | 'bottom-left';
+
 /**
- * Stands in for the control MapLibre injects into the canvas host: open, as it opens on a map of
- * any width until the first drag. The host's width is what the component reads to tell a phone
- * from a desktop.
+ * Builds the control the way MapLibre injects it (`AttributionControl.onAdd`,
+ * maplibre-gl-dev.mjs:23477-23480; `addControl`, `:24228`): a `details` carrying the info button,
+ * open as it opens on a map of any width until the first drag, as the only child of its corner
+ * inside the map's control container. The nesting matters: MapLibre's open-state rule only matches
+ * a control that is the direct child of a left corner. The app adds the control with no position,
+ * so it lands in `bottom-right` (`getDefaultPosition`, `:23472`).
  */
-function addAttributionControl(host: HTMLElement, width: number): HTMLElement {
-  setWidth(host, width);
+function buildAttributionControl(corner: ControlCorner): HTMLElement {
+  const container = document.createElement('div');
+  container.className = 'maplibregl-control-container';
+  const cornerElement = document.createElement('div');
+  cornerElement.className = `maplibregl-ctrl-${corner}`;
   const control = document.createElement('details');
   control.className =
     'maplibregl-ctrl maplibregl-ctrl-attrib maplibregl-compact maplibregl-compact-show';
-  host.append(control);
-  return control;
+  const button = document.createElement('summary');
+  button.className = 'maplibregl-ctrl-attrib-button';
+  control.append(button);
+  cornerElement.append(control);
+  container.append(cornerElement);
+  return container;
+}
+
+/**
+ * Stands in for the control MapLibre injects into the canvas host, open. The host's width is what
+ * the component reads to tell a phone from a desktop.
+ */
+function addAttributionControl(
+  host: HTMLElement,
+  width: number,
+  corner: ControlCorner = 'bottom-right',
+): HTMLElement {
+  setWidth(host, width);
+  const container = buildAttributionControl(corner);
+  host.append(container);
+  return container.querySelector<HTMLElement>('.maplibregl-ctrl-attrib')!;
+}
+
+/**
+ * The corner rules of maplibre-gl.css 6.9.0 that the attribution control's radius depends on,
+ * copied verbatim from its `@media screen` block: the Karma build does not load that stylesheet.
+ * The open-state rule is `(0,3,0)` and only matches a control directly inside a left corner.
+ */
+const MAPLIBRE_ATTRIBUTION_RULES = `@media screen {
+  .maplibregl-ctrl-attrib.maplibregl-compact{border-radius:12px}
+  .maplibregl-ctrl-bottom-left>.maplibregl-ctrl-attrib.maplibregl-compact-show,.maplibregl-ctrl-top-left>.maplibregl-ctrl-attrib.maplibregl-compact-show{padding:2px 8px 2px 28px;border-radius:12px}
+  .maplibregl-ctrl-attrib-button{border-radius:12px}
+}`;
+
+/** Loads {@link MAPLIBRE_ATTRIBUTION_RULES} into the page; the caller removes the element. */
+function loadMapLibreAttributionRules(): HTMLStyleElement {
+  const style = document.createElement('style');
+  style.textContent = MAPLIBRE_ATTRIBUTION_RULES;
+  document.head.append(style);
+  return style;
 }
 
 describe('SpotMapComponent', () => {
@@ -919,29 +1013,56 @@ describe('SpotMapComponent', () => {
     expect(attribution.classList).toContain('maplibregl-compact-show');
   });
 
-  it('keeps the attribution control on the soft corner scale, collapsed or open', async () => {
-    await create();
-    const attribution = addAttributionControl(
-      fixture.nativeElement.querySelector('.spot-map__canvas'),
-      360,
-    );
-    const button = document.createElement('summary');
-    button.className = 'maplibregl-ctrl-attrib-button';
-    attribution.append(button);
-    fake.emit('load');
-    const softCorner = painted('border-radius', 'var(--radius-sm)');
-    expect(softCorner).withContext('the token resolves').toBe('4px');
-    expect(getComputedStyle(attribution).borderRadius)
-      .withContext('collapsed to the info button')
-      .toBe(softCorner);
-    attribution.classList.add('maplibregl-compact-show');
-    expect(getComputedStyle(attribution).borderRadius)
-      .withContext('opened by the visitor')
-      .toBe(softCorner);
-    expect(getComputedStyle(button).borderRadius)
-      .withContext('the info button is no circle')
-      .toBe(softCorner);
-  });
+  for (const corner of ['bottom-right', 'bottom-left'] as const) {
+    it(`keeps the attribution control in the ${corner} corner on the soft corner scale, collapsed or open`, async () => {
+      const mapLibreRules = loadMapLibreAttributionRules();
+      const bare = buildAttributionControl(corner);
+      document.body.append(bare);
+      try {
+        await create();
+        const softCorner = painted('border-radius', 'var(--radius-sm)');
+        expect(softCorner).withContext('the token resolves').toBe('4px');
+        const bareControl = bare.querySelector<HTMLElement>(
+          '.maplibregl-ctrl-attrib',
+        )!;
+        const bareButton = bare.querySelector<HTMLElement>(
+          '.maplibregl-ctrl-attrib-button',
+        )!;
+        expect(getComputedStyle(bareControl).borderRadius)
+          .withContext('MapLibre alone rounds the open control to a pill')
+          .toBe('12px');
+        expect(getComputedStyle(bareButton).borderRadius)
+          .withContext('and its info button to a circle')
+          .toBe('12px');
+
+        const attribution = addAttributionControl(
+          fixture.nativeElement.querySelector('.spot-map__canvas'),
+          360,
+          corner,
+        );
+        const button = attribution.querySelector<HTMLElement>(
+          '.maplibregl-ctrl-attrib-button',
+        )!;
+        fake.emit('load');
+        expect(attribution.classList)
+          .withContext('narrow map: collapsed to the info button')
+          .not.toContain('maplibregl-compact-show');
+        expect(getComputedStyle(attribution).borderRadius)
+          .withContext('collapsed to the info button')
+          .toBe(softCorner);
+        attribution.classList.add('maplibregl-compact-show');
+        expect(getComputedStyle(attribution).borderRadius)
+          .withContext('opened by the visitor')
+          .toBe(softCorner);
+        expect(getComputedStyle(button).borderRadius)
+          .withContext('the info button is no circle')
+          .toBe(softCorner);
+      } finally {
+        bare.remove();
+        mapLibreRules.remove();
+      }
+    });
+  }
 
   it('asks for the DEM depth its city has, so no city requests tiles that do not exist', async () => {
     const asked: number[] = [];
@@ -1419,7 +1540,7 @@ describe('SpotMapComponent', () => {
       .toBe('none');
   });
 
-  it('re-fits once the popup width has finished easing, so it is measured where it settled', async () => {
+  it('re-fits once the popup width has finished easing to a different width, so it is measured where it settled', async () => {
     holdAnimationFrames();
     await create();
     fake.emit('load');
@@ -1427,6 +1548,8 @@ describe('SpotMapComponent', () => {
     const frames = window.requestAnimationFrame as jasmine.Spy;
     frames.calls.reset();
     const element = popups[0]!.getElement();
+    // The ease began from the width the fit measured; it ends on another one.
+    setWidth(element, element.offsetWidth + 40);
     element.dispatchEvent(
       new TransitionEvent('transitionend', {
         propertyName: 'max-height',
@@ -1441,6 +1564,22 @@ describe('SpotMapComponent', () => {
       }),
     );
     expect(frames).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not re-fit when the width cap eased but the popup ended as wide as it was measured', async () => {
+    holdAnimationFrames();
+    await create();
+    fake.emit('load');
+    await tap('a');
+    const frames = window.requestAnimationFrame as jasmine.Spy;
+    frames.calls.reset();
+    popups[0]!.getElement().dispatchEvent(
+      new TransitionEvent('transitionend', {
+        propertyName: 'max-width',
+        bubbles: true,
+      }),
+    );
+    expect(frames).not.toHaveBeenCalled();
   });
 
   it('opens below a pin near the top', async () => {
@@ -1584,6 +1723,92 @@ describe('SpotMapComponent', () => {
     expect(popups[0]?.isPending()).toBe(true);
     fake.emit('moveend');
     expect(popups[0]?.isPending()).toBe(false);
+  });
+
+  describe('a popup tapped while another popup is panning into view', () => {
+    /** Opens `a` at the left edge, so its pan is under way, then taps `b` at the same edge. */
+    async function tapBWhileAPans() {
+      requestReducedMotion(false);
+      await create();
+      fake.emit('load');
+      fake.projected = { x: 20, y: 500 };
+      await tap('a');
+      await tap('b');
+      expect(pansRequested().length)
+        .withContext("b asks for no pan while a's ease runs")
+        .toBe(1);
+      expect(popups[1]?.isPending()).toBe(true);
+    }
+
+    it("is fitted and panned when a's ease runs to its end, and revealed once that pan ends", async () => {
+      await tapBWhileAPans();
+      fake.emit('moveend');
+      expect(pansRequested().length)
+        .withContext('b is fitted against the settled camera and pans')
+        .toBe(2);
+      expect(popups[1]?.isPending())
+        .withContext("a's ease ending does not reveal b")
+        .toBe(true);
+      fake.emit('moveend');
+      expect(popups[1]?.isPending()).toBe(false);
+      expect(popups[1]?.getElement().getAnimations().length)
+        .withContext('revealed exactly once')
+        .toBe(1);
+    });
+
+    it('is fitted but not panned when the visitor grabs the map, and opens where the map now is', async () => {
+      await tapBWhileAPans();
+      fake.grab();
+      expect(pansRequested().length)
+        .withContext(
+          "the grab wins: a pan would take the drag from the visitor's finger",
+        )
+        .toBe(1);
+      expect(popups[1]?.isPending()).toBe(false);
+      expect(
+        popups[1]?.getElement().style.getPropertyValue(POPUP_MAX_HEIGHT_VAR),
+      )
+        .withContext('fitted against the live camera all the same')
+        .not.toBe('');
+      fake.drag();
+      fake.release();
+      expect(pansRequested().length)
+        .withContext('nothing pans the popup in after the drag either')
+        .toBe(1);
+      expect(popups[1]?.getElement().getAnimations().length)
+        .withContext('revealed exactly once')
+        .toBe(1);
+    });
+
+    it('is fitted and panned as usual by a tap after the visitor let go of the map', async () => {
+      await tapBWhileAPans();
+      fake.grab();
+      fake.drag();
+      fake.release();
+      expect(pansRequested().length).toBe(1);
+      await tap('a');
+      expect(pansRequested().length)
+        .withContext(
+          'the newer popup pans into view now that nothing holds the map',
+        )
+        .toBe(2);
+      expect(popups[2]?.isPending()).toBe(true);
+      fake.emit('moveend');
+      expect(popups[2]?.isPending()).toBe(false);
+    });
+
+    it('is fitted but not panned while a finger rests on the map when its popup is ready', async () => {
+      requestReducedMotion(false);
+      await create();
+      fake.emit('load');
+      fake.projected = { x: 20, y: 500 };
+      fake.grab();
+      await tap('a');
+      expect(pansRequested())
+        .withContext('a pan would reset the visitor’s hold on the map')
+        .toEqual([]);
+      expect(popups[0]?.isPending()).toBe(false);
+    });
   });
 
   it('fits a popup against the camera as it is once maplibre-gl has loaded, not as it was at the tap', async () => {

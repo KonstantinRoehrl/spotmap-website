@@ -95,6 +95,34 @@ interface OpenPopup {
    * fitted until it settles, and until then a resize has nothing to re-fit.
    */
   fitted: boolean;
+  /**
+   * The popup's width as the last fit measured it. A width-cap ease starts from the width the fit
+   * saw, so a `transitionend` that finds the same width has nothing new to re-measure.
+   */
+  fittedWidth: number;
+}
+
+/**
+ * The MapLibre handlers a visitor moves the map through. Each reports itself active from the
+ * moment a finger or button goes down or a key or wheel starts, before the camera has moved.
+ */
+const GESTURE_HANDLERS = [
+  'dragPan',
+  'touchZoomRotate',
+  'scrollZoom',
+  'keyboard',
+  'doubleClickZoom',
+  'boxZoom',
+] as const;
+
+/**
+ * Whether the visitor has hold of the map. MapLibre stops a running ease the instant a gesture
+ * handler turns active (`HandlerManager.handleEvent`, maplibre-gl-dev.mjs:22392) - firing that
+ * ease's `moveend` synchronously, with `isMoving()` already false and no `movestart` of the
+ * gesture yet - so this is the only way to tell that `moveend` from an ease running to its end.
+ */
+function isGestureActive(map: MapLibreMap): boolean {
+  return GESTURE_HANDLERS.some((name) => map[name].isActive());
 }
 
 /**
@@ -576,11 +604,18 @@ export class SpotMapComponent {
       spot,
       anchor: frame.anchor,
       fitted: false,
+      fittedWidth: 0,
     };
     this.open = open;
     // The width cap eases on a re-fit and the next fit must measure where it settled, not partway.
+    // An ease that ends on the width the fit measured, because the content was narrower than both
+    // caps, has nothing to re-measure.
     popup.getElement().addEventListener('transitionend', (event) => {
-      if (event.propertyName === 'max-width' && this.open === open) {
+      if (
+        event.propertyName === 'max-width' &&
+        this.open === open &&
+        popup.getElement().offsetWidth !== open.fittedWidth
+      ) {
         this.scheduleRefit(map, generation);
       }
     });
@@ -592,13 +627,22 @@ export class SpotMapComponent {
    * popup opened a moment ago, a drag, a fling, a zoom — is about to leave the position the pin
    * has now, so the popup waits hidden for the move's `moveend` and is fitted against the camera
    * that is left. Whatever moves the camera again before then is waited out the same way.
+   *
+   * A visitor with hold of the map wins: the popup is fitted and revealed where the map is, never
+   * panned. That is also what a grab during the wait looks like - it stops the ease being waited
+   * on, which fires its `moveend` before the drag has moved the camera - and a pan then would take
+   * the drag away from the visitor's finger.
    */
   private fitWhenSettled(map: MapLibreMap, open: OpenPopup): void {
     this.armedReveal = undefined;
     if (!map.isMoving()) {
       const fit = this.fitToCamera(map, open);
       if (fit) {
-        this.panThenReveal(map, open, fit.panBy);
+        this.panThenReveal(
+          map,
+          open,
+          isGestureActive(map) ? [0, 0] : fit.panBy,
+        );
       }
       return;
     }
@@ -649,6 +693,7 @@ export class SpotMapComponent {
   ): PopupFit {
     const { gallery, body } = open.ref.instance.naturalHeights();
     const element = open.popup.getElement();
+    open.fittedWidth = element.offsetWidth;
     const content = element.querySelector<HTMLElement>(
       '.maplibregl-popup-content',
     );
@@ -659,7 +704,7 @@ export class SpotMapComponent {
     const fit = fitPopup({
       box,
       pin,
-      width: element.offsetWidth,
+      width: open.fittedWidth,
       naturalGalleryHeight: gallery,
       naturalBodyHeight: body + chrome,
       keepAnchor,

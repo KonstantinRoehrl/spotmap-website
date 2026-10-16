@@ -1,3 +1,8 @@
+import {
+  ApplicationRef,
+  createComponent,
+  EnvironmentInjector,
+} from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { SpotFeature, SpotProperties } from '../../../models/spots/spot';
 import { SpotPopupComponent } from './spot-popup.component';
@@ -309,6 +314,49 @@ describe('SpotPopupComponent', () => {
     await nextFrames();
     fixture.detectChanges();
     expect(body(el).classList).not.toContain('spot-popup__body--more');
+  });
+
+  it('repaints the fade from the resize observer alone when the popup view is attached by hand', async () => {
+    // Built the way the map builds it: outside any template, its view attached to the application
+    // by hand and rendered once, then moved into the popup's container. Nothing renders it again
+    // except what the component schedules itself.
+    TestBed.overrideProvider(SPOTMAP_BACKEND, { useValue: BACKEND });
+    const appRef = TestBed.inject(ApplicationRef);
+    const ref = createComponent(SpotPopupComponent, {
+      environmentInjector: TestBed.inject(EnvironmentInjector),
+    });
+    ref.setInput(
+      'spot',
+      spot({ photos: [], notes: 'Gap into Bank, Polizei. '.repeat(40) }),
+    );
+    ref.setInput('scrolls', true);
+    appRef.attachView(ref.hostView);
+    ref.changeDetectorRef.detectChanges();
+    const el = ref.location.nativeElement as HTMLElement;
+    const scroller = body(el);
+    expect(scroller.classList)
+      .withContext('before it is laid out nothing is known to be at the end')
+      .toContain('spot-popup__body--more');
+
+    try {
+      document.body.append(el);
+      el.style.height = '4000px';
+      await nextFrames();
+      await appRef.whenStable();
+      expect(scroller.classList)
+        .withContext('the body fits whole: nothing is left below')
+        .not.toContain('spot-popup__body--more');
+
+      el.style.height = '60px';
+      await nextFrames();
+      await appRef.whenStable();
+      expect(scroller.classList)
+        .withContext('a smaller cap leaves content below the fold')
+        .toContain('spot-popup__body--more');
+    } finally {
+      el.remove();
+      ref.destroy();
+    }
   });
 
   it('scrolls on touch inside the map', () => {
