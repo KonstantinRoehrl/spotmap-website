@@ -31,7 +31,7 @@ import { statusFor } from './status.mjs';
  * @typedef {object} PreparedSpot
  * @property {string} id
  * @property {string} name the name with the city's own prefix stripped
- * @property {'active' | 'demolished' | 'unclassified'} status
+ * @property {'active' | 'demolished'} status
  * @property {[number, number]} coordinates `[lng, lat]`
  * @property {number} ordinal the main-map placemark's ordinal
  * @property {PhotoRef[]} photos main-map photos first, then each extra map's
@@ -177,8 +177,9 @@ export function reportMatchEntries(
 
 /**
  * Builds a city's GeoJSON and run report. Written photos become base-relative paths
- * (`spots/<city>/<file>`, the `SpotProperties.photos` contract); dead ones are left out of the
- * GeoJSON and listed in the report by spot, map and number. Per spot, in source order, a written
+ * (`spots/<city>/<file>`, the `DatasetSpotProperties.photos` contract in
+ * src/app/models/spots/spot.ts); dead ones are left out of the GeoJSON and listed in the report by
+ * spot, map and number. Per spot, in source order, a written
  * photo whose file equals a kept one is an exact duplicate; an extra-map photo within
  * {@link NEAR_DUPLICATE_MAX_DISTANCE} bits of a kept photo of another map is a near-duplicate
  * (the earlier, so the main map's, copy wins); both are left out of the GeoJSON and reported.
@@ -216,7 +217,7 @@ export function buildCity({
   const photosDuplicate = [];
   const photosNearDuplicate = [];
   const spotsWithoutPhotos = [];
-  const statusCounts = { active: 0, demolished: 0, unclassified: 0 };
+  const statusCounts = { active: 0, demolished: 0 };
   const linkCounts = Object.fromEntries(
     [map, ...extraMaps.map((extra) => extra.map)].map((slug) => [slug, {}]),
   );
@@ -397,7 +398,7 @@ function propertyFields(properties) {
  * A placemark's status from its pin colour.
  *
  * @param {import('./kml.mjs').Placemark} placemark
- * @returns {'active' | 'demolished' | 'unclassified'}
+ * @returns {'active' | 'demolished'}
  * @throws {Error} naming the placemark when its pin colour is unknown
  */
 function statusOf(placemark) {

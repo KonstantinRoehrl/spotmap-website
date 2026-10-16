@@ -6,13 +6,13 @@ import { strict as assert } from 'node:assert';
 import { test } from 'node:test';
 import { STATUS_BY_COLOUR, statusFor } from './status.mjs';
 
-test('the table holds exactly the colours measured in the exports', () => {
+test('the table holds exactly the colours measured in the exports (Decision 1: green is active)', () => {
   assert.deepEqual(STATUS_BY_COLOUR, {
     '0288D1': 'active',
     '3949AB': 'active',
     '006064': 'active',
     F57C00: 'demolished',
-    '7CB342': 'unclassified',
+    '7CB342': 'active',
   });
 });
 
@@ -27,7 +27,7 @@ test('reads the -labelson form', () => {
 });
 
 test('reads the -nodesc form', () => {
-  assert.equal(statusFor('#icon-1899-7CB342-nodesc'), 'unclassified');
+  assert.equal(statusFor('#icon-1899-7CB342-nodesc'), 'active');
 });
 
 test('reads a lower-case colour', () => {

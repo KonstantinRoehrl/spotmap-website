@@ -9,14 +9,16 @@
 
 /**
  * Pin colour — the six-hex group of a placemark `styleUrl`, upper-case — to `SpotStatus`
- * (`src/app/models/spots/spot.ts`).
+ * (`src/app/models/spots/spot.ts`). Decision 1 (2026-10-16): the three blues and the green
+ * "New added Spots" marker are `active` — green was a maintainer's workflow marker, never a spot
+ * state — and orange is `demolished`.
  */
 export const STATUS_BY_COLOUR = Object.freeze({
   '0288D1': 'active',
   '3949AB': 'active',
   '006064': 'active',
   F57C00: 'demolished',
-  '7CB342': 'unclassified',
+  '7CB342': 'active',
 });
 
 // `#icon-1899-0288D1`, `#icon-1899-0288D1-labelson`, `#icon-1899-0288D1-nodesc`.
@@ -26,7 +28,7 @@ const PIN_COLOUR = /^#icon-\d+-([0-9A-F]{6})(?:-|$)/i;
  * Returns the status a placemark's pin colour stands for.
  *
  * @param {string} styleUrl the placemark's `styleUrl`, e.g. `#icon-1899-0288D1-labelson`
- * @returns {'active' | 'demolished' | 'unclassified'}
+ * @returns {'active' | 'demolished'}
  * @throws {Error} when the style carries no pin colour, or one outside {@link STATUS_BY_COLOUR}
  */
 export function statusFor(styleUrl) {
