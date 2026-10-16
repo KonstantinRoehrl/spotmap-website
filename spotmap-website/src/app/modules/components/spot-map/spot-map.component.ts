@@ -19,10 +19,10 @@ import type {
   MapLayerMouseEvent,
   Popup as MapLibrePopup,
 } from 'maplibre-gl';
-import { firstValueFrom } from 'rxjs';
+import { filter, lastValueFrom } from 'rxjs';
 import { CityEnum, MapFailureReason } from '../../../models/enums/map-enum';
 import { SpotCollection } from '../../../models/spots/spot';
-import { SpotsService } from '../../../services/spots.service';
+import { SpotsLoaded, SpotsService } from '../../../services/spots.service';
 import { prefersReducedMotion } from '../../../utils/prefers-reduced-motion';
 import {
   SPOT_POPUP_FRAME_CLASS,
@@ -186,7 +186,12 @@ export class SpotMapComponent {
 
     let collection: SpotCollection;
     try {
-      collection = await firstValueFrom(this.spots.loadSpots(city));
+      const loaded = await lastValueFrom(
+        this.spots
+          .loadSpots(city)
+          .pipe(filter((event): event is SpotsLoaded => event.type === 'done')),
+      );
+      collection = loaded.collection;
     } catch {
       this.fail('unreachable', generation);
       return;

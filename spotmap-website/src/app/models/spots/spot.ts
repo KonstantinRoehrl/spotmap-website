@@ -58,8 +58,8 @@ export interface SpotFeature {
 /**
  * The GeoJSON `FeatureCollection` of a city's spots: the live `city_spots()` answer, or the
  * bundled `spots/{city}.geojson` snapshot promoted from data/spots/ by
- * tools/extract-spots/promote.mjs — the same shape either way. Fetched by
- * `SpotsService.loadSpots()`; `SpotMapComponent` feeds it straight into MapLibre as the pins
+ * tools/extract-spots/promote.mjs — the same shape either way. The collection
+ * `SpotsService.loadSpots()` ends with; `SpotMapComponent` feeds it straight into MapLibre as the pins
  * source.
  */
 export interface SpotCollection {
