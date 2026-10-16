@@ -60,3 +60,26 @@
   background: color-mix(in srgb, var(--color-surface) 80%, transparent);
   padding: 1px 4px;
 }
+
+/* A photo that did not load gets the map's own failure voice instead of the browser's
+   broken-image glyph, inside the same 4:3 panel so the popup does not jump. */
+.gallery__placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-align: center;
+  color: var(--color-phosphor);
+  text-shadow: var(--glow-text-rest);
+}
+
+.gallery__placeholder-line--dim {
+  color: var(--color-phosphor-dim);
+  text-shadow: none;
+}

@@ -59,4 +59,57 @@ describe('SpotPhotoGalleryComponent', () => {
     const img: HTMLImageElement = fixture.nativeElement.querySelector('img');
     expect(img.getAttribute('alt')).toBe('Hbf Curb, photo 1 of 2');
   });
+
+  /** Fails the image currently on screen, the way a dead URL would. */
+  function failCurrentImage() {
+    fixture.nativeElement
+      .querySelector('img')
+      .dispatchEvent(new Event('error'));
+    fixture.detectChanges();
+  }
+
+  it('shows an in-style placeholder instead of a broken image', () => {
+    create(['a.webp', 'b.webp']);
+    failCurrentImage();
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.querySelector('img')).toBeNull();
+    const placeholder = el.querySelector('.gallery__placeholder');
+    expect(placeholder?.getAttribute('role')).toBe('img');
+    expect(placeholder?.getAttribute('aria-label')).toBe(
+      'Hbf Curb, photo 1 of 2, did not load',
+    );
+    expect(placeholder?.textContent?.replace(/\s+/g, ' ').trim()).toBe(
+      '> SIGNAL LOST PHOTO UNREACHABLE',
+    );
+  });
+
+  it('keeps the counter and the arrows working past a broken photo', () => {
+    const c = create(['a.webp', 'b.webp']);
+    failCurrentImage();
+    expect(fixture.nativeElement.textContent).toContain('[1/2]');
+    expect(fixture.nativeElement.querySelectorAll('button').length).toBe(2);
+    c.next();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('img').getAttribute('src')).toBe(
+      'b.webp',
+    );
+    expect(fixture.nativeElement.textContent).toContain('[2/2]');
+    c.previous();
+    fixture.detectChanges();
+    expect(
+      fixture.nativeElement.querySelector('.gallery__placeholder'),
+    ).not.toBeNull();
+  });
+
+  it('fails only the photo that broke', () => {
+    const c = create(['a.webp', 'b.webp', 'c.webp']);
+    c.next();
+    fixture.detectChanges();
+    failCurrentImage();
+    c.next();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('img').getAttribute('src')).toBe(
+      'c.webp',
+    );
+  });
 });

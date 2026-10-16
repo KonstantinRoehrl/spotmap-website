@@ -3,13 +3,27 @@
   (touchstart)="onTouchStart($event)"
   (touchend)="onTouchEnd($event)"
 >
-  <img
-    class="gallery__photo"
-    [src]="current()"
-    [alt]="altText()"
-    loading="lazy"
-    decoding="async"
-  />
+  @if (currentFailed()) {
+    <div
+      class="gallery__placeholder"
+      role="img"
+      [attr.aria-label]="placeholderLabel()"
+    >
+      <span class="gallery__placeholder-line">&gt; SIGNAL LOST</span>&ngsp;<span
+        class="gallery__placeholder-line gallery__placeholder-line--dim"
+        >PHOTO UNREACHABLE</span
+      >
+    </div>
+  } @else {
+    <img
+      class="gallery__photo"
+      [src]="current()"
+      [alt]="altText()"
+      loading="lazy"
+      decoding="async"
+      (error)="onImageError($event)"
+    />
+  }
 
   @if (hasMany()) {
     <button
