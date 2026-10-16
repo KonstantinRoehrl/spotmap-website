@@ -33,7 +33,7 @@
   align-items: center;
   text-decoration: none;
   color: var(--color-phosphor);
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   overflow: visible;
   transition: all 0.3s ease;
   /* Softer than the global --glow-text-rest (a 2/4/6px full-opacity stack that
@@ -220,7 +220,7 @@
   .nav-bar a {
     flex-direction: row;
     gap: 0.3rem;
-    border-radius: 8px;
+    border-radius: var(--radius-lg);
     overflow: visible;
     position: relative;
   }

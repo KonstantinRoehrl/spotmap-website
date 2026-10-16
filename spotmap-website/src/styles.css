@@ -75,9 +75,10 @@
   /* Typography — one monospace grid */
   --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
 
-  /* Radius — sharp, the terminal has edges */
-  --radius-sm: 2px;
-  --radius-md: 4px;
+  /* Radius — soft CRT corners on the R1 scale; no pills, the pin stays the only circle */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
 
   /* Edge glow (box-shadow) — elevation is bloom, never a gray shadow.
      Wide 24–30px halos are for non-text chrome only (Bloom-Budget). */
@@ -106,6 +107,7 @@
   --dur-glitch: 80ms; /* per-character glitch scramble (GlitchText) */
   --dur-type: 40ms; /* typewriter cadence (design.json range 35–45ms) */
   --dur-fast: 200ms; /* hover/focus glow, tab changes */
+  --dur-fade: 200ms; /* the one fade length reduced motion keeps (DESIGN.md motion rule) */
   --dur-glow-fade: 1000ms; /* slow phosphor-decay fade-out */
 }
 
@@ -156,7 +158,7 @@ body {
 .spot-popup-frame .maplibregl-popup-content {
   background: var(--color-surface);
   border: 1px solid var(--color-line);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   box-shadow: var(--glow-edge-frame);
   padding: 8px;
 }
@@ -203,13 +205,14 @@ body {
 }
 
 /* --------------------
-   Reduced-motion safety-net (DESIGN.md motion rule)
-   Neutralizes every CSS transition/animation app-wide so heavy motion
-   collapses to its static end-state — covers the nav phosphor-glow
-   transitions, map-container transitions, and the styles.css transition
-   in one place. JS-interval-driven motion (glitch scramble, matrix loader,
-   nav radial/touch glow) is additionally guarded in TS via matchMedia,
-   since CSS alone cannot stop a setInterval.
+   Reduced-motion safety-net (DESIGN.md motion rule: still frame, changes fade)
+   Movement stops, fades stay. Keyframe animations end at once, which leaves every
+   sprite and loop on a still frame; transitions keep only the properties that fade
+   in place, all at --dur-fade, so nothing slides, grows or turns and nothing cuts
+   hard either. A component that needs one more property to fade (the loader's bar
+   width) re-adds it with its own !important rule. JS-driven motion (glitch scramble,
+   nav radial/touch glow, the popup's Web Animations) is guarded in TS through
+   prefersReducedMotion(), since CSS cannot reach it.
    `!important` is intentional here — it must override component-level
    transition declarations regardless of specificity.
 -------------------- */
@@ -219,7 +222,11 @@ body {
   *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    transition-property:
+      opacity, color, background-color, border-color, outline-color, box-shadow,
+      text-shadow !important;
+    transition-duration: var(--dur-fade) !important;
+    transition-delay: 0s !important;
     scroll-behavior: auto !important;
   }
 }

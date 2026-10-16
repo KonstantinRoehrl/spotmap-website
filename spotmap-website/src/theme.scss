@@ -92,13 +92,8 @@ html {
   --mat-sys-error: var(--color-danger);
   --mat-sys-on-error: var(--color-bg);
 
-  // Sharp corners — the terminal has edges (DESIGN §4, sharp 0–4px).
-  // The outlined field reads its radius from `--mat-sys-corner-extra-small`
-  // (M3 default 4px); pin it to the design's --radius-md so the field keeps
-  // a hard 4px corner regardless of future M3 default drift. (The select
-  // PANEL already ships a hardcoded 4px radius and options are square, so
-  // this token is what carries the field's sharp corner now that the legacy
-  // `.mat-mdc-select-trigger { border-radius: 4px }` override is gone.)
+  // Soft corners on the R1 scale (DESIGN §4): the outlined field reads its
+  // radius from `--mat-sys-corner-extra-small`; pin it to --radius-md.
   --mat-sys-corner-extra-small: var(--radius-md);
 
   // Glow-Is-The-Shadow (DESIGN §4): replace the select panel's stock gray
@@ -142,7 +137,16 @@ html {
   backdrop-filter: blur(10px);
 }
 
-// --- Options: text glow, sharp corners, hover bloom, glow transition ---
+// --- Panel corners: Material hard-codes 4px on `div.mat-mdc-select-panel`, flat on the side
+// that meets the field; the overlay pane in front of it outranks that without forcing priority.
+.cdk-overlay-pane div.mat-mdc-select-panel {
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+}
+.cdk-overlay-pane.mat-mdc-select-panel-above div.mat-mdc-select-panel {
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
+// --- Options: text glow, soft corners, hover bloom, glow transition ---
 .mat-mdc-option {
   border-radius: var(--radius-sm);
   transition: box-shadow var(--dur-fast) var(--ease-out-expo);
