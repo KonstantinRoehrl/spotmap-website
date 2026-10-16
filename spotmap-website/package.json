@@ -15,6 +15,8 @@
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",
     "db:test": "supabase test db",
+    "sync:supabase": "node --env-file-if-exists=.env.local tools/sync-supabase/cli.mjs",
+    "parity:supabase": "node --env-file-if-exists=.env.local tools/sync-supabase/parity.mjs",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "test:tools": "node --test \"tools/**/*.test.mjs\"",

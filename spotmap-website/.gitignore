@@ -54,3 +54,6 @@ src/.impeccable/
 /data/thumbs/
 /data/**/*.tmp
 /public/spots/*.tmp
+
+# The Supabase sync's secret key (tools/sync-supabase, see .env.example). Never committed.
+.env.local
