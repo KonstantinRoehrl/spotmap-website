@@ -1,0 +1,43 @@
+<div class="loader">
+  <app-ascii-rain
+    class="loader__rain"
+    [columns]="40"
+    [fillWidth]="true"
+    [rows]="60"
+    [pace]="rainPace()"
+  />
+  <div class="loader__plate">
+    <div class="loader__name">
+      @for (cell of cells(); track $index) {
+        <span
+          class="loader__cell"
+          [class.loader__cell--locked]="$index < lockedCount()"
+          [style.--cell-duration]="cell.durationMs + 'ms'"
+          [style.--cell-offset]="cell.offsetMs + 'ms'"
+        >
+          <pre class="loader__scramble">{{ cell.strip }}</pre>
+          <span class="loader__letter">{{ cell.letter }}</span>
+        </span>
+      }
+    </div>
+    <div class="loader__bar">
+      <i
+        class="loader__fill"
+        [style.width.%]="state().progress * 100"
+        (transitionend)="onFillTransitionEnd($event)"
+      ></i>
+    </div>
+    <div class="loader__steps">
+      @for (item of steps; track item.step) {
+        <span class="loader__step--{{ stepState(item.step) }}">{{
+          item.label
+        }}</span>
+      }
+    </div>
+    <div class="loader__note">
+      @if (state().fallback) {
+        <span class="loader__fallback">LIVE FEED DOWN · ARCHIVE COPY</span>
+      }
+    </div>
+  </div>
+</div>

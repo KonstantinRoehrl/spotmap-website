@@ -1,3 +1,8 @@
+import {
+  ApplicationRef,
+  createComponent,
+  EnvironmentInjector,
+} from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { SpotFeature, SpotProperties } from '../../../models/spots/spot';
 import { SpotPopupComponent } from './spot-popup.component';
@@ -43,6 +48,46 @@ function painted(property: 'color' | 'text-shadow', token: string): string {
   return value;
 }
 
+/** Waits for the browser to lay out and report size changes, which it does once per frame. */
+function nextFrames(): Promise<void> {
+  return new Promise((resolve) =>
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+  );
+}
+
+/**
+ * The declarations the stylesheets give `selector` inside a `prefers-reduced-motion: reduce` block,
+ * read from the loaded rules because Karma cannot switch the OS preference on. `selector` is matched
+ * against each comma-separated selector with Angular's component-scope attribute stripped, so a
+ * component rule and a global one are found the same way.
+ */
+function reducedMotionRules(selector: string): CSSStyleDeclaration[] {
+  const found: CSSStyleDeclaration[] = [];
+  const scan = (rules: CSSRuleList, reduced: boolean) => {
+    for (const rule of Array.from(rules)) {
+      if (rule instanceof CSSMediaRule) {
+        scan(
+          rule.cssRules,
+          reduced || rule.conditionText.includes('prefers-reduced-motion'),
+        );
+      } else if (rule instanceof CSSStyleRule && reduced) {
+        const selectors = rule.selectorText
+          .split(',')
+          .map((part) => part.replace(/\[_ng[a-z]+-[^\]]*\]/g, '').trim());
+        if (selectors.includes(selector)) found.push(rule.style);
+      }
+    }
+  };
+  for (const sheet of Array.from(document.styleSheets)) {
+    try {
+      scan(sheet.cssRules, false);
+    } catch {
+      // A cross-origin sheet has no readable rules and none of ours.
+    }
+  }
+  return found;
+}
+
 describe('SpotPopupComponent', () => {
   let fixture: ComponentFixture<SpotPopupComponent>;
 
@@ -63,11 +108,18 @@ describe('SpotPopupComponent', () => {
     return fixture.nativeElement as HTMLElement;
   }
 
-  /** The popup's direct children by class, in DOM order. */
-  function order(el: HTMLElement): string[] {
-    return [...el.querySelector('.spot-popup')!.children].map(
+  /** The direct children of the element matching `selector`, by class, in DOM order. */
+  function order(el: HTMLElement, selector = '.spot-popup'): string[] {
+    return [...el.querySelector(selector)!.children].map(
       (child) => child.classList[0] ?? child.tagName.toLowerCase(),
     );
+  }
+
+  /** The scroller below the gallery; expects it to exist, so a missing one fails as an assertion. */
+  function body(el: HTMLElement): HTMLElement {
+    const scroller = el.querySelector<HTMLElement>('.spot-popup__body');
+    expect(scroller).withContext('the popup has a body scroller').toBeTruthy();
+    return scroller!;
   }
 
   it('names the spot', () => {
@@ -86,8 +138,11 @@ describe('SpotPopupComponent', () => {
     expect(el.querySelector('.spot-popup__rights')?.textContent?.trim()).toBe(
       '© all rights reserved',
     );
-    expect(order(el).slice(0, 3)).toEqual([
-      'app-spot-photo-gallery',
+    expect(order(el).slice(0, 2)).toEqual([
+      'spot-popup__gallery',
+      'spot-popup__body',
+    ]);
+    expect(order(el, '.spot-popup__body').slice(0, 2)).toEqual([
       'spot-popup__rights',
       'spot-popup__name',
     ]);
@@ -110,13 +165,13 @@ describe('SpotPopupComponent', () => {
     expect(notes.textContent).toBe('Gap into Bank??\nVon Polizei gekickt');
     expect(getComputedStyle(notes).whiteSpace).toBe('pre-line');
     expect(getComputedStyle(notes).textTransform).toBe('none');
-    expect(order(el)).toEqual([
-      'app-spot-photo-gallery',
+    expect(order(el, '.spot-popup__body')).toEqual([
       'spot-popup__rights',
       'spot-popup__name',
       'spot-popup__notes',
       'spot-popup__status',
       'spot-popup__directions',
+      'spot-popup__fade',
     ]);
   });
 
@@ -199,5 +254,216 @@ describe('SpotPopupComponent', () => {
     expect(el.querySelector('app-spot-photo-gallery')).toBeNull();
     expect(el.querySelector('.spot-popup__rights')).toBeNull();
     expect(el.textContent).toContain('Donaupark');
+  });
+
+  it('renders its own close button and reports a press', () => {
+    const el = create(spot({ name: 'Alpha Bank' }));
+    const pressed = jasmine.createSpy('closeRequested');
+    fixture.componentInstance.closeRequested.subscribe(pressed);
+    const close = el.querySelector<HTMLElement>('button.spot-popup__close');
+    expect(close?.getAttribute('aria-label')).toBe('Close Alpha Bank');
+    close?.click();
+    expect(pressed).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the close button a 44 px target', () => {
+    const close =
+      create(spot()).querySelector<HTMLElement>('.spot-popup__close');
+    expect(close?.offsetWidth).toBe(44);
+    expect(close?.offsetHeight).toBe(44);
+  });
+
+  it('puts everything below the gallery in one scroller', () => {
+    const el = create(spot({ notes: 'Big', status: 'demolished' }));
+    const scroller = body(el);
+    for (const part of [
+      '.spot-popup__rights',
+      '.spot-popup__name',
+      '.spot-popup__notes',
+      '.spot-popup__status',
+      '.spot-popup__directions',
+    ]) {
+      expect(scroller.querySelector(part)).withContext(part).not.toBeNull();
+    }
+    expect(scroller.querySelector('app-spot-photo-gallery')).toBeNull();
+    expect(el.querySelector('app-spot-photo-gallery')).not.toBeNull();
+  });
+
+  it('fades the bottom edge only while more is below', () => {
+    const el = create(
+      spot({ photos: [], notes: 'Gap into Bank, Polizei. '.repeat(40) }),
+    );
+    expect(body(el).classList).not.toContain('spot-popup__body--more');
+
+    fixture.componentRef.setInput('scrolls', true);
+    el.style.height = '120px';
+    fixture.detectChanges();
+    expect(body(el).classList).toContain('spot-popup__body--more');
+
+    const scroller = body(el);
+    expect(scroller.scrollHeight)
+      .withContext('the notes overflow the capped body')
+      .toBeGreaterThan(scroller.clientHeight);
+    scroller.scrollTop = scroller.scrollHeight;
+    scroller.dispatchEvent(new Event('scroll'));
+    fixture.detectChanges();
+    expect(body(el).classList).not.toContain('spot-popup__body--more');
+  });
+
+  it('brings the fade back when a shrinking cap leaves content below a body scrolled to its end', async () => {
+    const el = create(
+      spot({ photos: [], notes: 'Gap into Bank, Polizei. '.repeat(40) }),
+    );
+    fixture.componentRef.setInput('scrolls', true);
+    el.style.height = '120px';
+    fixture.detectChanges();
+    const scroller = body(el);
+    scroller.scrollTop = scroller.scrollHeight;
+    scroller.dispatchEvent(new Event('scroll'));
+    fixture.detectChanges();
+    expect(scroller.classList).not.toContain('spot-popup__body--more');
+
+    // The map re-fits the popup to a smaller visible space: the scroll position is untouched, so
+    // no scroll event follows, yet the shorter body now has content below its fold.
+    el.style.height = '60px';
+    await nextFrames();
+    fixture.detectChanges();
+    expect(scroller.scrollTop + scroller.clientHeight)
+      .withContext('content is below the shrunken fold')
+      .toBeLessThan(scroller.scrollHeight - 1);
+    expect(scroller.classList).toContain('spot-popup__body--more');
+  });
+
+  it('hides the fade again when a growing cap shows the whole body', async () => {
+    const el = create(
+      spot({ photos: [], notes: 'Gap into Bank, Polizei. '.repeat(40) }),
+    );
+    fixture.componentRef.setInput('scrolls', true);
+    el.style.height = '120px';
+    fixture.detectChanges();
+    expect(body(el).classList).toContain('spot-popup__body--more');
+
+    el.style.height = '4000px';
+    await nextFrames();
+    fixture.detectChanges();
+    expect(body(el).classList).not.toContain('spot-popup__body--more');
+  });
+
+  it('repaints the fade from the resize observer alone when the popup view is attached by hand', async () => {
+    // Built the way the map builds it: outside any template, its view attached to the application
+    // by hand and rendered once, then moved into the popup's container. Nothing renders it again
+    // except what the component schedules itself.
+    TestBed.overrideProvider(SPOTMAP_BACKEND, { useValue: BACKEND });
+    const appRef = TestBed.inject(ApplicationRef);
+    const ref = createComponent(SpotPopupComponent, {
+      environmentInjector: TestBed.inject(EnvironmentInjector),
+    });
+    ref.setInput(
+      'spot',
+      spot({ photos: [], notes: 'Gap into Bank, Polizei. '.repeat(40) }),
+    );
+    ref.setInput('scrolls', true);
+    appRef.attachView(ref.hostView);
+    ref.changeDetectorRef.detectChanges();
+    const el = ref.location.nativeElement as HTMLElement;
+    const scroller = body(el);
+    expect(scroller.classList)
+      .withContext('before it is laid out nothing is known to be at the end')
+      .toContain('spot-popup__body--more');
+
+    try {
+      document.body.append(el);
+      el.style.height = '4000px';
+      await nextFrames();
+      await appRef.whenStable();
+      expect(scroller.classList)
+        .withContext('the body fits whole: nothing is left below')
+        .not.toContain('spot-popup__body--more');
+
+      el.style.height = '60px';
+      await nextFrames();
+      await appRef.whenStable();
+      expect(scroller.classList)
+        .withContext('a smaller cap leaves content below the fold')
+        .toContain('spot-popup__body--more');
+    } finally {
+      el.remove();
+      ref.destroy();
+    }
+  });
+
+  it('draws the directions link focus ring inside the scroller, so its clip never cuts it', () => {
+    const el = create(spot());
+    const link = el.querySelector<HTMLElement>('.spot-popup__directions')!;
+    link.focus();
+    expect(link.matches(':focus-visible'))
+      .withContext('the link shows its keyboard focus ring')
+      .toBeTrue();
+
+    const ring = getComputedStyle(link);
+    const reach =
+      parseFloat(ring.outlineOffset) + parseFloat(ring.outlineWidth);
+    const box = link.getBoundingClientRect();
+    const clip = body(el).getBoundingClientRect();
+    expect(box.left - reach)
+      .withContext('ring left edge')
+      .toBeGreaterThanOrEqual(clip.left);
+    expect(box.right + reach)
+      .withContext('ring right edge')
+      .toBeLessThanOrEqual(clip.right);
+    expect(box.top - reach)
+      .withContext('ring top edge')
+      .toBeGreaterThanOrEqual(clip.top);
+    expect(box.bottom + reach)
+      .withContext('ring bottom edge')
+      .toBeLessThanOrEqual(clip.bottom);
+  });
+
+  it('eases the popup frame height under reduced motion, since the net would snap it', () => {
+    const frame = reducedMotionRules(
+      '.spot-popup-frame .maplibregl-popup-content',
+    );
+    expect(frame.length)
+      .withContext('a reduced-motion rule for the popup frame content')
+      .toBeGreaterThan(0);
+    for (const rule of frame) {
+      expect(rule.transitionProperty).toContain('max-height');
+      expect(rule.getPropertyPriority('transition-property')).toBe('important');
+      expect(rule.transitionDuration).toBe('var(--dur-fade)');
+    }
+  });
+
+  it('eases the gallery height under reduced motion, since the net would snap it', () => {
+    const gallery = reducedMotionRules('.spot-popup-frame .gallery');
+    expect(gallery.length)
+      .withContext('a reduced-motion rule for the gallery')
+      .toBeGreaterThan(0);
+    for (const rule of gallery) {
+      expect(rule.transitionProperty).toBe('height');
+      expect(rule.getPropertyPriority('transition-property')).toBe('important');
+      expect(rule.transitionDuration).toBe('var(--dur-fade)');
+    }
+  });
+
+  it('scrolls on touch inside the map', () => {
+    const style = getComputedStyle(body(create(spot())));
+    expect(style.touchAction).toBe('pan-y');
+    expect(style.overscrollBehaviorY).toBe('contain');
+  });
+
+  it('measures its natural heights', () => {
+    const el = create(spot());
+    el.style.width = '302px';
+    const heights = fixture.componentInstance.naturalHeights();
+    const gallery = el.querySelector('app-spot-photo-gallery') as HTMLElement;
+    expect(heights.gallery).toBeCloseTo(226.5, 0);
+    expect(heights.body).toBe(el.offsetHeight - gallery.offsetHeight);
+    expect(heights.body).toBeGreaterThan(0);
+
+    fixture.componentRef.setInput('spot', spot({ photos: [] }));
+    fixture.detectChanges();
+    const bareHeights = fixture.componentInstance.naturalHeights();
+    expect(bareHeights.gallery).toBe(0);
+    expect(bareHeights.body).toBe(el.offsetHeight);
   });
 });

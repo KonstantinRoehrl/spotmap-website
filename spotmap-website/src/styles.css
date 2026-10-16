@@ -75,9 +75,10 @@
   /* Typography — one monospace grid */
   --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
 
-  /* Radius — sharp, the terminal has edges */
-  --radius-sm: 2px;
-  --radius-md: 4px;
+  /* Radius — soft CRT corners on the R1 scale; no pills, the pin stays the only circle */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
 
   /* Edge glow (box-shadow) — elevation is bloom, never a gray shadow.
      Wide 24–30px halos are for non-text chrome only (Bloom-Budget). */
@@ -106,6 +107,7 @@
   --dur-glitch: 80ms; /* per-character glitch scramble (GlitchText) */
   --dur-type: 40ms; /* typewriter cadence (design.json range 35–45ms) */
   --dur-fast: 200ms; /* hover/focus glow, tab changes */
+  --dur-fade: 200ms; /* the one fade length reduced motion keeps (DESIGN.md motion rule) */
   --dur-glow-fade: 1000ms; /* slow phosphor-decay fade-out */
 }
 
@@ -143,8 +145,8 @@ body {
 
 /* --------------------
    MapLibre popup frame — the one piece of map chrome MapLibre paints itself
-   It builds the popup's content box, tip and close button outside any component's
-   DOM and ships them white (maplibre-gl.css: `.maplibregl-popup-content{...
+   It builds the popup's content box and tip outside any component's DOM and ships
+   them white (maplibre-gl.css: `.maplibregl-popup-content{...
    background:#fff}`, `.maplibregl-popup-anchor-* .maplibregl-popup-tip{...
    border-*-color:#fff}`), which the No-White Rule forbids. Repainting it therefore
    belongs here, in the global layer, rather than in a component's scoped styles.
@@ -156,9 +158,45 @@ body {
 .spot-popup-frame .maplibregl-popup-content {
   background: var(--color-surface);
   border: 1px solid var(--color-line);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   box-shadow: var(--glow-edge-frame);
   padding: 8px;
+  /* The map caps the box to the visible map through this variable (POPUP_MAX_HEIGHT_VAR);
+     border-box so the cap includes padding and border, and a flex column so the cap reaches
+     SpotPopupComponent's scroller instead of overflowing the frame. */
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  max-height: var(--spot-popup-max-height, none);
+  transition: max-height var(--dur-fast) ease-out;
+}
+
+/* The cap's ease and the gallery's height ease are a fit settling, not movement: both survive the
+   reduced-motion net below, at the net's --dur-fade. The gallery's rule is gated behind the popup
+   frame so no other gallery use is affected. */
+@media (prefers-reduced-motion: reduce) {
+  .spot-popup-frame .maplibregl-popup-content {
+    transition-property: max-height !important;
+    transition-duration: var(--dur-fade) !important;
+  }
+
+  .spot-popup-frame .gallery {
+    transition-property: height !important;
+    transition-duration: var(--dur-fade) !important;
+  }
+}
+
+/* MapLibre writes a re-fit's width cap (Popup.setMaxWidth) to this container's max-width, so the
+   width eases here while the cap and gallery height ease on the content box above. */
+.spot-popup-frame {
+  transition: max-width var(--dur-fast) ease-out;
+}
+
+/* A popup is created hidden while the map measures and fits it, then faded in. Its first fit sets
+   the width cap with no easing, so the fit measures the width the popup is heading for. */
+.spot-popup-frame--pending {
+  opacity: 0;
+  transition: none;
 }
 
 .spot-popup-frame.maplibregl-popup-anchor-top .maplibregl-popup-tip,
@@ -181,35 +219,15 @@ body {
   border-left-color: var(--color-line);
 }
 
-/* Thumb-sized and phosphor, with the repo's focus ring pulled inside the frame's border. */
-.spot-popup-frame .maplibregl-popup-close-button {
-  width: 44px;
-  height: 44px;
-  font-family: var(--font-mono);
-  font-size: 1.25rem;
-  line-height: 1;
-  color: var(--color-phosphor-dim);
-  background: transparent;
-}
-
-.spot-popup-frame .maplibregl-popup-close-button:hover {
-  color: var(--color-phosphor);
-  background: transparent;
-}
-
-.spot-popup-frame .maplibregl-popup-close-button:focus-visible {
-  outline: 1px solid var(--color-phosphor);
-  outline-offset: -2px;
-}
-
 /* --------------------
-   Reduced-motion safety-net (DESIGN.md motion rule)
-   Neutralizes every CSS transition/animation app-wide so heavy motion
-   collapses to its static end-state — covers the nav phosphor-glow
-   transitions, map-container transitions, and the styles.css transition
-   in one place. JS-interval-driven motion (glitch scramble, matrix loader,
-   nav radial/touch glow) is additionally guarded in TS via matchMedia,
-   since CSS alone cannot stop a setInterval.
+   Reduced-motion safety-net (DESIGN.md motion rule: still frame, changes fade)
+   Movement stops, fades stay. Keyframe animations end at once, which leaves every
+   sprite and loop on a still frame; transitions keep only the properties that fade
+   in place, all at --dur-fade, so nothing slides, grows or turns and nothing cuts
+   hard either. A component that needs one more property to fade (the loader's bar
+   width) re-adds it with its own !important rule. JS-driven motion (glitch scramble,
+   nav radial/touch glow, the popup's Web Animations) is guarded in TS through
+   prefersReducedMotion(), since CSS cannot reach it.
    `!important` is intentional here — it must override component-level
    transition declarations regardless of specificity.
 -------------------- */
@@ -219,7 +237,11 @@ body {
   *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    transition-property:
+      opacity, color, background-color, border-color, outline-color, box-shadow,
+      text-shadow !important;
+    transition-duration: var(--dur-fade) !important;
+    transition-delay: 0s !important;
     scroll-behavior: auto !important;
   }
 }

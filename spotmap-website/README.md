@@ -33,7 +33,7 @@ npm test          # unit tests (Karma/Jasmine, headless-capable)
 src/
   app/
     modules/
-      components/   # nav-bar, map-container, loading-bar, ascii-animation-text
+      components/   # nav-bar, map-container, map-loader, ascii-rain, ascii-animation-text
       pages/        # home, map, about (routed)
       directives/   # glitch-text (per-character scramble)
     models/enums/   # city / country / config data (SUPPORTED_CITIES)
@@ -384,7 +384,7 @@ before the branch that turns the backend on is merged:
 
 The visual North Star and its rules — two-phosphor palette (green voice + amber
 for care/selection), the No-White rule, glow-as-depth (no drop-shadows),
-monospace everything, and sharp 0–4px corners — live in `PRODUCT.md` and
+monospace everything, and soft 4/6/8 px corners — live in `PRODUCT.md` and
 `DESIGN.md` at the repository root.
 
 ## Deployment

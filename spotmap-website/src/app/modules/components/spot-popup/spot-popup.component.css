@@ -1,13 +1,85 @@
+/* The flex chain from MapLibre's capped content box down to the body: each link may shrink below
+   its content (min-height: 0), so the cap reaches the scroller instead of overflowing the frame. */
 :host {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .spot-popup {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: 6px;
   font-family: var(--font-mono);
   color: var(--color-phosphor);
+}
+
+/* The photos keep their height; only the body below them gives way to the cap. */
+.spot-popup__gallery {
+  flex: none;
+}
+
+/* The one scroller. pan-y because the canvas host's touch-action: none would otherwise swallow a
+   finger drag here; contain so reaching the end never scrolls the page or pans the map. */
+.spot-popup__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+}
+
+/* Sticky to the body's bottom edge, and pulled up by its own height so it takes no room: a hint
+   that more is below, which fades out once the body is scrolled to its end. */
+.spot-popup__fade {
+  position: sticky;
+  bottom: 0;
+  flex: none;
+  height: 24px;
+  margin-top: -24px;
+  background: linear-gradient(to bottom, transparent, var(--color-surface));
+  opacity: 0;
+  transition: opacity var(--dur-fast) ease-out;
+  pointer-events: none;
+}
+
+.spot-popup__body--more .spot-popup__fade {
+  opacity: 1;
+}
+
+/* Thumb-sized and phosphor, in the content box's top-right corner: the offsets cancel the frame's
+   8 px padding, and the focus ring is pulled inside so the frame's border never clips it. */
+.spot-popup__close {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 0 var(--radius-md) 0 0;
+  font-family: var(--font-mono);
+  font-size: 1.25rem;
+  line-height: 1;
+  color: var(--color-phosphor-dim);
+  background: transparent;
+  cursor: pointer;
+}
+
+.spot-popup__close:hover {
+  color: var(--color-phosphor);
+}
+
+.spot-popup__close:focus-visible {
+  outline: 1px solid var(--color-phosphor);
+  outline-offset: -2px;
 }
 
 .spot-popup__name {
@@ -73,7 +145,10 @@
   text-shadow: var(--glow-text-hot);
 }
 
+/* The link sits flush against the scroller's edge, which clips anything outside it, so the ring
+   is pulled inside like the close button's instead of being cut off on the left. The link is
+   44 px tall, so an inset ring leaves it readable. */
 .spot-popup__directions:focus-visible {
   outline: 1px solid var(--color-phosphor);
-  outline-offset: 2px;
+  outline-offset: -2px;
 }

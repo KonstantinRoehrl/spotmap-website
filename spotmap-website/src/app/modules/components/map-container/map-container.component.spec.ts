@@ -6,6 +6,7 @@ import {
   fakeAsync,
   tick,
 } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 
 import { CityEnum, MapFailureReason } from '../../../models/enums/map-enum';
 import {
@@ -13,12 +14,17 @@ import {
   MAP_FACTORY,
   POPUP_FACTORY,
 } from '../spot-map/map-factory.token';
+import { MapLoaderComponent } from '../map-loader/map-loader.component';
 import { SpotMapComponent } from '../spot-map/spot-map.component';
+import {
+  INITIAL_MAP_LOAD_STATE,
+  MapLoadEvent,
+  MapLoadState,
+} from './map-load-progress';
 import { MapContainerComponent } from './map-container.component';
 
-// Mirror the private timing constants in map-container.component.ts.
+// Mirror the private watchdog constant in map-container.component.ts.
 const LOAD_TIMEOUT_MS = 15_000;
-const REVEAL_DELAY_MS = 700;
 
 /**
  * SpotMapComponent injects both maplibre factories and the elevation loader the moment it is
@@ -41,6 +47,13 @@ describe('MapContainerComponent', () => {
         { provide: ELEVATION_LOADER, useValue: neverResolves },
       ],
     }).compileComponents();
+
+    // Headless Chrome hands out no WebGL context, so the map would fail as `unsupported` the
+    // moment it renders; fake its support probe (as spot-map.component.spec.ts does) so it waits
+    // on the never-flushed spot request instead.
+    spyOn(HTMLCanvasElement.prototype, 'getContext').and.returnValue({
+      getExtension: () => null,
+    } as unknown as WebGL2RenderingContext);
 
     // The container owns the state machine, not the map. Blank the MapLibre renderer's
     // template so no WebGL context is built here; its own markup is covered by
@@ -76,6 +89,17 @@ describe('MapContainerComponent', () => {
     (
       c as unknown as { onRendererFailed: (reason: MapFailureReason) => void }
     ).onRendererFailed(reason);
+  const applyEvent = (c: MapContainerComponent, event: MapLoadEvent) =>
+    (
+      c as unknown as { onLoadEvent: (event: MapLoadEvent) => void }
+    ).onLoadEvent(event);
+  const barFinished = (c: MapContainerComponent) =>
+    (c as unknown as { onBarFinished: () => void }).onBarFinished();
+  const loadState = (c: MapContainerComponent) =>
+    (c as unknown as { loadState: () => MapLoadState }).loadState();
+  const loaderOf = (fixture: ComponentFixture<MapContainerComponent>) =>
+    (fixture.debugElement.query(By.directive(MapLoaderComponent))
+      ?.componentInstance ?? null) as MapLoaderComponent | null;
 
   it('should create', () => {
     const fixture = create(true);
@@ -96,7 +120,157 @@ describe('MapContainerComponent', () => {
     fixture.destroy();
   });
 
-  it('shows SIGNAL LOST after the load timeout elapses with no load event', fakeAsync(() => {
+  /**
+   * Replaces the animation-frame clock with one the test drives. `flush` runs every callback that
+   * has not been cancelled, as the browser would on its next frame.
+   */
+  function stubAnimationFrames() {
+    const pending = new Map<number, FrameRequestCallback>();
+    let nextId = 1;
+    spyOn(window, 'requestAnimationFrame').and.callFake((callback) => {
+      pending.set(nextId, callback);
+      return nextId++;
+    });
+    spyOn(window, 'cancelAnimationFrame').and.callFake((id) => {
+      pending.delete(id);
+    });
+    return {
+      flush: () => {
+        const callbacks = [...pending.values()];
+        pending.clear();
+        callbacks.forEach((callback) => callback(performance.now()));
+      },
+    };
+  }
+  const statusOf = (fixture: ComponentFixture<MapContainerComponent>) =>
+    fixture.nativeElement.querySelector('[role="status"]') as HTMLElement;
+
+  it('has the status region in place and empty until a frame has been painted, then announces the first step', () => {
+    const frames = stubAnimationFrames();
+    const fixture = create(true);
+    const status = statusOf(fixture);
+    expect(status).toBeTruthy();
+    // A live region announces changes made after it exists, not what it was inserted with.
+    expect(status.textContent?.trim()).toBe('');
+
+    // Further change detection in the same frame must not speak yet: the region has to survive a
+    // painted frame empty. (No whenStable: the load watchdog's timer would keep the fixture
+    // unstable for its whole 15 s.)
+    fixture.detectChanges();
+    expect(status.textContent?.trim()).toBe('');
+
+    frames.flush();
+    fixture.detectChanges();
+    expect(statusOf(fixture)).toBe(status);
+    expect(status.textContent?.trim()).toBe('Loading spots for Vienna');
+    fixture.destroy();
+  });
+
+  it('cancels the pending first announcement when destroyed before the frame', () => {
+    const frames = stubAnimationFrames();
+    const fixture = create(true);
+    const c = fixture.componentInstance;
+    fixture.destroy();
+    frames.flush();
+    expect(
+      (c as unknown as { announcement: () => string }).announcement(),
+    ).toBe('');
+  });
+
+  it('keeps the status region empty once the map shows or the load has failed', () => {
+    const frames = stubAnimationFrames();
+    const fixture = create(true);
+    frames.flush();
+    fixture.detectChanges();
+    expect(statusOf(fixture).textContent?.trim()).toBe(
+      'Loading spots for Vienna',
+    );
+
+    rendererFailed(fixture.componentInstance, 'unreachable');
+    fixture.detectChanges();
+    expect(statusOf(fixture).textContent?.trim()).toBe('');
+    fixture.destroy();
+  });
+
+  it('announces a later load at once, without waiting for another frame', () => {
+    const frames = stubAnimationFrames();
+    const fixture = create(true);
+    frames.flush();
+    fixture.detectChanges();
+
+    fixture.componentRef.setInput('city', CityEnum.Graz);
+    fixture.detectChanges();
+    expect(statusOf(fixture).textContent?.trim()).toBe(
+      'Loading spots for Graz',
+    );
+
+    rendererFailed(fixture.componentInstance, 'unreachable');
+    fixture.componentInstance.retry();
+    fixture.detectChanges();
+    expect(statusOf(fixture).textContent?.trim()).toBe(
+      'Loading spots for Graz',
+    );
+    fixture.destroy();
+  });
+
+  it('names the archive copy, then the map, then the drawing', () => {
+    const frames = stubAnimationFrames();
+    const fixture = create(true);
+    frames.flush();
+    const c = fixture.componentInstance;
+    const statusText = () => statusOf(fixture)?.textContent?.trim();
+
+    applyEvent(c, { kind: 'spots-fallback' });
+    fixture.detectChanges();
+    expect(statusText()).toBe('Using the archive copy for Vienna');
+
+    applyEvent(c, { kind: 'spots-done' });
+    fixture.detectChanges();
+    expect(statusText()).toBe('Loading the map of Vienna');
+
+    applyEvent(c, { kind: 'painted' });
+    fixture.detectChanges();
+    expect(statusText()).toBe('Drawing the map');
+    fixture.destroy();
+  });
+
+  it('passes the city and the load state to the loader', () => {
+    const fixture = create(true);
+    const c = fixture.componentInstance;
+    applyEvent(c, { kind: 'spots-done' });
+    fixture.detectChanges();
+    const loader = loaderOf(fixture);
+    expect(loader).toBeTruthy();
+    expect(loader?.city()).toBe('vienna');
+    expect(loader?.state().progress).toBe(0.3);
+    fixture.destroy();
+  });
+
+  it('reveals the map when the bar has finished', () => {
+    const fixture = create(true);
+    const c = fixture.componentInstance;
+    applyEvent(c, { kind: 'painted' });
+    rendererReady(c);
+    barFinished(c);
+    fixture.detectChanges();
+    expect(mapShown(c)).toBe(true);
+    expect(errorShown(c)).toBe(false);
+    expect(loaderOf(fixture)).toBeNull();
+    fixture.destroy();
+  });
+
+  it('never reveals on a timer before the watchdog', fakeAsync(() => {
+    const fixture = create();
+    const c = fixture.componentInstance;
+    applyEvent(c, { kind: 'painted' });
+    rendererReady(c);
+    tick(LOAD_TIMEOUT_MS - 1);
+    expect(mapShown(c)).toBe(false);
+    expect(errorShown(c)).toBe(false);
+    fixture.destroy();
+  }));
+
+  it('shows SIGNAL LOST when nothing has painted by the timeout', fakeAsync(() => {
     const fixture = create();
     const c = fixture.componentInstance;
     expect(errorShown(c)).toBe(false);
@@ -107,38 +281,48 @@ describe('MapContainerComponent', () => {
     fixture.destroy();
   }));
 
-  it('cancels the unreachable timeout on load, then reveals the map', fakeAsync(() => {
+  it('reveals instead of failing when the watchdog fires after the paint', fakeAsync(() => {
     const fixture = create();
     const c = fixture.componentInstance;
-    rendererReady(c);
-    tick(LOAD_TIMEOUT_MS); // well past both the (cancelled) timeout and the reveal delay
-    expect(errorShown(c)).toBe(false);
+    applyEvent(c, { kind: 'painted' });
+    tick(LOAD_TIMEOUT_MS);
     expect(mapShown(c)).toBe(true);
+    expect(errorShown(c)).toBe(false);
     fixture.destroy();
   }));
 
-  it('does not let a stale pre-retry reveal mark the retried map as loaded', fakeAsync(() => {
-    const fixture = create();
+  it('ignores load events while the failure is shown', () => {
+    const fixture = create(true);
     const c = fixture.componentInstance;
-    // 1. original navigation never loads -> SIGNAL LOST
+    const before = loadState(c);
+    rendererFailed(c, 'unreachable');
+    applyEvent(c, { kind: 'spots-done' });
+    expect(loadState(c)).toEqual(before);
+    fixture.destroy();
+  });
+
+  it('resets progress on retry', fakeAsync(() => {
+    const fixture = create(true);
+    const c = fixture.componentInstance;
+    applyEvent(c, { kind: 'spots-done' });
     tick(LOAD_TIMEOUT_MS);
     expect(errorShown(c)).toBe(true);
-    // 2. the slow original renderer finally reports ready, scheduling a reveal...
-    rendererReady(c);
-    // 3. ...but the user hits RETRY within the reveal window
+
     c.retry();
     expect(errorShown(c)).toBe(false);
     expect(mapShown(c)).toBe(false);
-    // 4. the stale reveal must NOT fire over the not-yet-loaded retried content
-    tick(REVEAL_DELAY_MS);
-    expect(mapShown(c)).toBe(false);
-    // 5. a genuine second failure still re-shows SIGNAL LOST
+    expect(loadState(c)).toEqual(INITIAL_MAP_LOAD_STATE);
+    // The loader is back, drawing the retried load (which has only just re-sent its request).
+    fixture.detectChanges();
+    expect(loaderOf(fixture)?.state().step).toBe('spots');
+
+    // The retried load gets a fresh watchdog, and the pre-retry events do not count as a paint.
     tick(LOAD_TIMEOUT_MS);
     expect(errorShown(c)).toBe(true);
     fixture.destroy();
   }));
 
-  it('re-arms the loading/error/timeout state machine when the city changes', fakeAsync(() => {
+  it('resets the load when the city changes', fakeAsync(() => {
     // Empty template so detectChanges() flushes the city effect without a real
     // (network-loading) renderer interfering with the virtual clock.
     TestBed.overrideComponent(MapContainerComponent, { set: { template: '' } });
@@ -147,32 +331,33 @@ describe('MapContainerComponent', () => {
     fixture.detectChanges(); // effect's first run consumes the initial city
     const c = fixture.componentInstance;
 
-    // First city loads and reveals.
+    // First city paints and reveals.
+    applyEvent(c, { kind: 'painted' });
     rendererReady(c);
-    tick(REVEAL_DELAY_MS);
+    barFinished(c);
     expect(mapShown(c)).toBe(true);
-    expect(errorShown(c)).toBe(false);
 
-    // Switch to a different city on the SAME instance: the overlay must return
-    // (no stale "loaded" frame / white flash) and no error should show yet.
+    // Switch to a different city on the SAME instance: the loader must return
+    // (no stale "loaded" frame) with its progress back at the start.
     fixture.componentRef.setInput('city', CityEnum.Graz);
     fixture.detectChanges(); // flush the effect -> resetForNewCity()
     expect(mapShown(c)).toBe(false);
     expect(errorShown(c)).toBe(false);
+    expect(loadState(c)).toEqual(INITIAL_MAP_LOAD_STATE);
 
-    // The new city hangs -> its own fresh watchdog still surfaces SIGNAL LOST.
+    // The new city hangs -> its own fresh watchdog surfaces SIGNAL LOST, since
+    // the previous city's paint no longer counts.
     tick(LOAD_TIMEOUT_MS);
     expect(errorShown(c)).toBe(true);
     expect(mapShown(c)).toBe(false);
     fixture.destroy();
   }));
 
-  it('cancels pending timers on destroy', fakeAsync(() => {
+  it('cancels the watchdog on destroy', fakeAsync(() => {
     const fixture = create();
     const c = fixture.componentInstance;
-    rendererReady(c); // schedules a reveal
     fixture.destroy();
-    tick(LOAD_TIMEOUT_MS + REVEAL_DELAY_MS); // nothing should fire post-destroy
+    tick(LOAD_TIMEOUT_MS); // nothing should fire post-destroy
     expect(errorShown(c)).toBe(false);
     expect(mapShown(c)).toBe(false);
   }));

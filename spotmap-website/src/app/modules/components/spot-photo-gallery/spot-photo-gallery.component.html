@@ -1,5 +1,6 @@
 <div
   class="gallery"
+  [class.gallery--instant]="currentInstant()"
   (touchstart)="onTouchStart($event)"
   (touchend)="onTouchEnd($event)"
 >
@@ -15,12 +16,20 @@
       >
     </div>
   } @else {
+    @if (!currentLoaded()) {
+      <div class="gallery__loading" animate.leave="gallery__loading--leaving">
+        <app-ascii-rain [columns]="8" [rows]="6" />
+      </div>
+    }
     <img
+      #photo
       class="gallery__photo"
+      [class.gallery__photo--loaded]="currentLoaded()"
       [src]="current()"
       [alt]="altText()"
       loading="lazy"
       decoding="async"
+      (load)="onImageLoad($event)"
       (error)="onImageError($event)"
     />
   }
