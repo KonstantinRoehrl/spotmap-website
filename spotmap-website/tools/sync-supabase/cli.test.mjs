@@ -28,14 +28,14 @@ const PHOTOS = ['graz/a-1-11111111.webp', 'graz/b-2-22222222.webp'];
 
 const md5 = (text) => createHash('md5').update(text).digest('hex');
 
-/** A data/spots folder with one city, graz, whose two spots link the two PHOTOS, on disk. */
-async function workspace(t, { withPhotos = true } = {}) {
+/** A data/spots folder with one city, graz, whose spots link `photos` (default: the two PHOTOS), on disk. */
+async function workspace(t, { withPhotos = true, photos = PHOTOS } = {}) {
   const root = await mkdtemp(join(tmpdir(), 'sync-supabase-cli-'));
   t.after(() => rm(root, { recursive: true, force: true }));
   const spotsDir = join(root, 'spots');
   const thumbsDir = join(root, 'thumbs');
   await mkdir(join(spotsDir, 'graz'), { recursive: true });
-  const features = PHOTOS.map((key, i) => ({
+  const features = photos.map((key, i) => ({
     type: 'Feature',
     geometry: { type: 'Point', coordinates: [15.43 + i, 47.07] },
     properties: {
@@ -51,7 +51,7 @@ async function workspace(t, { withPhotos = true } = {}) {
     JSON.stringify({ type: 'FeatureCollection', features }),
   );
   if (withPhotos) {
-    for (const key of PHOTOS) {
+    for (const key of photos) {
       await writeFile(join(spotsDir, key), `full ${key}`);
     }
   }
@@ -323,5 +323,54 @@ test('a referenced photo missing on disk fails before any network call', async (
   assert.match(
     lines.at(-1),
     /2 referenced photos are not on disk, e\.g\. data\/spots\/graz\/a-1-11111111\.webp/,
+  );
+});
+
+test('after an upload fails nothing more is uploaded, and the run exits 1', async (t) => {
+  const photos = Array.from(
+    { length: 12 },
+    (_, i) =>
+      `graz/p${String(i).padStart(2, '0')}-1-${'0'.repeat(7)}${i % 10}.webp`,
+  );
+  const ws = await workspace(t, { photos });
+  const supabase = fakeSupabase();
+  const client = supabase.createClient();
+  const started = [];
+  const settle = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+  const failing = {
+    ...client,
+    async upload(key, bytes) {
+      started.push(key);
+      const isThird = started.length === 3;
+      await settle(isThird ? 5 : 15);
+      if (isThird) throw new Error(`upload ${key}: HTTP 500 boom`);
+      await client.upload(key, bytes);
+    },
+  };
+
+  const lines = [];
+  const code = await runSync([], {
+    env: LOCAL,
+    cities: ['graz'],
+    spotsDir: ws.spotsDir,
+    thumbsDir: ws.thumbsDir,
+    createClient: () => failing,
+    derive: fakeDerive,
+    log: (line) => lines.push(line),
+    error: (line) => lines.push(`ERR ${line}`),
+  });
+  const startedAtExit = started.length;
+  await settle(60);
+
+  assert.equal(code, 1);
+  assert.match(lines.at(-1), /^ERR sync:supabase: upload .*: HTTP 500 boom$/);
+  assert.equal(started.length, startedAtExit, 'nothing started after exit');
+  assert.ok(
+    startedAtExit <= 6,
+    `only the first batch started: ${startedAtExit}`,
+  );
+  assert.equal(
+    supabase.calls.some(([kind]) => kind === 'rpc' || kind === 'remove'),
+    false,
   );
 });

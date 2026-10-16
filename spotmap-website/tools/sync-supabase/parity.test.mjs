@@ -62,7 +62,7 @@ test('firstDifference names a missing key and a length difference', () => {
 });
 
 /** Runs the parity check against snapshots in a temporary folder. */
-async function parity(t, { live, argv = [], env = ENV }) {
+async function parity(t, { live, argv = [], env = ENV, onCreateClient }) {
   const publicDir = await mkdtemp(join(tmpdir(), 'sync-supabase-parity-'));
   t.after(() => rm(publicDir, { recursive: true, force: true }));
   await writeFile(
@@ -74,14 +74,17 @@ async function parity(t, { live, argv = [], env = ENV }) {
     env,
     cities: ['vienna'],
     publicDir,
-    createClient: () => ({
-      async rpc(name, body) {
-        assert.equal(name, 'city_spots');
-        assert.deepEqual(body, { p_city: 'vienna' });
-        if (live instanceof Error) throw live;
-        return live;
-      },
-    }),
+    createClient: (options) => {
+      onCreateClient?.(options);
+      return {
+        async rpc(name, body) {
+          assert.equal(name, 'city_spots');
+          assert.deepEqual(body, { p_city: 'vienna' });
+          if (live instanceof Error) throw live;
+          return live;
+        },
+      };
+    },
     log: (line) => lines.push(line),
     error: (line) => lines.push(`ERR ${line}`),
   });
@@ -129,4 +132,43 @@ test('runParity exits 2 on an argument or a missing key', async (t) => {
     ).code,
     2,
   );
+});
+
+const PUBLISHABLE = 'sb_publishable_test';
+
+test('runParity reads as the public when a publishable key is set', async (t) => {
+  let options;
+  const { code } = await parity(t, {
+    live: structuredClone(COLLECTION),
+    env: { ...ENV, SUPABASE_PUBLISHABLE_KEY: PUBLISHABLE },
+    onCreateClient: (given) => (options = given),
+  });
+  assert.equal(code, 0);
+  assert.equal(options.publishableKey, PUBLISHABLE);
+});
+
+test('runParity reads with the secret key when no publishable key is set', async (t) => {
+  let options;
+  const { code } = await parity(t, {
+    live: structuredClone(COLLECTION),
+    onCreateClient: (given) => (options = given),
+  });
+  assert.equal(code, 0);
+  assert.equal(options.secretKey, ENV.SUPABASE_SECRET_KEY);
+  assert.equal(options.publishableKey, undefined);
+});
+
+test('runParity refuses a publishable key that is not one', async (t) => {
+  for (const wrong of [ENV.SUPABASE_SECRET_KEY, 'eyJhbGciOi.legacy.jwt']) {
+    const { code, lines } = await parity(t, {
+      live: COLLECTION,
+      env: { ...ENV, SUPABASE_PUBLISHABLE_KEY: wrong },
+    });
+    assert.equal(code, 2);
+    assert.match(
+      lines.at(-1),
+      /SUPABASE_PUBLISHABLE_KEY must be a publishable key \(sb_publishable_…\)/,
+    );
+    assert.ok(!lines.join('\n').includes(wrong), 'the value is not echoed');
+  }
 });

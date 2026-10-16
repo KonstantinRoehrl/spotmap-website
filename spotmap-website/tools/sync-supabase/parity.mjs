@@ -6,9 +6,11 @@
  *
  *   npm run parity:supabase
  *
- * Reads SUPABASE_URL and SUPABASE_SECRET_KEY like sync:supabase, and only reads. Exits 0 when
- * every city matches, 1 naming the first city and the first difference, 2 on bad arguments or
- * environment.
+ * Reads SUPABASE_URL and SUPABASE_SECRET_KEY like sync:supabase, and only reads. When the optional
+ * SUPABASE_PUBLISHABLE_KEY (sb_publishable_…) is set too, the reads send that key instead, so
+ * they pass through the gateway and row-level security exactly as the browser's do; CI sets it.
+ * Without it the secret key reads, which bypasses row-level security. Exits 0 when every city
+ * matches, 1 naming the first city and the first difference, 2 on bad arguments or environment.
  */
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -71,6 +73,26 @@ export function firstDifference(actual, expected, path = '$') {
 }
 
 /**
+ * Reads the optional publishable key from the environment.
+ *
+ * @param {Record<string, string | undefined>} env usually `process.env`
+ * @returns {string | undefined} undefined when unset or empty
+ * @throws {Error} when the value is not a publishable key; the message never echoes it
+ */
+function readPublishableKey(env) {
+  const key = env.SUPABASE_PUBLISHABLE_KEY;
+  if (!key) {
+    return undefined;
+  }
+  if (!key.startsWith('sb_publishable_')) {
+    throw new Error(
+      'SUPABASE_PUBLISHABLE_KEY must be a publishable key (sb_publishable_…), not a secret key or a legacy JWT',
+    );
+  }
+  return key;
+}
+
+/**
  * Runs the parity check over every city.
  *
  * @param {string[]} argv the arguments after the script name; none are accepted
@@ -94,8 +116,14 @@ export async function runParity(
   try {
     parseArgs({ args: argv, options: {}, allowPositionals: false });
     const credentials = readCredentials(env);
-    log(`target: ${new URL(credentials.url).host}`);
-    client = createClient(credentials);
+    const publishableKey = readPublishableKey(env);
+    log(
+      `target: ${new URL(credentials.url).host} (reading as ${publishableKey ? 'the public, with the publishable key' : 'the secret key'})`,
+    );
+    client = createClient({
+      ...credentials,
+      ...(publishableKey && { publishableKey }),
+    });
   } catch (problem) {
     error(`parity:supabase: ${problem.message}`);
     return 2;

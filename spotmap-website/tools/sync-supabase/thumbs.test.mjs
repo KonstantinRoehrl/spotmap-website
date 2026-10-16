@@ -102,3 +102,24 @@ test('applyThumbnails derives into new city folders and deletes orphans', async 
   assert.ok(existsSync(join(thumbsDir, 'graz', 'new.webp')));
   assert.equal(existsSync(join(thumbsDir, 'vienna', 'gone.webp')), false);
 });
+
+test('applyThumbnails names the source file whose thumbnail cannot be derived', async (t) => {
+  const { spotsDir, thumbsDir } = await folders(t);
+  await writeFile(join(spotsDir, 'vienna', 'corrupt.webp'), 'not a webp');
+
+  await assert.rejects(
+    applyThumbnails({
+      spotsDir,
+      thumbsDir,
+      plan: { stale: ['vienna/corrupt.webp'], orphans: [] },
+    }),
+    (problem) => {
+      assert.ok(
+        problem.message.includes(join(spotsDir, 'vienna', 'corrupt.webp')),
+        problem.message,
+      );
+      assert.ok(problem.cause instanceof Error, 'keeps the original as cause');
+      return true;
+    },
+  );
+});

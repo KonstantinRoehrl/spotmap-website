@@ -11,7 +11,8 @@
  *
  *   1. load every city of data/spots/sources.json and check each referenced photo is on disk;
  *   2. derive missing or outdated thumbnails into data/thumbs/ and delete orphaned ones;
- *   3. upload every full/ and thumb/ object the bucket lacks or holds with other bytes;
+ *   3. upload every full/ and thumb/ object the bucket lacks or holds with other bytes, stopping
+ *      at the first failure (uploads already in flight finish, no further one starts);
  *   4. mirror the database with one sync_spots() call;
  *   5. delete the bucket objects nothing references any more — only now, so the live database
  *      never points at a deleted file;
@@ -48,10 +49,48 @@ import { applyThumbnails, planThumbnails } from './thumbs.mjs';
 const APP_ROOT = fileURLToPath(new URL('../../', import.meta.url));
 /** The derived thumbnails, data/thumbs/<city>/<file>.webp (gitignored, like the photos). */
 export const THUMBS_DIR = join(APP_ROOT, 'data', 'thumbs');
-/** Uploads in flight at once. */
+/** Uploads in flight at once (see {@link runBounded}). */
 const UPLOAD_CONCURRENCY = 6;
 /** The hosts of the local Supabase stack (`npm run db:start`). */
 const LOCAL_HOSTS = new Set(['127.0.0.1', 'localhost']);
+
+/**
+ * Runs `task` for every item, at most `concurrency` at a time, and stops at the first failure:
+ * tasks still queued are never started, the ones in flight settle, and then that first error is
+ * thrown. So nothing runs once the caller has reported the failure.
+ *
+ * @template T
+ * @param {T[]} items
+ * @param {number} concurrency
+ * @param {(item: T) => Promise<void>} task
+ * @returns {Promise<void>}
+ * @throws {unknown} the first task failure, in the order the failures happened
+ */
+async function runBounded(items, concurrency, task) {
+  const limit = createLimiter(concurrency);
+  let failed = false;
+  let firstFailure;
+  await Promise.allSettled(
+    items.map((item) =>
+      limit(async () => {
+        if (failed) {
+          return;
+        }
+        try {
+          await task(item);
+        } catch (failure) {
+          if (!failed) {
+            failed = true;
+            firstFailure = failure;
+          }
+        }
+      }),
+    ),
+  );
+  if (failed) {
+    throw firstFailure;
+  }
+}
 
 /**
  * Parses the sync's flags.
@@ -192,19 +231,14 @@ export async function runSync(
       if (flags.dryRun) {
         log(`upload: ${uploads.length} of ${wanted.size} objects to upload`);
       } else {
-        const limit = createLimiter(UPLOAD_CONCURRENCY);
-        await Promise.all(
-          uploads.map((remoteKey) =>
-            limit(async () => {
-              const [size, ...rest] = remoteKey.split('/');
-              const localPath = join(
-                size === 'full' ? spotsDir : thumbsDir,
-                ...rest,
-              );
-              await connect().upload(remoteKey, await readFile(localPath));
-            }),
-          ),
-        );
+        await runBounded(uploads, UPLOAD_CONCURRENCY, async (remoteKey) => {
+          const [size, ...rest] = remoteKey.split('/');
+          const localPath = join(
+            size === 'full' ? spotsDir : thumbsDir,
+            ...rest,
+          );
+          await connect().upload(remoteKey, await readFile(localPath));
+        });
         log(`upload: ${uploads.length} of ${wanted.size} objects uploaded`);
       }
       prune = planPrune(wanted, remote);

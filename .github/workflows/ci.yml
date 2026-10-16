@@ -120,6 +120,7 @@ jobs:
           eval "$(npx supabase status -o env 2>/dev/null)"
           echo "SUPABASE_URL=$API_URL" >> "$GITHUB_ENV"
           echo "SUPABASE_SECRET_KEY=$SECRET_KEY" >> "$GITHUB_ENV"
+          echo "SUPABASE_PUBLISHABLE_KEY=$PUBLISHABLE_KEY" >> "$GITHUB_ENV"
           case "$PUBLISHABLE_KEY" in
             sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH) ;; # gitleaks:allow
             *) echo "::warning::The local publishable key differs from src/environments/environment.ts" ;;
@@ -128,7 +129,9 @@ jobs:
       - name: Seed the database from the committed datasets (no photos)
         run: npm run sync:supabase -- --db-only
 
-      - name: Check every city's live spots equal its bundled snapshot
+      # SUPABASE_PUBLISHABLE_KEY is set, so the reads go through the gateway and row-level security
+      # as the browser's anonymous ones do, not with the secret key.
+      - name: Check every city's live spots, read as the public, equal its bundled snapshot
         run: npm run parity:supabase
 
   secrets:

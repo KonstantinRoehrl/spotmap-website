@@ -51,6 +51,8 @@ export async function planThumbnails({ spotsDir, thumbsDir, keys }) {
  *   derive?: (sourcePath: string, outPath: string) => Promise<void> }} options `derive` is
  *   injected for tests
  * @returns {Promise<{ derived: number, deleted: number }>}
+ * @throws {Error} naming the source photo (the original error is its `cause`) when a thumbnail
+ *   cannot be derived, e.g. a corrupt file; the run stops there
  */
 export async function applyThumbnails({
   spotsDir,
@@ -61,7 +63,15 @@ export async function applyThumbnails({
   for (const key of plan.stale) {
     const outPath = join(thumbsDir, key);
     await mkdir(dirname(outPath), { recursive: true });
-    await derive(join(spotsDir, key), outPath);
+    const sourcePath = join(spotsDir, key);
+    try {
+      await derive(sourcePath, outPath);
+    } catch (problem) {
+      throw new Error(
+        `cannot derive a thumbnail from ${sourcePath}: ${problem.message}`,
+        { cause: problem },
+      );
+    }
   }
   for (const key of plan.orphans) {
     await rm(join(thumbsDir, key), { force: true });

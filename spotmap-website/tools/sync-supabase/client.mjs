@@ -5,7 +5,8 @@
  * It authenticates with the project's secret key (`sb_secret_…`) in the `apikey` header only —
  * that key is not a JWT, so it never goes in `Authorization: Bearer`. The secret key bypasses
  * row-level security; it comes from the environment or spotmap-website/.env.local and is never
- * committed.
+ * committed. A publishable key (`sb_publishable_…`) is likewise sent in `apikey` only, to read
+ * as the browser's anonymous role would.
  */
 
 /** The public bucket holding every photo, as `full/<city>/<file>.webp` and `thumb/<city>/<file>.webp`. */
@@ -19,6 +20,20 @@ export const DELETE_BATCH_SIZE = 100;
  * served bytes, so a re-encode rewrites a file under the same name.
  */
 export const CACHE_CONTROL = 'max-age=604800';
+/**
+ * Per-request timeout. A full-size photo is a few hundred KB, so 30 s is far beyond a healthy
+ * request on any connection the sync is run from, yet short enough that a stalled connection
+ * costs half a minute instead of hanging the run for good.
+ */
+export const REQUEST_TIMEOUT_MS = 30_000;
+/**
+ * Attempts per idempotent call (list, upload, remove) before giving up: enough to ride out a
+ * transient 5xx or reset during the first hosted upload of thousands of objects, few enough that
+ * a real outage still fails the run within about a minute.
+ */
+export const MAX_ATTEMPTS = 3;
+/** The wait before the second attempt; each further wait doubles (0.5 s, 1 s). */
+export const RETRY_BACKOFF_MS = 500;
 
 /**
  * Reads the sync's target from the environment.
@@ -58,10 +73,29 @@ export function readCredentials(env) {
  */
 
 /**
- * Creates the client.
+ * Whether a failed answer is worth another attempt: a server error or a rate limit. Any other 4xx
+ * is the request's own fault and would fail the same way again.
  *
- * @param {{ url: string, secretKey: string, fetch?: typeof globalThis.fetch }} options `url` is
- *   the project URL, e.g. `http://127.0.0.1:54321`; `fetch` is injected for tests
+ * @param {number} status
+ * @returns {boolean}
+ */
+function isRetryableStatus(status) {
+  return status >= 500 || status === 429;
+}
+
+/**
+ * Creates the client. Every request has a timeout; list, upload and remove are idempotent (the
+ * upload upserts) and are retried with backoff on a network error, a timeout, a 5xx or a 429.
+ * `rpc` is sent once: a retried `sync_spots` whose first attempt had committed would report
+ * all-zero counts and mislead the report.
+ *
+ * @param {{ url: string, secretKey: string, publishableKey?: string,
+ *   fetch?: typeof globalThis.fetch, timeoutMs?: number,
+ *   sleep?: (ms: number) => Promise<unknown> }} options `url` is the project URL, e.g.
+ *   `http://127.0.0.1:54321`; `publishableKey` (`sb_publishable_…`), when given, is sent as
+ *   `apikey` instead of the secret key, so a read behaves as the browser's anonymous one;
+ *   `fetch`, `timeoutMs` (default {@link REQUEST_TIMEOUT_MS}) and `sleep` (the retry delay) are
+ *   injected for tests
  * @returns {{
  *   rpc: (name: string, body: object) => Promise<any>,
  *   listFolder: (folder: string) => Promise<StorageEntry[]>,
@@ -72,22 +106,58 @@ export function readCredentials(env) {
 export function createSupabaseClient({
   url,
   secretKey,
+  publishableKey,
   fetch = globalThis.fetch,
+  timeoutMs = REQUEST_TIMEOUT_MS,
+  sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
 }) {
   const base = url.replace(/\/+$/, '');
+  const apikey = publishableKey ?? secretKey;
 
-  /** Sends one request and returns its response, or throws naming `what` on a non-2xx answer. */
-  async function send(what, path, { headers = {}, ...init }) {
-    const response = await fetch(`${base}${path}`, {
-      ...init,
-      headers: { apikey: secretKey, ...headers },
-    });
-    if (!response.ok) {
-      throw new Error(
-        `${what}: HTTP ${response.status} ${await response.text()}`,
-      );
+  /**
+   * Sends a request and returns its response body text, or throws naming `what` and the status
+   * (or the timeout / network error) once the request has failed for good. A retryable request
+   * is attempted up to {@link MAX_ATTEMPTS} times, waiting {@link RETRY_BACKOFF_MS} and then
+   * twice that between attempts; the final error says how many attempts were made.
+   */
+  async function send(what, path, { headers = {}, ...init }, { retry }) {
+    const attempts = retry ? MAX_ATTEMPTS : 1;
+    for (let attempt = 1; ; attempt++) {
+      let failure;
+      try {
+        // The timeout covers reading the body too: a connection can stall after the headers.
+        const response = await fetch(`${base}${path}`, {
+          ...init,
+          headers: { apikey, ...headers },
+          signal: AbortSignal.timeout(timeoutMs),
+        });
+        const body = await response.text();
+        if (response.ok) {
+          return body;
+        }
+        failure = {
+          message: `HTTP ${response.status} ${body}`,
+          retryable: isRetryableStatus(response.status),
+        };
+      } catch (problem) {
+        failure = {
+          message:
+            problem?.name === 'TimeoutError'
+              ? `timed out after ${timeoutMs} ms`
+              : `request failed: ${problem?.message}`,
+          retryable: true,
+          cause: problem,
+        };
+      }
+      if (!failure.retryable || attempt === attempts) {
+        throw new Error(
+          `${what}: ${failure.message}` +
+            (attempt > 1 ? ` (after ${attempt} attempts)` : ''),
+          { cause: failure.cause },
+        );
+      }
+      await sleep(RETRY_BACKOFF_MS * 2 ** (attempt - 1));
     }
-    return response;
   }
 
   /** A JSON request body with its content type. */
@@ -101,17 +171,19 @@ export function createSupabaseClient({
 
   return {
     async rpc(name, body) {
-      const response = await send(`rpc ${name}`, `/rest/v1/rpc/${name}`, {
-        method: 'POST',
-        ...json(body),
-      });
-      return response.json();
+      const answer = await send(
+        `rpc ${name}`,
+        `/rest/v1/rpc/${name}`,
+        { method: 'POST', ...json(body) },
+        { retry: false },
+      );
+      return JSON.parse(answer);
     },
 
     async listFolder(folder) {
       const entries = [];
       for (let offset = 0; ; offset += LIST_PAGE_SIZE) {
-        const response = await send(
+        const answer = await send(
           `list ${folder}`,
           `/storage/v1/object/list/${BUCKET}`,
           {
@@ -123,8 +195,9 @@ export function createSupabaseClient({
               sortBy: { column: 'name', order: 'asc' },
             }),
           },
+          { retry: true },
         );
-        const page = await response.json();
+        const page = JSON.parse(answer);
         for (const { name, id, metadata } of page) {
           entries.push({
             name,
@@ -151,15 +224,21 @@ export function createSupabaseClient({
           },
           body: bytes,
         },
+        { retry: true },
       );
     },
 
     async remove(keys) {
       for (let start = 0; start < keys.length; start += DELETE_BATCH_SIZE) {
-        await send('delete', `/storage/v1/object/${BUCKET}`, {
-          method: 'DELETE',
-          ...json({ prefixes: keys.slice(start, start + DELETE_BATCH_SIZE) }),
-        });
+        await send(
+          'delete',
+          `/storage/v1/object/${BUCKET}`,
+          {
+            method: 'DELETE',
+            ...json({ prefixes: keys.slice(start, start + DELETE_BATCH_SIZE) }),
+          },
+          { retry: true },
+        );
       }
       return keys.length;
     },
