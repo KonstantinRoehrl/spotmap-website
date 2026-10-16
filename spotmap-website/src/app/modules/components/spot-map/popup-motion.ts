@@ -38,6 +38,8 @@ export function revealPopup(
 
 /**
  * Plays the close animation and resolves once it has finished — at once for a popup never shown.
+ * It begins from wherever the popup is on screen: a popup closed while its 170 ms open is still
+ * playing fades on from its in-flight opacity and rise instead of jumping to full opacity first.
  * A cancelled animation (its element removed first) resolves too: the popup is gone either way.
  */
 export async function dismissPopup(
@@ -47,11 +49,12 @@ export async function dismissPopup(
   if (element.classList.contains(POPUP_PENDING_CLASS)) {
     return;
   }
+  const { opacity, translate } = getComputedStyle(element);
   const animation = element.animate(
     reducedMotion
-      ? [{ opacity: 1 }, { opacity: 0 }]
+      ? [{ opacity }, { opacity: 0 }]
       : [
-          { opacity: 1, translate: '0 0' },
+          { opacity, translate },
           { opacity: 0, translate: `0 ${CLOSE.sinkPx}px` },
         ],
     { duration: CLOSE.durationMs, easing: CLOSE.easing, fill: 'forwards' },

@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import {
   HttpTestingController,
   provideHttpClientTesting,
+  TestRequest,
 } from '@angular/common/http/testing';
 import { ApplicationRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
@@ -126,8 +127,20 @@ class FakeMap {
   project() {
     return this.projected;
   }
-  /** Whether a `panBy` ease is still running: started, and no `moveend` has ended it yet. */
+  /**
+   * Whether the camera is mid-move: a `panBy` ease or a gesture's move began, and no `moveend`
+   * has ended it yet. Every `moveend` the fake emits ends it, as MapLibre clears `_moving` before
+   * it fires the event (maplibre-gl-dev.mjs:23241, :23251).
+   */
   private panning = false;
+
+  /**
+   * A move the component did not start — a drag, a fling's inertia, a wheel zoom — begins and runs
+   * until the spec emits `moveend`.
+   */
+  startMove() {
+    this.panning = true;
+  }
 
   /**
    * Recorded like every other camera move, with the offset folded into its options. A pan that
@@ -155,7 +168,7 @@ class FakeMap {
     }
     return this;
   }
-  /** Whether a pan is still running, as MapLibre's `isMoving()` reports its camera. */
+  /** Whether the camera is mid-move, as MapLibre's `isMoving()` reports it. */
   isMoving() {
     return this.panning;
   }
@@ -571,6 +584,16 @@ function tapOn(id: string) {
   return { features: [{ id, properties: { id } }] };
 }
 
+/** What the browser resolves a design token to for a property, so assertions compare painted output. */
+function painted(property: 'border-radius', token: string): string {
+  const probe = document.createElement('span');
+  probe.style.setProperty(property, token);
+  document.body.appendChild(probe);
+  const value = getComputedStyle(probe).getPropertyValue(property);
+  probe.remove();
+  return value;
+}
+
 /** Gives the element a layout width, which jsdom-free Karma would otherwise measure for real. */
 function setWidth(host: HTMLElement, width: number) {
   Object.defineProperty(host, 'offsetWidth', {
@@ -602,6 +625,8 @@ describe('SpotMapComponent', () => {
   let loseContext: jasmine.Spy;
   let mapFactory: jasmine.Spy;
   let popupFactoryRejects: boolean;
+  /** While set, the fake popup factory answers only once it settles: the popup chunk still loading. */
+  let popupGate: Promise<void> | undefined;
   let elevation: ElevationTiles | null;
   /** What the fake `ELEVATION_LOADER` hands back; resolves `elevation` unless a spec holds it. */
   let loadElevation: (demMaxzoom: number) => Promise<ElevationTiles | null>;
@@ -612,6 +637,7 @@ describe('SpotMapComponent', () => {
     fake = new FakeMap();
     popups = [];
     popupFactoryRejects = false;
+    popupGate = undefined;
     // Headless Chrome hands out no WebGL context, so the component's support probe is faked
     // here; the unsupported spec below drives the same spy to null.
     loseContext = jasmine.createSpy('loseContext');
@@ -640,9 +666,12 @@ describe('SpotMapComponent', () => {
               // The realistic failure: the lazy maplibre-gl chunk never arrives.
               return Promise.reject(new Error('popup chunk failed to load'));
             }
-            const popup = new FakePopup(options, () => fixture.nativeElement);
-            popups.push(popup);
-            return Promise.resolve(popup);
+            const build = () => {
+              const popup = new FakePopup(options, () => fixture.nativeElement);
+              popups.push(popup);
+              return popup;
+            };
+            return popupGate ? popupGate.then(build) : Promise.resolve(build());
           },
         },
         {
@@ -710,6 +739,32 @@ describe('SpotMapComponent', () => {
   async function tap(id: string) {
     fake.emit('click', tapOn(id), 'spots-hit');
     await fixture.whenStable();
+  }
+
+  /** Lets every promise chain and zero-delay task already queued run to its end. */
+  function flushPending(): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve));
+  }
+
+  /**
+   * Holds the popup factory — maplibre-gl's lazy chunk still on its way — until the returned
+   * function is called, which lets every held popup through and waits for the component to act.
+   */
+  function holdPopupFactory(): () => Promise<void> {
+    let letThrough!: () => void;
+    popupGate = new Promise<void>((resolve) => {
+      letThrough = resolve;
+    });
+    return () => {
+      popupGate = undefined;
+      letThrough();
+      return flushPending();
+    };
+  }
+
+  /** The pans the component asked the map for, in order. */
+  function pansRequested(): CameraMove[] {
+    return fake.cameraMoves.filter((move) => move.method === 'panBy');
   }
 
   /** Lets every animation on the popup's container finish, and the component act on that. */
@@ -862,6 +917,30 @@ describe('SpotMapComponent', () => {
     );
     fake.emit('load');
     expect(attribution.classList).toContain('maplibregl-compact-show');
+  });
+
+  it('keeps the attribution control on the soft corner scale, collapsed or open', async () => {
+    await create();
+    const attribution = addAttributionControl(
+      fixture.nativeElement.querySelector('.spot-map__canvas'),
+      360,
+    );
+    const button = document.createElement('summary');
+    button.className = 'maplibregl-ctrl-attrib-button';
+    attribution.append(button);
+    fake.emit('load');
+    const softCorner = painted('border-radius', 'var(--radius-sm)');
+    expect(softCorner).withContext('the token resolves').toBe('4px');
+    expect(getComputedStyle(attribution).borderRadius)
+      .withContext('collapsed to the info button')
+      .toBe(softCorner);
+    attribution.classList.add('maplibregl-compact-show');
+    expect(getComputedStyle(attribution).borderRadius)
+      .withContext('opened by the visitor')
+      .toBe(softCorner);
+    expect(getComputedStyle(button).borderRadius)
+      .withContext('the info button is no circle')
+      .toBe(softCorner);
   });
 
   it('asks for the DEM depth its city has, so no city requests tiles that do not exist', async () => {
@@ -1205,6 +1284,47 @@ describe('SpotMapComponent', () => {
     expect(fake.removed).toBe(true);
   });
 
+  describe('a spots request that a newer build has replaced', () => {
+    /** Starts a build and leaves its spots request unanswered. */
+    function startBuild(): { request: TestRequest; failed: jasmine.Spy } {
+      fixture = TestBed.createComponent(SpotMapComponent);
+      fixture.componentRef.setInput('city', CityEnum.Vienna);
+      fixture.componentRef.setInput('retryToken', 0);
+      const failed = jasmine.createSpy('failed');
+      fixture.componentInstance.failed.subscribe(failed);
+      fixture.detectChanges();
+      return { request: httpMock.expectOne('spots/vienna.geojson'), failed };
+    }
+
+    it('is cancelled by a city switch, which asks only for the new city', async () => {
+      const { request, failed } = startBuild();
+      expect(request.cancelled).toBeFalse();
+      fixture.componentRef.setInput('city', CityEnum.Graz);
+      fixture.detectChanges();
+      expect(request.cancelled).toBeTrue();
+      const current = httpMock.expectOne('spots/graz.geojson');
+      expect(current.cancelled).toBeFalse();
+      current.flush(COLLECTION);
+      await fixture.whenStable();
+      expect(failed).not.toHaveBeenCalled();
+      expect(mapFactory).toHaveBeenCalledTimes(1);
+    });
+
+    it('is cancelled by a retry', () => {
+      const { request } = startBuild();
+      fixture.componentRef.setInput('retryToken', 1);
+      fixture.detectChanges();
+      expect(request.cancelled).toBeTrue();
+      httpMock.expectOne('spots/vienna.geojson');
+    });
+
+    it('is cancelled when the component is destroyed', () => {
+      const { request } = startBuild();
+      fixture.destroy();
+      expect(request.cancelled).toBeTrue();
+    });
+  });
+
   it('opens one popup for the tapped pin and marks that pin selected', async () => {
     await create();
     fake.emit('load');
@@ -1282,6 +1402,47 @@ describe('SpotMapComponent', () => {
       .toBe(true);
   });
 
+  it('eases the popup width on a re-fit, but snaps it while the popup is still hidden', async () => {
+    await create();
+    fake.emit('load');
+    await tap('a');
+    const shown = getComputedStyle(popups[0]!.getElement());
+    expect(popups[0]?.isPending()).toBe(false);
+    expect(shown.transitionProperty).toBe('max-width');
+    expect(shown.transitionDuration).toBe('0.2s');
+
+    fake.projected = { x: 20, y: 500 };
+    await tap('b');
+    expect(popups[1]?.isPending()).toBe(true);
+    expect(getComputedStyle(popups[1]!.getElement()).transitionProperty)
+      .withContext('a hidden popup is measured at the width it is heading for')
+      .toBe('none');
+  });
+
+  it('re-fits once the popup width has finished easing, so it is measured where it settled', async () => {
+    holdAnimationFrames();
+    await create();
+    fake.emit('load');
+    await tap('a');
+    const frames = window.requestAnimationFrame as jasmine.Spy;
+    frames.calls.reset();
+    const element = popups[0]!.getElement();
+    element.dispatchEvent(
+      new TransitionEvent('transitionend', {
+        propertyName: 'max-height',
+        bubbles: true,
+      }),
+    );
+    expect(frames).not.toHaveBeenCalled();
+    element.dispatchEvent(
+      new TransitionEvent('transitionend', {
+        propertyName: 'max-width',
+        bubbles: true,
+      }),
+    );
+    expect(frames).toHaveBeenCalledTimes(1);
+  });
+
   it('opens below a pin near the top', async () => {
     await create();
     fake.emit('load');
@@ -1345,16 +1506,184 @@ describe('SpotMapComponent', () => {
     fake.projected = { x: 20, y: 500 };
     await tap('a');
     expect(popups[0]?.isPending()).withContext('a is still panning').toBe(true);
-    // b's pan stops a's unfinished one, which fires a's `moveend` from inside b's `panBy`.
+    // b waits for a's pan to end before it is fitted, so a's pan is not interrupted by b's.
     await tap('b');
-    expect(
-      fake.cameraMoves.filter((move) => move.method === 'panBy').length,
-    ).toBe(2);
+    expect(pansRequested().length)
+      .withContext('b asks for no pan while a is still easing')
+      .toBe(1);
+    expect(popups[1]?.isPending()).toBe(true);
+    fake.emit('moveend');
+    expect(pansRequested().length)
+      .withContext(
+        "b is fitted once a's pan has settled, and needs its own pan",
+      )
+      .toBe(2);
     expect(popups[1]?.isPending())
-      .withContext("a's interrupted pan does not reveal b")
+      .withContext("a's pan ending does not reveal b")
       .toBe(true);
     fake.emit('moveend');
     expect(popups[1]?.isPending()).toBe(false);
+  });
+
+  it('keeps a popup tapped mid-ease hidden until the camera settles, then fits it against the settled camera', async () => {
+    requestReducedMotion(false);
+    await create();
+    fake.emit('load');
+    fake.projected = { x: 20, y: 500 };
+    await tap('a');
+    expect(pansRequested().length).toBe(1);
+    // b is tapped partway along a's ease, where it sits mid-map and needs no pan of its own.
+    fake.projected = { x: 500, y: 300 };
+    await tap('b');
+    expect(popups[1]?.isPending())
+      .withContext('b is not revealed from its mid-ease position')
+      .toBe(true);
+    expect(pansRequested().length).toBe(1);
+    // a's ease ends and has carried the map, leaving b at the left edge.
+    fake.projected = { x: 20, y: 500 };
+    fake.emit('moveend');
+    expect(pansRequested().length)
+      .withContext('b is fitted against where the map settled')
+      .toBe(2);
+    expect(pansRequested()[1]?.options.offset?.[0])
+      .withContext('the pan brings b in from the left edge it settled at')
+      .toBeLessThan(0);
+    expect(popups[1]?.isPending()).toBe(true);
+    fake.emit('moveend');
+    expect(popups[1]?.isPending()).toBe(false);
+    fake.emit('moveend');
+    expect(popups[1]?.getElement().getAnimations().length)
+      .withContext('revealed exactly once')
+      .toBe(1);
+  });
+
+  it('waits out a drag or fling the visitor started before it fits and reveals', async () => {
+    await create();
+    fake.emit('load');
+    fake.startMove();
+    await tap('a');
+    expect(popups[0]?.isPending())
+      .withContext('hidden while the map is still gliding')
+      .toBe(true);
+    fake.emit('moveend');
+    expect(popups[0]?.isPending())
+      .withContext('fitted and revealed where the glide ended')
+      .toBe(false);
+    expect(pansRequested()).toEqual([]);
+  });
+
+  it('keeps waiting when the camera is moving again by the time the last move ends', async () => {
+    await create();
+    fake.emit('load');
+    fake.startMove();
+    // Registered first, so it runs before the component's own `moveend` listener: the move that
+    // ends hands over to another one at once, as a fling does after a drag.
+    fake.once('moveend', () => fake.startMove());
+    await tap('a');
+    fake.emit('moveend');
+    expect(popups[0]?.isPending()).toBe(true);
+    fake.emit('moveend');
+    expect(popups[0]?.isPending()).toBe(false);
+  });
+
+  it('fits a popup against the camera as it is once maplibre-gl has loaded, not as it was at the tap', async () => {
+    requestReducedMotion(false);
+    await create();
+    fake.emit('load');
+    const letThrough = holdPopupFactory();
+    fake.projected = { x: 500, y: 300 };
+    fake.emit('click', tapOn('a'), 'spots-hit');
+    // The visitor drags the pin into the corner while the popup's chunk is still loading.
+    fake.projected = { x: 20, y: 500 };
+    await letThrough();
+    expect(popups[0]?.addedTo).toBeTruthy();
+    expect(pansRequested().length)
+      .withContext(
+        'the pin is at the edge now, so the popup is panned into view',
+      )
+      .toBe(1);
+    expect(pansRequested()[0]?.options.offset?.[0]).toBeLessThan(0);
+    expect(popups[0]?.isPending()).toBe(true);
+    fake.emit('moveend');
+    expect(popups[0]?.isPending()).toBe(false);
+  });
+
+  it('swaps to the other side when the camera moved the pin off the side it was created for while loading', async () => {
+    requestReducedMotion(true);
+    await create();
+    fake.emit('load');
+    const letThrough = holdPopupFactory();
+    fake.projected = { x: 500, y: 40 };
+    fake.emit('click', tapOn('a'), 'spots-hit');
+    fake.projected = { x: 500, y: 560 };
+    await letThrough();
+    await flushPending();
+    expect(popups[0]?.options.anchor).toBe('top');
+    expect(popups.length).toBe(2);
+    expect(popups[1]?.options.anchor).toBe('bottom');
+    expect(popups[0]?.removed)
+      .withContext('the never-shown first popup is gone at once')
+      .toBe(true);
+    expect(fake.featureStates['a']?.['selected'])
+      .withContext('the pin stays selected through the swap')
+      .toBe(true);
+  });
+
+  it('drops a popup waiting for the camera to settle when another pin is tapped, revealing only the newest', async () => {
+    requestReducedMotion(false);
+    await create();
+    fake.emit('load');
+    fake.projected = { x: 20, y: 500 };
+    await tap('a');
+    await tap('b');
+    await tap('a');
+    await flushPending();
+    expect(popups.length).toBe(3);
+    expect(popups[1]?.removed)
+      .withContext('b was dropped before it was ever shown')
+      .toBe(true);
+    fake.emit('moveend');
+    expect(popups[1]?.getElement().getAnimations().length)
+      .withContext('b is never revealed')
+      .toBe(0);
+    expect(pansRequested().length)
+      .withContext("the newest popup is fitted once, after a's ease")
+      .toBe(2);
+    fake.emit('moveend');
+    expect(popups[2]?.isPending()).toBe(false);
+    expect(popups[2]?.getElement().getAnimations().length).toBe(1);
+  });
+
+  it('leaves a popup waiting for the camera to settle unfitted and unrevealed once its pin is deselected', async () => {
+    await create();
+    fake.emit('load');
+    fake.startMove();
+    await tap('a');
+    fake.renderedPins = [];
+    fake.emit('click', { point: { x: 1, y: 1 } });
+    await flushPending();
+    fake.emit('moveend');
+    expect(popups[0]?.getElement().getAnimations().length).toBe(0);
+    expect(pansRequested()).toEqual([]);
+    expect(popups[0]?.removed).toBe(true);
+  });
+
+  it('never fits or reveals a popup that was waiting for the camera when the map is torn down', async () => {
+    requestReducedMotion(false);
+    await create();
+    fake.emit('load');
+    fake.projected = { x: 20, y: 500 };
+    await tap('a');
+    await tap('b');
+    const waiting = popups[1];
+    fixture.destroy();
+    fake.emit('moveend');
+    expect(waiting?.removed).toBe(true);
+    expect(waiting?.getElement().getAnimations().length).toBe(0);
+    expect(pansRequested().length)
+      .withContext('no pan after the teardown')
+      .toBe(1);
+    expect(TestBed.inject(ApplicationRef).viewCount).toBe(0);
   });
 
   it('reveals a pending popup once, when a resize re-fit pan that interrupted its pan settles', async () => {

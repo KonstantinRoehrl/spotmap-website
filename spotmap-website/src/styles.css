@@ -171,9 +171,17 @@ body {
   transition: max-height var(--dur-fast) ease-out;
 }
 
-/* A popup is created hidden while the map measures and fits it, then faded in. */
+/* MapLibre writes a re-fit's width cap (Popup.setMaxWidth) to this container's max-width, so the
+   width eases here while the cap and gallery height ease on the content box above. */
+.spot-popup-frame {
+  transition: max-width var(--dur-fast) ease-out;
+}
+
+/* A popup is created hidden while the map measures and fits it, then faded in. Its first fit sets
+   the width cap with no easing, so the fit measures the width the popup is heading for. */
 .spot-popup-frame--pending {
   opacity: 0;
+  transition: none;
 }
 
 .spot-popup-frame.maplibregl-popup-anchor-top .maplibregl-popup-tip,

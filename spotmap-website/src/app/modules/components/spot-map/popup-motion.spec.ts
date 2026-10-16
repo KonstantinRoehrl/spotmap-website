@@ -53,6 +53,53 @@ describe('popup motion', () => {
     expect(animation?.playState).toBe('finished');
   });
 
+  it('starts the close of a settled popup at full opacity, at rest', async () => {
+    const dismissed = dismissPopup(element, false);
+    const [from] = keyframesOf(element);
+    expect(Number(from?.['opacity'])).toBe(1);
+    expect(['none', '0px', '0px 0px'])
+      .withContext('at rest, as the close always began')
+      .toContain(String(from?.['translate']));
+    await dismissed;
+  });
+
+  it('starts the close of a popup still rising from where the rise has got to, never from full opacity', async () => {
+    revealPopup(pending(), false);
+    const reveal = element.getAnimations()[0]!;
+    // Held halfway: the popup is part-faded and part-risen, as after a click-through at ~85 ms.
+    reveal.pause();
+    reveal.currentTime = 85;
+    const style = getComputedStyle(element);
+    const opacity = Number(style.opacity);
+    const translate = style.translate;
+    expect(opacity).withContext('mid-reveal').toBeGreaterThan(0);
+    expect(opacity).toBeLessThan(1);
+
+    const dismissed = dismissPopup(element, false);
+    const close = element.getAnimations().at(-1)!;
+    expect(close).not.toBe(reveal);
+    const [from] = (close.effect as KeyframeEffect).getKeyframes();
+    expect(Number(from?.['opacity'])).toBeCloseTo(opacity, 6);
+    expect(from?.['translate']).toBe(translate);
+    await dismissed;
+  });
+
+  it('starts the reduced-motion close of a popup still fading in from its current opacity', async () => {
+    revealPopup(pending(), true);
+    const reveal = element.getAnimations()[0]!;
+    reveal.pause();
+    reveal.currentTime = 85;
+    const opacity = Number(getComputedStyle(element).opacity);
+    expect(opacity).toBeLessThan(1);
+
+    const dismissed = dismissPopup(element, true);
+    const close = element.getAnimations().at(-1)!;
+    const keyframes = (close.effect as KeyframeEffect).getKeyframes();
+    expect(Number(keyframes[0]?.['opacity'])).toBeCloseTo(opacity, 6);
+    expect(keyframes.some((keyframe) => 'translate' in keyframe)).toBe(false);
+    await dismissed;
+  });
+
   it('dismisses a popup that never showed at once', async () => {
     await dismissPopup(pending(), false);
     expect(element.getAnimations().length).toBe(0);

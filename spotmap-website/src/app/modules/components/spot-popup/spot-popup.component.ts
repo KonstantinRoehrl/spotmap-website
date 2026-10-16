@@ -2,12 +2,14 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  DestroyRef,
   ElementRef,
   inject,
   input,
   output,
   signal,
   viewChild,
+  type AfterViewInit,
 } from '@angular/core';
 import { SpotFeature } from '../../../models/spots/spot';
 import { photoUrl, SPOTMAP_BACKEND } from '../../../services/spotmap-backend';
@@ -32,7 +34,7 @@ export const SPOT_POPUP_FRAME_CLASS = 'spot-popup-frame';
   styleUrl: './spot-popup.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SpotPopupComponent {
+export class SpotPopupComponent implements AfterViewInit {
   /** The tapped spot, as the map's source holds it. */
   spot = input.required<SpotFeature>();
 
@@ -46,6 +48,7 @@ export class SpotPopupComponent {
   closeRequested = output<void>();
 
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly gallery = viewChild<
     SpotPhotoGalleryComponent,
     ElementRef<HTMLElement>
@@ -77,7 +80,22 @@ export class SpotPopupComponent {
     };
   }
 
-  /** Tracks the body's scroll position; the 1 px slack absorbs fractional scroll offsets. */
+  /**
+   * Follows the body's size as well as its scroll position. A re-fit that shrinks or grows the
+   * popup's height cap resizes the body without moving `scrollTop`, so no scroll event reports it,
+   * and the cap eases over 200 ms, so only the observer sees the size it settles on.
+   */
+  ngAfterViewInit(): void {
+    const body = this.body().nativeElement;
+    const observer = new ResizeObserver(() => this.onBodyScroll(body));
+    observer.observe(body);
+    this.destroyRef.onDestroy(() => observer.disconnect());
+  }
+
+  /**
+   * Tracks whether the body is scrolled to its end, on every scroll and every resize; the 1 px
+   * slack absorbs fractional scroll offsets.
+   */
   protected onBodyScroll(body: HTMLElement): void {
     this.atEnd.set(body.scrollTop + body.clientHeight >= body.scrollHeight - 1);
   }

@@ -20,7 +20,7 @@ import type {
   MapMouseEvent,
   Popup as MapLibrePopup,
 } from 'maplibre-gl';
-import { filter, lastValueFrom, tap } from 'rxjs';
+import { filter, lastValueFrom, Subject, takeUntil, tap } from 'rxjs';
 import { CityEnum, MapFailureReason } from '../../../models/enums/map-enum';
 import { SpotCollection, SpotFeature } from '../../../models/spots/spot';
 import {
@@ -90,6 +90,11 @@ interface OpenPopup {
   readonly ref: ComponentRef<SpotPopupComponent>;
   readonly spot: SpotFeature;
   readonly anchor: PopupAnchor;
+  /**
+   * Whether the fit has been applied. A popup added while the camera is still moving is not
+   * fitted until it settles, and until then a resize has nothing to re-fit.
+   */
+  fitted: boolean;
 }
 
 /**
@@ -134,6 +139,7 @@ function namesAnUnusableSource(
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SpotMapComponent {
+  /** The city whose spots are drawn; any change rebuilds the map on that city. */
   city = input.required<CityEnum>();
 
   /** Bumped by the container on RETRY; any change rebuilds the map from scratch. */
@@ -141,6 +147,7 @@ export class SpotMapComponent {
 
   /** The pins are on the painted map — the end of DRAW. */
   ready = output<void>();
+  /** The map can never paint this build; the container shows its failure chrome for the reason. */
   failed = output<MapFailureReason>();
   /**
    * Every real loading milestone of the current build, for the loader's progress; DRAW's
@@ -181,8 +188,9 @@ export class SpotMapComponent {
   /** The animation frame a coalesced resize re-fit waits on. */
   private refitFrame?: number;
   /**
-   * The `moveend` listener that may reveal the pending popup. Only the newest one acts, so a pan
-   * that interrupts the one a popup waits on can take over its reveal.
+   * The `moveend` listener that may fit or reveal the pending popup. Only the newest one acts, so
+   * a pan that interrupts the one a popup waits on can take over its reveal, and a superseded or
+   * torn-down popup never acts.
    */
   private armedReveal?: () => void;
   /** The selected pin's spot id, whose `selected` feature state is set. */
@@ -199,6 +207,9 @@ export class SpotMapComponent {
    * attaching it.
    */
   private generation = 0;
+
+  /** Fires on every teardown, ending the spots request of the build it replaces. */
+  private readonly superseded = new Subject<void>();
 
   constructor() {
     inject(DestroyRef).onDestroy(() => this.teardown());
@@ -240,6 +251,9 @@ export class SpotMapComponent {
         this.spots.loadSpots(city).pipe(
           tap((event) => this.reportSpots(event, generation)),
           filter((event): event is SpotsLoaded => event.type === 'done'),
+          // A city switch or retry has no use for this request any more: ending it frees the
+          // connection and the live query's deadline timer instead of leaving them to run out.
+          takeUntil(this.superseded),
         ),
       );
       collection = loaded.collection;
@@ -510,9 +524,10 @@ export class SpotMapComponent {
   }
 
   /**
-   * Creates the popup for `ref` hidden on the side with more room, adds it to the map, fits it into
-   * the visible map and pans it into view before it rises. A tap or a teardown that overtook it
-   * while maplibre-gl was loading throws it away.
+   * Creates the popup for `ref` hidden, adds it to the map and fits it once the camera holds still.
+   * The side and width cap it is created with come from where the pin is now; the fit itself is
+   * done against the camera as it is when the popup is ready, because the map may move while
+   * maplibre-gl loads. A tap or a teardown that overtook it while loading throws it away.
    */
   private async showPopup(
     map: MapLibreMap,
@@ -520,9 +535,10 @@ export class SpotMapComponent {
     ref: ComponentRef<SpotPopupComponent>,
     generation: number,
   ): Promise<void> {
-    const box = this.fitBox();
-    const pin = map.project(spot.geometry.coordinates);
-    const frame = popupFrame(box, pin);
+    const frame = popupFrame(
+      this.fitBox(),
+      map.project(spot.geometry.coordinates),
+    );
 
     let popup: MapLibrePopup;
     try {
@@ -554,10 +570,70 @@ export class SpotMapComponent {
       .setLngLat(spot.geometry.coordinates)
       .setDOMContent(ref.location.nativeElement)
       .addTo(map);
-    const open: OpenPopup = { popup, ref, spot, anchor: frame.anchor };
+    const open: OpenPopup = {
+      popup,
+      ref,
+      spot,
+      anchor: frame.anchor,
+      fitted: false,
+    };
     this.open = open;
-    const fit = this.applyFit(open, box, pin);
-    this.panThenReveal(map, open, fit.panBy);
+    // The width cap eases on a re-fit and the next fit must measure where it settled, not partway.
+    popup.getElement().addEventListener('transitionend', (event) => {
+      if (event.propertyName === 'max-width' && this.open === open) {
+        this.scheduleRefit(map, generation);
+      }
+    });
+    this.fitWhenSettled(map, open);
+  }
+
+  /**
+   * Fits and reveals `open` once the camera holds still. A camera still moving — the pan of a
+   * popup opened a moment ago, a drag, a fling, a zoom — is about to leave the position the pin
+   * has now, so the popup waits hidden for the move's `moveend` and is fitted against the camera
+   * that is left. Whatever moves the camera again before then is waited out the same way.
+   */
+  private fitWhenSettled(map: MapLibreMap, open: OpenPopup): void {
+    this.armedReveal = undefined;
+    if (!map.isMoving()) {
+      const fit = this.fitToCamera(map, open);
+      if (fit) {
+        this.panThenReveal(map, open, fit.panBy);
+      }
+      return;
+    }
+    const onSettle = () => {
+      if (this.armedReveal !== onSettle) {
+        return;
+      }
+      this.armedReveal = undefined;
+      if (this.open === open) {
+        this.fitWhenSettled(map, open);
+      }
+    };
+    this.armedReveal = onSettle;
+    map.once('moveend', onSettle);
+  }
+
+  /**
+   * Fits `open` against the camera as it is now: the width cap, then the measured fit. Returns
+   * the fit, or `undefined` when its side ran out of room and it was swapped for a fresh popup on
+   * the other side (MapLibre has no public anchor setter), which fits itself the same way.
+   */
+  private fitToCamera(map: MapLibreMap, open: OpenPopup): PopupFit | undefined {
+    const box = this.fitBox();
+    const pin = map.project(open.spot.geometry.coordinates);
+    open.popup.setMaxWidth(`${popupFrame(box, pin).maxWidth}px`);
+    const fit = this.applyFit(open, box, pin, open.anchor);
+    open.fitted = true;
+    if (fit.anchor === open.anchor) {
+      return fit;
+    }
+    this.closePopup({ keepSelection: true });
+    const ref = this.createContent(open.spot);
+    this.pendingRef = ref;
+    void this.showPopup(map, open.spot, ref, this.generation);
+    return undefined;
   }
 
   /**
@@ -752,34 +828,23 @@ export class SpotMapComponent {
   /**
    * Fits the open popup to the resized map. On the same side its caps change and the map pans any
    * part pushed out back into view; when that side ran out of room the popup is swapped for one on
-   * the other side, the old one fading out as the new one rises.
+   * the other side, the old one fading out as the new one rises. A popup still waiting for the
+   * camera to settle is fitted then, against the resized map.
    */
   private refit(map: MapLibreMap): void {
     const open = this.open;
-    if (!open) {
+    if (!open?.fitted) {
       return;
     }
-    const box = this.fitBox();
-    const pin = map.project(open.spot.geometry.coordinates);
-    const frame = popupFrame(box, pin);
-    open.popup.setMaxWidth(`${frame.maxWidth}px`);
-    const fit = this.applyFit(open, box, pin, open.anchor);
-    if (fit.anchor === open.anchor) {
-      if (fit.panBy[0] !== 0 || fit.panBy[1] !== 0) {
-        // This pan stops the one a pending popup waits on, so its reveal moves to this pan's end.
-        if (isPending(open)) {
-          this.panRevealing(map, open, fit.panBy);
-        } else {
-          this.pan(map, fit.panBy);
-        }
+    const fit = this.fitToCamera(map, open);
+    if (fit && (fit.panBy[0] !== 0 || fit.panBy[1] !== 0)) {
+      // This pan stops the one a pending popup waits on, so its reveal moves to this pan's end.
+      if (isPending(open)) {
+        this.panRevealing(map, open, fit.panBy);
+      } else {
+        this.pan(map, fit.panBy);
       }
-      return;
     }
-    // MapLibre has no public anchor setter, so a side change is a fresh popup.
-    this.closePopup({ keepSelection: true });
-    const ref = this.createContent(open.spot);
-    this.pendingRef = ref;
-    void this.showPopup(map, open.spot, ref, this.generation);
   }
 
   /**
@@ -926,6 +991,7 @@ export class SpotMapComponent {
   /** Releases the map's WebGL context — the browser caps how many may be alive at once. */
   private teardown(): void {
     this.generation += 1;
+    this.superseded.next();
     this.outcome = 'pending';
     this.removePopupsNow();
     this.map?.remove();

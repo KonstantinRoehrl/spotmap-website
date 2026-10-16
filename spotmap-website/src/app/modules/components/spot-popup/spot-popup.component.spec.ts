@@ -43,6 +43,13 @@ function painted(property: 'color' | 'text-shadow', token: string): string {
   return value;
 }
 
+/** Waits for the browser to lay out and report size changes, which it does once per frame. */
+function nextFrames(): Promise<void> {
+  return new Promise((resolve) =>
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+  );
+}
+
 describe('SpotPopupComponent', () => {
   let fixture: ComponentFixture<SpotPopupComponent>;
 
@@ -261,6 +268,45 @@ describe('SpotPopupComponent', () => {
       .toBeGreaterThan(scroller.clientHeight);
     scroller.scrollTop = scroller.scrollHeight;
     scroller.dispatchEvent(new Event('scroll'));
+    fixture.detectChanges();
+    expect(body(el).classList).not.toContain('spot-popup__body--more');
+  });
+
+  it('brings the fade back when a shrinking cap leaves content below a body scrolled to its end', async () => {
+    const el = create(
+      spot({ photos: [], notes: 'Gap into Bank, Polizei. '.repeat(40) }),
+    );
+    fixture.componentRef.setInput('scrolls', true);
+    el.style.height = '120px';
+    fixture.detectChanges();
+    const scroller = body(el);
+    scroller.scrollTop = scroller.scrollHeight;
+    scroller.dispatchEvent(new Event('scroll'));
+    fixture.detectChanges();
+    expect(scroller.classList).not.toContain('spot-popup__body--more');
+
+    // The map re-fits the popup to a smaller visible space: the scroll position is untouched, so
+    // no scroll event follows, yet the shorter body now has content below its fold.
+    el.style.height = '60px';
+    await nextFrames();
+    fixture.detectChanges();
+    expect(scroller.scrollTop + scroller.clientHeight)
+      .withContext('content is below the shrunken fold')
+      .toBeLessThan(scroller.scrollHeight - 1);
+    expect(scroller.classList).toContain('spot-popup__body--more');
+  });
+
+  it('hides the fade again when a growing cap shows the whole body', async () => {
+    const el = create(
+      spot({ photos: [], notes: 'Gap into Bank, Polizei. '.repeat(40) }),
+    );
+    fixture.componentRef.setInput('scrolls', true);
+    el.style.height = '120px';
+    fixture.detectChanges();
+    expect(body(el).classList).toContain('spot-popup__body--more');
+
+    el.style.height = '4000px';
+    await nextFrames();
     fixture.detectChanges();
     expect(body(el).classList).not.toContain('spot-popup__body--more');
   });
