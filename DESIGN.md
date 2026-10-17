@@ -68,12 +68,12 @@ components:
     textColor: "{colors.phosphor}"
     typography: "{typography.label}"
     rounded: "{rounded.md}"
-    padding: "10px 14px"
+    padding: "9px"
   nav-link-active:
-    textColor: "{colors.phosphor-bright}"
-    backgroundColor: "{colors.surface-raised}"
+    textColor: "{colors.phosphor}"
+    backgroundColor: "rgba(0, 255, 0, 0.07)"
     rounded: "{rounded.md}"
-    padding: "10px 14px"
+    padding: "9px"
   select-field:
     textColor: "{colors.phosphor}"
     backgroundColor: "{colors.surface}"
@@ -108,7 +108,7 @@ Every city's map is drawn by the site itself — the basemap is ours, not someon
 - **Glow is depth.** No conventional shadows; elevation is bloom intensity.
 - **Soft CRT corners.** Every element rounds on the R1 scale — 4 / 6 / 8 px; no pills, the pin stays the only circle.
 - **Nothing jumps.** Every transition eases or crossfades — state swaps, overlays, camera moves, popups, loaders. Under `prefers-reduced-motion` movement stops on a still frame but changes still fade (≈200 ms, `--dur-fade`), never a hard cut.
-- **Legible first.** It's used one-handed, outdoors, in sunlight — the vibe never beats the read.
+- **Legible first.** It's used one-handed, outdoors, in sunlight — the vibe never beats the read. No text renders below 12 px, and captions, notes and prose carry no glow.
 
 ## 2. Colors
 
@@ -186,42 +186,43 @@ A city map needs more voices than two phosphors can give: road classes, water, g
 This system has **no conventional shadows.** Depth is carried entirely by **phosphor glow** — a CRT beam blooming off text and edges. A surface feels "closer" when its glow is hotter and wider, "further" when the beam is tight or absent. Flat black is the resting plane; glow is the only lift.
 
 ### Shadow Vocabulary (glow, not shadow)
-- **Text glow — resting** (`text-shadow: 0 0 2px #00ff00, 0 0 4px #00ff00, 0 0 6px #00ff00`): Default phosphor bloom on all green text. Present everywhere, low intensity.
-- **Text glow — hot** (`text-shadow: 0 0 4px #00ff00, 0 0 8px #00ff00, 0 0 12px #00ff00`): Hover/active/emphasis. The beam intensifies on interaction.
+- **Text glow — Display** (`--glow-text-display`: `0 0 2px rgba(0,255,0,.95), 0 0 6px rgba(0,255,0,.6)`, ink `phosphor-bright`): names and headings — the popup's spot name, page titles and section headings, the loader's letters, the ASCII banners. A pale mint core over a green halo, so the letter's edge carries the read and the halo only colours it.
+- **Text glow — Standard** (`--glow-text-standard`: `0 0 2px rgba(0,255,0,.7), 0 0 6px rgba(0,255,0,.35)`, ink `phosphor`): interactive and status labels — nav links, buttons and links, the city select, the map-error line, the gallery's SIGNAL LOST line, the loader's current step.
+- **Unlit** (no `text-shadow`, ink `phosphor` or `phosphor-dim`): everything else, and the default — prose, notes, captions, counters, status and rights lines, the terminal titlebar, dim lines, the gallery rain. Text glows only where its own stylesheet opts into a tier.
+- **Amber glow** (`--glow-text-amber`: `0 0 2px rgba(255,176,0,.7), 0 0 6px rgba(255,176,0,.35)`): the care notice; Standard's grammar in amber.
 - **Edge glow — frame** (`box-shadow: 0 0 24px rgba(0,255,0,0.35)`): The map frame and focused fields — a soft green halo that reads as "this is live."
-- **Edge glow — active** (`box-shadow: 0 0 30px rgba(0,255,0,0.5), inset 0 0 2px rgba(0,255,120,0.6)`): The current nav tab / selected option.
-- **Amber glow** (`text-shadow: 0 0 4px #ffb000, 0 0 8px #ffb000`): The care channel's bloom; identical grammar, amber hue.
+- **Edge glow — pointer bloom** (`box-shadow: 0 0 14px rgba(0,255,0,.35), inset 0 0 0 1px rgba(0,255,0,.35)`; `.6` while pressed): the lit state of every control (§5 Buttons). Inside a clipping box (the popup, the gallery) only the inset edge lights.
 
 ### Named Rules
 **The Glow-Is-The-Shadow Rule.** Never add a dark/gray `box-shadow` or `filter: drop-shadow(black)`. Elevation is always a colored bloom of phosphor (green, or amber for the care channel). If a component needs to feel raised, raise its glow, not a gray shadow.
 
-**The Bloom-Budget Rule.** Glow must not smear legibility. Resting text glow stays ≤6px radius so letters keep clean edges in sunlight; only non-text chrome (frames, active tabs) uses the wide 24–30px halos.
+**The Bloom-Budget Rule.** Glow must not smear legibility. Text glows in one of three tiers — Display, Standard or Unlit — and Unlit is the default; no halo on text reaches past 6 px, and small copy (captions, counters, notes) is always unlit. No text renders below 12 px (the MapLibre attribution, a licence line, is the one exception). Only non-text chrome uses wider halos: the 24 px frame halo and the pointer bloom's 14 px edge.
 
 ## 5. Components
 
 ### Buttons
 - **Shape:** soft — 4px radius (`{rounded.sm}`), never pill.
-- **Primary:** phosphor-green text/border on `surface`, resting text-glow; padding `10px 16px`, UPPERCASE label.
-- **Hover / Focus:** beam intensifies to hot text-glow + a `0 0 20px rgba(0,255,0,0.4)` edge halo; `:focus-visible` gets a 1px phosphor outline offset 2px. Transitions ~200ms ease-out.
+- **Primary:** phosphor label in the Standard tier on a transparent or `surface` fill, with a 1px `phosphor-deep` border where the control needs an edge (RETRY, ENTER THE MAP, gallery arrows); padding `10px 16px`, UPPERCASE label.
+- **Hover / Focus / Press — the pointer bloom:** one shared effect on every interactive element (nav links, buttons, links, popup close and directions, gallery arrows, the city select and its options). A single radial gradient fades in under the label, centred on the pointer and peaking at 40% green (capped there so the lit label keeps 4.5:1); a 1px inset green edge and a 14px green halo appear, both at 35%; the label steps up to the Display tier. Pressing strengthens the edge and halo to 60%. It lights in 120 ms (`--dur-hover-in`) and decays over 700 ms (`--dur-hover-out`), ease-out; only colour, glow, border, background and shadow transition. Hover lights only on devices with a hover pointer, so a tap flashes and decays instead of sticking. `:focus-visible` shows the same lit state plus a 1px phosphor outline offset 2px (pulled inside where the control sits against a clipping edge). Disabled controls do not light. Opt-in is the `phosphor-bloom` class (`phosphor-bloom--inset` inside the popup and gallery); `appPointerBloom` makes the bloom follow the pointer.
 - **Care variant:** same grammar in amber — for earnest actions only.
 
 ### Inputs / Fields (the city select)
 - **Style:** phosphor text on `surface`, 1px phosphor-deep border, 6px radius (`{rounded.md}`). Replaces the current Material Azure prebuilt look entirely — the dropdown **panel** must be `surface` (near-black), never the default white overlay, with phosphor options.
-- **Focus:** border brightens phosphor + `0 0 20px rgba(0,255,0,0.4)` glow; label stays phosphor.
-- **Selected option:** amber text + `surface-raised` fill + active edge-glow (the one place amber marks "current"). Other options phosphor on transparent; hover raises glow.
+- **Hover / Focus:** the pointer bloom (centred) on the field; while the panel is open the field keeps the 24px frame halo; label and value in the Standard tier.
+- **Selected option:** amber text + `surface-raised` fill (the one place amber marks "current"). Every option, the selected one included, lights with the pointer bloom on hover and keyboard highlight.
 - **Error / Disabled:** error border alert-red; disabled uses phosphor-deep, no glow.
 
 ### Navigation
 - **Style:** a horizontal terminal tab bar (top, desktop) / fixed bottom bar (mobile ≤768px) on `surface` with a phosphor-deep hairline.
 - **Icons:** monochrome **terminal glyphs**, not color emoji — drawn as phosphor line-marks / ASCII (e.g. a house, a pin, an info mark rendered in green stroke). They inherit the text color and glow.
-- **States:** default phosphor label + resting glow; hover intensifies glow + faint `surface-raised`; **active** = phosphor-bright label on `surface-raised` with active edge-glow. Optional per-character glitch on hover/active (the existing GlitchText behavior) — honor `prefers-reduced-motion`.
+- **States:** default phosphor label in the Standard tier; hover, focus and press are the pointer bloom; **active** (current page) = a quiet rest state below hover — 1px `phosphor-deep` border, a 7% green fill, Standard label — which still blooms on hover. Optional per-character glitch on hover/active (the existing GlitchText behavior) — honors `prefers-reduced-motion`.
 
 ### Map Frame (signature)
 - **Corner Style:** 8px radius (`{rounded.lg}`), `overflow: hidden`.
 - **Background:** `surface` (near-black) — the backing the map sits on, so a blank/slow/failed map reads black-green, **never white**.
 - **Glow Strategy:** `box-shadow: 0 0 24px rgba(0,255,0,0.35)` frame halo.
 - **Loading:** the map loader (see Map Loader below) over `surface`: the city name locks in left to right over dim ASCII rain, and a SPOTS · MAP · DRAW bar beneath it moves on real load events only — never a timer. When the live feed fails and the archive snapshot stands in, an amber `LIVE FEED DOWN · ARCHIVE COPY` note shows under the bar. The renderer stays hidden until the bar has eased to 100 %, then the loader crossfades into the map.
-- **Error/timeout:** an opaque `surface` overlay carrying the phosphor line `> SIGNAL LOST // MAP UNREACHABLE` and a `> RETRY` button (phosphor on a phosphor-deep border, hot glow on hover/focus) — not a white void. A browser that cannot give MapLibre the WebGL 2 context it needs gets `> NO RENDERER // THIS BROWSER CANNOT DRAW THE MAP` and **no** retry, because rebuilding the map in the same page cannot help. The line states the outcome rather than the cause, because the cause varies and the app cannot tell which one it hit: an old renderer, graphics acceleration switched off, a blocklisted GPU, or too many live contexts on the page. Naming any one of them would be false for the other three.
+- **Error/timeout:** an opaque `surface` overlay carrying the phosphor line `> SIGNAL LOST // MAP UNREACHABLE` and a `> RETRY` button (phosphor on a phosphor-deep border, lit by the pointer bloom) — not a white void. A browser that cannot give MapLibre the WebGL 2 context it needs gets `> NO RENDERER // THIS BROWSER CANNOT DRAW THE MAP` and **no** retry, because rebuilding the map in the same page cannot help. The line states the outcome rather than the cause, because the cause varies and the app cannot tell which one it hit: an old renderer, graphics acceleration switched off, a blocklisted GPU, or too many live contexts on the page. Naming any one of them would be false for the other three.
 
 ### Map Surface (signature)
 The site's own map, drawn from OpenFreeMap vector tiles in the palette above. Everything here is the terminal system, not a theme layered over a street map.
@@ -264,4 +265,4 @@ The site's own map, drawn from OpenFreeMap vector tiles in the palette above. Ev
 - **Don't** use gray/black drop-shadows, frosted glassmorphism, rounded pill shapes, or proportional (non-mono) fonts (the map renderer's Noto Sans basemap labels and demolished-pin `×` are the one exception, see the One-Grid Rule).
 - **Don't** introduce a third decorative color into the UI chrome (the basemap's Map Palette is the one documented exception), or let amber sprawl past the care/selection role.
 - **Don't** use full-color emoji as UI icons — render terminal glyphs in phosphor instead.
-- **Don't** let glow smear text legibility; resting text glow stays ≤6px so it survives sunlight on a phone.
+- **Don't** let glow smear text: no blanket glow, no text halo past 6 px, no text below 12 px, so it survives sunlight on a phone.
