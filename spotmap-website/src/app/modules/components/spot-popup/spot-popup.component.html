@@ -28,7 +28,8 @@
     }
 
     <a
-      class="spot-popup__directions"
+      class="spot-popup__directions phosphor-bloom phosphor-bloom--inset"
+      appPointerBloom
       [href]="directionsHref()"
       target="_blank"
       rel="noopener noreferrer"
@@ -42,7 +43,8 @@
   <!-- Last in DOM order, so MapLibre's focus-after-open still lands on the gallery or directions. -->
   <button
     type="button"
-    class="spot-popup__close"
+    class="spot-popup__close phosphor-bloom phosphor-bloom--inset"
+    appPointerBloom
     [attr.aria-label]="'Close ' + properties().name"
     (click)="closeRequested.emit()"
   >

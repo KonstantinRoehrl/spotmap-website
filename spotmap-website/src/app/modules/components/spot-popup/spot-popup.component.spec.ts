@@ -204,12 +204,39 @@ describe('SpotPopupComponent', () => {
   });
 
   it('leaves the demolished line unlit, with none of the glow the name carries', () => {
-    // text-shadow inherits, and styles.css puts the resting glow on every div — so a rule that
-    // only sets a colour still paints this line with the bloom it is supposed to have dropped.
+    // The name glows in the Display tier; the demolished line is caption copy and must stay unlit.
     const status = create(spot({ status: 'demolished' })).querySelector(
       '.spot-popup__status',
     )!;
     expect(getComputedStyle(status).textShadow).toBe('none');
+  });
+
+  it('lights the spot name in the Display tier', () => {
+    const name = create(spot()).querySelector('.spot-popup__name')!;
+    expect(getComputedStyle(name).textShadow).toBe(
+      painted('text-shadow', 'var(--glow-text-display)'),
+    );
+    expect(getComputedStyle(name).color).toBe(
+      painted('color', 'var(--color-phosphor-bright)'),
+    );
+  });
+
+  it('leaves the rights line unlit', () => {
+    const rights = create(spot()).querySelector('.spot-popup__rights')!;
+    expect(getComputedStyle(rights).textShadow).toBe('none');
+  });
+
+  it('gives close and directions the shared bloom, kept inside the popup', () => {
+    const host = create(spot());
+    for (const selector of ['.spot-popup__close', '.spot-popup__directions']) {
+      const control = host.querySelector(selector)!;
+      expect(control.classList)
+        .withContext(selector)
+        .toContain('phosphor-bloom');
+      expect(control.classList)
+        .withContext(selector)
+        .toContain('phosphor-bloom--inset');
+    }
   });
 
   it('recedes the demolished line the way a ghosted pin recedes', () => {

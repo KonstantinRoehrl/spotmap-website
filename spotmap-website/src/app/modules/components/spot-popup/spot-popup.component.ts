@@ -13,6 +13,7 @@ import {
 } from '@angular/core';
 import { SpotFeature } from '../../../models/spots/spot';
 import { photoUrl, SPOTMAP_BACKEND } from '../../../services/spotmap-backend';
+import { PointerBloomDirective } from '../../directives/pointer-bloom.directive';
 import { SpotPhotoGalleryComponent } from '../spot-photo-gallery/spot-photo-gallery.component';
 
 /**
@@ -29,7 +30,7 @@ export const SPOT_POPUP_FRAME_CLASS = 'spot-popup-frame';
  */
 @Component({
   selector: 'app-spot-popup',
-  imports: [SpotPhotoGalleryComponent],
+  imports: [SpotPhotoGalleryComponent, PointerBloomDirective],
   templateUrl: './spot-popup.component.html',
   styleUrl: './spot-popup.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
