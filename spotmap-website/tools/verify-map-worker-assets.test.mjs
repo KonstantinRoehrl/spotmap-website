@@ -97,6 +97,22 @@ test('rejects a build missing the module the worker itself imports', () => {
   assert.match(result.stderr, new RegExp(`${SHARED} is missing`));
 });
 
+test('follows a lazy import written as a template literal to the map chunk', () => {
+  const result = runGuard(
+    buildOutput('template-literal-import', {
+      [ENTRY]:
+        `import{a as e}from'./chunk-CXxEgy1j.js';` +
+        `let r=()=>import(\`./${MAP_CHUNK}\`);export{e,r};`,
+    }),
+  );
+
+  assert.equal(
+    result.status,
+    0,
+    `the guard lost the map chunk behind a backtick import: ${result.stderr}`,
+  );
+});
+
 test('rejects output it cannot read the application entry scripts from, rather than passing', () => {
   for (const [name, index] of [
     ['no-index', null],
