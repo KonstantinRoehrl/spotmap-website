@@ -36,6 +36,7 @@
       <mat-form-field
         appearance="outline"
         class="select-none w-full phosphor-bloom"
+        appPointerBloom
       >
         <mat-label>City</mat-label>
         <mat-select
@@ -54,6 +55,7 @@
               @for (city of entry.value; track city.city) {
                 <mat-option
                   class="phosphor-bloom phosphor-bloom--inset"
+                  appPointerBloom
                   [value]="city"
                 >
                   {{ city.city }}

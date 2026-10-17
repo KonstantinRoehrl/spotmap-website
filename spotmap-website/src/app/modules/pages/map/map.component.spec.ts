@@ -112,6 +112,32 @@ describe('MapComponent', () => {
     }
   });
 
+  /** Moves a pointer over `element`; a real pointer always enters before it moves, which is when the bloom measures its host. */
+  function movePointerOver(element: Element): void {
+    for (const type of ['pointerenter', 'pointermove']) {
+      element.dispatchEvent(
+        new PointerEvent(type, { clientX: 1, clientY: 1, bubbles: false }),
+      );
+    }
+  }
+
+  it('makes the city field bloom follow the pointer', () => {
+    const field = (fixture.nativeElement as HTMLElement).querySelector(
+      'mat-form-field',
+    )!;
+    movePointerOver(field);
+    expect((field as HTMLElement).style.getPropertyValue('--x')).not.toBe('');
+  });
+
+  it('makes every city option bloom follow the pointer', () => {
+    const host = fixture.nativeElement as HTMLElement;
+    (host.querySelector('.mat-mdc-select-trigger') as HTMLElement).click();
+    fixture.detectChanges();
+    const option = document.querySelector('mat-option') as HTMLElement;
+    movePointerOver(option);
+    expect(option.style.getPropertyValue('--x')).not.toBe('');
+  });
+
   /** Opens the city select and returns the first option, with its transitions off so the lit look reads at once. */
   function openFirstOption(): HTMLElement {
     const host = fixture.nativeElement as HTMLElement;

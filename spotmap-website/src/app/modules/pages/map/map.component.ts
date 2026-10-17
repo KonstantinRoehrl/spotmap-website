@@ -13,6 +13,7 @@ import { MapItem } from '../../../models/enums/interfaces/map-item-interface';
 import { CityEnum, CountryCodeEnum } from '../../../models/enums/map-enum';
 import { AsciiAnimationTextComponent } from '../../components/ascii-animation-text/ascii-animation-text.component';
 import { MapContainerComponent } from '../../components/map-container/map-container.component';
+import { PointerBloomDirective } from '../../directives/pointer-bloom.directive';
 
 /**
  * The map page: an animated ASCII header, a city select grouped by country and the map for the
@@ -27,6 +28,7 @@ import { MapContainerComponent } from '../../components/map-container/map-contai
     MatFormFieldModule,
     MatSelectModule,
     MatOptionModule,
+    PointerBloomDirective,
   ],
   templateUrl: './map.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
