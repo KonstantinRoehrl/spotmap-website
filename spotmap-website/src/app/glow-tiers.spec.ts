@@ -60,6 +60,21 @@ function contrast(
 /** The bloom's peak: 40 % phosphor green over the ground it sits on. */
 const BLOOM_PEAK = 'rgba(0, 255, 0, 0.4)';
 
+/** Every style rule of the loaded stylesheets, descending into `@media` blocks. */
+function styleRules(
+  rules: CSSRuleList = Array.from(document.styleSheets)
+    .map((sheet) => Array.from(sheet.cssRules))
+    .flat() as unknown as CSSRuleList,
+): CSSStyleRule[] {
+  return Array.from(rules).flatMap((rule) =>
+    rule instanceof CSSStyleRule
+      ? [rule]
+      : 'cssRules' in rule
+        ? styleRules((rule as CSSGroupingRule).cssRules)
+        : [],
+  );
+}
+
 describe('text glow tiers', () => {
   for (const name of [
     '--glow-text-display',
@@ -148,5 +163,35 @@ describe('text glow tiers', () => {
         ).toBeGreaterThanOrEqual(4.5);
       });
     }
+  });
+
+  // :hover cannot be simulated in Karma, so the hover rule's exclusions are read off the
+  // stylesheet itself (the lit look's selector lists are the subject here).
+  describe('the bloom stylesheet rules', () => {
+    const litRules = (needle: string) =>
+      styleRules().filter(
+        (rule) =>
+          rule.selectorText.includes('.phosphor-bloom') &&
+          rule.selectorText.includes(needle) &&
+          rule.style.getPropertyValue('box-shadow') !== '',
+      );
+
+    it('does not light a disabled Material option on hover', () => {
+      const rules = litRules(':hover');
+      expect(rules.length).toBeGreaterThan(0);
+      for (const rule of rules) {
+        expect(rule.selectorText).toContain('mdc-list-item--disabled');
+      }
+    });
+
+    it('lets a hovered option take the light from the keyboard-active one', () => {
+      const rules = litRules('mat-mdc-option-active');
+      expect(rules.length).toBeGreaterThan(0);
+      for (const rule of rules) {
+        expect(rule.selectorText).toMatch(
+          /mat-mdc-select-panel:has\(\.mat-mdc-option:hover\)/,
+        );
+      }
+    });
   });
 });

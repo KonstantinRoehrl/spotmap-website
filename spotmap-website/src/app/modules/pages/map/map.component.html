@@ -52,7 +52,10 @@
           ) {
             <mat-optgroup [label]="entry.value[0].country | uppercase">
               @for (city of entry.value; track city.city) {
-                <mat-option class="phosphor-bloom" [value]="city">
+                <mat-option
+                  class="phosphor-bloom phosphor-bloom--inset"
+                  [value]="city"
+                >
                   {{ city.city }}
                 </mat-option>
               }

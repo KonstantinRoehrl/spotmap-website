@@ -123,12 +123,11 @@
   color: var(--color-phosphor);
 }
 
-/* The tier sits on the line, not the panel: the panel also holds the unlit dim line. */
-.gallery__placeholder-line {
+/* Only the SIGNAL LOST line takes the Standard tier; the dim line beside it stays unlit. */
+.gallery__placeholder-line--lost {
   text-shadow: var(--glow-text-standard);
 }
 
 .gallery__placeholder-line--dim {
   color: var(--color-phosphor-dim);
-  text-shadow: none;
 }

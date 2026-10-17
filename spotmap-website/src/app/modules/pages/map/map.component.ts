@@ -14,6 +14,10 @@ import { CityEnum, CountryCodeEnum } from '../../../models/enums/map-enum';
 import { AsciiAnimationTextComponent } from '../../components/ascii-animation-text/ascii-animation-text.component';
 import { MapContainerComponent } from '../../components/map-container/map-container.component';
 
+/**
+ * The map page: an animated ASCII header, a city select grouped by country and the map for the
+ * selected city. The choice is remembered in localStorage and restored on the next visit.
+ */
 @Component({
   selector: 'app-map',
   imports: [

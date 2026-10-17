@@ -111,4 +111,77 @@ describe('MapComponent', () => {
       expect(option.classList).toContain('phosphor-bloom');
     }
   });
+
+  /** Opens the city select and returns the first option, with its transitions off so the lit look reads at once. */
+  function openFirstOption(): HTMLElement {
+    const host = fixture.nativeElement as HTMLElement;
+    (host.querySelector('.mat-mdc-select-trigger') as HTMLElement).click();
+    fixture.detectChanges();
+    const option = document.querySelector('mat-option') as HTMLElement;
+    option.style.transition = 'none';
+    return option;
+  }
+
+  it('keeps the highlighted option inside the panel: inset layers only, no outer halo', () => {
+    const option = openFirstOption();
+    option.classList.add('mat-mdc-option-active');
+    const style = getComputedStyle(option);
+    expect(style.getPropertyValue('--bloom-halo').trim()).toBe('0px');
+    // The panel clips at its edge, so the outer layer of the lit shadow must have no blur.
+    const [outer] = style.boxShadow.split(/,\s*(?![^(]*\))/);
+    expect(outer).toMatch(/ 0px 0px 0px 0px$/);
+    expect(style.boxShadow).toContain('inset');
+  });
+
+  it('leaves a disabled option unlit even when it is the keyboard-active one', () => {
+    const option = openFirstOption();
+    option.classList.add('mat-mdc-option-active', 'mdc-list-item--disabled');
+    const style = getComputedStyle(option);
+    expect(style.boxShadow).toBe('none');
+    expect(style.color).toBe(painted('color', 'var(--color-phosphor)'));
+  });
+
+  describe('the city field label and value', () => {
+    let host: HTMLElement;
+    let label: HTMLElement;
+    let value: HTMLElement;
+
+    beforeEach(() => {
+      host = fixture.nativeElement as HTMLElement;
+      label = host.querySelector('.mat-mdc-floating-label') as HTMLElement;
+      value = host.querySelector('.mat-mdc-select-value') as HTMLElement;
+      label.style.transition = 'none';
+      value.style.transition = 'none';
+    });
+
+    it('rests in the Standard tier', () => {
+      for (const element of [label, value]) {
+        expect(getComputedStyle(element).textShadow).toBe(
+          painted('text-shadow', 'var(--glow-text-standard)'),
+        );
+      }
+    });
+
+    it('takes the Display tier and the bright mint when the field is focused', () => {
+      (host.querySelector('mat-select') as HTMLElement).focus();
+      for (const element of [label, value]) {
+        const style = getComputedStyle(element);
+        expect(style.textShadow).toBe(
+          painted('text-shadow', 'var(--glow-text-display)'),
+        );
+        expect(style.color).toBe(
+          painted('color', 'var(--color-phosphor-bright)'),
+        );
+      }
+    });
+
+    it('fades the swap instead of cutting it', () => {
+      for (const element of [label, value]) {
+        element.style.transition = '';
+        const properties = getComputedStyle(element).transitionProperty;
+        expect(properties).toContain('text-shadow');
+        expect(properties).toContain('color');
+      }
+    });
+  });
 });

@@ -210,7 +210,7 @@ body {
 }
 
 @media (hover: hover) {
-  .phosphor-bloom:hover:not(:disabled) {
+  .phosphor-bloom:hover:not(:disabled, .mdc-list-item--disabled) {
     color: var(--color-phosphor-bright);
     text-shadow: var(--glow-text-display);
     border-color: transparent;
@@ -220,19 +220,25 @@ body {
     transition-duration: var(--dur-hover-in);
   }
 
-  .phosphor-bloom:hover:not(:disabled)::before {
+  .phosphor-bloom:hover:not(:disabled, .mdc-list-item--disabled)::before {
     opacity: 1;
     transition-duration: var(--dur-hover-in);
   }
 }
 
-/* Material's keyboard-highlighted option never takes DOM focus, so it lights by its class. */
+/* Material's keyboard-highlighted option never takes DOM focus, so it lights by its class. While
+   the pointer rests on another option of the open panel, that option holds the light alone. */
 .phosphor-bloom:is(
     :focus-visible,
     :has(:focus-visible),
     :active,
     .mat-mdc-option-active
-  ):not(:disabled, .mdc-list-item--disabled) {
+  ):not(
+    :disabled,
+    .mdc-list-item--disabled,
+    .mat-mdc-select-panel:has(.mat-mdc-option:hover)
+      .mat-mdc-option-active:not(:hover)
+  ) {
   color: var(--color-phosphor-bright);
   text-shadow: var(--glow-text-display);
   border-color: transparent;
@@ -247,9 +253,48 @@ body {
     :has(:focus-visible),
     :active,
     .mat-mdc-option-active
-  ):not(:disabled, .mdc-list-item--disabled)::before {
+  ):not(
+    :disabled,
+    .mdc-list-item--disabled,
+    .mat-mdc-select-panel:has(.mat-mdc-option:hover)
+      .mat-mdc-option-active:not(:hover)
+  )::before {
   opacity: 1;
   transition-duration: var(--dur-hover-in);
+}
+
+/* Material paints the city field's label and value itself (theme.scss gives them the Standard
+   tier), so the host's lit colour and shadow never reach them: they take the Display look here,
+   when the field is lit. The label keeps Material's own float transition (transform, which a
+   transition list cannot extend) next to the fade. The label's doubled class lifts these rules
+   above Material's own label rules, which its stylesheet injects after this one. */
+.mat-mdc-form-field.phosphor-bloom .mdc-floating-label.mat-mdc-floating-label,
+.mat-mdc-form-field.phosphor-bloom .mat-mdc-select-value {
+  transition-property: transform, color, text-shadow;
+  transition-duration:
+    150ms, var(--bloom-label-fade, var(--dur-hover-out)),
+    var(--bloom-label-fade, var(--dur-hover-out));
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1), ease-out, ease-out;
+}
+
+@media (hover: hover) {
+  .mat-mdc-form-field.phosphor-bloom:hover
+    :is(.mdc-floating-label.mat-mdc-floating-label, .mat-mdc-select-value) {
+    --bloom-label-fade: var(--dur-hover-in);
+    color: var(--color-phosphor-bright);
+    text-shadow: var(--glow-text-display);
+  }
+}
+
+.mat-mdc-form-field.phosphor-bloom:is(
+    :focus-visible,
+    :has(:focus-visible),
+    :active
+  )
+  :is(.mdc-floating-label.mat-mdc-floating-label, .mat-mdc-select-value) {
+  --bloom-label-fade: var(--dur-hover-in);
+  color: var(--color-phosphor-bright);
+  text-shadow: var(--glow-text-display);
 }
 
 /* --------------------
