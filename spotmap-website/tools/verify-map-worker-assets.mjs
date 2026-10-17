@@ -22,9 +22,10 @@ import { dirname, join, relative, resolve } from 'node:path';
 
 const WORKER_FILENAME = 'maplibre-gl-worker.mjs';
 const INDEX_FILENAME = 'index.html';
-// Relative specifiers as the bundler emits them: `from'./main-XXXX.js'`, `import('./chunk-X.js')`.
+// Relative specifiers as the bundler emits them: `from'./main-XXXX.js'`, `import('./chunk-X.js')`
+// and, since Angular 22.2, a lazy import written as a template literal: import(`./chunk-X.js`).
 const IMPORT_SPECIFIER =
-  /(?:\bfrom|\bimport)\s*\(?\s*["'](\.{1,2}\/[^"']*)["']/g;
+  /(?:\bfrom|\bimport)\s*\(?\s*["'`](\.{1,2}\/[^"'`]*)["'`]/g;
 
 const outputDir = process.argv[2];
 if (!outputDir) {
