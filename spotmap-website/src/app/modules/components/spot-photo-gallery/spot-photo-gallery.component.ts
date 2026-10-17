@@ -8,6 +8,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { PointerBloomDirective } from '../../directives/pointer-bloom.directive';
 import { AsciiRainComponent } from '../ascii-rain/ascii-rain.component';
 
 /** Minimum horizontal travel that counts as a swipe rather than a tap, in CSS pixels. */
@@ -24,7 +25,7 @@ const SWIPE_THRESHOLD_PX = 40;
  */
 @Component({
   selector: 'app-spot-photo-gallery',
-  imports: [AsciiRainComponent],
+  imports: [AsciiRainComponent, PointerBloomDirective],
   templateUrl: './spot-photo-gallery.component.html',
   styleUrl: './spot-photo-gallery.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

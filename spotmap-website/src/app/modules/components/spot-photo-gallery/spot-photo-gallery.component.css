@@ -64,6 +64,7 @@
   opacity: 0;
 }
 
+/* The gallery clips at its edge, 4px from each arrow, so the arrows wear the inset bloom. */
 .gallery__nav {
   position: absolute;
   top: 50%;
@@ -73,12 +74,12 @@
   font-family: var(--font-mono);
   font-size: 1.5rem;
   line-height: 1;
-  color: var(--color-phosphor);
-  background: color-mix(in srgb, var(--color-surface) 80%, transparent);
-  border: 1px solid var(--color-phosphor-deep);
+  border-width: 1px;
+  border-style: solid;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  text-shadow: var(--glow-text-rest);
+  --bloom-rest-border: var(--color-phosphor-deep);
+  --bloom-rest-bg: color-mix(in srgb, var(--color-surface) 80%, transparent);
 }
 
 .gallery__nav--prev {
@@ -87,17 +88,6 @@
 
 .gallery__nav--next {
   right: 4px;
-}
-
-.gallery__nav:hover,
-.gallery__nav:focus-visible {
-  color: var(--color-phosphor-bright);
-  border-color: var(--color-phosphor);
-}
-
-.gallery__nav:focus-visible {
-  outline: 1px solid var(--color-phosphor);
-  outline-offset: 2px;
 }
 
 .gallery__counter {
@@ -131,7 +121,11 @@
   letter-spacing: 0.08em;
   text-align: center;
   color: var(--color-phosphor);
-  text-shadow: var(--glow-text-rest);
+}
+
+/* The tier sits on the line, not the panel: the panel also holds the unlit dim line. */
+.gallery__placeholder-line {
+  text-shadow: var(--glow-text-standard);
 }
 
 .gallery__placeholder-line--dim {
