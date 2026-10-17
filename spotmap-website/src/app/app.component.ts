@@ -8,14 +8,25 @@ import {
 import { RouterOutlet } from '@angular/router';
 import { AsciiAnimationTextComponent } from './modules/components/ascii-animation-text/ascii-animation-text.component';
 import { NavBarComponent } from './modules/components/nav-bar/nav-bar.component';
+import { PointerBloomDirective } from './modules/directives/pointer-bloom.directive';
 
 // Session-scoped flag so the intro only plays on the first visit of a browser
 // session. Cleared automatically when the tab/session ends.
 const INTRO_SEEN_KEY = 'spotmap:introSeen';
 
+/**
+ * The app shell: plays the once-per-session ASCII intro (skippable by click, Esc or the
+ * `[ SKIP ]` button, which carries the shared pointer bloom), then reveals the nav bar and the
+ * routed page.
+ */
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, AsciiAnimationTextComponent, NavBarComponent],
+  imports: [
+    RouterOutlet,
+    AsciiAnimationTextComponent,
+    NavBarComponent,
+    PointerBloomDirective,
+  ],
   templateUrl: './app.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: './app.component.css',

@@ -79,4 +79,13 @@ describe('AppComponent', () => {
     expect(seenSpy).toHaveBeenCalledTimes(1);
     expect(el.querySelector('app-ascii-animation-text')).toBeFalsy();
   });
+
+  it('gives [ SKIP ] the shared pointer bloom', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    const skip = (fixture.nativeElement as HTMLElement).querySelector(
+      '.intro-skip',
+    )!;
+    expect(skip.classList).toContain('phosphor-bloom');
+  });
 });
