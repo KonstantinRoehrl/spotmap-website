@@ -239,6 +239,21 @@ describe('SpotPopupComponent', () => {
     }
   });
 
+  it('rests the close button inside a 1 px deep-phosphor outline, like the gallery arrows', () => {
+    const close = create(spot()).querySelector<HTMLElement>(
+      '.spot-popup__close',
+    )!;
+    close.style.transition = 'none';
+    const style = getComputedStyle(close);
+    expect(style.borderTopWidth).toBe('1px');
+    expect(style.borderTopStyle).toBe('solid');
+    expect(style.borderTopColor).toBe(
+      painted('color', 'var(--color-phosphor-deep)'),
+    );
+    expect(close.offsetWidth).toBe(44);
+    expect(close.offsetHeight).toBe(44);
+  });
+
   it('recedes the demolished line the way a ghosted pin recedes', () => {
     const status = create(spot({ status: 'demolished' })).querySelector(
       '.spot-popup__status',

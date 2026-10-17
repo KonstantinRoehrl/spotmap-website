@@ -56,7 +56,8 @@
 
 /* Thumb-sized, in the content box's top-right corner: the offsets cancel the frame's 8px padding.
    Its top-right corner follows the frame's; the others round on the small step. The ring sits
-   inside (the inset bloom variant), so the frame's border never clips it. */
+   inside (the inset bloom variant), so the frame's border never clips it. At rest it wears the
+   same deep-phosphor outline as the gallery arrows. */
 .spot-popup__close {
   position: absolute;
   top: -8px;
@@ -64,6 +65,8 @@
   width: 44px;
   height: 44px;
   padding: 0;
+  border-width: 1px;
+  border-style: solid;
   border-radius: var(--radius-sm) var(--radius-md) var(--radius-sm)
     var(--radius-sm);
   font-family: var(--font-mono);
@@ -71,6 +74,7 @@
   line-height: 1;
   cursor: pointer;
   --bloom-rest-color: var(--color-phosphor-dim);
+  --bloom-rest-border: var(--color-phosphor-deep);
 }
 
 .spot-popup__name {
