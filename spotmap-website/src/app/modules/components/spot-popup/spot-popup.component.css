@@ -54,27 +54,29 @@
   opacity: 1;
 }
 
-/* Thumb-sized, in the content box's top-right corner: the offsets cancel the frame's 8px padding.
-   Its top-right corner follows the frame's; the others round on the small step. The ring sits
-   inside (the inset bloom variant), so the frame's border never clips it. At rest it wears the
-   same deep-phosphor outline as the gallery arrows. */
+/* Thumb-sized and plated like the gallery arrows (styles.css). With photos it sits inside the
+   gallery, the arrows' 4px in from the gallery's 1px border. The ring sits inside (the inset
+   bloom variant), so neither the gallery nor the frame clips it. */
 .spot-popup__close {
   position: absolute;
-  top: -8px;
-  right: -8px;
+  top: 5px;
+  right: 5px;
   width: 44px;
   height: 44px;
   padding: 0;
-  border-width: 1px;
-  border-style: solid;
-  border-radius: var(--radius-sm) var(--radius-md) var(--radius-sm)
-    var(--radius-sm);
   font-family: var(--font-mono);
   font-size: 1.25rem;
   line-height: 1;
   cursor: pointer;
   --bloom-rest-color: var(--color-phosphor-dim);
-  --bloom-rest-border: var(--color-phosphor-deep);
+}
+
+/* With no gallery to sit in, it takes the content box's top-right corner: the offsets cancel the
+   frame's 8px padding, and its own top-right corner follows the frame's. */
+.spot-popup__close--corner {
+  top: -8px;
+  right: -8px;
+  border-top-right-radius: var(--radius-md);
 }
 
 .spot-popup__name {

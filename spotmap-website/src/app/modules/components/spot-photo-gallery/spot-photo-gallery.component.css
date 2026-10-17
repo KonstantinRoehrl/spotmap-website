@@ -64,7 +64,8 @@
   opacity: 0;
 }
 
-/* The gallery clips at its edge, 4px from each arrow, so the arrows wear the inset bloom. */
+/* The gallery clips at its edge, 4px from each arrow, so the arrows wear the inset bloom and the
+   shared plate (styles.css). */
 .gallery__nav {
   position: absolute;
   top: 50%;
@@ -74,12 +75,7 @@
   font-family: var(--font-mono);
   font-size: 1.5rem;
   line-height: 1;
-  border-width: 1px;
-  border-style: solid;
-  border-radius: var(--radius-sm);
   cursor: pointer;
-  --bloom-rest-border: var(--color-phosphor-deep);
-  --bloom-rest-bg: color-mix(in srgb, var(--color-surface) 80%, transparent);
 }
 
 .gallery__nav--prev {

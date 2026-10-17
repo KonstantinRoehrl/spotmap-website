@@ -205,6 +205,17 @@ body {
   outline-offset: -2px;
 }
 
+/* A bloom control that floats over a photo rests on a plate: a 1px deep-phosphor outline and an
+   80% surface backing, so it reads against any image. Used by the gallery arrows and the popup's
+   close button, which therefore look the same. */
+.phosphor-bloom--plate {
+  border-width: 1px;
+  border-style: solid;
+  border-radius: var(--radius-sm);
+  --bloom-rest-border: var(--color-phosphor-deep);
+  --bloom-rest-bg: color-mix(in srgb, var(--color-surface) 80%, transparent);
+}
+
 .phosphor-bloom:active {
   --bloom-edge: rgba(0, 255, 0, 0.6);
 }

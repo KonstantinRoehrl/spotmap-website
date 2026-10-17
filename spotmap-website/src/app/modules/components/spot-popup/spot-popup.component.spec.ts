@@ -239,19 +239,54 @@ describe('SpotPopupComponent', () => {
     }
   });
 
-  it('rests the close button inside a 1 px deep-phosphor outline, like the gallery arrows', () => {
-    const close = create(spot()).querySelector<HTMLElement>(
-      '.spot-popup__close',
-    )!;
-    close.style.transition = 'none';
-    const style = getComputedStyle(close);
-    expect(style.borderTopWidth).toBe('1px');
-    expect(style.borderTopStyle).toBe('solid');
-    expect(style.borderTopColor).toBe(
-      painted('color', 'var(--color-phosphor-deep)'),
-    );
+  it('plates the close button exactly like the gallery arrows', () => {
+    const host = create(spot());
+    const close = host.querySelector<HTMLElement>('.spot-popup__close')!;
+    const arrow = host.querySelector<HTMLElement>('.gallery__nav')!;
+    for (const button of [close, arrow]) button.style.transition = 'none';
+    const closeStyle = getComputedStyle(close);
+    const arrowStyle = getComputedStyle(arrow);
+    for (const property of [
+      'borderTopWidth',
+      'borderTopStyle',
+      'borderTopColor',
+      'backgroundColor',
+      'borderTopLeftRadius',
+    ] as const) {
+      expect(closeStyle[property])
+        .withContext(property)
+        .toBe(arrowStyle[property]);
+    }
+    expect(closeStyle.borderTopWidth).toBe('1px');
     expect(close.offsetWidth).toBe(44);
     expect(close.offsetHeight).toBe(44);
+  });
+
+  it('seats the close button inside the gallery, as far from its edges as the arrows are', () => {
+    const host = create(spot());
+    // The map gives the popup a fixed width; the gallery's own `100vw` only means "fill it".
+    host.style.width = '302px';
+    const gallery = host.querySelector('.gallery')!.getBoundingClientRect();
+    const arrow = host
+      .querySelector('.gallery__nav--prev')!
+      .getBoundingClientRect();
+    const close = host
+      .querySelector('.spot-popup__close')!
+      .getBoundingClientRect();
+    const arrowInset = arrow.left - gallery.left;
+    expect(gallery.right - close.right).toBeCloseTo(arrowInset, 0);
+    expect(close.top - gallery.top).toBeCloseTo(arrowInset, 0);
+  });
+
+  it('keeps the close button in the frame corner when there is no gallery to seat it in', () => {
+    const host = create(spot({ photos: [] }));
+    host.style.width = '302px';
+    const popup = host.querySelector('.spot-popup')!.getBoundingClientRect();
+    const close = host
+      .querySelector('.spot-popup__close')!
+      .getBoundingClientRect();
+    expect(close.top - popup.top).toBeCloseTo(-8, 0);
+    expect(popup.right - close.right).toBeCloseTo(-8, 0);
   });
 
   it('recedes the demolished line the way a ghosted pin recedes', () => {

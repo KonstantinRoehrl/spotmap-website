@@ -335,6 +335,7 @@ describe('SpotPhotoGalleryComponent', () => {
     )) {
       expect(arrow.classList).toContain('phosphor-bloom');
       expect(arrow.classList).toContain('phosphor-bloom--inset');
+      expect(arrow.classList).toContain('phosphor-bloom--plate');
     }
   });
 

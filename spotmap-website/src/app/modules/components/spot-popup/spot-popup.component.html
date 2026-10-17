@@ -43,7 +43,8 @@
   <!-- Last in DOM order, so MapLibre's focus-after-open still lands on the gallery or directions. -->
   <button
     type="button"
-    class="spot-popup__close phosphor-bloom phosphor-bloom--inset"
+    class="spot-popup__close phosphor-bloom phosphor-bloom--inset phosphor-bloom--plate"
+    [class.spot-popup__close--corner]="thumbnails().length === 0"
     appPointerBloom
     [attr.aria-label]="'Close ' + properties().name"
     (click)="closeRequested.emit()"
