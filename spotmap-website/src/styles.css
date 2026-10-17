@@ -81,34 +81,37 @@
   --radius-lg: 8px;
 
   /* Edge glow (box-shadow) — elevation is bloom, never a gray shadow.
-     Wide 24–30px halos are for non-text chrome only (Bloom-Budget). */
+     Wide 24px halos are for non-text chrome only (Bloom-Budget). */
   --shadow-edge-frame: 0 0 24px rgba(0, 255, 0, 0.35);
-  --shadow-edge-active:
-    0 0 30px rgba(0, 255, 0, 0.5), inset 0 0 2px rgba(0, 255, 120, 0.6);
 }
 
 /* Glow (text-shadow) + motion tokens — raw CSS vars for later
    stages/components to consume. Text-shadow and durations/easings
    are not valid @theme namespaces, so they live here. */
 :root {
-  /* Text glow — resting stays ≤6px so letters keep clean edges in
-     sunlight (Bloom-Budget Rule). */
-  --glow-text-rest: 0 0 2px #00ff00, 0 0 4px #00ff00, 0 0 6px #00ff00;
-  --glow-text-hot: 0 0 4px #00ff00, 0 0 8px #00ff00, 0 0 12px #00ff00;
-  --glow-text-amber: 0 0 4px #ffb000, 0 0 8px #ffb000;
+  /* Text glow tiers (DESIGN.md §4). Text is unlit unless its own stylesheet opts into a tier, and
+     no halo on text reaches past 6px, so letters keep clean edges in sunlight (Bloom-Budget Rule).
+     Display: names and headings, over --color-phosphor-bright. Standard: interactive and status
+     labels. Amber: the care notice, Standard's grammar in the second phosphor. */
+  --glow-text-display:
+    0 0 2px rgba(0, 255, 0, 0.95), 0 0 6px rgba(0, 255, 0, 0.6);
+  --glow-text-standard:
+    0 0 2px rgba(0, 255, 0, 0.7), 0 0 6px rgba(0, 255, 0, 0.35);
+  --glow-text-amber:
+    0 0 2px rgba(255, 176, 0, 0.7), 0 0 6px rgba(255, 176, 0, 0.35);
 
-  /* Edge glow — alias the @theme shadow tokens (single source of truth), so a
-     glow tweak in one place can't drift from the box-shadow tokens. */
+  /* Edge glow — alias the @theme shadow token (single source of truth), so a
+     glow tweak in one place can't drift from the box-shadow token. */
   --glow-edge-frame: var(--shadow-edge-frame);
-  --glow-edge-active: var(--shadow-edge-active);
 
   /* Motion — no bounce/elastic; CRT transitions */
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --dur-glitch: 80ms; /* per-character glitch scramble (GlitchText) */
   --dur-type: 40ms; /* typewriter cadence (design.json range 35–45ms) */
-  --dur-fast: 200ms; /* hover/focus glow, tab changes */
+  --dur-fast: 200ms; /* focus glows and small state changes */
   --dur-fade: 200ms; /* the one fade length reduced motion keeps (DESIGN.md motion rule) */
-  --dur-glow-fade: 1000ms; /* slow phosphor-decay fade-out */
+  --dur-hover-in: 120ms; /* pointer bloom lighting up: quick */
+  --dur-hover-out: 700ms; /* pointer bloom letting go: a slow phosphor decay */
 }
 
 /* --------------------
@@ -123,13 +126,13 @@ app-root {
   overflow: hidden;
 }
 
+/* The mono face only: glow is opt-in per element (the tiers above). */
 a,
 div,
 span,
 pre,
 ng-container {
   font-family: var(--font-mono);
-  text-shadow: var(--glow-text-rest);
 }
 
 html,
@@ -141,6 +144,112 @@ body {
   margin: 0;
   font-family: var(--font-mono);
   background: var(--color-bg);
+}
+
+/* --------------------
+   Pointer bloom — the one hover / focus / press effect (DESIGN.md §5)
+   An interactive element opts in with the `phosphor-bloom` class; PointerBloomDirective
+   (appPointerBloom) moves the bloom's centre to the pointer through --x / --y, which fall back
+   to the centre. A component sets only layout and the --bloom-rest-* properties: its scoped
+   selectors outrank this block, so a colour, border colour, background or shadow it declared
+   itself would hold that property in every state.
+   Hover is gated on a real hover pointer: a touch screen keeps :hover after a tap, which would
+   hold the bloom on instead of letting the press flash decay.
+-------------------- */
+.phosphor-bloom {
+  --bloom-halo: 14px;
+  --bloom-edge: rgba(0, 255, 0, 0.35);
+  position: relative;
+  isolation: isolate;
+  color: var(--bloom-rest-color, var(--color-phosphor));
+  border-color: var(--bloom-rest-border, transparent);
+  background-color: var(--bloom-rest-bg, transparent);
+  text-shadow: var(--glow-text-standard);
+  -webkit-tap-highlight-color: transparent;
+  transition-property:
+    color, text-shadow, background-color, border-color, box-shadow;
+  transition-duration: var(--dur-hover-out);
+  transition-timing-function: ease-out;
+}
+
+/* One gradient layer under the label, peaking at 40% green: the lit label keeps 4.5:1 over it. */
+.phosphor-bloom::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at var(--x, 50%) var(--y, 50%),
+    rgba(0, 255, 0, 0.4) 0%,
+    rgba(0, 255, 0, 0.14) 45%,
+    transparent 78%
+  );
+  opacity: 0;
+  transition: opacity var(--dur-hover-out) ease-out;
+}
+
+.phosphor-bloom:focus-visible {
+  outline: 1px solid var(--color-phosphor);
+  outline-offset: 2px;
+}
+
+/* Inside a clipping box (the popup, the gallery) the outer halo would be cut off, so only the
+   in-box layers light, and the ring is pulled inside like that box's other rings. */
+.phosphor-bloom--inset {
+  --bloom-halo: 0px;
+}
+
+.phosphor-bloom--inset:focus-visible {
+  outline-offset: -2px;
+}
+
+.phosphor-bloom:active {
+  --bloom-edge: rgba(0, 255, 0, 0.6);
+}
+
+@media (hover: hover) {
+  .phosphor-bloom:hover:not(:disabled) {
+    color: var(--color-phosphor-bright);
+    text-shadow: var(--glow-text-display);
+    border-color: transparent;
+    box-shadow:
+      0 0 var(--bloom-halo) var(--bloom-edge),
+      inset 0 0 0 1px var(--bloom-edge);
+    transition-duration: var(--dur-hover-in);
+  }
+
+  .phosphor-bloom:hover:not(:disabled)::before {
+    opacity: 1;
+    transition-duration: var(--dur-hover-in);
+  }
+}
+
+/* Material's keyboard-highlighted option never takes DOM focus, so it lights by its class. */
+.phosphor-bloom:is(
+    :focus-visible,
+    :has(:focus-visible),
+    :active,
+    .mat-mdc-option-active
+  ):not(:disabled, .mdc-list-item--disabled) {
+  color: var(--color-phosphor-bright);
+  text-shadow: var(--glow-text-display);
+  border-color: transparent;
+  box-shadow:
+    0 0 var(--bloom-halo) var(--bloom-edge),
+    inset 0 0 0 1px var(--bloom-edge);
+  transition-duration: var(--dur-hover-in);
+}
+
+.phosphor-bloom:is(
+    :focus-visible,
+    :has(:focus-visible),
+    :active,
+    .mat-mdc-option-active
+  ):not(:disabled, .mdc-list-item--disabled)::before {
+  opacity: 1;
+  transition-duration: var(--dur-hover-in);
 }
 
 /* --------------------
@@ -226,7 +335,7 @@ body {
    in place, all at --dur-fade, so nothing slides, grows or turns and nothing cuts
    hard either. A component that needs one more property to fade (the loader's bar
    width) re-adds it with its own !important rule. JS-driven motion (glitch scramble,
-   nav radial/touch glow, the popup's Web Animations) is guarded in TS through
+   the pointer bloom's tracking, the popup's Web Animations) is guarded in TS through
    prefersReducedMotion(), since CSS cannot reach it.
    `!important` is intentional here — it must override component-level
    transition declarations regardless of specificity.
