@@ -317,4 +317,43 @@ describe('SpotPhotoGalleryComponent', () => {
       'c.webp',
     );
   });
+
+  /** What the browser paints for a token value of `property`. */
+  function painted(property: 'text-shadow', value: string): string {
+    const probe = document.createElement('span');
+    probe.style.setProperty(property, value);
+    document.body.appendChild(probe);
+    const result = getComputedStyle(probe).getPropertyValue(property);
+    probe.remove();
+    return result;
+  }
+
+  it('gives the arrows the shared bloom, kept inside the gallery', () => {
+    create(['a.webp', 'b.webp']);
+    for (const arrow of fixture.nativeElement.querySelectorAll(
+      '.gallery__nav',
+    )) {
+      expect(arrow.classList).toContain('phosphor-bloom');
+      expect(arrow.classList).toContain('phosphor-bloom--inset');
+      expect(arrow.classList).toContain('phosphor-bloom--plate');
+    }
+  });
+
+  it('leaves the counter unlit', () => {
+    create(['a.webp', 'b.webp']);
+    const counter = fixture.nativeElement.querySelector('.gallery__counter');
+    expect(getComputedStyle(counter).textShadow).toBe('none');
+  });
+
+  it('lights SIGNAL LOST in the Standard tier and leaves the dim line unlit', () => {
+    create(['a.webp']);
+    failCurrentImage();
+    const [line, dim] = fixture.nativeElement.querySelectorAll(
+      '.gallery__placeholder-line',
+    );
+    expect(getComputedStyle(line).textShadow).toBe(
+      painted('text-shadow', 'var(--glow-text-standard)'),
+    );
+    expect(getComputedStyle(dim).textShadow).toBe('none');
+  });
 });

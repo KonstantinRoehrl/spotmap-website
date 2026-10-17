@@ -10,6 +10,7 @@ import {
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { CityEnum, MapFailureReason } from '../../../models/enums/map-enum';
+import { PointerBloomDirective } from '../../directives/pointer-bloom.directive';
 import { MapLoaderComponent } from '../map-loader/map-loader.component';
 import { SpotMapComponent } from '../spot-map/spot-map.component';
 import {
@@ -37,7 +38,7 @@ function cityName(city: string): string {
  */
 @Component({
   selector: 'app-map-container',
-  imports: [MapLoaderComponent, SpotMapComponent],
+  imports: [MapLoaderComponent, PointerBloomDirective, SpotMapComponent],
   templateUrl: './map-container.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: './map-container.component.css',

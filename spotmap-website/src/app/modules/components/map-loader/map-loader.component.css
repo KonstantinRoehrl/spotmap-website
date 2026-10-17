@@ -59,7 +59,6 @@
   line-height: 20px;
   white-space: pre;
   color: var(--color-phosphor-dim);
-  text-shadow: none;
   animation: cell-cycle var(--cell-duration) steps(12) infinite;
   animation-delay: var(--cell-offset);
   /* 160 ms is the spec's letter-lock time, which is none of the design tokens' 200 ms. */
@@ -71,7 +70,7 @@
   position: absolute;
   inset: 0;
   color: var(--color-phosphor-bright);
-  text-shadow: var(--glow-text-rest);
+  text-shadow: var(--glow-text-display);
   opacity: 0;
   transform: translateY(4px);
   transition:
@@ -131,7 +130,7 @@
 .loader__steps {
   display: flex;
   justify-content: space-between;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   letter-spacing: 0.08em;
 }
 
@@ -148,29 +147,26 @@
     var(--color-phosphor-dim) 80%,
     var(--color-surface)
   );
-  text-shadow: none;
 }
 
 .loader__step--current {
   color: var(--color-phosphor);
-  text-shadow: var(--glow-text-rest);
+  text-shadow: var(--glow-text-standard);
 }
 
 .loader__step--done {
   color: var(--color-phosphor-dim);
-  text-shadow: none;
 }
 
 /* A fixed slot, so the plate does not grow when the note appears. */
 .loader__note {
   height: 1.3em;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   text-align: center;
 }
 
 .loader__fallback {
   color: var(--color-amber);
-  text-shadow: none;
   transition: opacity var(--dur-fade);
 }
 

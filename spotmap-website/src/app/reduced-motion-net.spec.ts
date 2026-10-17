@@ -25,6 +25,27 @@ function reducedMotionNet(): CSSStyleDeclaration {
   throw new Error('styles.css carries no reduced-motion safety net');
 }
 
+/** The shared pointer-bloom rule in styles.css, or undefined when there is none. */
+function pointerBloomRule(): CSSStyleDeclaration | undefined {
+  for (const sheet of Array.from(document.styleSheets)) {
+    let rules: CSSRuleList;
+    try {
+      rules = sheet.cssRules;
+    } catch {
+      continue; // a cross-origin sheet cannot be read, and is not ours
+    }
+    const rule = Array.from(rules).find(
+      (candidate): candidate is CSSStyleRule =>
+        candidate instanceof CSSStyleRule &&
+        candidate.selectorText === '.phosphor-bloom',
+    );
+    if (rule) {
+      return rule.style;
+    }
+  }
+  return undefined;
+}
+
 describe('the reduced-motion safety net', () => {
   it('ends keyframe animations at once, on a still frame', () => {
     const net = reducedMotionNet();
@@ -68,5 +89,20 @@ describe('the reduced-motion safety net', () => {
         .getPropertyValue('--dur-fade')
         .trim(),
     ).toBe('200ms');
+  });
+
+  it('keeps every property the pointer bloom fades, so it fades instead of cutting', () => {
+    const bloom = pointerBloomRule();
+    expect(bloom)
+      .withContext('styles.css has no .phosphor-bloom rule')
+      .toBeDefined();
+    const kept = reducedMotionNet()
+      .getPropertyValue('transition-property')
+      .split(/,\s*/);
+    const faded = bloom!.getPropertyValue('transition-property').split(/,\s*/);
+    expect(faded.length).toBeGreaterThan(1);
+    for (const property of faded) {
+      expect(kept).withContext(property).toContain(property);
+    }
   });
 });

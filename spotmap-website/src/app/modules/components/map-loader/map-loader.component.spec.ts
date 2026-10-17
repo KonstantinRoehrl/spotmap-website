@@ -35,6 +35,16 @@ describe('MapLoaderComponent', () => {
     return host.querySelector<HTMLElement>('.loader__fill');
   }
 
+  /** Resolves a token the way the browser paints it, so a spec compares like with like. */
+  function painted(property: 'color' | 'text-shadow', token: string): string {
+    const probe = document.createElement('span');
+    probe.style.setProperty(property, token);
+    document.body.appendChild(probe);
+    const value = getComputedStyle(probe).getPropertyValue(property);
+    probe.remove();
+    return value;
+  }
+
   it('spells the city in uppercase cells', () => {
     const host = create();
     expect(cells(host).length).toBe(6);
@@ -126,6 +136,31 @@ describe('MapLoaderComponent', () => {
     end('width');
     end('width');
     expect(emitted).toBe(1);
+  });
+
+  it('lights the locked letters in the Display tier', () => {
+    const host = create({ progress: 1, step: 'draw' });
+    const letter = host.querySelector('.loader__letter')!;
+    expect(getComputedStyle(letter).textShadow).toBe(
+      painted('text-shadow', 'var(--glow-text-display)'),
+    );
+  });
+
+  it('lights only the current step; pending, done and the note stay unlit', () => {
+    const host = create({ step: 'map', progress: 0.5, fallback: true });
+    const current = host.querySelector('.loader__step--current')!;
+    expect(getComputedStyle(current).textShadow).toBe(
+      painted('text-shadow', 'var(--glow-text-standard)'),
+    );
+    for (const selector of [
+      '.loader__step--pending',
+      '.loader__step--done',
+      '.loader__fallback',
+    ]) {
+      expect(getComputedStyle(host.querySelector(selector)!).textShadow)
+        .withContext(selector)
+        .toBe('none');
+    }
   });
 
   it('hides all of it from assistive technology', () => {

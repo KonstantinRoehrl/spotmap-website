@@ -204,12 +204,89 @@ describe('SpotPopupComponent', () => {
   });
 
   it('leaves the demolished line unlit, with none of the glow the name carries', () => {
-    // text-shadow inherits, and styles.css puts the resting glow on every div — so a rule that
-    // only sets a colour still paints this line with the bloom it is supposed to have dropped.
+    // The name glows in the Display tier; the demolished line is caption copy and must stay unlit.
     const status = create(spot({ status: 'demolished' })).querySelector(
       '.spot-popup__status',
     )!;
     expect(getComputedStyle(status).textShadow).toBe('none');
+  });
+
+  it('lights the spot name in the Display tier', () => {
+    const name = create(spot()).querySelector('.spot-popup__name')!;
+    expect(getComputedStyle(name).textShadow).toBe(
+      painted('text-shadow', 'var(--glow-text-display)'),
+    );
+    expect(getComputedStyle(name).color).toBe(
+      painted('color', 'var(--color-phosphor-bright)'),
+    );
+  });
+
+  it('leaves the rights line unlit', () => {
+    const rights = create(spot()).querySelector('.spot-popup__rights')!;
+    expect(getComputedStyle(rights).textShadow).toBe('none');
+  });
+
+  it('gives close and directions the shared bloom, kept inside the popup', () => {
+    const host = create(spot());
+    for (const selector of ['.spot-popup__close', '.spot-popup__directions']) {
+      const control = host.querySelector(selector)!;
+      expect(control.classList)
+        .withContext(selector)
+        .toContain('phosphor-bloom');
+      expect(control.classList)
+        .withContext(selector)
+        .toContain('phosphor-bloom--inset');
+    }
+  });
+
+  it('plates the close button exactly like the gallery arrows', () => {
+    const host = create(spot());
+    const close = host.querySelector<HTMLElement>('.spot-popup__close')!;
+    const arrow = host.querySelector<HTMLElement>('.gallery__nav')!;
+    for (const button of [close, arrow]) button.style.transition = 'none';
+    const closeStyle = getComputedStyle(close);
+    const arrowStyle = getComputedStyle(arrow);
+    for (const property of [
+      'borderTopWidth',
+      'borderTopStyle',
+      'borderTopColor',
+      'backgroundColor',
+      'borderTopLeftRadius',
+    ] as const) {
+      expect(closeStyle[property])
+        .withContext(property)
+        .toBe(arrowStyle[property]);
+    }
+    expect(closeStyle.borderTopWidth).toBe('1px');
+    expect(close.offsetWidth).toBe(44);
+    expect(close.offsetHeight).toBe(44);
+  });
+
+  it('seats the close button inside the gallery, as far from its edges as the arrows are', () => {
+    const host = create(spot());
+    // The map gives the popup a fixed width; the gallery's own `100vw` only means "fill it".
+    host.style.width = '302px';
+    const gallery = host.querySelector('.gallery')!.getBoundingClientRect();
+    const arrow = host
+      .querySelector('.gallery__nav--prev')!
+      .getBoundingClientRect();
+    const close = host
+      .querySelector('.spot-popup__close')!
+      .getBoundingClientRect();
+    const arrowInset = arrow.left - gallery.left;
+    expect(gallery.right - close.right).toBeCloseTo(arrowInset, 0);
+    expect(close.top - gallery.top).toBeCloseTo(arrowInset, 0);
+  });
+
+  it('keeps the close button in the frame corner when there is no gallery to seat it in', () => {
+    const host = create(spot({ photos: [] }));
+    host.style.width = '302px';
+    const popup = host.querySelector('.spot-popup')!.getBoundingClientRect();
+    const close = host
+      .querySelector('.spot-popup__close')!
+      .getBoundingClientRect();
+    expect(close.top - popup.top).toBeCloseTo(-8, 0);
+    expect(popup.right - close.right).toBeCloseTo(-8, 0);
   });
 
   it('recedes the demolished line the way a ghosted pin recedes', () => {

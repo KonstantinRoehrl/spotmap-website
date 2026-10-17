@@ -32,8 +32,6 @@
   line-height: var(--rain-line);
   white-space: pre;
   color: var(--color-phosphor-dim);
-  /* The global glow on <pre> would smear a field this dense (Bloom-Budget Rule). */
-  text-shadow: none;
   animation: rain-fall var(--rain-duration) steps(var(--rain-rows)) infinite;
   animation-delay: var(--rain-offset);
 }

@@ -54,32 +54,29 @@
   opacity: 1;
 }
 
-/* Thumb-sized and phosphor, in the content box's top-right corner: the offsets cancel the frame's
-   8 px padding, and the focus ring is pulled inside so the frame's border never clips it. */
+/* Thumb-sized and plated like the gallery arrows (styles.css). With photos it sits inside the
+   gallery, the arrows' 4px in from the gallery's 1px border. The ring sits inside (the inset
+   bloom variant), so neither the gallery nor the frame clips it. */
 .spot-popup__close {
   position: absolute;
-  top: -8px;
-  right: -8px;
+  top: 5px;
+  right: 5px;
   width: 44px;
   height: 44px;
   padding: 0;
-  border: 0;
-  border-radius: 0 var(--radius-md) 0 0;
   font-family: var(--font-mono);
   font-size: 1.25rem;
   line-height: 1;
-  color: var(--color-phosphor-dim);
-  background: transparent;
   cursor: pointer;
+  --bloom-rest-color: var(--color-phosphor-dim);
 }
 
-.spot-popup__close:hover {
-  color: var(--color-phosphor);
-}
-
-.spot-popup__close:focus-visible {
-  outline: 1px solid var(--color-phosphor);
-  outline-offset: -2px;
+/* With no gallery to sit in, it takes the content box's top-right corner: the offsets cancel the
+   frame's 8px padding, and its own top-right corner follows the frame's. */
+.spot-popup__close--corner {
+  top: -8px;
+  right: -8px;
+  border-top-right-radius: var(--radius-md);
 }
 
 .spot-popup__name {
@@ -87,7 +84,8 @@
   font-size: 0.875rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  text-shadow: var(--glow-text-rest);
+  color: var(--color-phosphor-bright);
+  text-shadow: var(--glow-text-display);
 }
 
 /* The spot's notes from My Maps, verbatim — mixed-case German and English, so no uppercase
@@ -100,18 +98,15 @@
   white-space: pre-line;
   overflow-wrap: anywhere;
   color: var(--color-phosphor);
-  /* Inherited from the popup's own div, so dropping the bloom takes saying so. */
-  text-shadow: none;
 }
 
 /* Under the gallery, only when there is one: the photos are the maintainer's, not free stock
    (the About page says how to ask). Small and unlit, so it never competes with the name. */
 .spot-popup__rights {
   margin: 0;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   letter-spacing: 0.04em;
   color: var(--color-phosphor-dim);
-  text-shadow: none;
 }
 
 /* Unlit and a step down from the name: on the record, but gone. It says what the ghosted pin
@@ -123,32 +118,18 @@
   font-size: 0.75rem;
   letter-spacing: 0.08em;
   color: var(--color-phosphor-dim);
-  /* Inherited from the popup's own div, so dropping the bloom takes saying so. */
-  text-shadow: none;
 }
 
+/* A thumb-height row link. It sits flush against the scroller's edge, which clips anything
+   outside it, so it wears the inset bloom: no outer halo, ring pulled inside. */
 .spot-popup__directions {
   align-self: flex-start;
   display: flex;
   align-items: center;
   min-height: 44px;
   padding: 0 4px;
+  border-radius: var(--radius-sm);
   font-size: 0.8125rem;
   letter-spacing: 0.08em;
-  color: var(--color-phosphor);
   text-decoration: none;
-  text-shadow: var(--glow-text-rest);
-}
-
-.spot-popup__directions:hover {
-  color: var(--color-phosphor-bright);
-  text-shadow: var(--glow-text-hot);
-}
-
-/* The link sits flush against the scroller's edge, which clips anything outside it, so the ring
-   is pulled inside like the close button's instead of being cut off on the left. The link is
-   44 px tall, so an inset ring leaves it readable. */
-.spot-popup__directions:focus-visible {
-  outline: 1px solid var(--color-phosphor);
-  outline-offset: -2px;
 }

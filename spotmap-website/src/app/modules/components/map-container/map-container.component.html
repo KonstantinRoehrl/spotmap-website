@@ -44,7 +44,12 @@
         </p>
       } @else {
         <p class="map-error__line">&gt; SIGNAL LOST // MAP UNREACHABLE</p>
-        <button type="button" class="map-error__retry" (click)="retry()">
+        <button
+          type="button"
+          class="map-error__retry phosphor-bloom"
+          appPointerBloom
+          (click)="retry()"
+        >
           &gt; RETRY
         </button>
       }
