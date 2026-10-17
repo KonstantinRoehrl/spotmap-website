@@ -101,6 +101,30 @@ describe('MapContainerComponent', () => {
     (fixture.debugElement.query(By.directive(MapLoaderComponent))
       ?.componentInstance ?? null) as MapLoaderComponent | null;
 
+  /** What the browser paints for `token` on `property`, resolved the same way as the element's. */
+  function painted(property: 'color' | 'text-shadow', token: string): string {
+    const probe = document.createElement('span');
+    probe.style.setProperty(property, token);
+    document.body.appendChild(probe);
+    const value = getComputedStyle(probe).getPropertyValue(property);
+    probe.remove();
+    return value;
+  }
+
+  it('shows the failure in the Standard tier with a pointer-bloom RETRY', () => {
+    const fixture = create(true);
+    rendererFailed(fixture.componentInstance, 'unreachable');
+    fixture.detectChanges();
+    const host = fixture.nativeElement as HTMLElement;
+    expect(
+      getComputedStyle(host.querySelector('.map-error__line')!).textShadow,
+    ).toBe(painted('text-shadow', 'var(--glow-text-standard)'));
+    expect(host.querySelector('.map-error__retry')!.classList).toContain(
+      'phosphor-bloom',
+    );
+    fixture.destroy();
+  });
+
   it('should create', () => {
     const fixture = create(true);
     expect(fixture.componentInstance).toBeTruthy();

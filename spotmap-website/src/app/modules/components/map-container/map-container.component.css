@@ -42,7 +42,7 @@
   margin: 0;
   font-family: var(--font-mono);
   color: var(--color-phosphor);
-  text-shadow: var(--glow-text-rest);
+  text-shadow: var(--glow-text-standard);
   letter-spacing: 0.08em;
   font-size: clamp(0.9rem, 2.2vw, 1.125rem);
   line-height: 1.4;
@@ -50,30 +50,13 @@
 
 .map-error__retry {
   font-family: var(--font-mono);
-  color: var(--color-phosphor);
-  background: transparent;
-  border: 1px solid var(--color-phosphor-deep);
+  border-width: 1px;
+  border-style: solid;
   border-radius: var(--radius-sm);
   padding: 10px 16px;
+  min-height: 44px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   cursor: pointer;
-  text-shadow: var(--glow-text-rest);
-  transition:
-    box-shadow var(--dur-fast) ease-out,
-    color var(--dur-fast) ease-out,
-    border-color var(--dur-fast) ease-out;
-}
-
-.map-error__retry:hover,
-.map-error__retry:focus-visible {
-  color: var(--color-phosphor-bright);
-  border-color: var(--color-phosphor);
-  box-shadow: var(--glow-edge-active);
-  text-shadow: var(--glow-text-hot);
-}
-
-.map-error__retry:focus-visible {
-  outline: 1px solid var(--color-phosphor);
-  outline-offset: 2px;
+  --bloom-rest-border: var(--color-phosphor-deep);
 }
