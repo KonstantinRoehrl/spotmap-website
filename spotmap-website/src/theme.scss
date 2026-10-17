@@ -88,6 +88,11 @@ html {
   --mat-sys-secondary-container: var(--color-surface-raised);
   --mat-sys-on-secondary-container: var(--color-amber);
 
+  // The pointer bloom (styles.css) is the one lit fill: Material's own hover and focus state
+  // layers would paint a second one under it.
+  --mat-option-hover-state-layer-color: transparent;
+  --mat-option-focus-state-layer-color: transparent;
+
   // Hard-failure channel only
   --mat-sys-error: var(--color-danger);
   --mat-sys-on-error: var(--color-bg);
@@ -110,23 +115,26 @@ html {
 //  Everything below is authored at GLOBAL scope on purpose: the select
 //  dropdown is a CDK overlay rendered at the document root, unreachable from
 //  the component stylesheet's encapsulated scope. These rules only add what
-//  the `--mat-sys-*` tokens above cannot carry — phosphor text-glow, hover
-//  bloom, the panel edge/blur, group separators and transitions. Material
-//  sets none of these properties on these elements, so each rule wins the
+//  the `--mat-sys-*` tokens above cannot carry — phosphor text-glow
+//  tiers, the bloom's corners, the panel edge/blur, group separators and
+//  transitions. Material sets none of these properties on these elements, so each rule wins the
 //  cascade on its own without any forced-priority flag.
 // ============================================================
 
-// --- Text glow: phosphor bloom on the field label + trigger value ---
+// --- Text glow: the Standard tier on the field label + trigger value ---
 .mat-mdc-form-field .mat-mdc-floating-label,
 .mat-mdc-select-value {
-  text-shadow: var(--glow-text-rest);
+  text-shadow: var(--glow-text-standard);
 }
 
-// --- Field: smooth glow transition + hover/focus edge bloom ---
+// --- Field: the shared pointer bloom (class in map.component.html), on the field's own corners;
+// an open panel still lifts the field with the frame glow.
+.mat-mdc-form-field.phosphor-bloom {
+  border-radius: var(--radius-md);
+}
 .mat-mdc-text-field-wrapper {
   transition: box-shadow var(--dur-fast) var(--ease-out-expo);
 }
-.mat-mdc-form-field:hover .mat-mdc-text-field-wrapper,
 .mat-mdc-form-field.mat-focused .mat-mdc-text-field-wrapper {
   box-shadow: var(--glow-edge-frame);
 }
@@ -146,21 +154,14 @@ html {
   border-radius: var(--radius-md) var(--radius-md) 0 0;
 }
 
-// --- Options: text glow, soft corners, hover bloom, glow transition ---
+// --- Options: soft corners; hover / keyboard highlight is the shared pointer bloom ---
 .mat-mdc-option {
   border-radius: var(--radius-sm);
-  transition: box-shadow var(--dur-fast) var(--ease-out-expo);
-}
-.mat-mdc-option .mdc-list-item__primary-text {
-  text-shadow: var(--glow-text-rest);
-}
-.mat-mdc-option:hover {
-  box-shadow: var(--glow-edge-active);
 }
 
 // --- Optgroup: glowing, separator-boxed group header ---
 .mat-mdc-optgroup-label {
-  text-shadow: var(--glow-text-rest);
+  text-shadow: var(--glow-text-standard);
   border-top: 1px solid var(--color-line);
   border-bottom: 1px solid var(--color-line);
 }

@@ -29,6 +29,19 @@ describe('MapComponent', () => {
   let component: MapComponent;
   let fixture: ComponentFixture<MapComponent>;
 
+  /**
+   * What the browser actually paints for a design token, so a glow assertion compares rendered
+   * output instead of the stylesheet's text.
+   */
+  function painted(property: 'color' | 'text-shadow', token: string): string {
+    const probe = document.createElement('span');
+    probe.style.setProperty(property, token);
+    document.body.appendChild(probe);
+    const value = getComputedStyle(probe).getPropertyValue(property);
+    probe.remove();
+    return value;
+  }
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [MapComponent],
@@ -74,5 +87,28 @@ describe('MapComponent', () => {
     const anyCity = SUPPORTED_CITIES[CityEnum.Graz];
     expect(() => f.componentInstance.selectCity(anyCity)).not.toThrow();
     f.destroy();
+  });
+
+  it('gives the city field the shared pointer bloom and a Standard-tier value', () => {
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('mat-form-field')!.classList).toContain(
+      'phosphor-bloom',
+    );
+    expect(
+      getComputedStyle(host.querySelector('.mat-mdc-select-value')!).textShadow,
+    ).toBe(painted('text-shadow', 'var(--glow-text-standard)'));
+  });
+
+  it('gives every city option the shared pointer bloom', () => {
+    const host = fixture.nativeElement as HTMLElement;
+    (host.querySelector('.mat-mdc-select-trigger') as HTMLElement).click();
+    // No whenStable(): the ASCII banner keeps a timer running for the page's lifetime, so the
+    // zone never settles. The panel and its options render on this change detection alone.
+    fixture.detectChanges();
+    const options = Array.from(document.querySelectorAll('mat-option'));
+    expect(options.length).toBeGreaterThan(0);
+    for (const option of options) {
+      expect(option.classList).toContain('phosphor-bloom');
+    }
   });
 });

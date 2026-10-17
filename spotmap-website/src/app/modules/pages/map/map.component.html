@@ -33,7 +33,10 @@
 
     <!-- Dropdown - full width on mobile, 4 cols on desktop -->
     <div class="w-full md:w-4/12 px-0 md:px-2">
-      <mat-form-field appearance="outline" class="select-none w-full">
+      <mat-form-field
+        appearance="outline"
+        class="select-none w-full phosphor-bloom"
+      >
         <mat-label>City</mat-label>
         <mat-select
           [value]="selectedCity()"
@@ -49,7 +52,7 @@
           ) {
             <mat-optgroup [label]="entry.value[0].country | uppercase">
               @for (city of entry.value; track city.city) {
-                <mat-option [value]="city">
+                <mat-option class="phosphor-bloom" [value]="city">
                   {{ city.city }}
                 </mat-option>
               }
