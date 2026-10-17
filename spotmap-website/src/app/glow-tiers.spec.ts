@@ -75,6 +75,68 @@ function styleRules(
   );
 }
 
+/** A selector's specificity as [ids, classes/attributes/pseudo-classes, types]. */
+type Specificity = [number, number, number];
+
+/** The comma-separated parts of `list` that sit outside any parentheses. */
+function topLevelParts(list: string): string[] {
+  const parts: string[] = [];
+  let depth = 0;
+  let start = 0;
+  for (let i = 0; i < list.length; i++) {
+    if (list[i] === '(') depth++;
+    else if (list[i] === ')') depth--;
+    else if (list[i] === ',' && depth === 0) {
+      parts.push(list.slice(start, i));
+      start = i + 1;
+    }
+  }
+  parts.push(list.slice(start));
+  return parts;
+}
+
+/**
+ * The specificity of one complex selector (no top-level comma). `:is()`, `:not()` and `:has()`
+ * count as their most specific argument, `:where()` as nothing, as the Selectors spec defines;
+ * ids, classes, attributes and other pseudo-classes, and element types, count in their columns.
+ */
+function specificity(selector: string): Specificity {
+  const total: Specificity = [0, 0, 0];
+  let rest = selector;
+  const functional = /:(is|not|has|where)\(/;
+  for (
+    let match = functional.exec(rest);
+    match;
+    match = functional.exec(rest)
+  ) {
+    let depth = 1;
+    let end = match.index + match[0].length;
+    while (depth > 0) {
+      depth += rest[end] === '(' ? 1 : rest[end] === ')' ? -1 : 0;
+      end++;
+    }
+    if (match[1] !== 'where') {
+      const inner = rest.slice(match.index + match[0].length, end - 1);
+      const [a, b, c] = topLevelParts(inner)
+        .map(specificity)
+        .reduce((best, next) => (compare(next, best) > 0 ? next : best));
+      total[0] += a;
+      total[1] += b;
+      total[2] += c;
+    }
+    rest = rest.slice(0, match.index) + rest.slice(end);
+  }
+  total[0] += (rest.match(/#[\w-]+/g) ?? []).length;
+  total[1] += (rest.match(/\.[\w-]+|\[[^\]]*\]|(?<!:):[\w-]+/g) ?? []).length;
+  total[2] += (rest.match(/(?:^|[\s>+~])[a-z][\w-]*/gi) ?? []).length;
+  return total;
+}
+
+/** Positive when `a` outranks `b`, negative when `b` outranks `a`, zero on a tie. */
+function compare(a: Specificity, b: Specificity): number {
+  return a[0] - b[0] || a[1] - b[1] || a[2] - b[2];
+}
+
 describe('text glow tiers', () => {
   for (const name of [
     '--glow-text-display',
@@ -181,6 +243,52 @@ describe('text glow tiers', () => {
       expect(rules.length).toBeGreaterThan(0);
       for (const rule of rules) {
         expect(rule.selectorText).toContain('mdc-list-item--disabled');
+      }
+    });
+
+    // The rule behind the city label's grey-green hover: Material (the version in package.json)
+    // paints the hovered outlined field's label with this selector, injecting its stylesheet after
+    // styles.css, so a tie in specificity is lost to it.
+    const MATERIAL_HOVERED_LABEL =
+      '.mdc-text-field--outlined:not(.mdc-text-field--disabled):not(.mdc-text-field--focused):hover .mdc-floating-label';
+
+    it('outranks the colour Material gives the hovered field label', () => {
+      const rules = styleRules().filter(
+        (rule) =>
+          rule.selectorText.includes('.phosphor-bloom:hover') &&
+          rule.selectorText.includes('.mdc-floating-label') &&
+          rule.style.getPropertyValue('color') !== '',
+      );
+      expect(rules.length).toBeGreaterThan(0);
+      for (const rule of rules) {
+        expect(
+          compare(
+            specificity(rule.selectorText),
+            specificity(MATERIAL_HOVERED_LABEL),
+          ),
+        )
+          .withContext(rule.selectorText)
+          .toBeGreaterThan(0);
+      }
+    });
+
+    it('keeps the label float animation on the label alone', () => {
+      const transitions = (needle: string) =>
+        styleRules().filter(
+          (rule) =>
+            rule.selectorText.includes(needle) &&
+            rule.style.getPropertyValue('transition-property') !== '',
+        );
+      const [labelRule] = transitions('.mdc-floating-label');
+      const valueRules = transitions('.mat-mdc-select-value');
+      expect(labelRule.style.getPropertyValue('transition-property')).toContain(
+        'transform',
+      );
+      expect(valueRules.length).toBeGreaterThan(0);
+      for (const rule of valueRules) {
+        expect(rule.style.getPropertyValue('transition-property'))
+          .withContext(rule.selectorText)
+          .not.toContain('transform');
       }
     });
 

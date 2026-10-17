@@ -265,11 +265,19 @@ body {
 
 /* Material paints the city field's label and value itself (theme.scss gives them the Standard
    tier), so the host's lit colour and shadow never reach them: they take the Display look here,
-   when the field is lit. The label keeps Material's own float transition (transform, which a
-   transition list cannot extend) next to the fade. The label's doubled class lifts these rules
-   above Material's own label rules, which its stylesheet injects after this one. */
-.mat-mdc-form-field.phosphor-bloom .mdc-floating-label.mat-mdc-floating-label,
-.mat-mdc-form-field.phosphor-bloom .mat-mdc-select-value {
+   when the field is lit.
+   Material injects its stylesheet after this one, so on a tie in specificity its rule wins and
+   each rule here has to outrank the Material rule it meets:
+   - transition, (0,4,0) with the doubled label class, over Material's float transition (0,3,0);
+   - focus and press, (0,5,0), over Material's focused label colour (0,4,0);
+   - hover, (0,6,0), over Material's hovered label colour (0,5,0),
+     `.mdc-text-field--outlined:not(.mdc-text-field--disabled):not(.mdc-text-field--focused):hover
+     .mdc-floating-label`. The hover rule gets its sixth point from `.mdc-text-field`, the wrapper
+     every appearance puts around the label and the value.
+   Only the label also keeps Material's own float transition (`transform`, which a transition list
+   cannot extend): the one deliberate exception to the spec's colour/glow/shadow-only transition
+   list, because dropping it would make the label jump instead of float. */
+.mat-mdc-form-field.phosphor-bloom .mdc-floating-label.mat-mdc-floating-label {
   transition-property: transform, color, text-shadow;
   transition-duration:
     150ms, var(--bloom-label-fade, var(--dur-hover-out)),
@@ -277,8 +285,15 @@ body {
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1), ease-out, ease-out;
 }
 
+.mat-mdc-form-field.phosphor-bloom .mat-mdc-select-value {
+  transition-property: color, text-shadow;
+  transition-duration: var(--bloom-label-fade, var(--dur-hover-out));
+  transition-timing-function: ease-out;
+}
+
 @media (hover: hover) {
   .mat-mdc-form-field.phosphor-bloom:hover
+    .mdc-text-field
     :is(.mdc-floating-label.mat-mdc-floating-label, .mat-mdc-select-value) {
     --bloom-label-fade: var(--dur-hover-in);
     color: var(--color-phosphor-bright);
