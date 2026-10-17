@@ -14,7 +14,7 @@
    Material select / form-field styling lives GLOBALLY in src/theme.scss.
    The dropdown is a CDK overlay rendered at the document root (outside this
    component's DOM), so it can only be reached from a global stylesheet —
-   NOT from here. Colour, background, mono font, sharp corners, amber
+   NOT from here. Colour, background, mono font, soft corners, amber
    selection and the phosphor glow are all driven by the M3 `--mat-sys-*`
    design tokens + a small set of global rules in theme.scss, which is why
    this file no longer needs any shadow-piercing overrides or forced flags.

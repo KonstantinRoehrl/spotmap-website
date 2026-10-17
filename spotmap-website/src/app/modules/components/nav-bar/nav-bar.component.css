@@ -17,160 +17,32 @@
   display: flex;
 }
 
-/* Terminal glyph icons (Unicode text symbols, not emoji).
-   Force text presentation so no browser/font ever substitutes a
-   color emoji glyph; color + glow are inherited from the parent
-   link (phosphor green + global text-shadow rule). */
+/* Terminal glyph icons (Unicode text symbols, not emoji). Force text presentation so no
+   browser/font ever substitutes a colour emoji glyph; colour and glow come from the link. */
 .nav-icon {
   font-variant-emoji: text;
   line-height: 1;
 }
 
+/* The hover / focus / press look is the shared pointer bloom (styles.css). The 1px border is
+   transparent until the link is the current page; 9px padding keeps the old 10px box. */
 .nav-bar a {
-  padding: 10px;
-  position: relative;
+  padding: 9px;
+  min-height: 44px;
   display: flex;
   align-items: center;
   text-decoration: none;
-  color: var(--color-phosphor);
-  border-radius: 6px;
-  overflow: visible;
-  transition: all 0.3s ease;
-  /* Softer than the global --glow-text-rest (a 2/4/6px full-opacity stack that
-     blooms the labels into an illegible smear). Tight bright core + faint halo
-     keeps the phosphor glow while the letters stay readable. */
-  text-shadow:
-    0 0 2px rgba(0, 255, 0, 0.5),
-    0 0 4px rgba(0, 255, 0, 0.2);
-}
-
-/* Keyboard focus: explicit phosphor outline so focus is clearly visible
-   instead of relying on the browser default (DESIGN.md: 1px phosphor,
-   offset 2px, sharp — no motion). */
-.nav-bar a:focus-visible {
-  outline: 1px solid var(--color-phosphor);
-  outline-offset: 2px;
+  border-width: 1px;
+  border-style: solid;
+  border-radius: var(--radius-md);
 }
 
 /* --------------------
-   Glow Pseudo-elements
--------------------- */
-
-/* Inner glow (fast fade-in) */
-.nav-bar a::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.2s ease-in;
-  background: radial-gradient(
-    circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-    rgba(0, 255, 0, 0.3) 0%,
-    rgba(0, 255, 0, 0.15) 30%,
-    transparent 60%
-  );
-  z-index: 0;
-}
-
-/* Outer glow / prismatic effect (slow fade-out) */
-.nav-bar a::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 1s ease-out;
-  border-radius: inherit;
-  background: radial-gradient(
-    circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-    rgba(0, 255, 0, 0.6) 0%,
-    rgba(0, 255, 0, 0.3) 20%,
-    rgba(0, 255, 0, 0.15) 40%,
-    transparent 60%
-  );
-  z-index: -1;
-}
-
-/* --------------------
-   Hover (desktop mouse)
--------------------- */
-.nav-bar a:hover::before,
-.nav-bar a:hover::after {
-  opacity: 1;
-}
-
-.nav-bar a:hover,
-.nav-bar a.active:hover {
-  color: var(--color-phosphor);
-  background: linear-gradient(
-    135deg,
-    rgba(0, 255, 0, 0.15),
-    rgba(0, 255, 0, 0.05),
-    rgba(0, 255, 0, 0.15)
-  );
-  box-shadow:
-    0 0 30px rgba(0, 255, 0, 0.5),
-    inset 0 1px 0 rgba(0, 255, 0, 0.3),
-    inset 0 -1px 0 rgba(0, 255, 0, 0.2);
-}
-
-/* --------------------
-   Active (current page)
+   Active (current page) — a quiet rest state, below hover: hover still adds the bloom.
 -------------------- */
 .nav-bar a.active {
-  color: var(--color-phosphor);
-  background: linear-gradient(
-    135deg,
-    rgba(0, 255, 0, 0.15),
-    rgba(0, 255, 0, 0.05),
-    rgba(0, 255, 0, 0.15)
-  );
-  box-shadow:
-    0 0 30px rgba(0, 255, 0, 0.5),
-    inset 1px 1px 2px rgba(0, 255, 120, 0.6),
-    inset -1px -1px 3px rgba(0, 255, 100, 0.7);
-}
-
-/* Keep radial glow for hover even on active */
-.nav-bar a.active::before,
-.nav-bar a.active::after {
-  transition:
-    opacity 0.2s ease-in,
-    background 0.3s ease;
-}
-
-/* --------------------
-   Touch glow (temporary)
--------------------- */
-.nav-bar a.touch-glow::before {
-  opacity: 1;
-  transition: opacity 0.2s ease-in;
-}
-
-.nav-bar a.touch-glow::after {
-  opacity: 0.6;
-  transition: opacity 1s ease-out;
-}
-
-.nav-bar a.touch-glow {
-  color: var(--color-phosphor);
-  background: linear-gradient(
-    135deg,
-    rgba(0, 255, 0, 0.15),
-    rgba(0, 255, 0, 0.05),
-    rgba(0, 255, 0, 0.15)
-  );
-  box-shadow:
-    0 0 30px rgba(0, 255, 0, 0.5),
-    inset 0 1px 0 rgba(0, 255, 0, 0.3),
-    inset 0 -1px 0 rgba(0, 255, 0, 0.2);
+  --bloom-rest-border: var(--color-phosphor-deep);
+  --bloom-rest-bg: color-mix(in srgb, var(--color-phosphor) 7%, transparent);
 }
 
 /* --------------------
@@ -203,7 +75,6 @@
     height: 60px;
     border-top: 1px solid rgba(0, 255, 0, 0.3);
     background-color: rgba(0, 0, 0, 0.95);
-    backdrop-filter: blur(10px);
     z-index: 1000;
   }
 
@@ -220,9 +91,7 @@
   .nav-bar a {
     flex-direction: row;
     gap: 0.3rem;
-    border-radius: 8px;
-    overflow: visible;
-    position: relative;
+    border-radius: var(--radius-lg);
   }
 
   .nav-icon {
@@ -230,7 +99,7 @@
   }
 
   .nav-text {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
   }
 
   .nav-separator {

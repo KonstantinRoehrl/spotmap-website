@@ -5,11 +5,16 @@
   border-radius: var(--radius-sm);
   overflow: hidden;
   aspect-ratio: 4 / 3;
-  /* The popup is shrink-to-fit up to 320px (POPUP_MAX_WIDTH) minus its 8px padding and 1px
-     border: the photo used to supply that width, so a broken photo collapsed the popup to its
-     text. Claiming the width here keeps the popup the same size for photo and placeholder. */
+  /* Border-box, so the fitted height the map sets is the panel's whole height, border included,
+     and a full-width panel does not overflow the popup by its border. */
+  box-sizing: border-box;
+  /* The map fits the popup by setting this; unset, the 4:3 aspect ratio decides. */
+  height: var(--spot-popup-gallery-height, auto);
+  /* `width: 100vw` claims the popup's whole max width (so a broken photo cannot collapse it to
+     its text); `max-width: 100%` then holds it to the popup, however narrow the map makes it. */
   width: 100vw;
-  max-width: 302px;
+  max-width: 100%;
+  transition: height var(--dur-fast) ease-out;
 }
 
 .gallery__photo {
@@ -17,8 +22,50 @@
   height: 100%;
   object-fit: cover;
   display: block;
+  opacity: 0;
+  transition: opacity 300ms ease-out;
 }
 
+.gallery__photo--loaded {
+  opacity: 1;
+}
+
+/* A photo already in the cache shows at once: fading it in would only delay it. The rain, which
+   renders for one pass before the slide is known to be complete, must not fade out over it. */
+.gallery--instant .gallery__photo,
+.gallery--instant .gallery__loading {
+  transition: none;
+}
+
+/* The global reduced-motion net would give these a short fade; a cached photo has nothing to
+   fade from, so the net's !important is answered with a more specific one. */
+@media (prefers-reduced-motion: reduce) {
+  .gallery--instant .gallery__photo,
+  .gallery--instant .gallery__loading {
+    transition: none !important;
+  }
+}
+
+.gallery__loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  transition: opacity 300ms ease-out;
+}
+
+.gallery__loading app-ascii-rain {
+  height: calc(6 * 13px);
+  font-size: 12px;
+  --rain-line: 13px;
+}
+
+.gallery__loading--leaving {
+  opacity: 0;
+}
+
+/* The gallery clips at its edge, 4px from each arrow, so the arrows wear the inset bloom and the
+   shared plate (styles.css). */
 .gallery__nav {
   position: absolute;
   top: 50%;
@@ -28,11 +75,7 @@
   font-family: var(--font-mono);
   font-size: 1.5rem;
   line-height: 1;
-  color: var(--color-phosphor);
-  background: color-mix(in srgb, var(--color-surface) 80%, transparent);
-  border: 1px solid var(--color-phosphor-deep);
   cursor: pointer;
-  text-shadow: var(--glow-text-rest);
 }
 
 .gallery__nav--prev {
@@ -41,17 +84,6 @@
 
 .gallery__nav--next {
   right: 4px;
-}
-
-.gallery__nav:hover,
-.gallery__nav:focus-visible {
-  color: var(--color-phosphor-bright);
-  border-color: var(--color-phosphor);
-}
-
-.gallery__nav:focus-visible {
-  outline: 1px solid var(--color-phosphor);
-  outline-offset: 2px;
 }
 
 .gallery__counter {
@@ -64,6 +96,7 @@
   color: var(--color-phosphor-dim);
   background: color-mix(in srgb, var(--color-surface) 80%, transparent);
   padding: 1px 4px;
+  border-radius: var(--radius-sm);
 }
 
 /* A photo that did not load gets the map's own failure voice instead of the browser's
@@ -84,10 +117,13 @@
   letter-spacing: 0.08em;
   text-align: center;
   color: var(--color-phosphor);
-  text-shadow: var(--glow-text-rest);
+}
+
+/* Only the SIGNAL LOST line takes the Standard tier; the dim line beside it stays unlit. */
+.gallery__placeholder-line--lost {
+  text-shadow: var(--glow-text-standard);
 }
 
 .gallery__placeholder-line--dim {
   color: var(--color-phosphor-dim);
-  text-shadow: none;
 }

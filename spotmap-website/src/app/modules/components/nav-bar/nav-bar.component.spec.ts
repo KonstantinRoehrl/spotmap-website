@@ -81,4 +81,49 @@ describe('NavBarComponent', () => {
     fixture.detectChanges();
     expect(activeLabels()).toEqual(['Home']);
   }));
+
+  /** The nav's link for `label`. */
+  function link(label: string): HTMLAnchorElement {
+    const el = fixture.nativeElement as HTMLElement;
+    return Array.from(el.querySelectorAll('a')).find(
+      (a) => a.querySelector('.nav-text')?.textContent?.trim() === label,
+    )!;
+  }
+
+  it('gives every link the shared pointer bloom', () => {
+    fixture.detectChanges();
+    for (const label of ['Home', 'Map', 'About']) {
+      expect(link(label).classList)
+        .withContext(label)
+        .toContain('phosphor-bloom');
+    }
+  });
+
+  it('keeps tracking the pointer after a touch that missed every link', () => {
+    fixture.detectChanges();
+    const nav = (fixture.nativeElement as HTMLElement).querySelector('nav')!;
+    nav.dispatchEvent(new Event('touchstart', { bubbles: true }));
+    const map = link('Map');
+    spyOn(map, 'getBoundingClientRect').and.returnValue(
+      new DOMRect(0, 0, 100, 40),
+    );
+    map.dispatchEvent(
+      new PointerEvent('pointerenter', { clientX: 0, clientY: 0 }),
+    );
+    map.dispatchEvent(
+      new PointerEvent('pointermove', {
+        clientX: 50,
+        clientY: 10,
+        bubbles: true,
+      }),
+    );
+    expect(map.style.getPropertyValue('--x')).toBe('50%');
+    expect(map.style.getPropertyValue('--y')).toBe('25%');
+  });
+
+  it('leaves no timer behind after a tap on a link', fakeAsync(() => {
+    fixture.detectChanges();
+    link('Map').dispatchEvent(new Event('touchstart', { bubbles: true }));
+    // fakeAsync fails the test if any timer is still queued here.
+  }));
 });

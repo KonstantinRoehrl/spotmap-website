@@ -1,5 +1,6 @@
 <div
   class="gallery"
+  [class.gallery--instant]="currentInstant()"
   (touchstart)="onTouchStart($event)"
   (touchend)="onTouchEnd($event)"
 >
@@ -9,18 +10,28 @@
       role="img"
       [attr.aria-label]="placeholderLabel()"
     >
-      <span class="gallery__placeholder-line">&gt; SIGNAL LOST</span>&ngsp;<span
+      <span class="gallery__placeholder-line gallery__placeholder-line--lost"
+        >&gt; SIGNAL LOST</span
+      >&ngsp;<span
         class="gallery__placeholder-line gallery__placeholder-line--dim"
         >PHOTO UNREACHABLE</span
       >
     </div>
   } @else {
+    @if (!currentLoaded()) {
+      <div class="gallery__loading" animate.leave="gallery__loading--leaving">
+        <app-ascii-rain [columns]="8" [rows]="6" />
+      </div>
+    }
     <img
+      #photo
       class="gallery__photo"
+      [class.gallery__photo--loaded]="currentLoaded()"
       [src]="current()"
       [alt]="altText()"
       loading="lazy"
       decoding="async"
+      (load)="onImageLoad($event)"
       (error)="onImageError($event)"
     />
   }
@@ -28,7 +39,8 @@
   @if (hasMany()) {
     <button
       type="button"
-      class="gallery__nav gallery__nav--prev"
+      class="gallery__nav gallery__nav--prev phosphor-bloom phosphor-bloom--inset phosphor-bloom--plate"
+      appPointerBloom
       aria-label="Previous photo"
       (click)="previous()"
     >
@@ -36,7 +48,8 @@
     </button>
     <button
       type="button"
-      class="gallery__nav gallery__nav--next"
+      class="gallery__nav gallery__nav--next phosphor-bloom phosphor-bloom--inset phosphor-bloom--plate"
+      appPointerBloom
       aria-label="Next photo"
       (click)="next()"
     >

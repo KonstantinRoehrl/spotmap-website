@@ -1,0 +1,55 @@
+:host {
+  display: flex;
+  justify-content: center;
+  height: 100%;
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  --rain-line: 16px;
+}
+
+/*
+ * Columns that do not all fit squeeze together, which keeps a narrow frame dense. Only when the
+ * count is capped on a very wide frame do they have room to spare, and then they stretch to
+ * cover it rather than leaving a bare band either side.
+ */
+:host(.rain--fill) .rain__column {
+  flex-grow: 1;
+}
+
+/* Fades towards the top, so each column reads as a trail behind its head. */
+.rain__column {
+  width: 2.2ch;
+  height: 100%;
+  overflow: hidden;
+  text-align: center;
+  mask-image: linear-gradient(to bottom, transparent, #000 75%);
+}
+
+.rain__strip {
+  margin: 0;
+  font: inherit;
+  line-height: var(--rain-line);
+  white-space: pre;
+  color: var(--color-phosphor-dim);
+  animation: rain-fall var(--rain-duration) steps(var(--rain-rows)) infinite;
+  animation-delay: var(--rain-offset);
+}
+
+.rain__head {
+  color: var(--color-phosphor-bright);
+  font-weight: 400;
+}
+
+:host(.rain--frozen) .rain__strip {
+  animation-play-state: paused;
+}
+
+@keyframes rain-fall {
+  from {
+    transform: translateY(calc(-1 * var(--rain-rows) * var(--rain-line)));
+  }
+  to {
+    transform: translateY(0);
+  }
+}

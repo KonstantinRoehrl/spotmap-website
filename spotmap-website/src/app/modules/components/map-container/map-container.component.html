@@ -7,25 +7,31 @@
     [style.opacity]="mapReady() ? 1 : 0"
     [city]="city()"
     [retryToken]="retryToken()"
+    (loadEvent)="onLoadEvent($event)"
     (ready)="onRendererReady()"
     (failed)="onRendererFailed($event)"
   ></app-spot-map>
 
-  <!-- loading: matrix-radar spinner over the dark surface -->
+  <!-- Outside every @if and empty at first, so the region exists before the first announcement. -->
+  <p class="sr-only" role="status" aria-live="polite">{{ announcement() }}</p>
+
+  <!-- loading: the city's name decoding over ASCII rain, with the real load progress -->
   @if (!mapReady() && failureReason() === null) {
-    <app-loading-bar
-      class="absolute top-0 left-0 w-full h-full flex justify-center items-center"
-      role="status"
-      aria-live="polite"
-      aria-label="Loading map"
-    ></app-loading-bar>
+    <app-map-loader
+      class="map-container__overlay"
+      animate.leave="map-container__overlay--leaving"
+      [city]="city()"
+      [state]="loadState()"
+      (finished)="onBarFinished()"
+    />
   }
 
   <!-- error / timeout: phosphor terminal message on --color-surface, never white -->
   @if (failureReason() !== null) {
     <div
-      class="map-error absolute top-0 left-0 w-full h-full flex flex-col justify-center items-center"
+      class="map-error map-container__overlay absolute top-0 left-0 w-full h-full flex flex-col justify-center items-center"
       role="alert"
+      animate.leave="map-container__overlay--leaving"
     >
       @if (failureReason() === 'unsupported') {
         <!--
@@ -38,7 +44,12 @@
         </p>
       } @else {
         <p class="map-error__line">&gt; SIGNAL LOST // MAP UNREACHABLE</p>
-        <button type="button" class="map-error__retry" (click)="retry()">
+        <button
+          type="button"
+          class="map-error__retry phosphor-bloom"
+          appPointerBloom
+          (click)="retry()"
+        >
           &gt; RETRY
         </button>
       }

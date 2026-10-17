@@ -1,0 +1,10 @@
+@for (column of strips(); track $index) {
+  <div class="rain__column">
+    <pre
+      class="rain__strip"
+      [style.--rain-duration]="column.durationMs + 'ms'"
+      [style.--rain-offset]="
+        column.offsetMs + 'ms'
+      ">{{ column.trail }}<b class="rain__head">{{ column.head }}</b></pre>
+  </div>
+}

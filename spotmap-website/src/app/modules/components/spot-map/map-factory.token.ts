@@ -5,13 +5,21 @@ import type {
   Popup as MapLibrePopup,
 } from 'maplibre-gl';
 import type { ElevationLoader } from './elevation';
+import type { PopupAnchor } from './popup-fit';
 
 /** Builds the MapLibre instance for {@link SpotMapComponent}. */
 export type MapFactory = (options: MapOptions) => Promise<MapLibreMap>;
 
-/** Builds the MapLibre popup that frames a tapped spot's details. */
+/**
+ * Builds the MapLibre popup that frames a tapped spot's details. The options go to MapLibre's
+ * `Popup` untouched: a fixed `anchor` so the side never flips while the camera moves, and MapLibre's
+ * own close button and close-on-click off, because both remove the popup at once and the map
+ * closes it with an animation instead.
+ */
 export type PopupFactory = (options: {
+  anchor: PopupAnchor;
   closeButton: boolean;
+  closeOnClick: boolean;
   maxWidth: string;
   className: string;
 }) => Promise<MapLibrePopup>;

@@ -40,8 +40,8 @@
   font-size: clamp(1.4rem, 5vw, 2.25rem);
   font-weight: 600;
   line-height: 1.1;
-  color: var(--color-phosphor);
-  text-shadow: var(--glow-text-hot);
+  color: var(--color-phosphor-bright);
+  text-shadow: var(--glow-text-display);
 }
 
 .dim {

@@ -38,6 +38,16 @@
   color: var(--color-phosphor);
 }
 
+/* Guideline 3: every corner on the 4/6/8 scale, no pills. MapLibre rounds the compact control to
+   12px, the open variant at (0,3,0), and the info button into a circle; the extra .maplibregl-ctrl
+   class lifts these rules above all of them. */
+:host ::ng-deep .maplibregl-ctrl.maplibregl-ctrl-attrib,
+:host ::ng-deep .maplibregl-ctrl.maplibregl-ctrl-attrib.maplibregl-compact,
+:host ::ng-deep .maplibregl-ctrl.maplibregl-ctrl-attrib.maplibregl-compact-show,
+:host ::ng-deep .maplibregl-ctrl-attrib .maplibregl-ctrl-attrib-button {
+  border-radius: var(--radius-sm);
+}
+
 /* The compact toggle: MapLibre's own info glyph, re-fetched with a phosphor fill so the
    icon stays visible on the dark button. */
 :host ::ng-deep .maplibregl-ctrl-attrib-button,

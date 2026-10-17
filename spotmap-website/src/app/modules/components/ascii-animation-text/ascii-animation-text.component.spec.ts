@@ -21,8 +21,28 @@ describe('AsciiAnimationTextComponent', () => {
     fixture.detectChanges();
   });
 
+  /** What the browser paints for a token value of `property`. */
+  function painted(property: 'text-shadow' | 'color', value: string): string {
+    const probe = document.createElement('span');
+    probe.style.setProperty(property, value);
+    document.body.appendChild(probe);
+    const result = getComputedStyle(probe).getPropertyValue(property);
+    probe.remove();
+    return result;
+  }
+
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('lights the banner in the Display tier', () => {
+    const banner = fixture.nativeElement.querySelector('.ascii-display');
+    expect(getComputedStyle(banner).textShadow).toBe(
+      painted('text-shadow', 'var(--glow-text-display)'),
+    );
+    expect(getComputedStyle(banner).color).toBe(
+      painted('color', 'var(--color-phosphor-bright)'),
+    );
   });
 
   it('removes its window resize listener on destroy', () => {

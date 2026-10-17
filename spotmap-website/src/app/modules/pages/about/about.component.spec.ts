@@ -26,6 +26,16 @@ describe('AboutComponent', () => {
     );
   }
 
+  /** What the browser paints for `token` on `property`, for comparing against a computed style. */
+  function painted(property: 'text-shadow', token: string): string {
+    const probe = document.createElement('span');
+    probe.style.setProperty(property, token);
+    document.body.appendChild(probe);
+    const value = getComputedStyle(probe).getPropertyValue(property);
+    probe.remove();
+    return value;
+  }
+
   it('should create', () => {
     expect(component).toBeTruthy();
   });
@@ -60,5 +70,17 @@ describe('AboutComponent', () => {
   it('gives the mail link a thumb-sized target', () => {
     const link = block('PHOTOS')?.querySelector('a') as HTMLElement;
     expect(link.getBoundingClientRect().height).toBeGreaterThanOrEqual(44);
+  });
+
+  it('lights the section headings in the Display tier', () => {
+    const heading = fixture.nativeElement.querySelector('.term-heading');
+    expect(getComputedStyle(heading).textShadow).toBe(
+      painted('text-shadow', 'var(--glow-text-display)'),
+    );
+  });
+
+  it('gives the mail link the shared pointer bloom', () => {
+    const mail = fixture.nativeElement.querySelector('.mail-link');
+    expect(mail.classList).toContain('phosphor-bloom');
   });
 });

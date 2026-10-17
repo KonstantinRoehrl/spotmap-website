@@ -3,10 +3,12 @@
     @for (link of links(); track link.name; let isLast = $last) {
       <li>
         <a
+          class="phosphor-bloom"
           [routerLink]="link.url"
           routerLinkActive="active"
           [routerLinkActiveOptions]="{ exact: true }"
           appGlitchText
+          appPointerBloom
         >
           <span class="nav-icon me-1" aria-hidden="true">{{ link.icon }}</span>
           <span class="nav-text">{{ link.name }}</span>

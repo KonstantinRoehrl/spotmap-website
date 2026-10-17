@@ -1,6 +1,8 @@
 import {
+  afterNextRender,
   Component,
   DestroyRef,
+  computed,
   effect,
   inject,
   input,
@@ -8,22 +10,35 @@ import {
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { CityEnum, MapFailureReason } from '../../../models/enums/map-enum';
-import { LoadingBarComponent } from '../loading-bar/loading-bar.component';
+import { PointerBloomDirective } from '../../directives/pointer-bloom.directive';
+import { MapLoaderComponent } from '../map-loader/map-loader.component';
 import { SpotMapComponent } from '../spot-map/spot-map.component';
-
-/** How long to wait for the renderer to report first paint before declaring the map unreachable. */
-const LOAD_TIMEOUT_MS = 15_000;
-
-/** Delay between the renderer reporting ready and revealing it (preserves the fade-in cadence). */
-const REVEAL_DELAY_MS = 700;
+import {
+  INITIAL_MAP_LOAD_STATE,
+  MapLoadEvent,
+  MapLoadProgress,
+  MapLoadState,
+} from './map-load-progress';
 
 /**
- * Hosts the city's MapLibre map and owns its loading, timeout, failure and retry state; the map
- * renders for every city.
+ * How long a load may run before the watchdog steps in: it reveals a map that has painted, and
+ * declares one that has not unreachable.
+ */
+const LOAD_TIMEOUT_MS = 15_000;
+
+/** A city slug as a reader would write it: `vienna` → `Vienna`. */
+function cityName(city: string): string {
+  return city.charAt(0).toUpperCase() + city.slice(1);
+}
+
+/**
+ * Hosts the city's MapLibre map and owns its loading progress, watchdog, failure and retry state;
+ * the map renders for every city. The loader shows the map's real load events and reveals the map
+ * once its bar has finished.
  */
 @Component({
   selector: 'app-map-container',
-  imports: [LoadingBarComponent, SpotMapComponent],
+  imports: [MapLoaderComponent, PointerBloomDirective, SpotMapComponent],
   templateUrl: './map-container.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: './map-container.component.css',
@@ -37,25 +52,61 @@ export class MapContainerComponent {
 
   /** Why the map gave up, or `null` while it is loading or shown; non-null shows the error overlay. */
   protected readonly failureReason = signal<MapFailureReason | null>(null);
-  /** Whether the map has painted and been revealed; false shows the loading overlay. */
+  /** Whether the map has been revealed; false shows the loader. */
   protected readonly mapReady = signal(false);
+  /** The current load's step and progress, as the loader draws it. */
+  protected readonly loadState = signal<MapLoadState>(INITIAL_MAP_LOAD_STATE);
 
-  /** The pending unreachable-watchdog, if armed. */
+  /** One polite line naming the step, for screen readers; empty once the map shows or has failed. */
+  protected readonly statusText = computed(() => {
+    if (this.mapReady() || this.failureReason() !== null) {
+      return '';
+    }
+    const city = cityName(this.city());
+    const { step, fallback } = this.loadState();
+    if (step === 'spots') {
+      return fallback
+        ? `Using the archive copy for ${city}`
+        : `Loading spots for ${city}`;
+    }
+    return step === 'map' ? `Loading the map of ${city}` : 'Drawing the map';
+  });
+  /** Whether the status region has been on screen for a frame, so that what it receives is announced. */
+  private readonly statusRegionRendered = signal(false);
+  /**
+   * What the status region holds: nothing until it has been painted empty, then {@link statusText}.
+   * Assistive technology announces changes to a live region but not the text it was inserted with,
+   * and the browser builds its accessibility tree once per frame, so the first message waits one
+   * animation frame after the region renders. This defers only the announcement: nothing in the
+   * load waits on it, and neither the progress nor the reveal reads it.
+   */
+  protected readonly announcement = computed(() =>
+    this.statusRegionRendered() ? this.statusText() : '',
+  );
+
+  /** Folds the current load's events into {@link loadState}; replaced for every new load. */
+  private progress = new MapLoadProgress();
+  /** Whether the current load's map has painted, which makes the watchdog reveal rather than fail. */
+  private painted = false;
+  /** The pending watchdog, if armed. */
   private timeoutId?: number;
-  /** The pending fade-in reveal, if scheduled. */
-  private revealTimeoutId?: number;
 
   constructor() {
-    inject(DestroyRef).onDestroy(() => this.clearAllTimers());
+    const destroyRef = inject(DestroyRef);
+    destroyRef.onDestroy(() => this.clearTimer());
     this.startTimer();
+    afterNextRender(() => {
+      const frame = requestAnimationFrame(() =>
+        this.statusRegionRendered.set(true),
+      );
+      destroyRef.onDestroy(() => cancelAnimationFrame(frame));
+    });
 
     // The component instance is reused across dropdown selections (only the
-    // `city` input changes, the component is not recreated). Re-arm the
-    // reveal/error/timeout state machine on every city change AFTER the first,
-    // so a newly selected map shows the loading overlay again instead of a
-    // stale "loaded" frame (no white flash) and gets its own watchdog — without
-    // it, switching cities after a successful load leaves mapReady=true and
-    // no timeout, so a hung/failed new city never surfaces SIGNAL LOST/RETRY.
+    // `city` input changes, the component is not recreated). Reset the load on
+    // every city change AFTER the first, so a newly selected map shows the
+    // loader again from zero instead of a stale "loaded" frame, and gets its own
+    // watchdog — without it, a hung/failed new city never surfaces SIGNAL LOST/RETRY.
     // The first run (initial city) is skipped: the constructor armed it above.
     let firstCity = true;
     effect(() => {
@@ -64,82 +115,84 @@ export class MapContainerComponent {
         firstCity = false;
         return;
       }
-      this.resetForNewCity();
+      this.resetLoad();
+      this.retryToken.set(0);
     });
   }
 
-  /** Reset the reveal/error/timeout state machine for a freshly selected city. */
-  private resetForNewCity() {
-    this.clearAllTimers();
-    this.mapReady.set(false);
-    this.failureReason.set(null);
-    this.retryToken.set(0);
-    this.startTimer();
+  /** A real loading event from the map; advances the loader. Ignored while a failure is shown. */
+  protected onLoadEvent(event: MapLoadEvent): void {
+    if (this.failureReason() !== null) {
+      return;
+    }
+    if (event.kind === 'painted') {
+      this.painted = true;
+    }
+    this.loadState.set(this.progress.apply(event));
   }
 
-  /** A renderer reported first paint. */
+  /** The map has drawn its pins; the loader's bar runs to 100 %. */
   protected onRendererReady(): void {
-    // Cancel the unreachable-timeout the instant the renderer reports ready, so a
-    // slow-but-successful load in the final window before LOAD_TIMEOUT_MS can't
-    // flash "SIGNAL LOST".
-    this.clearTimer();
-    // Guard against a stacked reveal if `ready` somehow fires twice before the reveal lands.
-    this.clearRevealTimer();
-    // Preserve the existing fade-in cadence: reveal shortly after the renderer reports ready.
-    // Tracked so retry()/failure/destroy can cancel it — otherwise a stale reveal from a
-    // pre-retry navigation could flip mapReady=true over unloaded content.
-    this.revealTimeoutId = window.setTimeout(() => {
-      this.revealTimeoutId = undefined;
-      this.failureReason.set(null);
-      this.mapReady.set(true);
-    }, REVEAL_DELAY_MS);
+    this.onLoadEvent({ kind: 'pins-drawn' });
+  }
+
+  /** The loader's bar has finished its ease to 100 %: the cue to reveal the map. */
+  protected onBarFinished(): void {
+    this.reveal();
   }
 
   /** A renderer gave up. `unsupported` is terminal — the template withholds RETRY for it. */
   protected onRendererFailed(reason: MapFailureReason): void {
-    this.clearAllTimers();
+    this.clearTimer();
     this.mapReady.set(false);
     this.failureReason.set(reason);
   }
 
-  /** Re-attempt the map: reset state, restart the timer, and re-arm the renderer. */
+  /** Re-attempt the map: reset the load, restart the watchdog, and re-arm the renderer. */
   retry() {
-    this.clearAllTimers();
+    this.resetLoad();
+    this.retryToken.update((n) => n + 1);
+  }
+
+  /** Show the map and end the load: the watchdog stands down and any failure clears. */
+  private reveal(): void {
+    this.clearTimer();
+    this.failureReason.set(null);
+    this.mapReady.set(true);
+  }
+
+  /** Start a fresh load: progress from zero, nothing painted, loader shown, watchdog re-armed. */
+  private resetLoad(): void {
+    this.clearTimer();
+    this.progress = new MapLoadProgress();
+    this.loadState.set(INITIAL_MAP_LOAD_STATE);
+    this.painted = false;
     this.mapReady.set(false);
     this.failureReason.set(null);
-    this.retryToken.update((n) => n + 1);
     this.startTimer();
   }
 
-  /** Arm the unreachable-watchdog: if the map has not revealed by LOAD_TIMEOUT_MS, show SIGNAL LOST. */
+  /**
+   * Arm the watchdog. When it fires, a painted map is revealed — it is the backstop for a bar
+   * that never reports finishing — and a map that never painted is declared unreachable.
+   */
   private startTimer() {
     this.clearTimer();
     this.timeoutId = window.setTimeout(() => {
-      if (!this.mapReady()) {
+      this.timeoutId = undefined;
+      if (this.painted) {
+        this.reveal();
+      } else {
         this.failureReason.set('unreachable');
       }
     }, LOAD_TIMEOUT_MS);
   }
 
-  /** Cancel the unreachable-watchdog. */
+  /** Cancel the watchdog. */
   private clearTimer() {
     if (this.timeoutId !== undefined) {
       clearTimeout(this.timeoutId);
       this.timeoutId = undefined;
     }
-  }
-
-  /** Cancel the pending fade-in reveal. */
-  private clearRevealTimer() {
-    if (this.revealTimeoutId !== undefined) {
-      clearTimeout(this.revealTimeoutId);
-      this.revealTimeoutId = undefined;
-    }
-  }
-
-  /** Cancel both the watchdog and the reveal. */
-  private clearAllTimers() {
-    this.clearTimer();
-    this.clearRevealTimer();
   }
 }
