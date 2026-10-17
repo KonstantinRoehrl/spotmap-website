@@ -131,7 +131,7 @@
 .loader__steps {
   display: flex;
   justify-content: space-between;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   letter-spacing: 0.08em;
 }
 
@@ -164,7 +164,7 @@
 /* A fixed slot, so the plate does not grow when the note appears. */
 .loader__note {
   height: 1.3em;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   text-align: center;
 }
 

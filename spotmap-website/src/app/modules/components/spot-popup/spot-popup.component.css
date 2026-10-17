@@ -108,7 +108,7 @@
    (the About page says how to ask). Small and unlit, so it never competes with the name. */
 .spot-popup__rights {
   margin: 0;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   letter-spacing: 0.04em;
   color: var(--color-phosphor-dim);
   text-shadow: none;
