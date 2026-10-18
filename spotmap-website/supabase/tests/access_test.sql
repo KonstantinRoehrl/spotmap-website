@@ -1,8 +1,9 @@
 -- Who may read and write the spot data: the public reads every table and calls city_spots();
--- nothing public writes a table or calls sync_spots(); only an admin (is_admin()) writes the
--- spot-photos bucket. Passes on an empty database and on one already synced with the real spots.
+-- nothing public writes a table or calls sync_existing_spots() or sync_insert_spots(); only an
+-- admin (is_admin()) writes the spot-photos bucket. Passes on an empty database and on one
+-- already synced with the real spots.
 begin;
-select plan(22);
+select plan(24);
 
 -- Start from empty tables whatever the database already holds (a synced local stack has the real
 -- spots): the superuser bypasses row-level security, photos go by cascade, and the rollback at
@@ -67,9 +68,10 @@ select throws_ok(
   '42501', null, 'anon cannot insert a spot photo');
 select throws_ok($$delete from public.spot_photos$$, '42501', null, 'anon cannot delete a spot photo');
 select throws_ok($$delete from public.cities$$, '42501', null, 'anon cannot delete a city');
+select throws_ok($$select public.sync_existing_spots()$$, '42501', null, 'anon cannot call sync_existing_spots');
 select throws_ok(
-  $$select public.sync_spots('{"cities": [], "spots": []}')$$,
-  '42501', null, 'anon cannot call sync_spots');
+  $$select public.sync_insert_spots('{"cities": [], "spots": []}')$$,
+  '42501', null, 'anon cannot call sync_insert_spots');
 select throws_ok(
   $$insert into storage.objects (bucket_id, name) values ('spot-photos', 'thumb/vienna/x.webp')$$,
   '42501', null, 'anon cannot write the spot-photos bucket');
@@ -79,8 +81,10 @@ set local role authenticated;
 
 select throws_ok($$insert into public.cities (slug) values ('x')$$, '42501', null, 'a signed-in user cannot insert a city');
 select throws_ok(
-  $$select public.sync_spots('{"cities": [], "spots": []}')$$,
-  '42501', null, 'a signed-in user cannot call sync_spots');
+  $$select public.sync_existing_spots()$$, '42501', null, 'a signed-in user cannot call sync_existing_spots');
+select throws_ok(
+  $$select public.sync_insert_spots('{"cities": [], "spots": []}')$$,
+  '42501', null, 'a signed-in user cannot call sync_insert_spots');
 select throws_ok(
   $$insert into storage.objects (bucket_id, name) values ('spot-photos', 'thumb/vienna/x.webp')$$,
   '42501', null, 'a signed-in user cannot write the spot-photos bucket');
