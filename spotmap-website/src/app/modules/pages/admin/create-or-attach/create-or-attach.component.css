@@ -1,0 +1,200 @@
+/* Variant A, the step stack (.devcycle/design/admin-ui-direction.md): steps crossfade in one grid cell. */
+:host {
+  display: block;
+  max-width: 36rem;
+  margin: 0 auto;
+  padding: 0.5rem 0 2rem;
+}
+
+.steps {
+  display: grid;
+}
+
+.step {
+  grid-area: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 14px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+  transition:
+    opacity var(--dur-fade) ease-out,
+    transform var(--dur-fast) var(--ease-out-expo);
+}
+
+@starting-style {
+  .step {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.step--leaving {
+  opacity: 0;
+  transform: translateY(-4px);
+  pointer-events: none;
+}
+
+.step__heading {
+  margin: 0;
+  font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+  font-weight: 600;
+  line-height: 1.15;
+  text-transform: uppercase;
+  color: var(--color-phosphor-bright);
+  text-shadow: var(--glow-text-display);
+  outline: none;
+}
+
+.step__heading:focus-visible {
+  outline: 1px solid var(--color-phosphor);
+}
+
+.pick,
+.failure,
+.spread {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pick__button,
+.action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 10px 16px;
+  font: inherit;
+  border: 1px solid var(--color-phosphor-deep);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  --bloom-rest-border: var(--color-phosphor-deep);
+}
+
+.pick__button:focus-within {
+  outline: 1px solid var(--color-phosphor);
+  outline-offset: 2px;
+}
+
+.action--primary {
+  --bloom-rest-bg: rgba(0, 255, 0, 0.07);
+}
+
+.action--care {
+  --bloom-rest-color: var(--color-amber);
+  --bloom-rest-border: var(--color-amber-dim);
+  text-shadow: var(--glow-text-amber);
+}
+
+.action:disabled {
+  cursor: not-allowed;
+  color: var(--color-phosphor-deep);
+  text-shadow: none;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.field label,
+.field legend {
+  padding: 0;
+  font-size: 0.8125rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-phosphor);
+  text-shadow: var(--glow-text-standard);
+}
+
+.field__control {
+  min-height: 48px;
+  padding: 12px 14px;
+  font: inherit;
+  color: var(--color-phosphor);
+  background: var(--color-surface);
+  border: 1px solid var(--color-phosphor-deep);
+  border-radius: var(--radius-md);
+  transition:
+    border-color var(--dur-fast) ease-out,
+    box-shadow var(--dur-fast) ease-out;
+}
+
+.field__control:focus-visible {
+  outline: none;
+  border-color: var(--color-phosphor);
+  box-shadow: var(--glow-edge-frame);
+}
+
+.field__control::placeholder {
+  color: var(--color-phosphor-dim);
+}
+
+.choice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+}
+
+.batch,
+.candidates,
+.thumbs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.thumbs {
+  flex-flow: row wrap;
+}
+
+.batch__item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.batch__thumb {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+}
+
+.candidate {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.candidate__name {
+  margin: 0;
+  color: var(--color-phosphor-bright);
+  text-shadow: var(--glow-text-display);
+}
+
+.tag {
+  padding: 1px 6px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--color-phosphor-dim);
+  border: 1px solid var(--color-phosphor-deep);
+  border-radius: var(--radius-sm);
+}

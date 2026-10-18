@@ -6,7 +6,7 @@ import { adminGuard } from './admin.guard';
 /**
  * The hidden admin route tree, lazy-loaded under `/admin` by app.routes.ts so none of it — nor
  * supabase-js, which only it reaches — enters the initial bundle. `sign-in` is open; everything
- * else sits in the guarded shell. A later admin page (Phases 10, 13, 14) is one more child here
+ * else sits in the guarded shell, whose default child is `add` (create-or-attach). A later admin page (Phases 10, 13, 14) is one more child here
  * and needs no auth code of its own.
  */
 export const ADMIN_ROUTES: Routes = [
@@ -21,7 +21,16 @@ export const ADMIN_ROUTES: Routes = [
     path: '',
     component: AdminShellComponent,
     canActivate: [adminGuard],
-    // Task 14 adds the '' → 'add' redirect and 'add'; Task 15 adds 'spots' and 'spots/:id'.
-    children: [],
+    // Task 15 adds 'spots' and 'spots/:id'.
+    children: [
+      { path: '', pathMatch: 'full', redirectTo: 'add' },
+      {
+        path: 'add',
+        loadComponent: () =>
+          import('./create-or-attach/create-or-attach.component').then(
+            (m) => m.CreateOrAttachComponent,
+          ),
+      },
+    ],
   },
 ];
