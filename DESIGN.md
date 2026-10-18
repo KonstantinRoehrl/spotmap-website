@@ -88,6 +88,30 @@ components:
     textColor: "{colors.amber}"
     typography: "{typography.label}"
     padding: "8px 12px"
+  admin-header:
+    textColor: "{colors.phosphor-bright}"
+    backgroundColor: "{colors.bg}"
+    rounded: "{rounded.none}"
+    padding: "8px 0"
+  step-panel:
+    textColor: "{colors.phosphor}"
+    backgroundColor: "{colors.surface}"
+    rounded: "{rounded.lg}"
+    padding: "14px"
+  candidate-row:
+    textColor: "{colors.phosphor-bright}"
+    backgroundColor: "{colors.surface}"
+    rounded: "{rounded.none}"
+    padding: "12px 0"
+  photo-strip-item:
+    textColor: "{colors.phosphor}"
+    backgroundColor: "{colors.bg}"
+    rounded: "{rounded.sm}"
+    padding: "12px 0"
+  picker-frame:
+    backgroundColor: "{colors.surface}"
+    rounded: "{rounded.lg}"
+    padding: "0"
 ---
 
 # Design System: Spotmap Compendium
@@ -249,6 +273,17 @@ The site's own map, drawn from OpenFreeMap vector tiles in the palette above. Ev
 - **Note line:** on the snapshot path an amber `LIVE FEED DOWN · ARCHIVE COPY` under the bar; otherwise empty.
 - **Motion:** CSS sprites, no JS timers. Reduced motion: the sprites stop on a still frame, while the bar and letters still progress and fade.
 
+### Admin (maintainer tool)
+
+The signed-in tool at `/admin` (README, "The maintainer tool"). It is the same terminal system on a phone-first, one-column layout: no new colour, token or radius, every control a 44 px target, every state change a fade. Described as built.
+
+- **Shell header** (`admin-header`, `.admin-header`): one column, the same on a phone and a desktop, scrolling with the page. Row one: `> SPOTMAP ADMIN` left in the Display tier and a 44 px **Sign out** button right. Row two: the signed-in email in 12 px `phosphor-dim`, truncated with an ellipsis. Row three: two equal 44 px tabs, **Add** and **Spots** (`.admin-tab`, `aria-current="page"`); the current tab takes the navigation's quiet rest state (1px `phosphor-deep` border, 7% green fill), the other has a transparent border. A 1px `line` rule closes the header. Buttons are `.admin-button`: `10px 16px` padding, 4px radius, Label type, pointer bloom. A shell error is an amber `role="alert"` line that fades in and out over `--dur-fade`.
+- **Step flow** (`step-panel`, `.step`): Add is one card at a time, in the order add photos, processing, place the spot, checking for nearby spots, spots nearby (only when something is within reach), saving, saved. A card is `surface`, 1px `line`, 8px radius (`{rounded.lg}`), 14px padding and gap; cards never nest. Steps share one grid cell: the new card rises 6px while fading in, the old one fades out and lifts 4px (opacity over `--dur-fade`, transform over `--dur-fast` on `--ease-out-expo`). Focus moves to the new step's heading (`.step__heading`, `tabindex="-1"`, Headline size, UPPERCASE, Display tier, a 1px `phosphor` outline when focused) and a visually hidden `aria-live` line announces processing, checking, saving and the saved result. Under `prefers-reduced-motion` the rise and lift stop and the cards still crossfade over `--dur-fade`. Primary actions are `.action` buttons (44 px, `10px 16px`, 4px radius, 1px `phosphor-deep` border); the step's one main action (`.action--primary`) carries the 7% green fill.
+- **Candidate list** (`candidate-row`, `.candidate`): one unboxed row per nearby spot, nearest first, `12px 0` with a 1px `line` rule below. The name sits in the Display tier, followed by a **DELETED** tag (`.tag`: 12px UPPERCASE `phosphor-dim`, 1px `phosphor-deep` border, 4px radius) when the spot is soft-deleted. Under it, one unlit `phosphor-dim` line: city, distance in metres, photo count, and whether it matched by position (within 25 m) or by name (within 100 m). The action stretches the row: **Attach here** (filled) for a live spot, **Restore and attach** (outlined) for a deleted one. Below the list, **Create a new spot anyway** is the one amber control of the flow (`.action--care`: amber label in the amber glow, `amber-dim` border); **Back to placement** follows it in the plain style. No red here.
+- **Photo strip** (`photo-strip-item`, `.photo`): on the spot edit page, one unboxed row per photo with a 1px `line` rule below: a 104 x 78 px (4:3) thumbnail with a 1px `line` border and 4px radius, and three equal 44 px plate buttons **<** (earlier), **>** (later) and **X** (remove, in `danger`). The first photo's earlier button and the last photo's later button are disabled. Reordering is by these buttons only. Remove opens a confirm panel inside the row, never a browser dialog: 1px `danger` border, 6px radius, `surface` fill, 10px padding, "Remove photo N? Both its files are deleted.", with **Remove** (red) and **Keep**. Deleting a whole spot uses the same panel. **Add photos** is a plate button beside the "Photos (N)" heading. Motion: a removed row and a closed panel fade out over `--dur-fade`; a moved photo drops to 35% opacity for a frame and fades back over `--dur-fade`. Rows do not slide or collapse.
+- **Satellite picker** (`picker-frame`, `.picker__frame`): Esri World Imagery in the same MapLibre canvas as the map, panned under a **fixed centre pin**; the pin itself is never dragged. The frame is `surface` with a 1px `line` border and an 8px radius (`{rounded.lg}`; a host can set `--picker-frame-radius` to 6px), `min(60vh, 28rem)` tall on the Add page and `min(60vh, 420px)` on the edit page, and takes the 24px frame glow only while the imagery is being dragged. The pin (`.picker__pin`) is the one circle of the tool: a 12px `phosphor` dot with a 14px bloom inside a 28px ring (a black gap, then a 3px `phosphor` ring); it never takes a touch, so a pan can start on it, and it is never amber. A small unlit plate top left shows the live coordinates (12px `phosphor-dim`, 1px `phosphor-deep` border, 80% `surface` backing, 4px radius); the zoom buttons are 44px plates top right. The Esri credit stays on screen as MapLibre's compact attribution (a licence condition). The view opens at zoom 18 on a photo's GPS and zoom 14 on a city's centre; a later move of the centre eases for 400 ms and jumps under reduced motion, as the zoom buttons do. A missing key (amber) or failing tiles (red) show as a notice under the frame that fades in and out over `--dur-fade`; a map that cannot draw or load covers the frame with a `surface` failure panel and a **Retry** button.
+- **Status line** (`.admin-status`, `.status`): a `> `-prefixed, unlit line, `role="status"` and `aria-live="polite"`. The shell's sits under the header (13px `phosphor-dim`, reserved at 1.3em high so the page does not jump). The spot list's count line and the spot edit page's saving, saved and error line are 14px; the edit page's rides in its sticky dock beside **Save changes** (`surface` fill, 1px `line` top rule, padding `12px 16px 16px`), and an error turns it `danger`. A new message replaces the old one in the same grid cell: the old fades out and the new fades in over `--dur-fade`.
+
 ## 6. Do's and Don'ts
 
 ### Do:
@@ -258,6 +293,7 @@ The site's own map, drawn from OpenFreeMap vector tiles in the palette above. Ev
 - **Do** set everything in IBM Plex Mono (self-hosted); keep the whole UI on one character grid.
 - **Do** keep corners soft on the R1 scale (4/6/8 px) and give every animation a `prefers-reduced-motion` path that keeps the fades.
 - **Do** frame the map in `surface` + green glow so a blank frame reads black, never white.
+- **Do** confirm destructive admin actions in the page, never a browser dialog.
 
 ### Don't:
 - **Don't** ship **white** or near-white surfaces anywhere (the No-White Rule) — the map has no carve-out: its basemap is drawn on true black like every other surface, and no Map Palette colour reaches white.
@@ -266,3 +302,4 @@ The site's own map, drawn from OpenFreeMap vector tiles in the palette above. Ev
 - **Don't** introduce a third decorative color into the UI chrome (the basemap's Map Palette is the one documented exception), or let amber sprawl past the care/selection role.
 - **Don't** use full-color emoji as UI icons — render terminal glyphs in phosphor instead.
 - **Don't** let glow smear text: no blanket glow, no text halo past 6 px, no text below 12 px, so it survives sunlight on a phone.
+- **Don't** make a drag the only way to reorder or place anything.
