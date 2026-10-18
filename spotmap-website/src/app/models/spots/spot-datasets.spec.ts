@@ -8,8 +8,8 @@ import { SpotCollection, SpotStatus } from './spot';
 const STATUSES: SpotStatus[] = ['active', 'demolished'];
 
 /**
- * Every city's served dataset, `public/spots/<city>.geojson`, is promoted from data/spots/ by
- * tools/extract-spots/promote.mjs. Each one loads the way SpotsService loads it and holds what
+ * Every city's served dataset, `public/spots/<city>.geojson`, is exported from the database by
+ * `npm run snapshot:supabase`. Each one loads the way SpotsService loads it and holds what
  * SpotMapComponent and SpotPopupComponent rely on. Photos are object keys of the city's own photos, never URLs.
  */
 describe('served spot datasets', () => {

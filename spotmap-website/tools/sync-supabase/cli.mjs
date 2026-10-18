@@ -29,7 +29,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 import { createLimiter } from '../extract-spots/photos.mjs';
-import { SPOTS_DIR } from '../extract-spots/promote.mjs';
+import { SPOTS_DIR } from '../extract-spots/paths.mjs';
 import { createSupabaseClient, readCredentials } from './client.mjs';
 import {
   buildPayload,

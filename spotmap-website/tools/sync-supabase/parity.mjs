@@ -17,7 +17,7 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { parseArgs } from 'node:util';
-import { PUBLIC_SPOTS_DIR, SPOTS_DIR } from '../extract-spots/promote.mjs';
+import { PUBLIC_SPOTS_DIR, SPOTS_DIR } from '../extract-spots/paths.mjs';
 import { createSupabaseClient, readCredentials } from './client.mjs';
 
 /** The JSON kind of a value: null, array, object, or its typeof. */

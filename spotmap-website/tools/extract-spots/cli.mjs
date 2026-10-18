@@ -11,16 +11,17 @@
  * Per city: take its main map's placemarks (only its own-prefixed ones on a shared map), map
  * statuses and ids, merge in the photos and source records of each extra map's matching
  * placemarks (match.mjs), fingerprint every photo through its tiny rendition, download and encode
- * only photos whose WebP is not on disk yet, write the GeoJSON and report, promote the GeoJSON
- * into public/spots/<city>.geojson (promote.mjs), and only then delete photo files the new GeoJSON
- * no longer references. A city that fails before its writes keeps its previous GeoJSON, report and
- * promoted copy and deletes no photo (new or re-encoded WebPs may already be on disk; the next
- * successful run sweeps what it no longer references); the run moves on and exits non-zero at the
- * end, naming every failed city. Dead photo links are not errors — they are listed in the report —
- * except that a photo written on the previous run that now comes back dead, or a spot an extra map
- * fed last run that lost its match, fails its city, so a wrong 403 or a moved placemark cannot
- * wipe good photos. A city whose promotion fails has its new GeoJSON and report written but its
- * promoted copy stale, and deletes no photo; re-run `npm run promote:spots`.
+ * only photos whose WebP is not on disk yet, write the GeoJSON and report, and only then delete
+ * photo files the new GeoJSON no longer references. A city that fails before its writes keeps its
+ * previous GeoJSON and report and deletes no photo (new or re-encoded WebPs may already be on disk;
+ * the next successful run sweeps what it no longer references); the run moves on and exits
+ * non-zero at the end, naming every failed city. Dead photo links are not errors — they are listed
+ * in the report — except that a photo written on the previous run that now comes back dead, or a
+ * spot an extra map fed last run that lost its match, fails its city, so a wrong 403 or a moved
+ * placemark cannot wipe good photos.
+ *
+ * The extraction writes only data/spots/, the input of `npm run sync:supabase`. The bundled
+ * snapshots in public/spots/ are exported from the database by `npm run snapshot:supabase`.
  *
  * Only after a run naming no city in which every city succeeded, data/spots/<map>.map-report.json
  * is written for every map several cities share or one city uses as an extra map, listing the
@@ -29,7 +30,6 @@
 import { existsSync } from 'node:fs';
 import { mkdir, readdir, readFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 import { writeFileAtomic } from './atomic.mjs';
 import {
@@ -46,6 +46,7 @@ import { hasOwnPrefix, photoFileName } from './ids.mjs';
 import { parseKml } from './kml.mjs';
 import { buildMapReport, reportedMaps } from './map-report.mjs';
 import { matchExtraPlacemarks } from './match.mjs';
+import { APP_ROOT, SPOTS_DIR } from './paths.mjs';
 import {
   averageHash,
   encodePhoto,
@@ -53,9 +54,7 @@ import {
   fingerprintUrl,
   photoFingerprint,
 } from './photos.mjs';
-import { PUBLIC_SPOTS_DIR, SPOTS_DIR, promoteCity } from './promote.mjs';
 
-const APP_ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const SOURCES_PATH = join(SPOTS_DIR, 'sources.json');
 const KML_CACHE_DIR = join(APP_ROOT, 'data', '.cache', 'kml');
 const KML_TIMEOUT_MS = 60_000;
@@ -107,7 +106,6 @@ async function main() {
  *   `sources.json`
  * @param {typeof globalThis.fetch} [deps.fetch]
  * @param {string} [deps.spotsDir]
- * @param {string} [deps.publicDir]
  * @param {string} [deps.kmlCacheDir]
  * @returns {Promise<0 | 1 | 2>} 0 when every city succeeded, 1 when any failed, 2 on bad arguments
  */
@@ -117,7 +115,6 @@ export async function runExtraction(
     registry: { maps, cities },
     fetch = globalThis.fetch,
     spotsDir = SPOTS_DIR,
-    publicDir = PUBLIC_SPOTS_DIR,
     kmlCacheDir = KML_CACHE_DIR,
   },
 ) {
@@ -139,7 +136,7 @@ export async function runExtraction(
         city,
         cities[city],
         options,
-        { maps, fetch, spotsDir, publicDir, kmlCacheDir, loadMap },
+        { maps, fetch, spotsDir, kmlCacheDir, loadMap },
       );
       claimsByCity[city] = claims;
       console.log(summaryLine(city, report, downloaded));
@@ -284,18 +281,16 @@ export function createMapLoader({ maps, fetch, kmlCacheDir }) {
 
 /**
  * Extracts one city: loads its main map's placemarks (only its own-prefixed ones when
- * `onlyPrefixed`), merges in each extra map's matching placemarks, resolves every photo, writes the
- * city's GeoJSON and report, and promotes the GeoJSON into the copy the app serves.
+ * `onlyPrefixed`), merges in each extra map's matching placemarks, resolves every photo, and
+ * writes the city's GeoJSON and report into data/spots/.
  *
- * Ordering rules, so a city that fails before its writes keeps its previous GeoJSON, report and
- * promoted copy and loses no photo: a map's KML is cached only once it parses (a consent page never replaces the last good
- * copy); extra maps are matched before any photo is fetched; photos are encoded as they resolve,
- * so new or `--reencode`d WebPs may already be on disk when a later step fails, but the GeoJSON and
- * report are written only once every photo has resolved, the dead-photo guard has passed and the
- * output carries no URL; the promoted copy is written after both, and unreferenced photo files
- * are deleted only after all three are written. A failed promotion fails the city with its new
- * GeoJSON and report already written and deletes no photo; the drift test in promote.test.mjs
- * flags the stale copy until `npm run promote:spots` rewrites it.
+ * Ordering rules, so a city that fails before its writes keeps its previous GeoJSON and report
+ * and loses no photo: a map's KML is cached only once it parses (a consent page never replaces
+ * the last good copy); extra maps are matched before any photo is fetched; photos are encoded as
+ * they resolve, so new or `--reencode`d WebPs may already be on disk when a later step fails, but
+ * the GeoJSON and report are written only once every photo has resolved, the dead-photo guard has
+ * passed and the output carries no URL; unreferenced photo files are deleted only after both are
+ * written.
  *
  * @param {string} city the `sources.json` key
  * @param {object} source the city's `sources.json` entry
@@ -311,7 +306,6 @@ export function createMapLoader({ maps, fetch, kmlCacheDir }) {
  * @param {Record<string, string>} deps.maps `sources.json`'s `maps` (slug → My Maps id)
  * @param {typeof globalThis.fetch} [deps.fetch]
  * @param {string} [deps.spotsDir] holds the GeoJSON, the report and the `<city>/` photo folder
- * @param {string} [deps.publicDir] receives the promoted copy the app serves ({@link promoteCity})
  * @param {string} [deps.kmlCacheDir] holds the last KML of each map that parsed
  * @param {(slug: string) => Promise<import('./kml.mjs').Placemark[]>} [deps.loadMap] the run's
  *   {@link createMapLoader}, shared across cities so each map is fetched once
@@ -329,7 +323,6 @@ export async function extractCity(
     maps,
     fetch = globalThis.fetch,
     spotsDir = SPOTS_DIR,
-    publicDir = PUBLIC_SPOTS_DIR,
     kmlCacheDir = KML_CACHE_DIR,
     loadMap = createMapLoader({ maps, fetch, kmlCacheDir }),
   },
@@ -419,7 +412,6 @@ export async function extractCity(
     join(spotsDir, `${city}.report.json`),
     toJsonText(report),
   );
-  await promoteCity(city, { spotsDir, publicDir });
   const written = [...outcomes.values()].filter((outcome) => outcome.written);
   await removeUnreferencedFiles(
     photoDir,
