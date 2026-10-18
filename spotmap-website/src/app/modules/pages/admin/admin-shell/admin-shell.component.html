@@ -1,0 +1,61 @@
+<div class="admin">
+  <header class="admin-header">
+    <div class="admin-top">
+      <span class="admin-brand">&gt; SPOTMAP ADMIN</span>
+      <button
+        type="button"
+        class="admin-button phosphor-bloom"
+        appPointerBloom
+        data-testid="sign-out-button"
+        [disabled]="signingOut()"
+        (click)="signOut()"
+      >
+        {{ signingOut() ? 'Signing out…' : 'Sign out' }}
+      </button>
+    </div>
+    <span class="admin-email" data-testid="signed-in-email">{{ email() }}</span>
+    <nav class="admin-nav" aria-label="Maintainer sections">
+      <a
+        class="admin-button admin-tab phosphor-bloom"
+        appPointerBloom
+        routerLink="/admin/add"
+        routerLinkActive="active"
+        ariaCurrentWhenActive="page"
+        data-testid="nav-add"
+        >Add</a
+      >
+      <a
+        class="admin-button admin-tab phosphor-bloom"
+        appPointerBloom
+        routerLink="/admin/spots"
+        routerLinkActive="active"
+        ariaCurrentWhenActive="page"
+        data-testid="nav-spots"
+        >Spots</a
+      >
+    </nav>
+  </header>
+
+  @if (error(); as message) {
+    <p
+      class="admin-error"
+      role="alert"
+      data-testid="shell-error"
+      animate.leave="admin-error--leaving"
+    >
+      {{ message }}
+    </p>
+  }
+  <p
+    class="admin-status"
+    role="status"
+    aria-live="polite"
+    data-testid="shell-status"
+  >
+    {{ status() }}
+  </p>
+
+  <main class="admin-main">
+    <router-outlet />
+  </main>
+</div>
