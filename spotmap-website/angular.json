@@ -32,6 +32,11 @@
                 "glob": "maplibre-gl-shared.mjs",
                 "input": "node_modules/maplibre-gl/dist",
                 "output": "."
+              },
+              {
+                "glob": "*.wasm",
+                "input": "node_modules/@jsquash/webp/codec/enc",
+                "output": "jsquash"
               }
             ],
             "styles": [
@@ -121,6 +126,11 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "*.wasm",
+                "input": "node_modules/@jsquash/webp/codec/enc",
+                "output": "jsquash"
               }
             ],
             "styles": ["src/theme.scss", "src/styles.css"],
