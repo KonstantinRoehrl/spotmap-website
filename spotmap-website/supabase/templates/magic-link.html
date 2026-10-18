@@ -1,0 +1,53 @@
+<!--
+  Sign-in email for the maintainer tool (Supabase Auth magic_link template, local stack). Go
+  template: {{ .ConfirmationURL }} is the one-time sign-in link, {{ .Token }} the 6-digit code the
+  sign-in page accepts instead. Inline styles only: mail clients drop <style> blocks.
+-->
+<div
+  style="
+    background: #000000;
+    padding: 24px;
+    font-family: 'IBM Plex Mono', 'Courier New', monospace;
+    color: #b6ffb6;
+  "
+>
+  <div
+    style="
+      max-width: 480px;
+      margin: 0 auto;
+      background: #0a0f0a;
+      border: 1px solid #0f3d17;
+      border-radius: 8px;
+      padding: 24px;
+    "
+  >
+    <h1 style="margin: 0 0 16px; font-size: 18px; color: #00ff00">
+      Sign in to Spotmap
+    </h1>
+    <p style="margin: 0 0 16px; line-height: 1.5">
+      Open this link on the device you are signing in on:
+    </p>
+    <p style="margin: 0 0 24px">
+      <a href="{{ .ConfirmationURL }}" style="color: #00ff00"
+        >Sign in to the maintainer tool</a
+      >
+    </p>
+    <p style="margin: 0 0 8px; line-height: 1.5">
+      Or enter this code on the sign-in page:
+    </p>
+    <p
+      style="
+        margin: 0 0 24px;
+        font-size: 28px;
+        letter-spacing: 6px;
+        color: #00ff00;
+      "
+    >
+      {{ .Token }}
+    </p>
+    <p style="margin: 0; font-size: 12px; line-height: 1.5; color: #00b800">
+      The link and the code work once and expire in an hour. If you did not ask
+      to sign in, ignore this email.
+    </p>
+  </div>
+</div>

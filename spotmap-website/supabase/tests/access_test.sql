@@ -1,8 +1,8 @@
 -- Who may read and write the spot data: the public reads every table and calls city_spots();
--- nothing public writes a table, calls sync_spots() or writes the spot-photos bucket. Passes on
--- an empty database and on one already synced with the real spots.
+-- nothing public writes a table or calls sync_spots(); only an admin (is_admin()) writes the
+-- spot-photos bucket. Passes on an empty database and on one already synced with the real spots.
 begin;
-select plan(20);
+select plan(22);
 
 -- Start from empty tables whatever the database already holds (a synced local stack has the real
 -- spots): the superuser bypasses row-level security, photos go by cascade, and the rollback at
@@ -26,13 +26,26 @@ select ok(
 select is(
   (select count(*) from pg_policies
     where schemaname = 'storage' and tablename = 'objects'
+      and (coalesce(qual, '') || coalesce(with_check, '')) like '%spot-photos%'),
+  4::bigint,
+  'four policies on storage.objects name the spot-photos bucket (the admins'' read, upload, update and delete)');
+select is(
+  (select count(*) from pg_policies
+    where schemaname = 'storage' and tablename = 'objects'
+      and (coalesce(qual, '') || coalesce(with_check, '')) like '%spot-photos%'
+      and (roles is distinct from array['authenticated']::name[]
+           or (qual is not null and qual not like '%is_admin()%')
+           or (with_check is not null and with_check not like '%is_admin()%'))),
+  0::bigint,
+  'every policy naming the spot-photos bucket is for signed-in users only and gated by is_admin() in each clause');
+select is(
+  (select count(*) from pg_policies
+    where schemaname = 'storage' and tablename = 'objects'
       and cmd in ('INSERT', 'UPDATE', 'DELETE', 'ALL')
       and roles && array['anon', 'authenticated', 'public']::name[]
-      -- A write policy reaches the bucket when it names it or names no bucket at all.
-      and ((coalesce(qual, '') || coalesce(with_check, '')) like '%spot-photos%'
-           or (coalesce(qual, '') || coalesce(with_check, '')) not like '%bucket_id%')),
+      and (coalesce(qual, '') || coalesce(with_check, '')) not like '%bucket_id%'),
   0::bigint,
-  'no public write policy on storage.objects reaches the spot-photos bucket (covers update and delete, which a denied role sees only as zero rows)');
+  'no write policy on storage.objects for anon or signed-in users names no bucket at all (which would reach spot-photos)');
 
 insert into public.cities (slug) values ('vienna');
 insert into public.spots (id, city, name, status, location, sort_order, notes, sources)
