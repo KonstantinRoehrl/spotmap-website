@@ -1,0 +1,203 @@
+/* Spot edit, variant A (.devcycle/design/admin-ui-direction.md): fields, pin, photo rows, docked save. */
+:host {
+  display: block;
+  color-scheme: dark;
+}
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+.page {
+  max-width: 72ch;
+  margin: 0 auto;
+  padding: 16px 16px 0;
+}
+.stack > *,
+.status > * {
+  grid-area: 1 / 1;
+}
+.page,
+.stack,
+.groups,
+.group,
+.panel,
+.top,
+.status,
+.dock {
+  display: grid;
+  gap: 12px;
+}
+.groups {
+  gap: 24px;
+}
+.top {
+  grid-template-columns: 1fr auto;
+  align-items: center;
+}
+.title {
+  color: var(--color-phosphor-bright);
+  text-shadow: var(--glow-text-display);
+  font-size: 1.25rem;
+  text-transform: uppercase;
+}
+.meta {
+  grid-column: 1 / -1;
+  color: var(--color-phosphor-dim);
+  font-size: 0.8125rem;
+}
+.group__title,
+.field__label {
+  color: var(--color-phosphor);
+  font-size: 0.8125rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.field {
+  display: grid;
+  gap: 6px;
+}
+.field__control {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 14px;
+  font: inherit;
+  color: var(--color-phosphor);
+  background: var(--color-surface);
+  border: 1px solid var(--color-phosphor-deep);
+  border-radius: var(--radius-md);
+  transition: var(--dur-fast);
+}
+.field__control:focus-visible {
+  outline: none;
+  border-color: var(--color-phosphor);
+  box-shadow: var(--glow-edge-frame);
+}
+.field__control[aria-invalid='true'],
+.field__error {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 10px 16px;
+  font: inherit;
+  font-size: 0.8125rem;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+.button:has(:focus-visible) {
+  outline: 1px solid var(--color-phosphor);
+}
+.button--primary {
+  --bloom-rest-bg: rgba(0, 255, 0, 0.07);
+}
+.button--danger {
+  --bloom-rest-color: var(--color-danger);
+  --bloom-rest-border: var(--color-danger);
+  text-shadow: none;
+}
+.button:is(:disabled, [aria-disabled='true']) {
+  --bloom-rest-color: var(--color-phosphor-deep);
+  text-shadow: none;
+  cursor: default;
+  pointer-events: none;
+}
+.file-input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.panel {
+  padding: 10px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+}
+.panel--danger {
+  border-color: var(--color-danger);
+}
+.picker {
+  display: block;
+  height: min(60vh, 420px);
+}
+.photos {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.photo {
+  display: grid;
+  grid-template-columns: 104px 1fr;
+  gap: 8px 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-line);
+}
+.photo img {
+  object-fit: cover;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+}
+.photo__actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  align-items: center;
+}
+.photo .panel {
+  grid-column: 1 / -1;
+}
+.dock {
+  position: sticky;
+  bottom: 0;
+  margin: 0 -16px;
+  padding: 12px 16px 16px;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-line);
+}
+.status {
+  color: var(--color-phosphor-dim);
+  font-size: 0.875rem;
+}
+.status[data-kind='error'] {
+  color: var(--color-danger);
+}
+.status__line::before {
+  content: '> ';
+}
+.fade {
+  transition:
+    opacity var(--dur-fade),
+    transform var(--dur-fast) var(--ease-out-expo);
+}
+@starting-style {
+  .fade {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+.fade--leaving {
+  opacity: 0;
+}
+/* After .fade: equal specificity, so source order lets this one-frame snap override its transition. */
+.photo--settling {
+  opacity: 0.35;
+  transition: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .photo--settling {
+    transition: none !important;
+  }
+}
