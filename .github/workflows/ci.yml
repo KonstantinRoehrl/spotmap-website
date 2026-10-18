@@ -59,9 +59,10 @@ jobs:
       - name: Install dependencies (npm ci — clean, from lockfile)
         run: npm ci
 
-      # build:pages chains the tools/ test suite, the production build, and both
-      # deploy-artifact verifiers, so this one step gates the artifact main deploys.
-      - name: Build the deploy artifact (tool tests, production build, asset verifiers)
+      # build:pages chains the tools/ test suite, the production build, and the
+      # deploy-artifact verifiers (asset paths, and no admin library in the initial
+      # bundle), so this one step gates the artifact main deploys.
+      - name: Build the deploy artifact (tool tests, production build, output verifiers)
         run: npm run build:pages
 
   test:
