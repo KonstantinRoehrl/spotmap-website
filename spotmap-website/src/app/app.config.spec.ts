@@ -4,6 +4,7 @@ import {
   ELEVATION_LOADER,
   MAP_FACTORY,
 } from './modules/components/spot-map/map-factory.token';
+import { IMAGERY_CONFIG } from './services/admin/imagery';
 import { SPOTMAP_BACKEND } from './services/spotmap-backend';
 
 describe('appConfig', () => {
@@ -38,5 +39,16 @@ describe('appConfig', () => {
         p.provide === SPOTMAP_BACKEND,
     ) as { useValue?: unknown } | undefined;
     expect(provider?.useValue).toBe(environment.backend);
+  });
+
+  it('provides the build environment’s imagery so the satellite picker can draw it', () => {
+    const provider = appConfig.providers.find(
+      (p) =>
+        typeof p === 'object' &&
+        p !== null &&
+        'provide' in p &&
+        p.provide === IMAGERY_CONFIG,
+    ) as { useValue?: unknown } | undefined;
+    expect(provider?.useValue).toBe(environment.imagery);
   });
 });
