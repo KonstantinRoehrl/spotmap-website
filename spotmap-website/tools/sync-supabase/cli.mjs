@@ -1,52 +1,51 @@
 #!/usr/bin/env node
 /**
- * Mirrors the extraction output into Supabase. Until the maintainer tool replaces Google My Maps
- * as the editing surface (roadmap Decision 1), the database is a re-runnable copy of data/spots/:
+ * Inserts the spots the extraction found that the database has never seen. Once a spot is in
+ * Supabase the maintainer tool owns it — it may be moved, renamed, re-photographed or deleted
+ * there — so this sync never updates or deletes anything; it only adds what is new:
  *
- *   npm run sync:supabase [-- --dry-run] [-- --db-only] [-- --hosted]
+ *   npm run sync:supabase [-- --dry-run] [-- --db-only] [-- --expect-no-inserts] [-- --hosted]
  *
  * SUPABASE_URL and SUPABASE_SECRET_KEY come from the environment; the npm script loads
  * spotmap-website/.env.local first when it exists (see .env.example). A run, each step only after
  * the previous one succeeded:
  *
- *   1. load every city of data/spots/sources.json and check each referenced photo is on disk;
- *   2. derive missing or outdated thumbnails into data/thumbs/ and delete orphaned ones;
- *   3. upload every full/ and thumb/ object the bucket lacks or holds with other bytes, stopping
- *      at the first failure (uploads already in flight finish, no further one starts);
- *   4. mirror the database with one sync_spots() call;
- *   5. delete the bucket objects nothing references any more — only now, so the live database
- *      never points at a deleted file;
- *   6. report each step's counts, all zero on a re-run with unchanged data.
+ *   1. load every city of data/spots/sources.json;
+ *   2. read every spot the database holds, deleted ones included, with sync_existing_spots();
+ *   3. plan (insert-plan.mjs) and print the plan: a spot whose id is present is left alone; one
+ *      near an existing spot, or of its exact name a little farther, is printed as a possible
+ *      duplicate and held back for the maintainer; every other spot is inserted;
+ *   4. check every referenced photo is on disk, derive missing or outdated thumbnails into
+ *      data/thumbs/ and delete orphaned ones;
+ *   5. upload the photos of the spots to insert that the bucket lacks, stopping at the first
+ *      failure (uploads already in flight finish, no further one starts);
+ *   6. insert those spots, their photos and any new city with one sync_insert_spots() call — only
+ *      now, so the live database never points at a missing file — and report its counts, all
+ *      zero on a re-run with unchanged data.
  *
- * --dry-run plans every step and writes nothing. --db-only runs steps 1 (without the photo check)
- * and 4 only, seeding the database from the committed datasets alone (CI, the parity check).
- * --hosted must be given exactly when SUPABASE_URL is not the local stack (127.0.0.1 or
- * localhost), so a hosted project is never written by accident. The target host is printed
- * first. Exits 0 on success, 1 when a step fails (naming it), 2 on bad arguments or environment.
+ * --dry-run stops after step 3 and writes nothing. --expect-no-inserts stops there too, writes
+ * nothing, and exits 1 when the plan would insert anything (CI's re-run check). --db-only skips
+ * steps 4 and 5, seeding the database from the committed datasets alone (CI). --hosted must be
+ * given exactly when SUPABASE_URL is not the local stack (127.0.0.1 or localhost), so a hosted
+ * project is never written by accident. The target host is printed first. Exits 0 on success, 1
+ * when a step fails (naming it), 2 on bad arguments or environment.
  */
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
+import { APP_ROOT, SPOTS_DIR } from '../extract-spots/paths.mjs';
 import { createLimiter } from '../extract-spots/photos.mjs';
-import { SPOTS_DIR } from '../extract-spots/paths.mjs';
 import { createSupabaseClient, readCredentials } from './client.mjs';
+import { planInserts } from './insert-plan.mjs';
 import {
   buildPayload,
   loadDatasets,
   missingPhotos,
   photoKeysOf,
 } from './payload.mjs';
-import {
-  listRemote,
-  md5Of,
-  planPrune,
-  planUploads,
-  remoteKeysOf,
-} from './storage-plan.mjs';
+import { listRemote, planUploads, remoteKeysOf } from './storage-plan.mjs';
 import { applyThumbnails, planThumbnails } from './thumbs.mjs';
 
-const APP_ROOT = fileURLToPath(new URL('../../', import.meta.url));
 /** The derived thumbnails, data/thumbs/<city>/<file>.webp (gitignored, like the photos). */
 export const THUMBS_DIR = join(APP_ROOT, 'data', 'thumbs');
 /** Uploads in flight at once (see {@link runBounded}). */
@@ -96,7 +95,7 @@ async function runBounded(items, concurrency, task) {
  * Parses the sync's flags.
  *
  * @param {string[]} argv the arguments after the script name
- * @returns {{ dryRun: boolean, dbOnly: boolean, hosted: boolean }}
+ * @returns {{ dryRun: boolean, dbOnly: boolean, hosted: boolean, expectNoInserts: boolean }}
  * @throws {TypeError} on an unknown flag or any positional argument
  */
 export function parseSyncArgs(argv) {
@@ -106,6 +105,7 @@ export function parseSyncArgs(argv) {
       'dry-run': { type: 'boolean', default: false },
       'db-only': { type: 'boolean', default: false },
       hosted: { type: 'boolean', default: false },
+      'expect-no-inserts': { type: 'boolean', default: false },
     },
     allowPositionals: false,
   });
@@ -113,6 +113,7 @@ export function parseSyncArgs(argv) {
     dryRun: values['dry-run'],
     dbOnly: values['db-only'],
     hosted: values.hosted,
+    expectNoInserts: values['expect-no-inserts'],
   };
 }
 
@@ -169,7 +170,8 @@ export async function runSync(
     log(
       `target: ${host} (${local ? 'local stack' : 'hosted'})` +
         (flags.dryRun ? ', dry run' : '') +
-        (flags.dbOnly ? ', database only' : ''),
+        (flags.dbOnly ? ', database only' : '') +
+        (flags.expectNoInserts ? ', expecting no inserts' : ''),
     );
   } catch (problem) {
     error(`sync:supabase: ${problem.message}`);
@@ -190,9 +192,40 @@ export async function runSync(
         url: credentials.url,
         secretKey: credentials.secretKey,
       }));
-    let prune = [];
+
+    const existing = await connect().rpc('sync_existing_spots', {});
+    const { inserts, alreadyPresent, possibleDuplicates } = planInserts(
+      payload.spots,
+      existing,
+    );
+    log(
+      `plan: ${alreadyPresent.length} already present, ${possibleDuplicates.length} possible duplicates, ${inserts.length} to insert`,
+    );
+    for (const { id, duplicateOf, distanceM, reason } of possibleDuplicates) {
+      log(
+        `${id} possible duplicate of ${duplicateOf} (${reason}, ${distanceM.toFixed(1)} m)`,
+      );
+    }
+    for (const { id, city } of inserts) {
+      log(`insert: ${id} (${city})`);
+    }
+
+    if (flags.expectNoInserts) {
+      if (inserts.length > 0) {
+        throw new Error(
+          `expected no inserts, but ${inserts.length} spots would be inserted`,
+        );
+      }
+      log('expect no inserts: nothing to insert, nothing written');
+      return 0;
+    }
+    if (flags.dryRun) {
+      log('dry run: nothing written');
+      return 0;
+    }
 
     if (!flags.dbOnly) {
+      // Every key, not only the inserted spots': the thumbnail plan reads every source photo.
       const missing = missingPhotos(keys, spotsDir);
       if (missing.length > 0) {
         throw new Error(
@@ -200,70 +233,34 @@ export async function runSync(
         );
       }
 
-      const thumbPlan = await planThumbnails({ spotsDir, thumbsDir, keys });
-      if (flags.dryRun) {
-        log(
-          `thumbnails: ${thumbPlan.stale.length} to derive, ${thumbPlan.orphans.length} to delete`,
-        );
-      } else {
-        const { derived, deleted } = await applyThumbnails({
-          spotsDir,
-          thumbsDir,
-          plan: thumbPlan,
-          ...(derive && { derive }),
-        });
-        log(`thumbnails: ${derived} derived, ${deleted} deleted`);
-      }
+      const { derived, deleted } = await applyThumbnails({
+        spotsDir,
+        thumbsDir,
+        plan: await planThumbnails({ spotsDir, thumbsDir, keys }),
+        ...(derive && { derive }),
+      });
+      log(`thumbnails: ${derived} derived, ${deleted} deleted`);
 
-      // A dry run has not derived its stale thumbnails, so it counts them as uploads.
-      const underived = new Set(flags.dryRun ? thumbPlan.stale : []);
-      const wanted = new Map();
-      for (const key of keys) {
-        const [full, thumb] = remoteKeysOf(key);
-        wanted.set(full, await md5Of(join(spotsDir, key)));
-        wanted.set(
-          thumb,
-          underived.has(key) ? null : await md5Of(join(thumbsDir, key)),
-        );
-      }
-      const remote = await listRemote(connect(), payload.cities);
-      const uploads = planUploads(wanted, remote);
-      if (flags.dryRun) {
-        log(`upload: ${uploads.length} of ${wanted.size} objects to upload`);
-      } else {
-        await runBounded(uploads, UPLOAD_CONCURRENCY, async (remoteKey) => {
-          const [size, ...rest] = remoteKey.split('/');
-          const localPath = join(
-            size === 'full' ? spotsDir : thumbsDir,
-            ...rest,
-          );
-          await connect().upload(remoteKey, await readFile(localPath));
-        });
-        log(`upload: ${uploads.length} of ${wanted.size} objects uploaded`);
-      }
-      prune = planPrune(wanted, remote);
-    }
-
-    if (flags.dryRun) {
-      log(
-        `database: skipped (dry run), ${payload.spots.length} spots to mirror`,
+      const wanted = photoKeysOf({ spots: inserts }).flatMap(remoteKeysOf);
+      const insertCities = [...new Set(inserts.map(({ city }) => city))];
+      const uploads = planUploads(
+        wanted,
+        await listRemote(connect(), insertCities),
       );
-    } else {
-      const { spots, photos } = await connect().rpc('sync_spots', { payload });
-      log(
-        `database: spots ${spots.inserted} inserted, ${spots.updated} updated, ${spots.deleted} deleted; ` +
-          `photos ${photos.inserted} inserted, ${photos.deleted} deleted`,
-      );
+      await runBounded(uploads, UPLOAD_CONCURRENCY, async (remoteKey) => {
+        const [size, ...rest] = remoteKey.split('/');
+        const localPath = join(size === 'full' ? spotsDir : thumbsDir, ...rest);
+        await connect().upload(remoteKey, await readFile(localPath));
+      });
+      log(`upload: ${uploads.length} of ${wanted.length} objects uploaded`);
     }
 
-    if (!flags.dbOnly) {
-      if (flags.dryRun) {
-        log(`prune: ${prune.length} objects to delete`);
-      } else {
-        await connect().remove(prune);
-        log(`prune: ${prune.length} objects deleted`);
-      }
-    }
+    const counts = await connect().rpc('sync_insert_spots', {
+      payload: { cities: payload.cities, spots: inserts },
+    });
+    log(
+      `database: ${counts.cities.inserted} cities, ${counts.spots.inserted} spots, ${counts.photos.inserted} photos inserted`,
+    );
     return 0;
   } catch (failure) {
     error(`sync:supabase: ${failure.message}`);

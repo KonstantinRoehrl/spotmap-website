@@ -1,6 +1,6 @@
 /**
- * Tests for the sync payload: one sync_spots() row per spot, built through the served-record
- * builder, with the city, dataset order, coordinates and lossless sources added.
+ * Tests for the sync payload: one sync_insert_spots() row per spot, in dataset order, built
+ * through the served-record builder, with the city, coordinates and lossless sources added.
  */
 import { strict as assert } from 'node:assert';
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
@@ -31,7 +31,7 @@ function feature(id, { lng = 16.37, lat = 48.2, photos = [], sources } = {}) {
 
 const collection = (...features) => ({ type: 'FeatureCollection', features });
 
-test('buildPayload makes one row per spot with city, order, coordinates and served fields', () => {
+test('buildPayload makes one row per spot, in dataset order, with city, coordinates and served fields', () => {
   const payload = buildPayload([
     {
       city: 'vienna',
@@ -52,7 +52,6 @@ test('buildPayload makes one row per spot with city, order, coordinates and serv
   assert.deepEqual(payload.spots[0], {
     id: 'a-1',
     city: 'vienna',
-    sort_order: 0,
     name: 'A-1',
     status: 'active',
     lng: 16.3785491,
@@ -62,11 +61,26 @@ test('buildPayload makes one row per spot with city, order, coordinates and serv
     photos: ['vienna/a-1-00000000.webp'],
   });
   assert.deepEqual(
-    payload.spots.map(({ id, city, sort_order }) => [id, city, sort_order]),
+    Object.keys(payload.spots[0]),
     [
-      ['a-1', 'vienna', 0],
-      ['b-2', 'vienna', 1],
-      ['g-1', 'graz', 0],
+      'id',
+      'city',
+      'name',
+      'status',
+      'lng',
+      'lat',
+      'notes',
+      'sources',
+      'photos',
+    ],
+    'the row keys of sync_insert_spots(), in order — the database picks the sort order',
+  );
+  assert.deepEqual(
+    payload.spots.map(({ id, city }) => [id, city]),
+    [
+      ['a-1', 'vienna'],
+      ['b-2', 'vienna'],
+      ['g-1', 'graz'],
     ],
   );
   assert.equal(payload.spots[1].notes, null);
