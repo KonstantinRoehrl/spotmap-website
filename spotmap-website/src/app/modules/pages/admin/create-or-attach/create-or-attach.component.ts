@@ -19,7 +19,10 @@ import type {
   NearbySpot,
 } from '../../../../models/admin/admin-spot';
 import type { SpotStatus } from '../../../../models/spots/spot';
-import { AdminRepository } from '../../../../services/admin/admin-repository';
+import {
+  AdminRepository,
+  AdminRepositoryError,
+} from '../../../../services/admin/admin-repository';
 import { IMAGERY_CONFIG } from '../../../../services/admin/imagery';
 import {
   PhotoPipeline,
@@ -96,7 +99,8 @@ function messageOf(error: unknown): string {
  * Create-or-attach: the maintainer picks photos, places the spot on the satellite picker, and the
  * photos land on an existing spot within 25 m (restoring it when soft-deleted) or on a new one.
  * Every request failure is shown with a retry and keeps everything entered; every step change
- * fades and moves focus to the new step's heading.
+ * fades and moves focus to the new step's heading, and blocks that appear or go inside a step
+ * (errors, warnings, the map) fade and ease their height the same way.
  */
 @Component({
   selector: 'app-create-or-attach',
@@ -145,6 +149,8 @@ export class CreateOrAttachComponent {
   protected readonly city = signal<string | null>(null);
   /** Whether "New city…" is selected and its slug field shown. */
   protected readonly addingCity = signal(false);
+  /** Whether a city is being created, so a second tap cannot send the same request again. */
+  protected readonly creatingCity = signal(false);
   /** The new city's slug as typed. */
   protected readonly newCitySlug = signal('');
   /** Why the new city was refused, tied to its field; null when fine. */
@@ -155,8 +161,17 @@ export class CreateOrAttachComponent {
   protected readonly status = signal<SpotStatus>('active');
   /** The spot's notes as typed; shown verbatim on the map popup. */
   protected readonly notes = signal('');
-  /** The position under the picker's pin; null until the picker has loaded. */
+  /**
+   * The position under the picker's pin; null until the picker has loaded, and again whenever the
+   * picker is torn down (see {@link pickerOpen}), so a pin from a map that is gone never saves.
+   */
   protected readonly position = signal<LngLat | null>(null);
+  /**
+   * The pin to reopen the picker on after going back to placement; null otherwise. A rebuilt
+   * picker emits its own centre as soon as it loads, so it must open on the pin the maintainer
+   * placed, not on the GPS guess, or that emit would move the pin back.
+   */
+  private readonly resumeAt = signal<LngLat | null>(null);
 
   /** The chosen city's centre: undefined while unknown, null when the database has none. */
   private readonly cityCentre = signal<LngLat | null | undefined>(undefined);
@@ -166,11 +181,16 @@ export class CreateOrAttachComponent {
   protected readonly token = signal<TokenState>({ status: 'loading' });
 
   /**
-   * Where the picker opens: on the batch's GPS guess close up; else, once a city is chosen, on
-   * the centre of its spots; null until one of the two is known, so a batch without GPS asks for
-   * the city before it shows the map.
+   * Where the picker opens: on the pin to resume, if the maintainer went back to placement; else
+   * on the batch's GPS guess close up; else, once a city is chosen, on the centre of its spots.
+   * Null until one of these is known, so a batch without GPS asks for the city before it shows
+   * the map.
    */
   protected readonly view = computed<PickerView | null>(() => {
+    const resume = this.resumeAt();
+    if (resume) {
+      return { centre: resume, zoom: PICKER_DETAIL_ZOOM };
+    }
     const guess = this.guess();
     if (guess) {
       return { centre: guess, zoom: PICKER_DETAIL_ZOOM };
@@ -187,6 +207,15 @@ export class CreateOrAttachComponent {
     const token = this.token();
     return token.status === 'ready' ? token.token : null;
   });
+
+  /**
+   * Whether the picker is on the page (in the place step): it has a view to open on and waits for
+   * the imagery key. When this turns false the picker is destroyed, and its position and the pin to
+   * resume go with it.
+   */
+  protected readonly pickerOpen = computed(
+    () => this.view() !== null && this.token().status !== 'loading',
+  );
 
   /** Whether everything the save needs is there. */
   protected readonly canSave = computed(
@@ -245,6 +274,15 @@ export class CreateOrAttachComponent {
         );
       }
       previous = step;
+    });
+
+    effect(() => {
+      if (!this.pickerOpen()) {
+        untracked(() => {
+          this.position.set(null);
+          this.resumeAt.set(null);
+        });
+      }
     });
   }
 
@@ -305,11 +343,21 @@ export class CreateOrAttachComponent {
     this.addingCity.set(false);
     this.city.set(value);
     this.cityCentre.set(undefined);
+    if (this.guess() === null) {
+      // The picker opens on the city's centre, so it is rebuilt there: a resumed pin is stale.
+      this.resumeAt.set(null);
+    }
     void this.ensureCityCentre();
   }
 
-  /** Creates the typed city, then selects it. */
+  /**
+   * Creates the typed city, then selects it. A tap while a creation is in flight does nothing, so
+   * the second request cannot fail with "already exists" and leave that message behind.
+   */
   protected async createCity(): Promise<void> {
+    if (this.creatingCity()) {
+      return;
+    }
     const slug = this.newCitySlug().trim();
     if (!CITY_SLUG_PATTERN.test(slug)) {
       this.newCityError.set(
@@ -318,12 +366,15 @@ export class CreateOrAttachComponent {
       return;
     }
     this.newCityError.set(null);
+    this.creatingCity.set(true);
     try {
       await this.repository.createCity(slug);
       this.cities.set(await this.repository.listCities());
     } catch (error) {
       this.newCityError.set(messageOf(error));
       return;
+    } finally {
+      this.creatingCity.set(false);
     }
     this.newCitySlug.set('');
     this.chooseCity(slug);
@@ -405,7 +456,12 @@ export class CreateOrAttachComponent {
     }
   }
 
-  /** Creates a new spot with the batch, whatever is nearby. */
+  /**
+   * Creates a new spot with the batch, whatever is nearby. When a try ends with the outcome
+   * unknown (the response was lost, so the spot may exist), its Retry resumes under the same spot
+   * id: the repository then reads the spot first instead of asking for a fresh id, which would
+   * create a second spot beside the first.
+   */
   protected createNew(): Promise<void> {
     const position = this.position();
     const city = this.city();
@@ -420,9 +476,22 @@ export class CreateOrAttachComponent {
       notes: notes === '' ? null : notes,
       position,
     };
-    return this.save(() =>
-      this.repository.createSpotWithPhotos(fields, this.photos()),
-    );
+    let pendingSpotId: string | undefined;
+    return this.save(async () => {
+      try {
+        return await this.repository.createSpotWithPhotos(
+          fields,
+          this.photos(),
+          pendingSpotId,
+        );
+      } catch (error) {
+        pendingSpotId =
+          error instanceof AdminRepositoryError
+            ? error.pendingSpotId
+            : undefined;
+        throw error;
+      }
+    });
   }
 
   /** Attaches the batch to a live candidate. */
@@ -445,9 +514,13 @@ export class CreateOrAttachComponent {
     );
   }
 
-  /** Goes back to placement, keeping every field and the pin. */
+  /**
+   * Goes back to placement, keeping every field and the pin: the rebuilt picker opens on the pin
+   * the maintainer placed (see {@link resumeAt}), so its first emit reports that same position.
+   */
   protected backToPlace(): void {
     this.failure.set(null);
+    this.resumeAt.set(this.position());
     this.step.set('place');
   }
 
@@ -459,6 +532,7 @@ export class CreateOrAttachComponent {
     this.status.set('active');
     this.notes.set('');
     this.position.set(null);
+    this.resumeAt.set(null);
     this.cityCentre.set(undefined);
     this.candidates.set([]);
     this.saved.set(null);

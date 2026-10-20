@@ -153,125 +153,171 @@
             </option>
           </select>
           @if (citiesFailure(); as message) {
-            <p id="cities-error" class="line care" data-testid="cities-error">
-              {{ message }}
-            </p>
-            <button
-              type="button"
-              class="action phosphor-bloom"
-              appPointerBloom
-              (click)="loadCities()"
-            >
-              Retry
-            </button>
+            <div class="reveal" animate.leave="reveal--leaving">
+              <div class="reveal__inner">
+                <p
+                  id="cities-error"
+                  class="line care"
+                  data-testid="cities-error"
+                >
+                  {{ message }}
+                </p>
+                <button
+                  type="button"
+                  class="action phosphor-bloom"
+                  appPointerBloom
+                  (click)="loadCities()"
+                >
+                  Retry
+                </button>
+              </div>
+            </div>
           }
         </div>
 
         @if (addingCity()) {
-          <div class="field" data-testid="new-city">
-            <label for="new-city-slug">New city slug</label>
-            <input
-              id="new-city-slug"
-              class="field__control"
-              autocomplete="off"
-              autocapitalize="none"
-              data-testid="new-city-slug"
-              [value]="newCitySlug()"
-              [attr.aria-invalid]="newCityError() !== null"
-              [attr.aria-describedby]="newCityError() ? 'new-city-error' : null"
-              (input)="newCitySlug.set(valueOf($event))"
-            />
-            @if (newCityError(); as message) {
-              <p
-                id="new-city-error"
-                class="line care"
-                data-testid="new-city-error"
-              >
-                {{ message }}
-              </p>
-            }
-            <button
-              type="button"
-              class="action phosphor-bloom"
-              appPointerBloom
-              data-testid="new-city-create"
-              (click)="createCity()"
-            >
-              Create city
-            </button>
+          <div class="reveal" animate.leave="reveal--leaving">
+            <div class="reveal__inner">
+              <div class="field" data-testid="new-city">
+                <label for="new-city-slug">New city slug</label>
+                <input
+                  id="new-city-slug"
+                  class="field__control"
+                  autocomplete="off"
+                  autocapitalize="none"
+                  data-testid="new-city-slug"
+                  [value]="newCitySlug()"
+                  [attr.aria-invalid]="newCityError() !== null"
+                  [attr.aria-describedby]="
+                    newCityError() ? 'new-city-error' : null
+                  "
+                  (input)="newCitySlug.set(valueOf($event))"
+                />
+                @if (newCityError(); as message) {
+                  <div class="reveal" animate.leave="reveal--leaving">
+                    <div class="reveal__inner">
+                      <p
+                        id="new-city-error"
+                        class="line care"
+                        data-testid="new-city-error"
+                      >
+                        {{ message }}
+                      </p>
+                    </div>
+                  </div>
+                }
+                <button
+                  type="button"
+                  class="action phosphor-bloom"
+                  appPointerBloom
+                  data-testid="new-city-create"
+                  [disabled]="creatingCity()"
+                  (click)="createCity()"
+                >
+                  Create city
+                </button>
+              </div>
+            </div>
           </div>
         }
 
         @if (spreadM() > BATCH_SPREAD_WARN_M) {
-          <div class="spread" role="alert" data-testid="spread-warning">
-            <p class="line care">
-              These photos were taken {{ spreadM().toFixed(0) }} m apart, more
-              than {{ BATCH_SPREAD_WARN_M }} m. They may show different spots:
-              drop the ones that do and add them separately.
-            </p>
-            <ul class="batch">
-              @for (item of gpsItems(); track item.id) {
-                <li class="batch__item">
-                  @if (item.thumbUrl) {
-                    <img class="batch__thumb" [src]="item.thumbUrl" alt="" />
+          <div class="reveal" animate.leave="reveal--leaving">
+            <div class="reveal__inner">
+              <div class="spread" role="alert" data-testid="spread-warning">
+                <p class="line care">
+                  These photos were taken {{ spreadM().toFixed(0) }} m apart,
+                  more than {{ BATCH_SPREAD_WARN_M }} m. They may show different
+                  spots: drop the ones that do and add them separately.
+                </p>
+                <ul class="batch">
+                  @for (item of gpsItems(); track item.id) {
+                    <li class="batch__item">
+                      @if (item.thumbUrl) {
+                        <img
+                          class="batch__thumb"
+                          [src]="item.thumbUrl"
+                          alt=""
+                        />
+                      }
+                      <span class="batch__name">{{ item.file.name }}</span>
+                      <button
+                        type="button"
+                        class="action phosphor-bloom"
+                        appPointerBloom
+                        data-testid="spread-drop"
+                        (click)="dropPhoto(item.id)"
+                      >
+                        Drop from batch
+                      </button>
+                    </li>
                   }
-                  <span class="batch__name">{{ item.file.name }}</span>
-                  <button
-                    type="button"
-                    class="action phosphor-bloom"
-                    appPointerBloom
-                    data-testid="spread-drop"
-                    (click)="dropPhoto(item.id)"
-                  >
-                    Drop from batch
-                  </button>
-                </li>
-              }
-            </ul>
+                </ul>
+              </div>
+            </div>
           </div>
         }
 
         @if (cityCentreFailure(); as message) {
-          <p class="line care" data-testid="city-centre-error">{{ message }}</p>
-          <button
-            type="button"
-            class="action phosphor-bloom"
-            appPointerBloom
-            (click)="ensureCityCentre()"
-          >
-            Retry
-          </button>
+          <div class="reveal" animate.leave="reveal--leaving">
+            <div class="reveal__inner">
+              <p class="line care" data-testid="city-centre-error">
+                {{ message }}
+              </p>
+              <button
+                type="button"
+                class="action phosphor-bloom"
+                appPointerBloom
+                (click)="ensureCityCentre()"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
         }
         @if (token(); as token) {
           @if (token.status === 'failed') {
-            <p class="line care" data-testid="token-error">
-              The imagery key did not load: {{ token.message }}
-            </p>
-            <button
-              type="button"
-              class="action phosphor-bloom"
-              appPointerBloom
-              (click)="loadToken()"
-            >
-              Retry
-            </button>
+            <div class="reveal" animate.leave="reveal--leaving">
+              <div class="reveal__inner">
+                <p class="line care" data-testid="token-error">
+                  The imagery key did not load: {{ token.message }}
+                </p>
+                <button
+                  type="button"
+                  class="action phosphor-bloom"
+                  appPointerBloom
+                  data-testid="token-retry"
+                  (click)="loadToken()"
+                >
+                  Retry
+                </button>
+              </div>
+            </div>
           }
         }
 
         @if (view(); as view) {
           @if (token().status !== 'loading') {
-            <app-satellite-picker
-              [centre]="view.centre"
-              [zoom]="view.zoom"
-              [token]="pickerToken()"
-              (position)="position.set($event)"
-            />
+            <div class="reveal" animate.leave="reveal--leaving">
+              <div class="reveal__inner">
+                <app-satellite-picker
+                  [centre]="view.centre"
+                  [zoom]="view.zoom"
+                  [token]="pickerToken()"
+                  (position)="position.set($event)"
+                />
+              </div>
+            </div>
           }
         } @else {
-          <p class="dim" data-testid="needs-city">
-            None of these photos carries a location. Choose the city to open the
-            map on it.
-          </p>
+          <div class="reveal" animate.leave="reveal--leaving">
+            <div class="reveal__inner">
+              <p class="dim" data-testid="needs-city">
+                None of these photos carries a location. Choose the city to open
+                the map on it.
+              </p>
+            </div>
+          </div>
         }
 
         <div class="field">
@@ -433,6 +479,7 @@
           type="button"
           class="action phosphor-bloom"
           appPointerBloom
+          data-testid="back-to-place"
           (click)="backToPlace()"
         >
           Back to placement
@@ -502,27 +549,36 @@
 
 <ng-template #failurePanel>
   @if (failure(); as failure) {
-    <div class="failure" role="alert" data-testid="failure">
-      <p class="line care">{{ failure.message }}</p>
-      <button
-        type="button"
-        class="action phosphor-bloom"
-        appPointerBloom
-        data-testid="failure-retry"
-        (click)="failure.retry()"
-      >
-        Retry
-      </button>
-      <button
-        type="button"
-        class="action phosphor-bloom"
-        appPointerBloom
-        (click)="backToPlace()"
-      >
-        Back to placement
-      </button>
+    <div class="reveal" animate.leave="reveal--leaving">
+      <div class="reveal__inner">
+        <div class="failure" role="alert" data-testid="failure">
+          <p class="line care">{{ failure.message }}</p>
+          <button
+            type="button"
+            class="action phosphor-bloom"
+            appPointerBloom
+            data-testid="failure-retry"
+            (click)="failure.retry()"
+          >
+            Retry
+          </button>
+          <button
+            type="button"
+            class="action phosphor-bloom"
+            appPointerBloom
+            data-testid="back-to-place"
+            (click)="backToPlace()"
+          >
+            Back to placement
+          </button>
+        </div>
+      </div>
     </div>
   } @else {
-    <p class="dim">One moment…</p>
+    <div class="reveal" animate.leave="reveal--leaving">
+      <div class="reveal__inner">
+        <p class="dim">One moment…</p>
+      </div>
+    </div>
   }
 </ng-template>

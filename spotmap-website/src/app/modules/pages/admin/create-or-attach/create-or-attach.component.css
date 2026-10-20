@@ -14,7 +14,8 @@
   grid-area: 1 / 1;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  --reveal-gap: 14px;
+  gap: var(--reveal-gap);
   padding: 14px;
   background: var(--color-surface);
   border: 1px solid var(--color-line);
@@ -43,9 +44,13 @@
   font-weight: 600;
   line-height: 1.15;
   text-transform: uppercase;
+  outline: none;
+}
+
+.step__heading,
+.candidate__name {
   color: var(--color-phosphor-bright);
   text-shadow: var(--glow-text-display);
-  outline: none;
 }
 
 .step__heading:focus-visible {
@@ -54,10 +59,59 @@
 
 .pick,
 .failure,
-.spread {
+.spread,
+.reveal__inner,
+.batch,
+.candidates,
+.thumbs,
+.candidate {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+/* A block that appears or goes away inside a step. It fades while its height and the parent's gap
+   (--reveal-gap) ease, so what follows glides instead of jumping. The inner box bleeds 14px (the
+   step's padding) so focus rings and glows are not clipped. Reduced motion keeps only the fade:
+   --shut and --pull then leave the block's height alone, as the transform eases are dropped there. */
+.reveal {
+  --shut: 0fr;
+  --pull: calc(var(--reveal-gap) * -1);
+  display: grid;
+  grid-template-rows: 1fr;
+  transition:
+    opacity var(--dur-fade),
+    grid-template-rows var(--dur-fast) var(--ease-out-expo),
+    margin-top var(--dur-fast) var(--ease-out-expo);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    --shut: 1fr;
+    --pull: 0px;
+  }
+}
+
+.reveal__inner {
+  min-height: 0;
+  padding: 14px;
+  margin: -14px;
+  overflow: hidden;
+}
+
+@starting-style {
+  .reveal {
+    opacity: 0;
+    grid-template-rows: var(--shut);
+    margin-top: var(--pull);
+  }
+}
+
+.reveal--leaving {
+  opacity: 0;
+  grid-template-rows: var(--shut);
+  margin-top: var(--pull);
+  pointer-events: none;
 }
 
 .pick__button,
@@ -98,7 +152,8 @@
 .field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  --reveal-gap: 6px;
+  gap: var(--reveal-gap);
   margin: 0;
   padding: 0;
   border: 0;
@@ -147,8 +202,6 @@
 .batch,
 .candidates,
 .thumbs {
-  display: flex;
-  flex-direction: column;
   gap: 8px;
   margin: 0;
   padding: 0;
@@ -165,6 +218,10 @@
   align-items: center;
   gap: 8px;
   padding: 8px 0;
+}
+
+.batch__item,
+.candidate {
   border-bottom: 1px solid var(--color-line);
 }
 
@@ -177,17 +234,12 @@
 }
 
 .candidate {
-  display: flex;
-  flex-direction: column;
   gap: 6px;
   padding: 12px 0;
-  border-bottom: 1px solid var(--color-line);
 }
 
 .candidate__name {
   margin: 0;
-  color: var(--color-phosphor-bright);
-  text-shadow: var(--glow-text-display);
 }
 
 .tag {

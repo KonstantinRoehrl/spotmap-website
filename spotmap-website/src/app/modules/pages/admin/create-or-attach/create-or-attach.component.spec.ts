@@ -104,9 +104,12 @@ describe('CreateOrAttachComponent', () => {
 
   const byTestId = (id: string) =>
     el.querySelector<HTMLElement>(`[data-testid="${id}"]`);
+  /** The newest picker: a replaced one can still be fading out beside it. */
   const picker = () =>
-    fixture.debugElement.query(By.directive(FakePickerComponent))
+    fixture.debugElement.queryAll(By.directive(FakePickerComponent)).at(-1)
       ?.componentInstance as FakePickerComponent | undefined;
+  /** Lets enter and leave transitions (200 ms at most) finish. */
+  const afterFades = () => new Promise((resolve) => setTimeout(resolve, 350));
 
   async function settle() {
     await fixture.whenStable();
@@ -291,6 +294,7 @@ describe('CreateOrAttachComponent', () => {
         position: PICKED,
       },
       [jasmine.objectContaining({ sourceName: 'gps.jpg' })],
+      undefined,
     );
     expect(byTestId('step-done')!.textContent).toContain('Hbf Curb');
     expect(el.querySelector('.thumbs img')!.getAttribute('src')).toBe(
@@ -374,5 +378,252 @@ describe('CreateOrAttachComponent', () => {
     await pick('gps.jpg');
     expect((byTestId('city-select') as HTMLSelectElement).value).toBe('vienna');
     expect((byTestId('spot-name') as HTMLInputElement).value).toBe('');
+  });
+
+  describe('going back to placement', () => {
+    /** Places the pin at PICKED (not the GPS guess) and saves, as far as the next step. */
+    async function refineAndSave() {
+      await pick('gps.jpg');
+      await placeAndSave();
+    }
+
+    /** The pin the picker was opened on, then the load event a real map emits at its centre. */
+    async function expectPinKept() {
+      expect(byTestId('step-place')).not.toBeNull();
+      expect(picker()!.centre()).toEqual(PICKED);
+      expect(picker()!.zoom()).toBe(PICKER_DETAIL_ZOOM);
+      picker()!.position.emit(picker()!.centre());
+      fixture.detectChanges();
+      repo.nearbySpots.and.resolveTo([]);
+      byTestId('save')!.click();
+      await settle();
+      expect(repo.nearbySpots).toHaveBeenCalledWith(PICKED, 'Hbf Curb');
+      expect(repo.createSpotWithPhotos).toHaveBeenCalledOnceWith(
+        jasmine.objectContaining({ position: PICKED, name: 'Hbf Curb' }),
+        jasmine.any(Array),
+        undefined,
+      );
+    }
+
+    it('reopens the picker on the refined pin from the nearby-spots step', async () => {
+      repo.nearbySpots.and.resolveTo([nearby()]);
+      await refineAndSave();
+      byTestId('back-to-place')!.click();
+      await settle();
+      await expectPinKept();
+    });
+
+    it('reopens the picker on the refined pin after a failed save', async () => {
+      repo.createSpotWithPhotos.and.rejectWith(
+        new AdminRepositoryError('forbidden', 'Not allowed.'),
+      );
+      await refineAndSave();
+      repo.createSpotWithPhotos.calls.reset();
+      repo.createSpotWithPhotos.and.resolveTo(adminSpot());
+      byTestId('back-to-place')!.click();
+      await settle();
+      await expectPinKept();
+    });
+
+    it('reopens the picker on the refined pin after a failed check', async () => {
+      repo.nearbySpots.and.rejectWith(
+        new AdminRepositoryError('network', 'Offline.'),
+      );
+      await refineAndSave();
+      expect(byTestId('failure')).not.toBeNull();
+      byTestId('back-to-place')!.click();
+      await settle();
+      await expectPinKept();
+    });
+
+    it('opens the next batch on its own guess again', async () => {
+      await pick('gps.jpg');
+      await placeAndSave();
+      byTestId('add-another')!.click();
+      await settle();
+      await pick('gps.jpg');
+      expect(picker()!.centre()).toEqual(GUESS);
+    });
+  });
+
+  it('retries an unresolved create under the same spot id', async () => {
+    repo.createSpotWithPhotos.and.returnValues(
+      Promise.reject(
+        new AdminRepositoryError('network', 'The response was lost.', {
+          pendingSpotId: 'hbf-curb-99f6e5-2',
+        }),
+      ),
+      Promise.resolve(adminSpot()),
+    );
+    await pick('gps.jpg');
+    await placeAndSave();
+    byTestId('failure-retry')!.click();
+    await settle();
+    expect(repo.createSpotWithPhotos.calls.argsFor(0)[2]).toBeUndefined();
+    expect(repo.createSpotWithPhotos.calls.argsFor(1)[2]).toBe(
+      'hbf-curb-99f6e5-2',
+    );
+    expect(byTestId('step-done')).not.toBeNull();
+  });
+
+  describe('creating a city', () => {
+    const NEW_CITY_VALUE = '__new__';
+
+    async function openNewCityField() {
+      await pick('gps.jpg');
+      chooseCity(NEW_CITY_VALUE);
+      await settle();
+      type('new-city-slug', 'graz');
+    }
+
+    it('ignores a second tap while the first is in flight', async () => {
+      let created!: () => void;
+      repo.createCity.and.returnValue(
+        new Promise<void>((resolve) => (created = resolve)),
+      );
+      await openNewCityField();
+      const button = byTestId('new-city-create') as HTMLButtonElement;
+      button.click();
+      fixture.detectChanges();
+      expect(button.disabled).toBeTrue();
+      button.click();
+      created();
+      await settle();
+      expect(repo.createCity).toHaveBeenCalledOnceWith('graz');
+      expect(byTestId('new-city-error')).toBeNull();
+    });
+
+    it('clears a refusal once the city is created, so the field starts clean', async () => {
+      repo.createCity.and.returnValues(
+        Promise.reject(new Error('city graz already exists')),
+        Promise.resolve(),
+      );
+      await openNewCityField();
+      byTestId('new-city-create')!.click();
+      await settle();
+      expect(byTestId('new-city-error')!.textContent).toContain(
+        'already exists',
+      );
+      byTestId('new-city-create')!.click();
+      await settle();
+      chooseCity(NEW_CITY_VALUE);
+      await settle();
+      expect(byTestId('new-city-error')).toBeNull();
+      expect((byTestId('new-city-slug') as HTMLInputElement).value).toBe('');
+    });
+  });
+
+  describe('the position under the picker', () => {
+    it('disables Save while the picker for a newly chosen city has not reported', async () => {
+      await pick('plain.jpg');
+      chooseCity('vienna');
+      await settle();
+      type('spot-name', 'Hbf Curb');
+      picker()!.position.emit(PICKED);
+      fixture.detectChanges();
+      expect((byTestId('save') as HTMLButtonElement).disabled).toBeFalse();
+
+      let centred!: (centre: LngLat) => void;
+      repo.cityCentre.and.returnValue(
+        new Promise<LngLat | null>((resolve) => (centred = resolve)),
+      );
+      chooseCity('barcelona');
+      fixture.detectChanges();
+      expect((byTestId('save') as HTMLButtonElement).disabled).toBeTrue();
+
+      centred(CENTRE);
+      await settle();
+      await afterFades();
+      expect(picker()!.centre()).toEqual(CENTRE);
+      expect((byTestId('save') as HTMLButtonElement).disabled).toBeTrue();
+      picker()!.position.emit(CENTRE);
+      fixture.detectChanges();
+      expect((byTestId('save') as HTMLButtonElement).disabled).toBeFalse();
+    });
+
+    it('disables Save while the imagery key reloads', async () => {
+      let loaded!: (token: string) => void;
+      repo.imageryToken.and.returnValues(
+        Promise.reject(new Error('Key lookup failed.')),
+        new Promise<string | null>((resolve) => (loaded = resolve)),
+      );
+      fixture = TestBed.createComponent(CreateOrAttachComponent);
+      el = fixture.nativeElement;
+      fixture.detectChanges();
+      await settle();
+      await pick('gps.jpg');
+      chooseCity('vienna');
+      await settle();
+      type('spot-name', 'Hbf Curb');
+      picker()!.position.emit(PICKED);
+      fixture.detectChanges();
+      expect((byTestId('save') as HTMLButtonElement).disabled).toBeFalse();
+
+      byTestId('token-retry')!.click();
+      fixture.detectChanges();
+      expect((byTestId('save') as HTMLButtonElement).disabled).toBeTrue();
+
+      loaded('key-2');
+      await settle();
+      await afterFades();
+      picker()!.position.emit(GUESS);
+      fixture.detectChanges();
+      expect((byTestId('save') as HTMLButtonElement).disabled).toBeFalse();
+    });
+  });
+
+  describe('state changes inside a step fade instead of cutting', () => {
+    const revealed = (id: string) => byTestId(id)?.closest('.reveal');
+
+    it('reveals the new-city field, its refusal and the spread warning', async () => {
+      await pick('gps.jpg', 'far.jpg');
+      expect(revealed('spread-warning')).not.toBeNull();
+      chooseCity('__new__');
+      await settle();
+      expect(revealed('new-city')).not.toBeNull();
+      type('new-city-slug', 'Not A Slug');
+      byTestId('new-city-create')!.click();
+      await settle();
+      expect(revealed('new-city-error')).not.toBeNull();
+    });
+
+    it('reveals the city and imagery key errors', async () => {
+      repo.listCities.and.rejectWith(new Error('Cities did not load.'));
+      repo.imageryToken.and.rejectWith(new Error('Key did not load.'));
+      fixture = TestBed.createComponent(CreateOrAttachComponent);
+      el = fixture.nativeElement;
+      fixture.detectChanges();
+      await settle();
+      await pick('gps.jpg');
+      expect(revealed('cities-error')).not.toBeNull();
+      expect(revealed('token-error')).not.toBeNull();
+    });
+
+    it('reveals the city-centre error', async () => {
+      repo.cityCentre.and.rejectWith(new Error('No centre.'));
+      await pick('plain.jpg');
+      chooseCity('vienna');
+      await settle();
+      expect(revealed('city-centre-error')).not.toBeNull();
+    });
+
+    it('reveals the needs-city paragraph, the picker and the failure panel', async () => {
+      await pick('plain.jpg');
+      expect(revealed('needs-city')).not.toBeNull();
+      chooseCity('vienna');
+      await settle();
+      expect(
+        fixture.debugElement
+          .query(By.directive(FakePickerComponent))
+          .nativeElement.closest('.reveal'),
+      ).not.toBeNull();
+      type('spot-name', 'Hbf Curb');
+      picker()!.position.emit(PICKED);
+      repo.nearbySpots.and.rejectWith(new Error('Offline.'));
+      fixture.detectChanges();
+      byTestId('save')!.click();
+      await settle();
+      expect(revealed('failure')).not.toBeNull();
+    });
   });
 });

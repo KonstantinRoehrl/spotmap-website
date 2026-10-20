@@ -388,6 +388,154 @@ describe('AdminRepository', () => {
       ).toBeRejectedWith(jasmine.objectContaining({ kind: 'invalid' }));
       expect(warn).toHaveBeenCalled();
     });
+
+    describe('when the create RPC fails without a verdict', () => {
+      const keys = ['vienna/hbf-curb-99f6e5-2-aaaaaaaa.webp'];
+      const lostResponse: RpcReply = {
+        error: { code: '', message: 'TypeError: Failed to fetch' },
+        status: 0,
+      };
+      const absent: RpcReply = {
+        error: { code: 'P0001', message: 'admin_get_spot: no spot' },
+        status: 400,
+      };
+
+      beforeEach(() => {
+        fake.rpcReplies['admin_create_spot'] = lostResponse;
+      });
+
+      it('returns the spot and deletes nothing when the read-back finds it committed', async () => {
+        fake.rpcReplies['admin_get_spot'] = {
+          data: { ...SPOT, id: 'hbf-curb-99f6e5-2', photos: keys },
+        };
+        const spot = await repository.createSpotWithPhotos(fields, [
+          processed('aaaaaaaa'),
+        ]);
+        expect(spot.id).toBe('hbf-curb-99f6e5-2');
+        expect(fake.rpcArgs.get('admin_get_spot')).toEqual({
+          p_id: 'hbf-curb-99f6e5-2',
+        });
+        expect(fake.log.filter((line) => line.startsWith('remove'))).toEqual(
+          [],
+        );
+      });
+
+      it('deletes the objects and rethrows when the read-back finds no spot', async () => {
+        fake.rpcReplies['admin_get_spot'] = absent;
+        await expectAsync(
+          repository.createSpotWithPhotos(fields, [processed('aaaaaaaa')]),
+        ).toBeRejectedWith(
+          jasmine.objectContaining({
+            kind: 'network',
+            pendingSpotId: undefined,
+          }),
+        );
+        expect(fake.log[fake.log.length - 1]).toBe(
+          'remove full/vienna/hbf-curb-99f6e5-2-aaaaaaaa.webp thumb/vienna/hbf-curb-99f6e5-2-aaaaaaaa.webp',
+        );
+      });
+
+      it('keeps the objects and names the pending id when the read-back also fails', async () => {
+        fake.rpcReplies['admin_get_spot'] = lostResponse;
+        await expectAsync(
+          repository.createSpotWithPhotos(fields, [processed('aaaaaaaa')]),
+        ).toBeRejectedWith(
+          jasmine.objectContaining({
+            kind: 'network',
+            pendingSpotId: 'hbf-curb-99f6e5-2',
+          }),
+        );
+        expect(fake.log.filter((line) => line.startsWith('remove'))).toEqual(
+          [],
+        );
+      });
+
+      it('reads back a server fault too, since its outcome is just as unknown', async () => {
+        fake.rpcReplies['admin_create_spot'] = {
+          error: { code: 'XX000', message: 'bad gateway' },
+          status: 502,
+        };
+        fake.rpcReplies['admin_get_spot'] = {
+          data: { ...SPOT, id: 'hbf-curb-99f6e5-2', photos: keys },
+        };
+        await expectAsync(
+          repository.createSpotWithPhotos(fields, [processed('aaaaaaaa')]),
+        ).toBeResolved();
+        expect(fake.log.filter((line) => line.startsWith('remove'))).toEqual(
+          [],
+        );
+      });
+
+      it('never reads back a definite rejection', async () => {
+        fake.rpcReplies['admin_create_spot'] = {
+          error: { code: '42501', message: 'admin only' },
+          status: 403,
+        };
+        await expectAsync(
+          repository.createSpotWithPhotos(fields, [processed('aaaaaaaa')]),
+        ).toBeRejectedWith(jasmine.objectContaining({ kind: 'forbidden' }));
+        expect(fake.log).not.toContain('rpc admin_get_spot');
+      });
+    });
+
+    describe('when resumed with the id of an earlier unresolved attempt', () => {
+      const resumeId = 'hbf-curb-99f6e5-2';
+
+      it('returns the spot without uploading or creating when it already landed', async () => {
+        fake.rpcReplies['admin_get_spot'] = {
+          data: {
+            ...SPOT,
+            id: resumeId,
+            photos: ['vienna/hbf-curb-99f6e5-2-aaaaaaaa.webp'],
+          },
+        };
+        const spot = await repository.createSpotWithPhotos(
+          fields,
+          [processed('aaaaaaaa')],
+          resumeId,
+        );
+        expect(spot.id).toBe(resumeId);
+        expect(fake.log).toEqual(['rpc admin_get_spot']);
+      });
+
+      it('creates the spot under the same id, without asking for a new one, when it is absent', async () => {
+        fake.rpcReplies['admin_get_spot'] = {
+          error: { code: 'P0001', message: 'admin_get_spot: no spot' },
+          status: 400,
+        };
+        await repository.createSpotWithPhotos(
+          fields,
+          [processed('aaaaaaaa')],
+          resumeId,
+        );
+        expect(fake.log).not.toContain('rpc admin_next_spot_id');
+        expect(fake.log[fake.log.length - 1]).toBe('rpc admin_create_spot');
+        expect(
+          (fake.rpcArgs.get('admin_create_spot') as { p_spot: { id: string } })
+            .p_spot.id,
+        ).toBe(resumeId);
+      });
+
+      it('uploads nothing and stays pending when the read cannot tell', async () => {
+        fake.rpcReplies['admin_get_spot'] = {
+          error: { code: '', message: 'TypeError: Failed to fetch' },
+          status: 0,
+        };
+        await expectAsync(
+          repository.createSpotWithPhotos(
+            fields,
+            [processed('aaaaaaaa')],
+            resumeId,
+          ),
+        ).toBeRejectedWith(
+          jasmine.objectContaining({
+            kind: 'network',
+            pendingSpotId: resumeId,
+          }),
+        );
+        expect(fake.log).toEqual(['rpc admin_get_spot']);
+      });
+    });
   });
 
   describe('attachPhotos', () => {
@@ -437,6 +585,48 @@ describe('AdminRepository', () => {
       expect(fake.log[fake.log.length - 1]).toBe(
         'remove full/vienna/hbf-curb-99f6e5-cccccccc.webp thumb/vienna/hbf-curb-99f6e5-cccccccc.webp',
       );
+    });
+
+    describe('when the RPC fails without a verdict', () => {
+      const key = 'vienna/hbf-curb-99f6e5-cccccccc.webp';
+
+      beforeEach(() => {
+        fake.rpcReplies['admin_add_photos'] = {
+          error: { code: '', message: 'TypeError: Failed to fetch' },
+          status: 0,
+        };
+      });
+
+      it('returns the spot read back and deletes nothing when the keys landed', async () => {
+        const landed = { ...SPOT, photos: [...SPOT.photos, key] };
+        fake.rpcReplies['admin_get_spot'] = { data: landed };
+        expect(
+          await repository.attachPhotos(SPOT, [processed('cccccccc')]),
+        ).toEqual(landed);
+        expect(fake.log.filter((line) => line.startsWith('remove'))).toEqual(
+          [],
+        );
+      });
+
+      it('deletes the objects and rethrows when the keys did not land', async () => {
+        fake.rpcReplies['admin_get_spot'] = { data: SPOT };
+        await expectAsync(
+          repository.attachPhotos(SPOT, [processed('cccccccc')]),
+        ).toBeRejectedWith(jasmine.objectContaining({ kind: 'network' }));
+        expect(fake.log[fake.log.length - 1]).toBe(
+          `remove full/${key} thumb/${key}`,
+        );
+      });
+
+      it('keeps the objects when the read-back also fails', async () => {
+        fake.rpcReplies['admin_get_spot'] = fake.rpcReplies['admin_add_photos'];
+        await expectAsync(
+          repository.attachPhotos(SPOT, [processed('cccccccc')]),
+        ).toBeRejectedWith(jasmine.objectContaining({ kind: 'network' }));
+        expect(fake.log.filter((line) => line.startsWith('remove'))).toEqual(
+          [],
+        );
+      });
     });
   });
 

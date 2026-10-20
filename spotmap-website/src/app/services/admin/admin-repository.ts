@@ -32,17 +32,27 @@ export type AdminRepositoryErrorKind =
  */
 export class AdminRepositoryError extends Error {
   /**
+   * Set when a spot write failed with an unknown outcome that could not be settled either way: the
+   * id of the spot it may have created or changed. Passing it back to
+   * {@link AdminRepository.createSpotWithPhotos} resumes that create instead of starting a second
+   * spot beside a possibly committed one.
+   */
+  readonly pendingSpotId?: string;
+
+  /**
    * @param kind the failure class
    * @param message the maintainer-facing explanation
-   * @param options `cause` carries the PostgREST or Storage error
+   * @param options `cause` carries the PostgREST or Storage error; `pendingSpotId` names a spot
+   *   whose write may or may not have landed
    */
   constructor(
     readonly kind: AdminRepositoryErrorKind,
     message: string,
-    options?: ErrorOptions,
+    options?: ErrorOptions & { pendingSpotId?: string },
   ) {
     super(message, options);
     this.name = 'AdminRepositoryError';
+    this.pendingSpotId = options?.pendingSpotId;
   }
 }
 
@@ -153,6 +163,37 @@ function storageKind(error: StorageFailure): AdminRepositoryErrorKind {
 }
 
 /**
+ * Whether a failed RPC left the write's outcome unknown: no response arrived (`network`), or the
+ * reply was not a verdict from the database (`unknown`, e.g. a gateway fault). The server may have
+ * committed either way. Every other kind is a definite rejection, so nothing was written.
+ */
+function isUnknownOutcome(error: unknown): error is AdminRepositoryError {
+  return (
+    error instanceof AdminRepositoryError &&
+    (error.kind === 'network' || error.kind === 'unknown')
+  );
+}
+
+/**
+ * The same failure, tagged with the spot whose write is unresolved. The kind, message and cause
+ * are kept, so the UI words it exactly as before.
+ */
+function withPendingSpotId(
+  error: unknown,
+  spotId: string,
+): AdminRepositoryError {
+  return error instanceof AdminRepositoryError
+    ? new AdminRepositoryError(error.kind, error.message, {
+        cause: error.cause,
+        pendingSpotId: spotId,
+      })
+    : new AdminRepositoryError('unknown', String(error), {
+        cause: error,
+        pendingSpotId: spotId,
+      });
+}
+
+/**
  * Whether an upload failed only because the object exists. That counts as uploaded: the key is
  * the content hash, so the bytes are identical. The Storage API reports it as `statusCode "409"`,
  * with HTTP 400 on older servers and 409 on newer ones.
@@ -165,9 +206,10 @@ function isDuplicate(error: StorageFailure): boolean {
  * Every admin read and write: the `admin_*` RPCs and the bucket objects behind them, through the
  * signed-in supabase-js client from {@link AdminSession}. A photo is written in two steps with no
  * transaction across Storage and Postgres. Both renditions are uploaded first, then the RPC that
- * references them is called, so a row never points at a missing file. When that RPC fails, the
- * objects this call created are deleted, best effort. Every failure rejects with an
- * {@link AdminRepositoryError}.
+ * references them is called, so a row never points at a missing file. When that RPC is rejected,
+ * the objects this call created are deleted, best effort. When its outcome is unknown (no response
+ * arrived), the spot is read back first and the objects are deleted only if the write provably did
+ * not land. Every failure rejects with an {@link AdminRepositoryError}.
  */
 @Injectable({ providedIn: 'root' })
 export class AdminRepository {
@@ -239,25 +281,45 @@ export class AdminRepository {
    * Creates a spot with its photos. The id comes first: `admin_next_spot_id` turns
    * `spotId(name, position)` into the first free `…`, `…-2`, … so the keys already carry the final
    * id. Next, both renditions of every photo are uploaded, and last the row is created through
-   * `admin_create_spot`. If that fails, the objects this call created are deleted.
+   * `admin_create_spot`. If that is rejected, the objects this call created are deleted. If its
+   * outcome is unknown, the spot is read back through `admin_get_spot`: found with the new keys
+   * it is the result; absent, the objects are deleted and the original error is thrown; unreadable,
+   * the objects stay and the error carries {@link AdminRepositoryError.pendingSpotId}.
    *
    * @param fields the spot as placed and typed
    * @param photos the processed batch, in display order
+   * @param resumeId the `pendingSpotId` of an earlier attempt that ended unresolved. The id is then
+   *   reused instead of asked for again, and the spot is read first: if it already landed it is
+   *   returned, so a retry cannot create the same spot twice.
    * @returns the created spot
    */
   async createSpotWithPhotos(
     fields: NewSpotFields,
     photos: readonly ProcessedPhoto[],
+    resumeId?: string,
   ): Promise<AdminSpot> {
-    const id = await this.rpc<string>(
-      'admin_next_spot_id',
-      { p_base: spotId(fields.name, fields.position) },
-      'Choosing the spot id',
-    );
+    const id =
+      resumeId ??
+      (await this.rpc<string>(
+        'admin_next_spot_id',
+        { p_base: spotId(fields.name, fields.position) },
+        'Choosing the spot id',
+      ));
     const keyOf = (photo: ProcessedPhoto) =>
       photoKey(fields.city, id, photo.hash8);
     const batch = newPhotos(photos, keyOf, []);
     const keys = batch.map(keyOf);
+    if (resumeId !== undefined) {
+      let landed: AdminSpot | null;
+      try {
+        landed = await this.landedSpot(id, keys);
+      } catch (error) {
+        throw withPendingSpotId(error, id);
+      }
+      if (landed) {
+        return landed;
+      }
+    }
     const created = await this.uploadPhotos(batch, keys);
     try {
       return await this.rpc<AdminSpot>(
@@ -277,15 +339,15 @@ export class AdminRepository {
         'Saving the spot',
       );
     } catch (error) {
-      await this.deleteObjects(created);
-      throw error;
+      return this.settleFailedWrite(error, id, keys, created);
     }
   }
 
   /**
    * Adds photos to an existing spot: uploads both renditions under the spot's city and id, then
-   * appends the keys through `admin_add_photos`. If that fails, the objects this call created are
-   * deleted.
+   * appends the keys through `admin_add_photos`. If that is rejected, the objects this call
+   * created are deleted. If its outcome is unknown, the spot is read back and the objects are
+   * deleted only when the keys are not on it.
    *
    * @param spot the spot to attach to; its `city` and `id` name the keys
    * @param photos the processed batch, in display order
@@ -310,8 +372,7 @@ export class AdminRepository {
         'Attaching the photos',
       );
     } catch (error) {
-      await this.deleteObjects(created);
-      throw error;
+      return this.settleFailedWrite(error, spot.id, keys, created);
     }
   }
 
@@ -368,6 +429,71 @@ export class AdminRepository {
   /** Brings a soft-deleted spot back. */
   restoreSpot(id: string): Promise<AdminSpot> {
     return this.rpc('admin_restore_spot', { p_id: id }, 'Restoring the spot');
+  }
+
+  /**
+   * Decides what a failed spot write leaves behind. A definite rejection (`forbidden`, `conflict`,
+   * `invalid`) wrote nothing, so the objects this call created are deleted. When the outcome is
+   * unknown the response may simply have been lost after the commit, and deleting then would
+   * leave a row pointing at missing files, so the spot is read back instead: with every new key
+   * the write landed and the spot is returned; without, it did not, and the objects are deleted.
+   * When the read-back cannot tell either, the objects stay (a leftover is harmless) and the error
+   * is tagged with the spot id.
+   *
+   * @param error what the write threw
+   * @param spotId the spot the write targeted
+   * @param keys the photo keys the write tried to add
+   * @param created the Storage paths this call uploaded
+   * @returns the spot, when an unknown-outcome write turns out to have landed
+   * @throws the original error, tagged with `pendingSpotId` only when the outcome stays unknown
+   */
+  private async settleFailedWrite(
+    error: unknown,
+    spotId: string,
+    keys: readonly string[],
+    created: readonly string[],
+  ): Promise<AdminSpot> {
+    if (!isUnknownOutcome(error)) {
+      await this.deleteObjects(created);
+      throw error;
+    }
+    let landed: AdminSpot | null;
+    try {
+      landed = await this.landedSpot(spotId, keys);
+    } catch {
+      throw withPendingSpotId(error, spotId);
+    }
+    if (landed) {
+      return landed;
+    }
+    await this.deleteObjects(created);
+    throw error;
+  }
+
+  /**
+   * Reads a spot back to see whether a write added the given keys.
+   *
+   * @param spotId the spot to read
+   * @param keys the photo keys the write tried to add
+   * @returns the spot when it carries every key; null when it provably does not (no such spot, or
+   *   the keys are missing)
+   * @throws when the read itself fails for any reason other than "no such spot"
+   */
+  private async landedSpot(
+    spotId: string,
+    keys: readonly string[],
+  ): Promise<AdminSpot | null> {
+    let spot: AdminSpot;
+    try {
+      spot = await this.getSpot(spotId);
+    } catch (error) {
+      // `admin_get_spot` raises `invalid` for a spot that does not exist.
+      if (error instanceof AdminRepositoryError && error.kind === 'invalid') {
+        return null;
+      }
+      throw error;
+    }
+    return keys.every((key) => spot.photos.includes(key)) ? spot : null;
   }
 
   /**
