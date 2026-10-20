@@ -111,7 +111,8 @@
 }
 
 .field--code {
-  max-width: 12ch;
+  /* Six digits advance 1em each (0.6em glyph + 0.4em spacing); the field's own padding and border come on top. */
+  max-width: calc(6em + 3rem);
   font-size: 1.25rem;
   font-weight: 600;
   letter-spacing: 0.4em;
