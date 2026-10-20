@@ -64,7 +64,7 @@ export class AdminSignInComponent implements OnInit {
   protected readonly status = signal('Checking the session…');
   /** The address typed in, and later the one the code went to. */
   protected readonly email = signal('');
-  /** The digits typed so far. */
+  /** The digits typed so far; the code field's value is bound to it, so clearing it empties the field. */
   protected readonly code = signal('');
   /** Seconds until "send a new code" unlocks; 0 when it is available. */
   protected readonly resendIn = signal(0);

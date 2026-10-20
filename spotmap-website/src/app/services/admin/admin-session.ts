@@ -27,7 +27,7 @@ export type AdminAuthErrorKind =
 /** The copy the sign-in page shows for each {@link AdminAuthErrorKind}: what happened and what to do. */
 const ADVICE: Record<AdminAuthErrorKind, string> = {
   'rate-limited':
-    'Too many sign-in emails in a short time. Use the code from the last email, or wait a few minutes and send again.',
+    'Too many sign-in emails: the limit is per hour, so a new one can take up to an hour. The code and link from your last email still work until they expire.',
   'not-allowed':
     'This address has no maintainer account. Check the spelling, or ask for maintainer access.',
   'invalid-code':

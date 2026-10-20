@@ -55,7 +55,10 @@
     {{ status() }}
   </p>
 
-  <main class="admin-main">
+  <main #mainRegion class="admin-main">
+    @if (onAddPage()) {
+      <h1 class="admin-page-title" data-testid="add-heading">Add a spot</h1>
+    }
     <router-outlet />
   </main>
 </div>

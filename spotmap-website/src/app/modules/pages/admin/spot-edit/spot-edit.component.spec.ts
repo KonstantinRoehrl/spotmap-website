@@ -68,7 +68,11 @@ function processed(sourceName: string, hash8: string): ProcessedPhoto {
 }
 
 /** Stands in for the satellite picker: records its inputs, and the test emits `position`. */
-@Component({ selector: 'app-satellite-picker', template: '' })
+@Component({
+  selector: 'app-satellite-picker',
+  // The real frame brings its own height; a fixed one here stands in for it.
+  template: '<div data-testid="fake-frame" style="height: 123px"></div>',
+})
 class FakeSatellitePickerComponent {
   readonly centre = input.required<LngLat>();
   readonly zoom = input<number>(PICKER_DETAIL_ZOOM);
@@ -295,6 +299,34 @@ describe('SpotEditComponent', () => {
     await click('move-pin');
     expect(q('picker-panel')).toBeNull();
     expect(status()).toContain('admin_settings');
+  });
+
+  it('lets the picker take its height from its frame, not from a second number', async () => {
+    await open();
+    await click('move-pin');
+    const host = el.querySelector<HTMLElement>('app-satellite-picker')!;
+    expect(host.getBoundingClientRect().height).toBe(123);
+  });
+
+  it('puts "Add photos" beside the Photos heading', async () => {
+    await open();
+    const heading = q('photos-title')!.getBoundingClientRect();
+    const add = q('add-photos-input')!.parentElement!.getBoundingClientRect();
+    expect(add.top).toBeLessThan(heading.bottom);
+  });
+
+  it('styles the status select with its own arrow', async () => {
+    await open();
+    const wrapper = q('spot-status')!.parentElement!;
+    expect(getComputedStyle(wrapper, '::after').content).not.toBe('none');
+  });
+
+  it('draws the Deleted tag as a bordered tag', async () => {
+    repository.getSpot.and.callFake(async () =>
+      spot({ deletedAt: '2026-10-19T09:00:00+00:00' }),
+    );
+    await open();
+    expect(getComputedStyle(q('deleted-label')!).borderTopWidth).toBe('1px');
   });
 
   it('shows each photo as its thumbnail, in order', async () => {

@@ -109,6 +109,12 @@ describe('AdminSignInComponent', () => {
     expect(q('link-error')!.textContent).toContain('expired');
   });
 
+  it('announces a failed sign-in link as an alert', async () => {
+    setUp({ status: 'signed-out', linkError: 'invalid-code' });
+    await settle();
+    expect(q('link-error')!.getAttribute('role')).toBe('alert');
+  });
+
   it('announces status through a polite live region', async () => {
     setUp({ status: 'signed-out', linkError: null });
     await settle();
@@ -208,6 +214,31 @@ describe('AdminSignInComponent', () => {
     resend().click();
     flushMicrotasks();
     expect(session.requestSignIn).toHaveBeenCalledTimes(2);
+    tick(60_000);
+  }));
+
+  it('empties the code field when a new code is sent, so Sign in matches what the field shows', fakeAsync(() => {
+    setUp({ status: 'signed-out', linkError: null });
+    fixture.detectChanges();
+    flushMicrotasks();
+    fixture.detectChanges();
+    type('email-input', 'maintainer@example.org');
+    q('send-button')!.click();
+    flushMicrotasks();
+    fixture.detectChanges();
+    type('code-input', '123456');
+    expect(q<HTMLButtonElement>('verify-button')!.disabled).toBeFalse();
+
+    tick(60_000);
+    fixture.detectChanges();
+    q('resend-button')!.click();
+    flushMicrotasks();
+    fixture.detectChanges();
+
+    expect(q<HTMLInputElement>('code-input')!.value).toBe('');
+    expect(q<HTMLButtonElement>('verify-button')!.disabled).toBeTrue();
+    type('code-input', '654321');
+    expect(q<HTMLButtonElement>('verify-button')!.disabled).toBeFalse();
     tick(60_000);
   }));
 

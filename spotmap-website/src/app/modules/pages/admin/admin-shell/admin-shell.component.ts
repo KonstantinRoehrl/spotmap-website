@@ -1,16 +1,23 @@
 import {
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   computed,
+  ElementRef,
   inject,
+  Injector,
   signal,
+  viewChild,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
+  NavigationEnd,
   Router,
   RouterLink,
   RouterLinkActive,
   RouterOutlet,
 } from '@angular/router';
+import { filter } from 'rxjs';
 
 import {
   AdminAuthError,
@@ -18,9 +25,15 @@ import {
 } from '../../../../services/admin/admin-session';
 import { PointerBloomDirective } from '../../../directives/pointer-bloom.directive';
 
+/** The route prefix of the Add page, whose shell-supplied `h1` shows only there. */
+const ADD_PAGE_URL = '/admin/add';
+
 /**
  * The guarded admin area's frame: its own header (the public nav bar is hidden on admin routes)
  * with the Add and Spots sections, the signed-in email and Sign out, above the routed admin page.
+ * After every navigation it moves focus to the page's `h1` (or the main region when the page has
+ * none) so keyboard and screen-reader users land on the new page; each route's `title` names it
+ * in the document title.
  */
 @Component({
   selector: 'app-admin-shell',
@@ -32,6 +45,9 @@ import { PointerBloomDirective } from '../../../directives/pointer-bloom.directi
 export class AdminShellComponent {
   private readonly session = inject(AdminSession);
   private readonly router = inject(Router);
+  private readonly injector = inject(Injector);
+  private readonly mainRegion =
+    viewChild.required<ElementRef<HTMLElement>>('mainRegion');
 
   /** The signed-in maintainer's address; empty while signed out. */
   protected readonly email = computed(() => {
@@ -44,6 +60,22 @@ export class AdminShellComponent {
   protected readonly error = signal<string | null>(null);
   /** The live-region line. */
   protected readonly status = signal('');
+  /** Whether the Add page is showing; the Add page has no `h1` of its own, so the shell adds one. */
+  protected readonly onAddPage = signal(false);
+
+  constructor() {
+    this.router.events
+      .pipe(
+        filter((event) => event instanceof NavigationEnd),
+        takeUntilDestroyed(),
+      )
+      .subscribe((event) => {
+        this.onAddPage.set(event.urlAfterRedirects.startsWith(ADD_PAGE_URL));
+        afterNextRender(() => this.focusPageHeading(), {
+          injector: this.injector,
+        });
+      });
+  }
 
   /** Signs out and returns to the sign-in page; on failure stays and shows why. */
   protected async signOut(): Promise<void> {
@@ -66,5 +98,19 @@ export class AdminShellComponent {
     } finally {
       this.signingOut.set(false);
     }
+  }
+
+  /**
+   * Focuses the routed page's `h1`, or the main region when the page has none, so a route change
+   * is announced and the next Tab starts inside the new page. A heading is not focusable by
+   * default, so it gets `tabindex="-1"` here (focusable by script, never a Tab stop).
+   */
+  private focusPageHeading(): void {
+    const main = this.mainRegion().nativeElement;
+    const target = main.querySelector<HTMLElement>('h1') ?? main;
+    if (!target.hasAttribute('tabindex')) {
+      target.tabIndex = -1;
+    }
+    target.focus();
   }
 }

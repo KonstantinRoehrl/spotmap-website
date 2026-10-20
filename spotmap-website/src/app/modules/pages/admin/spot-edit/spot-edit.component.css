@@ -47,6 +47,13 @@ p {
   color: var(--color-phosphor-dim);
   font-size: 0.8125rem;
 }
+.tag {
+  padding: 1px 6px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  border: 1px solid var(--color-phosphor-deep);
+  border-radius: var(--radius-sm);
+}
 .group__title,
 .field__label {
   color: var(--color-phosphor);
@@ -79,6 +86,22 @@ p {
 .field__error {
   border-color: var(--color-danger);
   color: var(--color-danger);
+}
+.select {
+  position: relative;
+}
+.select .field__control {
+  appearance: none;
+  padding-right: 40px;
+}
+.select::after {
+  content: '';
+  position: absolute;
+  top: calc(50% - 2px);
+  right: 14px;
+  border: 5px solid transparent;
+  border-top-color: var(--color-phosphor-dim);
+  pointer-events: none;
 }
 .button {
   display: inline-flex;
@@ -128,10 +151,6 @@ p {
 }
 .panel--danger {
   border-color: var(--color-danger);
-}
-.picker {
-  display: block;
-  height: min(60vh, 420px);
 }
 .photos {
   margin: 0;

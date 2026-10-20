@@ -255,6 +255,14 @@ describe('AdminSession', () => {
     }
   });
 
+  it('tells a rate-limited sign-in that the limit is hourly and the last email still works', () => {
+    // supabase/config.toml: `email_sent = 2` per hour, so a retry within minutes is refused too.
+    const message = new AdminAuthError('rate-limited').message;
+    expect(message).toContain('up to an hour');
+    expect(message).toContain('code and link');
+    expect(message).not.toContain('few minutes');
+  });
+
   it('signs in with the emailed code and becomes a signed-in admin', async () => {
     await session().ready();
     fake.session = { user: { email: 'maintainer@example.org' } };

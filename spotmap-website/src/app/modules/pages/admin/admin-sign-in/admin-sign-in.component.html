@@ -30,7 +30,7 @@
               works.
             </p>
             @if (linkFailed()) {
-              <p class="error" data-testid="link-error">
+              <p class="error" role="alert" data-testid="link-error">
                 That sign-in link has expired or was already used — enter the
                 code from the same email, or send a new one.
               </p>
@@ -89,6 +89,7 @@
               pattern="[0-9]{6}"
               required
               data-testid="code-input"
+              [value]="code()"
               [attr.aria-invalid]="error() ? 'true' : null"
               [attr.aria-describedby]="error() ? 'sign-in-error' : null"
               (input)="onCodeInput(codeInput)"

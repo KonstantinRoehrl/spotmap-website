@@ -87,12 +87,15 @@ export class SatellitePickerComponent {
   protected readonly missingToken = computed(
     () => this.config.tokenSetting !== null && this.token() === null,
   );
-  /** The picked position as `lat, lng` with 6 decimals (about 0.1 m), for the live readout. */
+  /**
+   * The live readout line: the picked position as `Pin at lat, lng` with 6 decimals (about 0.1 m),
+   * or a waiting line that stands on its own until the map has reported a position.
+   */
   protected readonly readout = computed(() => {
     const picked = this.picked();
     return picked === null
       ? 'Waiting for the map…'
-      : `${picked.lat.toFixed(6)}, ${picked.lng.toFixed(6)}`;
+      : `Pin at ${picked.lat.toFixed(6)}, ${picked.lng.toFixed(6)}`;
   });
 
   constructor() {

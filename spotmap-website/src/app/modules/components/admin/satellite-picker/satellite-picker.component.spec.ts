@@ -178,7 +178,30 @@ describe('SatellitePickerComponent', () => {
     ]);
     const readout = byTestId(el, 'picker-readout')!;
     expect(readout.getAttribute('aria-live')).toBe('polite');
-    expect(readout.textContent).toContain('48.300000, 16.200000');
+    expect(readout.textContent).toContain('Pin at 48.300000, 16.200000');
+  });
+
+  it('reads the waiting state on its own until the map has reported a position', async () => {
+    const el = await create();
+    expect(byTestId(el, 'picker-readout')!.textContent!.trim()).toBe(
+      'Waiting for the map…',
+    );
+  });
+
+  it('repaints the compact attribution in palette tokens, never white', async () => {
+    const el = await create();
+    // MapLibre injects its control into the map host with no Angular attribute; stand one in.
+    const control = document.createElement('div');
+    control.className =
+      'maplibregl-ctrl maplibregl-ctrl-attrib maplibregl-compact';
+    el.querySelector('.picker__map')!.append(control);
+    const probe = document.createElement('div');
+    probe.style.backgroundColor = 'var(--color-surface)';
+    el.append(probe);
+
+    const style = getComputedStyle(control);
+    expect(style.backgroundColor).toBe(getComputedStyle(probe).backgroundColor);
+    expect(style.borderTopLeftRadius).toBe('4px');
   });
 
   it('labels the map and keeps the pin out of the accessibility tree', async () => {

@@ -1,17 +1,23 @@
 import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
+import { RouterTestingHarness } from '@angular/router/testing';
 
 import {
   AdminAuthError,
   AdminSession,
   AdminSessionState,
 } from '../../../../services/admin/admin-session';
+import { ADMIN_ROUTES } from '../admin.routes';
 import { AdminShellComponent } from './admin-shell.component';
 
 /** Stands in for the child pages Tasks 14 and 15 add. */
 @Component({ template: '<p data-testid="child-page">child</p>' })
 class ChildPageComponent {}
+
+/** Stands in for a page that brings its own `h1`, as the spot list and the edit page do. */
+@Component({ template: '<h1 data-testid="page-heading">Spots</h1>' })
+class HeadedPageComponent {}
 
 describe('AdminShellComponent', () => {
   const signOut = jasmine.createSpy('signOut');
@@ -32,7 +38,8 @@ describe('AdminShellComponent', () => {
             component: AdminShellComponent,
             children: [
               { path: 'add', component: ChildPageComponent },
-              { path: 'spots', component: ChildPageComponent },
+              { path: 'spots', component: HeadedPageComponent },
+              { path: 'plain', component: ChildPageComponent },
             ],
           },
           { path: 'admin/sign-in', component: ChildPageComponent },
@@ -108,5 +115,56 @@ describe('AdminShellComponent', () => {
   it('announces status through a polite live region', async () => {
     const root = await open();
     expect(q(root, 'shell-status')!.getAttribute('aria-live')).toBe('polite');
+  });
+
+  describe('on each navigation', () => {
+    let harness: RouterTestingHarness | undefined;
+
+    beforeEach(() => (harness = undefined));
+
+    /** Navigates through the real router outlet and lets the focus move render. */
+    async function go(url: string): Promise<HTMLElement> {
+      const routed = (harness ??= await RouterTestingHarness.create());
+      await routed.navigateByUrl(url);
+      await routed.fixture.whenStable();
+      routed.detectChanges();
+      await routed.fixture.whenStable();
+      return routed.routeNativeElement as HTMLElement;
+    }
+
+    it('gives the Add page an h1 and moves focus to it', async () => {
+      const root = await go('/admin/add');
+      const heading = q(root, 'add-heading')!;
+      expect(heading.tagName).toBe('H1');
+      expect(heading.textContent).toContain('Add');
+      expect(document.activeElement).toBe(heading);
+    });
+
+    it('moves focus to the heading of the page navigated to', async () => {
+      await go('/admin/add');
+      const root = await go('/admin/spots');
+      expect(document.activeElement).toBe(q(root, 'page-heading'));
+      expect(q(root, 'add-heading')).toBeNull();
+    });
+
+    it('moves focus to the main region when the page has no heading', async () => {
+      const root = await go('/admin/plain');
+      expect(document.activeElement).toBe(root.querySelector('main'));
+    });
+  });
+
+  it('gives every routed admin page a title, so each navigation is announced', () => {
+    const shell = ADMIN_ROUTES.find((route) => route.component !== undefined)!;
+    const pages = [
+      ...ADMIN_ROUTES.filter((route) => route !== shell),
+      ...shell.children!.filter((route) => route.redirectTo === undefined),
+    ];
+    expect(pages.length).toBe(4);
+    for (const page of pages) {
+      expect(page.title)
+        .withContext(`title of /admin/${page.path}`)
+        .toEqual(jasmine.any(String));
+      expect(page.title).not.toBe('');
+    }
   });
 });

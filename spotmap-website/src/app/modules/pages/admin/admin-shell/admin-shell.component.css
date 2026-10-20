@@ -104,3 +104,24 @@
 .admin-main {
   padding: 0.5rem 0 1.5rem;
 }
+
+/* The focus target of a route change is not a control: no ring on the region, a phosphor line on
+   a heading (the step headings' treatment, DESIGN.md). ::ng-deep reaches the routed page's h1. */
+.admin-main:focus {
+  outline: none;
+}
+
+:host ::ng-deep .admin-main h1:focus-visible {
+  outline: 1px solid var(--color-phosphor);
+}
+
+/* The Add page's h1 is for screen readers and focus; its steps carry their own visible headings. */
+.admin-page-title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
