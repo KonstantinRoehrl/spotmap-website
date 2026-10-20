@@ -436,6 +436,26 @@ describe('CreateOrAttachComponent', () => {
       await expectPinKept();
     });
 
+    it('opens a new batch on its own guess after every photo was dropped', async () => {
+      repo.nearbySpots.and.resolveTo([nearby()]);
+      await refineAndSave();
+      byTestId('back-to-place')!.click();
+      await settle();
+      // The UI offers no way to drop the last photo of a placed batch, so the component is driven directly.
+      const batch = fixture.componentInstance as unknown as {
+        items(): readonly { id: number }[];
+        dropPhoto(id: number): void;
+      };
+      for (const { id } of batch.items()) {
+        batch.dropPhoto(id);
+      }
+      await settle();
+      expect(byTestId('step-pick')).not.toBeNull();
+      await pick('far.jpg');
+      expect(picker()!.centre()).toEqual(FAR);
+      expect((byTestId('save') as HTMLButtonElement).disabled).toBeTrue();
+    });
+
     it('opens the next batch on its own guess again', async () => {
       await pick('gps.jpg');
       await placeAndSave();

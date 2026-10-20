@@ -1,10 +1,11 @@
-import { Component, input, output } from '@angular/core';
+import { Component, input, output, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter, type Route } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import type { AdminSpot, LngLat } from '../../../../models/admin/admin-spot';
 import { AdminRepository } from '../../../../services/admin/admin-repository';
+import { AdminSession } from '../../../../services/admin/admin-session';
 import {
   ESRI_WORLD_IMAGERY,
   IMAGERY_CONFIG,
@@ -22,6 +23,7 @@ import {
   PICKER_DETAIL_ZOOM,
   SatellitePickerComponent,
 } from '../../../components/admin/satellite-picker/satellite-picker.component';
+import { AdminShellComponent } from '../admin-shell/admin-shell.component';
 import { ADMIN_ROUTES } from '../admin.routes';
 import { SpotListComponent } from '../spot-list/spot-list.component';
 import { buildPatch, SpotEditComponent } from './spot-edit.component';
@@ -464,6 +466,105 @@ describe('SpotEditComponent', () => {
     expect(repository.restoreSpot).toHaveBeenCalledOnceWith(SPOT_ID);
     expect(q('delete-spot')).not.toBeNull();
     expect(confirmSpy).not.toHaveBeenCalled();
+  });
+});
+
+describe('SpotEditComponent inside the admin shell', () => {
+  let getSpot: jasmine.Spy<AdminRepository['getSpot']>;
+  let harness: RouterTestingHarness;
+
+  beforeEach(() => {
+    getSpot = jasmine.createSpy('getSpot');
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter([
+          {
+            path: 'admin',
+            component: AdminShellComponent,
+            children: [{ path: 'spots/:id', component: SpotEditComponent }],
+          },
+        ]),
+        {
+          provide: AdminSession,
+          useValue: {
+            state: signal({
+              status: 'signed-in',
+              email: 'maintainer@example.org',
+              isAdmin: true,
+            }),
+            signOut: () => Promise.resolve(),
+          },
+        },
+        { provide: AdminRepository, useValue: { getSpot } },
+        { provide: PhotoPipeline, useValue: {} },
+        { provide: SPOTMAP_BACKEND, useValue: BACKEND },
+        { provide: IMAGERY_CONFIG, useValue: ESRI_WORLD_IMAGERY },
+      ],
+    });
+    TestBed.overrideComponent(SpotEditComponent, {
+      remove: { imports: [SatellitePickerComponent] },
+      add: { imports: [FakeSatellitePickerComponent] },
+    });
+  });
+
+  /** Navigates into the edit page through the shell and lets the shell's focus move render. */
+  async function openSpot(): Promise<HTMLElement> {
+    harness = await RouterTestingHarness.create();
+    await harness.navigateByUrl(`/admin/spots/${SPOT_ID}`);
+    await settle();
+    return harness.routeNativeElement!;
+  }
+
+  async function settle(): Promise<void> {
+    for (let i = 0; i < 2; i++) {
+      await harness.fixture.whenStable();
+      harness.detectChanges();
+    }
+  }
+
+  /** The accessible name of a heading: its `aria-label` when it has one, else its text. */
+  const headingName = (heading: Element | null) =>
+    heading?.getAttribute('aria-label') ?? heading?.textContent?.trim();
+
+  it('focuses a named heading while the spot is still loading', async () => {
+    getSpot.and.returnValue(new Promise(() => undefined));
+    await openSpot();
+    const focused = document.activeElement!;
+    expect(focused.tagName).toBe('H1');
+    expect(headingName(focused)).toBe('Loading the spot');
+  });
+
+  it('moves focus to the spot name once the spot has loaded', async () => {
+    let finish!: (loaded: AdminSpot) => void;
+    getSpot.and.returnValue(new Promise((resolve) => (finish = resolve)));
+    const root = await openSpot();
+    finish(spot());
+    await settle();
+    expect(document.activeElement).toBe(
+      root.querySelector('[data-testid="edit-title"]'),
+    );
+  });
+
+  it('keeps focus where the maintainer put it when the spot finishes loading', async () => {
+    let finish!: (loaded: AdminSpot) => void;
+    getSpot.and.returnValue(new Promise((resolve) => (finish = resolve)));
+    const root = await openSpot();
+    const signOut = root.ownerDocument.querySelector<HTMLElement>(
+      '[data-testid="sign-out-button"]',
+    )!;
+    signOut.focus();
+    finish(spot());
+    await settle();
+    expect(document.activeElement).toBe(signOut);
+  });
+
+  it('gives the load-failure state a heading and focuses it', async () => {
+    getSpot.and.rejectWith(new Error('admin_get_spot: no spot'));
+    const root = await openSpot();
+    const heading = root.querySelector('[data-testid="edit-error"] h1');
+    expect(heading).not.toBeNull();
+    expect(headingName(heading)).toContain('Could not load the spot');
+    expect(document.activeElement).toBe(heading);
   });
 });
 

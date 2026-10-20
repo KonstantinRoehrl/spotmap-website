@@ -325,12 +325,16 @@ export class CreateOrAttachComponent {
     }
   }
 
-  /** Takes a photo out of the batch; an empty batch goes back to picking. */
+  /**
+   * Takes a photo out of the batch; an empty batch goes back to picking and forgets the pin, so
+   * the next batch opens on its own guess.
+   */
   protected dropPhoto(id: number): void {
     const dropped = this.items().filter((item) => item.id === id);
     this.revokeAll(dropped);
     this.items.update((items) => items.filter((item) => item.id !== id));
     if (this.items().length === 0) {
+      this.forgetPin();
       this.step.set('pick');
       return;
     }
@@ -528,6 +532,12 @@ export class CreateOrAttachComponent {
     this.step.set('place');
   }
 
+  /** Drops the placed pin and the pin to resume, so a picker built next opens on the batch's own guess. */
+  private forgetPin(): void {
+    this.position.set(null);
+    this.resumeAt.set(null);
+  }
+
   /** Starts a new batch; the city stays chosen for the next spot. */
   protected addAnother(): void {
     this.revokeAll(this.items());
@@ -535,8 +545,7 @@ export class CreateOrAttachComponent {
     this.name.set('');
     this.status.set('active');
     this.notes.set('');
-    this.position.set(null);
-    this.resumeAt.set(null);
+    this.forgetPin();
     this.cityCentre.set(undefined);
     this.candidates.set([]);
     this.saved.set(null);

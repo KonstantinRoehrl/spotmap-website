@@ -2,14 +2,15 @@
   <div class="stack">
     @switch (load()) {
       @case ('loading') {
-        <p
-          class="fade"
+        <h1
+          class="notice fade"
           data-testid="edit-loading"
-          aria-hidden="true"
+          tabindex="-1"
+          aria-label="Loading the spot"
           animate.leave="fade--leaving"
         >
           &gt; …
-        </p>
+        </h1>
       }
       @case ('error') {
         <div
@@ -17,7 +18,9 @@
           data-testid="edit-error"
           animate.leave="fade--leaving"
         >
-          <p>&gt; Could not load the spot: {{ loadError() }}</p>
+          <h1 class="notice" tabindex="-1">
+            &gt; Could not load the spot: {{ loadError() }}
+          </h1>
           <div class="actions">
             <button
               type="button"
@@ -42,7 +45,9 @@
         @if (spot(); as spot) {
           <div class="groups fade" animate.leave="fade--leaving">
             <header class="top">
-              <h1 class="title" data-testid="edit-title">{{ spot.name }}</h1>
+              <h1 class="title" data-testid="edit-title" tabindex="-1">
+                {{ spot.name }}
+              </h1>
               <a
                 class="button phosphor-bloom phosphor-bloom--plate"
                 appPointerBloom

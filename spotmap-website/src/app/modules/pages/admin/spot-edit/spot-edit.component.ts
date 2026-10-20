@@ -135,7 +135,9 @@ function errorText(error: unknown): string {
  * delete or restore it. Every change is one repository write and one write runs at a time; the
  * status line (`aria-live`) says while it saves, when it is saved and what failed, and a failed
  * write leaves every field as the maintainer left it. Removing a photo and deleting the spot are
- * confirmed in the page, never in a browser dialog.
+ * confirmed in the page, never in a browser dialog. Every state of the load has an `h1` (loading,
+ * the spot's name, the load failure), so the shell's focus move after navigation lands on a
+ * labelled heading and the finished load moves focus on to the next one.
  */
 @Component({
   selector: 'app-spot-edit',
@@ -238,11 +240,32 @@ export class SpotEditComponent {
       this.name.set(spot.name);
       this.status.set(spot.status);
       this.notes.set(spot.notes ?? '');
-      this.load.set('ready');
+      this.settleLoad('ready');
     } catch (error) {
       if (request !== this.request) return;
       this.loadError.set(errorText(error));
-      this.load.set('error');
+      this.settleLoad('error');
+    }
+  }
+
+  /**
+   * Shows the finished load and, when focus was on this page's own loading or error state (or had
+   * fallen to the document once that state faded out), moves it to the new state's `h1`. The
+   * shell's single focus move after navigation lands on the loading heading, which is gone by
+   * then; moving focus to the spot's name makes a screen reader announce it. Focus the maintainer
+   * moved elsewhere (the shell's links) is left alone.
+   */
+  private settleLoad(state: 'ready' | 'error'): void {
+    const active = document.activeElement;
+    const focusIsHere =
+      active === null || active === document.body || this.host.contains(active);
+    this.load.set(state);
+    if (focusIsHere) {
+      this.focusAfterRender(
+        state === 'ready'
+          ? '[data-testid="edit-title"]'
+          : '[data-testid="edit-error"]:not(.fade--leaving) h1',
+      );
     }
   }
 

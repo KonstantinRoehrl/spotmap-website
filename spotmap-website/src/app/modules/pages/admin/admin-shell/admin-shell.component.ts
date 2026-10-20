@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  DestroyRef,
   ElementRef,
   inject,
   Injector,
@@ -10,6 +11,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Title } from '@angular/platform-browser';
 import {
   NavigationEnd,
   Router,
@@ -29,11 +31,20 @@ import { PointerBloomDirective } from '../../../directives/pointer-bloom.directi
 const ADD_PAGE_URL = '/admin/add';
 
 /**
+ * The document title from before any admin page set one, restored when the shell is destroyed.
+ * Read when this module first loads (the lazy admin routes' first visit, before the router writes
+ * an admin title) rather than when the shell is created: after a sign-in the shell is created while
+ * the sign-in page's title is still showing.
+ */
+const TITLE_BEFORE_ADMIN = document.title;
+
+/**
  * The guarded admin area's frame: its own header (the public nav bar is hidden on admin routes)
  * with the Add and Spots sections, the signed-in email and Sign out, above the routed admin page.
  * After every navigation it moves focus to the page's `h1` (or the main region when the page has
  * none) so keyboard and screen-reader users land on the new page; each route's `title` names it
- * in the document title.
+ * in the document title; the title from before the admin area is restored when the shell is
+ * destroyed (the public routes set none, so the router would leave an admin title behind).
  */
 @Component({
   selector: 'app-admin-shell',
@@ -46,6 +57,7 @@ export class AdminShellComponent {
   private readonly session = inject(AdminSession);
   private readonly router = inject(Router);
   private readonly injector = inject(Injector);
+  private readonly title = inject(Title);
   private readonly mainRegion =
     viewChild.required<ElementRef<HTMLElement>>('mainRegion');
 
@@ -64,6 +76,7 @@ export class AdminShellComponent {
   protected readonly onAddPage = signal(false);
 
   constructor() {
+    inject(DestroyRef).onDestroy(() => this.title.setTitle(TITLE_BEFORE_ADMIN));
     this.router.events
       .pipe(
         filter((event) => event instanceof NavigationEnd),

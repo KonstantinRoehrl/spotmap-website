@@ -16,18 +16,26 @@ export type AdminSessionState =
 
 /**
  * Why a sign-in call failed, in the terms the sign-in page words its advice in:
- * `rate-limited` — too many emails or requests; `not-allowed` — the address has no maintainer
+ * `rate-limited` — too many sign-in emails (an hourly limit); `request-limited` — too many requests
+ * from this connection (a short wait, no email involved); `not-allowed` — the address has no maintainer
  * account (sign-ups are off) or the mailer refuses it; `invalid-code` — the code is wrong or
  * expired; `network` — the request or the library download never got an answer; `unknown` —
  * anything else.
  */
 export type AdminAuthErrorKind =
-  'rate-limited' | 'not-allowed' | 'invalid-code' | 'network' | 'unknown';
+  | 'rate-limited'
+  | 'request-limited'
+  | 'not-allowed'
+  | 'invalid-code'
+  | 'network'
+  | 'unknown';
 
 /** The copy the sign-in page shows for each {@link AdminAuthErrorKind}: what happened and what to do. */
 const ADVICE: Record<AdminAuthErrorKind, string> = {
   'rate-limited':
     'Too many sign-in emails: the limit is per hour, so a new one can take up to an hour. The code and link from your last email still work until they expire.',
+  'request-limited':
+    'Too many attempts from this connection. Wait a few minutes before trying again.',
   'not-allowed':
     'This address has no maintainer account. Check the spelling, or ask for maintainer access.',
   'invalid-code':
@@ -37,11 +45,11 @@ const ADVICE: Record<AdminAuthErrorKind, string> = {
   unknown: 'Sign-in failed unexpectedly. Try again in a moment.',
 };
 
-/** Auth error codes (supabase-js 2.118 `ErrorCode`) that mean "too many requests". */
-const RATE_LIMITED_CODES: ReadonlySet<string> = new Set([
-  'over_email_send_rate_limit',
-  'over_request_rate_limit',
-]);
+/** The auth error code (supabase-js 2.118 `ErrorCode`) for the hourly cap on sign-in emails sent. */
+const EMAIL_LIMIT_CODE = 'over_email_send_rate_limit';
+
+/** The auth error code for the per-connection cap on requests, which sends no email. */
+const REQUEST_LIMIT_CODE = 'over_request_rate_limit';
 
 /** Auth error codes that mean this address may not sign in here. */
 const NOT_ALLOWED_CODES: ReadonlySet<string> = new Set([
@@ -72,9 +80,12 @@ export class AdminAuthError extends Error {
 }
 
 /**
- * Classifies a supabase-js failure by its shape — `name`, `status`, `code` — rather than with the
+ * Classifies a supabase-js failure by its shape — `name`, `status`, `code`, `message` — rather than with the
  * library's own `isAuth…Error` helpers, which would put supabase-js into the initial bundle
  * (AdminSession is reached from app.config.ts through the auth-callback initializer).
+ *
+ * A 429 is the email limit when its code says so, or when it carries no code and its message names
+ * the email; every other 429 is the request limit, whose advice claims no email was sent.
  *
  * @param error an `AuthError`, a `PostgrestError`, an exception, or an AdminAuthError (kept as is)
  * @param status the HTTP status when it travels beside the error (a PostgREST response's), 0 when
@@ -88,12 +99,19 @@ function toAdminAuthError(error: unknown, status?: number): AdminAuthError {
     name?: unknown;
     status?: unknown;
     code?: unknown;
+    message?: unknown;
   };
   const code = typeof failure.code === 'string' ? failure.code : '';
+  const message = typeof failure.message === 'string' ? failure.message : '';
   const httpStatus = status ?? failure.status;
   let kind: AdminAuthErrorKind = 'unknown';
-  if (RATE_LIMITED_CODES.has(code) || httpStatus === 429) {
+  if (
+    code === EMAIL_LIMIT_CODE ||
+    (httpStatus === 429 && code === '' && /email/i.test(message))
+  ) {
     kind = 'rate-limited';
+  } else if (code === REQUEST_LIMIT_CODE || httpStatus === 429) {
+    kind = 'request-limited';
   } else if (NOT_ALLOWED_CODES.has(code)) {
     kind = 'not-allowed';
   } else if (INVALID_CODE_CODES.has(code)) {

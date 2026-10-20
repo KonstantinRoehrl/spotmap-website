@@ -1,5 +1,6 @@
 import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { Title } from '@angular/platform-browser';
 import { Router, provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 
@@ -18,6 +19,9 @@ class ChildPageComponent {}
 /** Stands in for a page that brings its own `h1`, as the spot list and the edit page do. */
 @Component({ template: '<h1 data-testid="page-heading">Spots</h1>' })
 class HeadedPageComponent {}
+
+/** The title the shell module read when it loaded; no spec has run yet, so no route has set one. */
+const TITLE_AT_LOAD = document.title;
 
 describe('AdminShellComponent', () => {
   const signOut = jasmine.createSpy('signOut');
@@ -39,7 +43,11 @@ describe('AdminShellComponent', () => {
             children: [
               { path: 'add', component: ChildPageComponent },
               { path: 'spots', component: HeadedPageComponent },
-              { path: 'plain', component: ChildPageComponent },
+              {
+                path: 'plain',
+                title: 'Plain · Spotmap admin',
+                component: ChildPageComponent,
+              },
             ],
           },
           { path: 'admin/sign-in', component: ChildPageComponent },
@@ -115,6 +123,17 @@ describe('AdminShellComponent', () => {
   it('announces status through a polite live region', async () => {
     const root = await open();
     expect(q(root, 'shell-status')!.getAttribute('aria-live')).toBe('polite');
+  });
+
+  it('restores the document title from before the admin area when the shell is destroyed', async () => {
+    const title = TestBed.inject(Title);
+    const fixture = TestBed.createComponent(AdminShellComponent);
+    await TestBed.inject(Router).navigateByUrl('/admin/plain');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(title.getTitle()).toBe('Plain · Spotmap admin');
+    fixture.destroy();
+    expect(title.getTitle()).toBe(TITLE_AT_LOAD);
   });
 
   describe('on each navigation', () => {

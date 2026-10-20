@@ -193,7 +193,21 @@ describe('AdminSession', () => {
     [
       'the request rate limit',
       { name: 'AuthApiError', status: 429, code: 'over_request_rate_limit' },
+      'request-limited',
+    ],
+    [
+      'a 429 that names the email limit but carries no code',
+      {
+        name: 'AuthApiError',
+        status: 429,
+        message: 'Email rate limit exceeded',
+      },
       'rate-limited',
+    ],
+    [
+      'a 429 with no cause named',
+      { name: 'AuthApiError', status: 429 },
+      'request-limited',
     ],
     [
       'an address with no account',
@@ -243,6 +257,7 @@ describe('AdminSession', () => {
   it('gives every error kind a message that says what to do next', () => {
     const kinds: AdminAuthErrorKind[] = [
       'rate-limited',
+      'request-limited',
       'not-allowed',
       'invalid-code',
       'network',
@@ -261,6 +276,13 @@ describe('AdminSession', () => {
     expect(message).toContain('up to an hour');
     expect(message).toContain('code and link');
     expect(message).not.toContain('few minutes');
+  });
+
+  it('tells a request-limited sign-in to wait a few minutes, without claiming an email was sent', () => {
+    const message = new AdminAuthError('request-limited').message;
+    expect(message).toContain('few minutes');
+    expect(message).not.toContain('hour');
+    expect(message).not.toContain('last email');
   });
 
   it('signs in with the emailed code and becomes a signed-in admin', async () => {
