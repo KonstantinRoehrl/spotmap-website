@@ -1,6 +1,6 @@
 /**
- * Tests for the snapshot export: which cities it writes, what it writes (exactly the
- * city_spots() answer, as committed JSON), the local-or-hosted target guard shared with the sync,
+ * Tests for the snapshot export: which cities it writes, what it writes (the
+ * city_spots() answer, as committed JSON, with the keys in the served order), the local-or-hosted target guard shared with the sync,
  * and the exit codes. The client is a fake that answers city_spots() from a table; snapshots go to
  * a temporary folder.
  */
@@ -38,6 +38,19 @@ const answerOf = (city, id) => ({
     },
   ],
 });
+
+/**
+ * `answerOf`, as PostgreSQL's jsonb hands it back: the object keys of each feature's properties
+ * ordered by length, then bytewise (id, name, notes, photos, status) — not the served order.
+ */
+const jsonbAnswerOf = (city, id) => {
+  const answer = answerOf(city, id);
+  for (const feature of answer.features) {
+    const { id, name, notes, photos, status } = feature.properties;
+    feature.properties = { id, name, notes, photos, status };
+  }
+  return answer;
+};
 
 /** A public folder holding a stale snapshot of each of `cities`. */
 async function publicFolder(t, cities) {
@@ -131,6 +144,67 @@ test('every existing snapshot is rewritten with exactly the city_spots() answer'
     'graz: 1 spots written',
     'vienna: 1 spots written',
   ]);
+});
+
+test('the snapshot is written in the served key order even when city_spots() answers jsonb-ordered keys', async (t) => {
+  const publicDir = await publicFolder(t, ['vienna']);
+  const fake = fakeConnect({ vienna: jsonbAnswerOf('vienna', 'a-1') });
+
+  const { code } = await snapshot([], { publicDir, connect: fake.connect });
+
+  assert.equal(code, 0);
+  const written = JSON.parse(
+    await readFile(join(publicDir, 'vienna.geojson'), 'utf8'),
+  );
+  assert.deepEqual(Object.keys(written.features[0].properties), [
+    'id',
+    'name',
+    'status',
+    'notes',
+    'photos',
+  ]);
+  assert.equal(
+    await readFile(join(publicDir, 'vienna.geojson'), 'utf8'),
+    toJsonText(answerOf('vienna', 'a-1')),
+  );
+});
+
+test('a feature that is not the served shape fails its city and keeps the previous snapshot', async (t) => {
+  const publicDir = await publicFolder(t, ['graz', 'vienna']);
+  const notAPoint = answerOf('vienna', 'a-1');
+  notAPoint.features[0].geometry.type = 'LineString';
+  const extraKey = answerOf('graz', 'g-1');
+  extraKey.features[0].properties.sources = [];
+  const fake = fakeConnect({ graz: extraKey, vienna: notAPoint });
+
+  const { code, lines } = await snapshot([], {
+    publicDir,
+    connect: fake.connect,
+  });
+
+  assert.equal(code, 1);
+  for (const city of ['graz', 'vienna']) {
+    assert.equal(
+      await readFile(join(publicDir, `${city}.geojson`), 'utf8'),
+      'stale',
+    );
+  }
+  assert.ok(
+    lines.some((line) =>
+      /^ERR graz: FAILED — city_spots\(graz\) answered a feature \(g-1\) that is not the served shape/.test(
+        line,
+      ),
+    ),
+    lines.join('\n'),
+  );
+  assert.ok(
+    lines.some((line) =>
+      /^ERR vienna: FAILED — city_spots\(vienna\) answered a feature \(a-1\) that is not the served shape/.test(
+        line,
+      ),
+    ),
+    lines.join('\n'),
+  );
 });
 
 test('--city adds a city that has no snapshot yet', async (t) => {

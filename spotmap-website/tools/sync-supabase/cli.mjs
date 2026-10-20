@@ -15,8 +15,8 @@
  *   3. plan (insert-plan.mjs) and print the plan: a spot whose id is present is left alone; one
  *      near an existing spot, or of its exact name a little farther, is printed as a possible
  *      duplicate and held back for the maintainer; every other spot is inserted;
- *   4. check every referenced photo is on disk, derive missing or outdated thumbnails into
- *      data/thumbs/ and delete orphaned ones;
+ *   4. check the photos of the spots to insert are on disk, derive their missing or outdated
+ *      thumbnails into data/thumbs/ and delete thumbnails no dataset photo references any more;
  *   5. upload the photos of the spots to insert that the bucket lacks, stopping at the first
  *      failure (uploads already in flight finish, no further one starts);
  *   6. insert those spots, their photos and any new city with one sync_insert_spots() call — only
@@ -25,7 +25,8 @@
  *
  * --dry-run stops after step 3 and writes nothing. --expect-no-inserts stops there too, writes
  * nothing, and exits 1 when the plan would insert anything (CI's re-run check). --db-only skips
- * steps 4 and 5, seeding the database from the committed datasets alone (CI). --hosted must be
+ * steps 4 and 5, seeding the database from the committed datasets alone (CI); it is refused
+ * against a hosted project, whose rows would point at photos never uploaded. --hosted must be
  * given exactly when SUPABASE_URL is not the local stack (127.0.0.1 or localhost), so a hosted
  * project is never written by accident. The target host is printed first. Exits 0 on success, 1
  * when a step fails (naming it), 2 on bad arguments or environment.
@@ -167,6 +168,11 @@ export async function runSync(
     if (local && flags.hosted) {
       throw new Error(`--hosted was given, but ${host} is the local stack`);
     }
+    if (!local && flags.dbOnly) {
+      throw new Error(
+        `--db-only is for the local stack only: ${host} is hosted, and its photos would be left unuploaded`,
+      );
+    }
     log(
       `target: ${host} (${local ? 'local stack' : 'hosted'})` +
         (flags.dryRun ? ', dry run' : '') +
@@ -225,23 +231,37 @@ export async function runSync(
     }
 
     if (!flags.dbOnly) {
-      // Every key, not only the inserted spots': the thumbnail plan reads every source photo.
-      const missing = missingPhotos(keys, spotsDir);
+      // Only the photos of the spots to insert: a run that inserts one spot, or none, must not need
+      // the whole library on disk.
+      const insertKeys = photoKeysOf({ spots: inserts });
+      const missing = missingPhotos(insertKeys, spotsDir);
       if (missing.length > 0) {
         throw new Error(
           `${missing.length} referenced photos are not on disk, e.g. data/spots/${missing[0]} — run npm run extract:spots`,
         );
       }
 
+      // planThumbnails treats every thumbnail outside the keys it is given as an orphan, so the
+      // thumbnails of the spots not inserted (whose sources may be absent) are kept out of its
+      // orphan list: only a thumbnail no dataset photo references is deleted.
+      const referenced = new Set(keys);
+      const plan = await planThumbnails({
+        spotsDir,
+        thumbsDir,
+        keys: insertKeys,
+      });
       const { derived, deleted } = await applyThumbnails({
         spotsDir,
         thumbsDir,
-        plan: await planThumbnails({ spotsDir, thumbsDir, keys }),
+        plan: {
+          stale: plan.stale,
+          orphans: plan.orphans.filter((key) => !referenced.has(key)),
+        },
         ...(derive && { derive }),
       });
       log(`thumbnails: ${derived} derived, ${deleted} deleted`);
 
-      const wanted = photoKeysOf({ spots: inserts }).flatMap(remoteKeysOf);
+      const wanted = insertKeys.flatMap(remoteKeysOf);
       const insertCities = [...new Set(inserts.map(({ city }) => city))];
       const uploads = planUploads(
         wanted,

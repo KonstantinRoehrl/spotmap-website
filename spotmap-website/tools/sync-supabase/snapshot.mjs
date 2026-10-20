@@ -2,7 +2,8 @@
 /**
  * Exports the bundled snapshots from the database: rewrites public/spots/<city>.geojson — the
  * copy the app falls back to when the backend is down — with exactly what `city_spots(<city>)`
- * returns, so the fallback follows the database. The maintainer runs it when they like and
+ * returns, with each feature's keys put back in the served order (PostgreSQL's jsonb hands object
+ * keys back sorted, not as written), so the fallback follows the database. The maintainer runs it when they like and
  * commits the result; the fallback may lag the live map in between.
  *
  *   npm run snapshot:supabase [-- --hosted] [-- --city <slug>]…
@@ -28,6 +29,43 @@ import { createSupabaseClient, readCredentials } from './client.mjs';
 const CITY_SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 /** The extension of a snapshot file, after the city slug. */
 const GEOJSON = '.geojson';
+/**
+ * The keys of a served feature's properties, as a set: the shape `city_spots()` answers, whatever
+ * order jsonb gives them. The key order the snapshot is written in is {@link servedFeature}'s.
+ */
+const SERVED_KEYS = new Set(['id', 'name', 'status', 'notes', 'photos']);
+
+/**
+ * One `city_spots()` feature, rebuilt with its keys in the served order — type, geometry, then
+ * `{ id, name, status, notes, photos }`, the order `committed-datasets.test.mjs` demands and
+ * `served-record.mjs` builds. jsonb reorders object keys, so the answer's own order is not the
+ * served one. Only Point features with exactly the served properties are accepted, so a change to
+ * what `city_spots()` returns is caught here instead of being written into the snapshot.
+ *
+ * @param {any} feature one element of the answer's `features`
+ * @returns {{ type: 'Feature', geometry: { type: 'Point', coordinates: number[] },
+ *   properties: { id: string, name: string, status: string, notes: string | null,
+ *   photos: string[] } }}
+ * @throws {Error} when the feature is not a Point with exactly the served properties
+ */
+function servedFeature(feature) {
+  const keys = Object.keys(feature?.properties ?? {});
+  if (
+    feature?.type !== 'Feature' ||
+    feature.geometry?.type !== 'Point' ||
+    !Array.isArray(feature.geometry.coordinates) ||
+    keys.length !== SERVED_KEYS.size ||
+    !keys.every((key) => SERVED_KEYS.has(key))
+  ) {
+    throw new Error('not the served shape');
+  }
+  const { id, name, status, notes, photos } = feature.properties;
+  return {
+    type: 'Feature',
+    geometry: { type: 'Point', coordinates: feature.geometry.coordinates },
+    properties: { id, name, status, notes, photos },
+  };
+}
 
 /**
  * Parses the export's flags.
@@ -137,11 +175,20 @@ export async function runSnapshot(
           `city_spots(${city}) did not answer a FeatureCollection`,
         );
       }
+      const features = collection.features.map((feature) => {
+        try {
+          return servedFeature(feature);
+        } catch (problem) {
+          throw new Error(
+            `city_spots(${city}) answered a feature (${feature?.properties?.id ?? 'no id'}) that is ${problem.message}`,
+          );
+        }
+      });
       await writeFileAtomic(
         join(publicDir, `${city}${GEOJSON}`),
-        toJsonText(collection),
+        toJsonText({ type: 'FeatureCollection', features }),
       );
-      log(`${city}: ${collection.features.length} spots written`);
+      log(`${city}: ${features.length} spots written`);
     } catch (problem) {
       failed.push(city);
       error(`${city}: FAILED — ${problem.message}`);

@@ -1,13 +1,13 @@
 /**
  * Tests for the insert-only sync command: the target guard, the order of its steps (read the
  * database, plan, photos, then one insert), what it prints, --dry-run, --expect-no-inserts,
- * --db-only, uploads of only the missing objects of the spots it inserts, and stopping with exit 1
- * at the first failure. The Supabase client is a fake over an in-memory database and bucket that
+ * --db-only (local stack only), photos and thumbnails of only the spots it inserts, uploads of only
+ * their missing objects, and stopping with exit 1 at the first failure. The Supabase client is a fake over an in-memory database and bucket that
  * records every call; datasets, photos and thumbnails live in temporary folders.
  */
 import { strict as assert } from 'node:assert';
 import { existsSync } from 'node:fs';
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
@@ -327,6 +327,48 @@ test('a spot the database holds is left alone, even moved, renamed and deleted t
   assert.deepEqual(supabase.existing[0], edited);
 });
 
+test('only the photos of the spots to insert must be on disk and get thumbnails; the thumbnails of the others are kept', async (t) => {
+  const ws = await workspace(t);
+  await rm(join(ws.spotsDir, PHOTOS[0]));
+  await mkdir(join(ws.thumbsDir, 'graz'), { recursive: true });
+  await writeFile(join(ws.thumbsDir, PHOTOS[0]), 'kept thumb of a-1');
+  await writeFile(join(ws.thumbsDir, 'graz/gone-9-99999999.webp'), 'orphan');
+  const supabase = fakeSupabase({
+    existing: [existingSpot('a-1')],
+    cities: ['graz'],
+  });
+
+  const { code, lines } = await sync([], { ws, supabase });
+
+  assert.equal(code, 0, lines.join('\n'));
+  assert.ok(
+    lines.includes('thumbnails: 1 derived, 1 deleted'),
+    lines.join('\n'),
+  );
+  assert.deepEqual((await readdir(join(ws.thumbsDir, 'graz'))).sort(), [
+    'a-1-11111111.webp',
+    'b-2-22222222.webp',
+  ]);
+  assert.deepEqual(uploadsOf(supabase.calls), [
+    'full/graz/b-2-22222222.webp',
+    'thumb/graz/b-2-22222222.webp',
+  ]);
+});
+
+test('a run with nothing to insert needs no photo on disk', async (t) => {
+  const ws = await workspace(t, { withPhotos: false });
+  const supabase = fakeSupabase({
+    existing: [existingSpot('a-1'), existingSpot('b-2', { lng: 16.43 })],
+    cities: ['graz'],
+  });
+
+  const { code, lines } = await sync([], { ws, supabase });
+
+  assert.equal(code, 0, lines.join('\n'));
+  assert.ok(lines.includes('thumbnails: 0 derived, 0 deleted'));
+  assert.equal(existsSync(join(ws.thumbsDir, 'graz')), false);
+});
+
 test('a possible duplicate is printed and held back', async (t) => {
   const ws = await workspace(t);
   const supabase = fakeSupabase({
@@ -426,6 +468,23 @@ test('--db-only inserts from the datasets alone: no photos, thumbnails or upload
   ]);
   assert.equal(existsSync(ws.thumbsDir), false);
   assert.equal(lines.at(-1), 'database: 1 cities, 2 spots, 2 photos inserted');
+});
+
+test('--db-only is refused against a hosted project, before anything is touched', async (t) => {
+  const ws = await workspace(t, { withPhotos: false });
+  const supabase = fakeSupabase();
+
+  const { code, lines } = await sync(['--db-only', '--hosted'], {
+    env: HOSTED,
+    ws,
+    supabase,
+  });
+
+  assert.equal(code, 2);
+  assert.deepEqual(supabase.calls, []);
+  assert.deepEqual(lines, [
+    'ERR sync:supabase: --db-only is for the local stack only: abcdefgh.supabase.co is hosted, and its photos would be left unuploaded',
+  ]);
 });
 
 test('a photo missing on disk fails the run before anything is written', async (t) => {

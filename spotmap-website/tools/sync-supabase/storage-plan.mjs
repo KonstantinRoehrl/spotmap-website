@@ -2,7 +2,9 @@
  * Planning for the sync's upload step: which bucket objects the spots it inserts still need. The
  * sync only ever adds spots the database has never seen, so presence is the whole comparison: an
  * object already in the bucket was put there by an earlier run that stopped before its insert, and
- * is kept as it is. Nothing is ever deleted. The planner is pure, so it is tested on plain data.
+ * is not uploaded again. That is the planner's doing only: the storage client upserts, so an upload
+ * that did run would be idempotent rather than refused. Nothing is ever deleted. The planner is
+ * pure, so it is tested on plain data.
  */
 
 /** The two renditions the bucket holds for every photo. */

@@ -366,7 +366,7 @@ deletes or prunes anything.
 ```bash
 npm run sync:supabase                          # local stack
 npm run sync:supabase -- --dry-run             # plan against the database, write nothing
-npm run sync:supabase -- --db-only             # database only, from the committed datasets (no photos needed)
+npm run sync:supabase -- --db-only             # database only, from the committed datasets (no photos needed); local stack only
 npm run sync:supabase -- --hosted              # required whenever SUPABASE_URL is not the local stack
 npm run sync:supabase -- --expect-no-inserts   # plan against the database, write nothing, exit 1 if anything would be inserted
 ```
@@ -382,9 +382,11 @@ already present is skipped, a spot within 25 m of an existing one (or with the
 identical name within 100 m) is printed as "possible duplicate of <id>" and held
 back, every other spot is inserted → load and check the photos of the spots it
 will insert → derive their thumbnails into `data/thumbs/` → upload the objects
-the bucket lacks (never overwriting one) → insert in one `sync_insert_spots()`
+the bucket lacks (one it already holds is skipped) → insert in one `sync_insert_spots()`
 transaction. A re-run with unchanged data inserts nothing.
-Exit codes: 0 done, 1 a step failed (named), 2 bad arguments or environment. CI's
+Exit codes: 0 done, 1 a step failed (named), 2 bad arguments or environment
+(including `--db-only` against a hosted project, whose rows would point at photos
+never uploaded). CI's
 database job runs the pgTAP tests, seeds the empty database from `data/spots`
 (`--db-only`), then runs the sync again with `--expect-no-inserts`, on every pull
 request.
@@ -408,13 +410,18 @@ without `--hosted`, or `--hosted` against the local stack).
 before the branch that turns the backend on is merged:
 
 1. Create the Supabase project (EU region, free tier).
-2. Apply the migrations to it:
+2. Apply the migrations to it. All of them must be in before steps 5 and 7,
+   which insert into `public.admins` and `public.admin_settings`, tables the
+   maintainer-tool migration creates:
 
    ```bash
    npx supabase login
    npx supabase link --project-ref <project-ref>
    npx supabase db push
    ```
+
+   A project that already went through the earlier rollout holds only the first
+   migration: run `npx supabase db push` again now, before steps 5 and 7.
 
 3. Fill `src/environments/environment.prod.ts`: `apiUrl` and `publishableKey`
    from the project's API settings, and `photoBaseUrl` as
@@ -453,7 +460,7 @@ before the branch that turns the backend on is merged:
    insert into public.admin_settings (key, value) values ('esri_api_key', '<key>');
    ```
 
-8. `npx supabase db push`, then `npm run sync:supabase -- --hosted` and
+8. `npm run sync:supabase -- --hosted`, then
    `npm run snapshot:supabase -- --hosted`.
 9. Merge to `main` only after the on-device checks pass against the hosted
    backend. Before the merge, the phone reaches the branch through a
