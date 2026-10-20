@@ -70,50 +70,6 @@
   gap: 12px;
 }
 
-/* A block that appears or goes away inside a step. It fades while its height and the parent's gap
-   (--reveal-gap) ease, so what follows glides instead of jumping. The inner box bleeds 14px (the
-   step's padding) so focus rings and glows are not clipped. Reduced motion keeps only the fade:
-   --shut and --pull then leave the block's height alone, as the transform eases are dropped there. */
-.reveal {
-  --shut: 0fr;
-  --pull: calc(var(--reveal-gap) * -1);
-  display: grid;
-  grid-template-rows: 1fr;
-  transition:
-    opacity var(--dur-fade),
-    grid-template-rows var(--dur-fast) var(--ease-out-expo),
-    margin-top var(--dur-fast) var(--ease-out-expo);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .reveal {
-    --shut: 1fr;
-    --pull: 0px;
-  }
-}
-
-.reveal__inner {
-  min-height: 0;
-  padding: 14px;
-  margin: -14px;
-  overflow: hidden;
-}
-
-@starting-style {
-  .reveal {
-    opacity: 0;
-    grid-template-rows: var(--shut);
-    margin-top: var(--pull);
-  }
-}
-
-.reveal--leaving {
-  opacity: 0;
-  grid-template-rows: var(--shut);
-  margin-top: var(--pull);
-  pointer-events: none;
-}
-
 .pick__button,
 .action {
   display: inline-flex;
@@ -182,12 +138,6 @@
     box-shadow var(--dur-fast) ease-out;
 }
 
-.field__control:focus-visible {
-  outline: none;
-  border-color: var(--color-phosphor);
-  box-shadow: var(--glow-edge-frame);
-}
-
 .field__control::placeholder {
   color: var(--color-phosphor-dim);
 }
@@ -243,10 +193,5 @@
 }
 
 .tag {
-  padding: 1px 6px;
-  font-size: 0.75rem;
-  text-transform: uppercase;
   color: var(--color-phosphor-dim);
-  border: 1px solid var(--color-phosphor-deep);
-  border-radius: var(--radius-sm);
 }

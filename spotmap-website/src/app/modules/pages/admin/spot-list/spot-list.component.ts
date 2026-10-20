@@ -38,7 +38,7 @@ function errorText(error: unknown): string {
   selector: 'app-spot-list',
   imports: [RouterLink, PointerBloomDirective],
   templateUrl: './spot-list.component.html',
-  styleUrl: './spot-list.component.css',
+  styleUrls: ['../admin-shared.css', './spot-list.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SpotListComponent implements OnInit {

@@ -106,7 +106,11 @@ function messageOf(error: unknown): string {
   selector: 'app-create-or-attach',
   imports: [NgTemplateOutlet, SatellitePickerComponent, PointerBloomDirective],
   templateUrl: './create-or-attach.component.html',
-  styleUrls: ['../../terminal-window.css', './create-or-attach.component.css'],
+  styleUrls: [
+    '../../terminal-window.css',
+    '../admin-shared.css',
+    './create-or-attach.component.css',
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CreateOrAttachComponent {

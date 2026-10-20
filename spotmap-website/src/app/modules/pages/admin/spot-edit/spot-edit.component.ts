@@ -141,7 +141,7 @@ function errorText(error: unknown): string {
   selector: 'app-spot-edit',
   imports: [RouterLink, PointerBloomDirective, SatellitePickerComponent],
   templateUrl: './spot-edit.component.html',
-  styleUrl: './spot-edit.component.css',
+  styleUrls: ['../admin-shared.css', './spot-edit.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SpotEditComponent {

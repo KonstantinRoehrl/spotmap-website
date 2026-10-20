@@ -44,27 +44,6 @@ p {
     border-color var(--dur-fast),
     box-shadow var(--dur-fast);
 }
-.field__control:focus-visible {
-  outline: none;
-  border-color: var(--color-phosphor);
-  box-shadow: var(--glow-edge-frame);
-}
-.select {
-  position: relative;
-}
-.select .field__control {
-  appearance: none;
-  padding-right: 40px;
-}
-.select::after {
-  content: '';
-  position: absolute;
-  top: calc(50% - 2px);
-  right: 14px;
-  border: 5px solid transparent;
-  border-top-color: var(--color-phosphor-dim);
-  pointer-events: none;
-}
 .field__error {
   color: var(--color-danger);
 }
@@ -178,11 +157,6 @@ p {
   text-transform: uppercase;
 }
 .tag {
-  padding: 1px 6px;
   color: var(--color-phosphor-dim);
-  font-size: 0.75rem;
   text-shadow: none;
-  text-transform: uppercase;
-  border: 1px solid var(--color-phosphor-deep);
-  border-radius: var(--radius-sm);
 }
