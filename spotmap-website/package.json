@@ -51,7 +51,7 @@
     "zone.js": "~0.16.3"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "^22.2.2",
+    "@angular/build": "^22.2.2",
     "@angular/cli": "^22.2.2",
     "@angular/compiler-cli": "^22.2.2",
     "@tailwindcss/postcss": "^4.3.3",
@@ -69,5 +69,8 @@
     "supabase": "2.121.0",
     "tailwindcss": "^4.3.2",
     "typescript": "~6.0.3"
+  },
+  "overrides": {
+    "vite": "8.3.5"
   }
 }
