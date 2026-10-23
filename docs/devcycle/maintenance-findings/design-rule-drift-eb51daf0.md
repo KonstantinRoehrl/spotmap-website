@@ -1,0 +1,11 @@
+# Transition durations are hardcoded in four stylesheets instead of using the --dur-* tokens
+- finding-kind: maintenance-finding
+- finding-id: design-rule-drift:eb51daf0
+- culprit-kind: design-rule-drift
+- severity: low
+- confidence: verified
+- affected-files: spotmap-website/src/app/modules/components/map-container/map-container.component.css, spotmap-website/src/app/modules/components/map-loader/map-loader.component.css, spotmap-website/src/app/modules/components/spot-photo-gallery/spot-photo-gallery.component.css
+- first-seen: 2026-10-23
+- last-seen: 2026-10-23
+- passes: 1
+- verify: 

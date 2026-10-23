@@ -1,0 +1,11 @@
+# CLAUDE.md says the graph scope is locked, but .graphifyignore does not exclude the ~3,900 spot photos already in the manifest
+- finding-kind: maintenance-finding
+- finding-id: tooling-scope-drift:226765bd
+- culprit-kind: tooling-scope-drift
+- severity: medium
+- confidence: suspected
+- affected-files: .graphifyignore, CLAUDE.md
+- first-seen: 2026-10-23
+- last-seen: 2026-10-23
+- passes: 1
+- verify: 

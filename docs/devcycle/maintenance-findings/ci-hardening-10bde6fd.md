@@ -1,0 +1,11 @@
+# Checkout steps persist the token and no workflow job sets a timeout
+- finding-kind: maintenance-finding
+- finding-id: ci-hardening:10bde6fd
+- culprit-kind: ci-hardening
+- severity: low
+- confidence: verified
+- affected-files: .github/workflows/ci.yml, .github/workflows/deploy-angular.yml
+- first-seen: 2026-10-23
+- last-seen: 2026-10-23
+- passes: 1
+- verify: 

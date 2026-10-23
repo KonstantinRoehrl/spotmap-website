@@ -1,0 +1,11 @@
+# SpotMapComponent is a 1,180-line module whose popup lifecycle lacks its own module, forcing a 2,964-line spec
+- finding-kind: maintenance-finding
+- finding-id: god-module:65c85a35
+- culprit-kind: god-module
+- severity: medium
+- confidence: verified
+- affected-files: spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts, spotmap-website/src/app/modules/components/spot-map/spot-map.component.spec.ts
+- first-seen: 2026-10-23
+- last-seen: 2026-10-23
+- passes: 1
+- verify: 

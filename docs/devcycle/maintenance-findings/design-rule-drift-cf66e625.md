@@ -1,0 +1,11 @@
+# The loader fill radius is 1px, outside the documented 4/6/8 scale, and DESIGN.md records no exception
+- finding-kind: maintenance-finding
+- finding-id: design-rule-drift:cf66e625
+- culprit-kind: design-rule-drift
+- severity: low
+- confidence: verified
+- affected-files: spotmap-website/src/app/modules/components/map-loader/map-loader.component.css, DESIGN.md
+- first-seen: 2026-10-23
+- last-seen: 2026-10-23
+- passes: 1
+- verify: 

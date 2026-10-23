@@ -1,0 +1,11 @@
+# Production code and FakeMap cite maplibre-gl internals by line number, which rots on any caret bump
+- finding-kind: maintenance-finding
+- finding-id: brittle-comments:3e876a36
+- culprit-kind: brittle-comments
+- severity: low
+- confidence: verified
+- affected-files: spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts, spotmap-website/src/app/modules/components/spot-map/spot-map.component.spec.ts
+- first-seen: 2026-10-23
+- last-seen: 2026-10-23
+- passes: 1
+- verify: 

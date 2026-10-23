@@ -1,0 +1,11 @@
+# map-container.spec mirrors the private 15 s timeout literal, and map-factory and app.routes have no spec
+- finding-kind: maintenance-finding
+- finding-id: test-gap:c4eb368d
+- culprit-kind: test-gap
+- severity: low
+- confidence: verified
+- affected-files: spotmap-website/src/app/modules/components/map-container/map-container.component.spec.ts, spotmap-website/src/app/modules/components/spot-map/map-factory.ts, spotmap-website/src/app/app.routes.ts
+- first-seen: 2026-10-23
+- last-seen: 2026-10-23
+- passes: 1
+- verify: 
