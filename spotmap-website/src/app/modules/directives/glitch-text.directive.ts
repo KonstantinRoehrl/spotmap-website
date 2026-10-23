@@ -29,7 +29,9 @@ import { prefersReducedMotion } from '../../utils/prefers-reduced-motion';
   },
 })
 export class GlitchTextDirective implements OnInit, OnDestroy {
+  /** The host link whose `.nav-text` label is scrambled. */
   private readonly el = inject<ElementRef<HTMLElement>>(ElementRef);
+  /** Lets the frame interval run outside Angular's zone. */
   private readonly zone = inject(NgZone);
 
   /** The label as it was when scrambling started; frames scramble it and restores write it back. */
