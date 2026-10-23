@@ -38,7 +38,6 @@ const INTRO_SEEN_KEY = 'spotmap:introSeen';
   styleUrl: './app.component.css',
 })
 export class AppComponent implements OnInit {
-  title = 'spotmap-website';
   protected introFinished = signal<boolean>(false);
   /**
    * Whether the current route is in the admin tree. Read from `Location` at construction — the
