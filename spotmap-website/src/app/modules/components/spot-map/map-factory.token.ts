@@ -25,9 +25,8 @@ export type PopupFactory = (options: {
 }) => Promise<MapLibrePopup>;
 
 /**
- * Declared without a default implementation on purpose: the test target still runs on the
- * webpack karma builder, and a token carrying its own factory would drag the ESM-only
- * maplibre-gl into every spec bundle that touches the map component. The real factory is
+ * Declared without a default implementation on purpose: a token carrying its own factory would
+ * pull maplibre-gl into every spec bundle that touches the map component. The real factory is
  * registered in app.config.ts; specs provide a fake.
  */
 export const MAP_FACTORY = new InjectionToken<MapFactory>('MAP_FACTORY');

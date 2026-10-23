@@ -14,10 +14,10 @@ export const ADMIN_AUTH_STORAGE_KEY = 'spotmap:admin-auth';
 export type AdminSupabaseLoader = () => Promise<SupabaseClient>;
 
 /**
- * Declared without a default for the same reason as MAP_FACTORY (map-factory.token.ts): the test
- * target still runs on the webpack karma builder, and a token carrying its own factory would pull
- * supabase-js into every spec bundle that touches AdminSession. app.config.ts registers
- * {@link createAdminSupabaseLoader}; specs provide a fake loader returning a hand-written client.
+ * Declared without a default for the same reason as MAP_FACTORY (map-factory.token.ts): a token
+ * carrying its own factory would pull supabase-js into every spec bundle that touches
+ * AdminSession. app.config.ts registers {@link createAdminSupabaseLoader}; specs provide a fake
+ * loader returning a hand-written client.
  */
 export const ADMIN_SUPABASE_LOADER = new InjectionToken<AdminSupabaseLoader>(
   'ADMIN_SUPABASE_LOADER',
