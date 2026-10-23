@@ -1,20 +1,18 @@
 /**
- * A small fetch-based client for the two Supabase surfaces the sync needs: PostgREST RPC calls
- * and the spot-photos Storage bucket. No supabase-js: four calls don't earn a dependency.
+ * A small fetch-based client for the two Supabase surfaces the sync and the snapshot export need:
+ * PostgREST RPC calls and the spot-photos Storage bucket. No supabase-js: three calls don't earn a
+ * dependency.
  *
  * It authenticates with the project's secret key (`sb_secret_…`) in the `apikey` header only —
  * that key is not a JWT, so it never goes in `Authorization: Bearer`. The secret key bypasses
  * row-level security; it comes from the environment or spotmap-website/.env.local and is never
- * committed. A publishable key (`sb_publishable_…`) is likewise sent in `apikey` only, to read
- * as the browser's anonymous role would.
+ * committed.
  */
 
 /** The public bucket holding every photo, as `full/<city>/<file>.webp` and `thumb/<city>/<file>.webp`. */
 export const BUCKET = 'spot-photos';
 /** Storage's list endpoint is per folder and non-recursive, and pages at 100 entries by default. */
 export const LIST_PAGE_SIZE = 100;
-/** Keys per batched delete request. */
-export const DELETE_BATCH_SIZE = 100;
 /**
  * One week, without `immutable`: a file name fingerprints Google's 32 px rendition, not the
  * served bytes, so a re-encode rewrites a file under the same name.
@@ -27,7 +25,7 @@ export const CACHE_CONTROL = 'max-age=604800';
  */
 export const REQUEST_TIMEOUT_MS = 30_000;
 /**
- * Attempts per idempotent call (list, upload, remove) before giving up: enough to ride out a
+ * Attempts per idempotent call (list, upload) before giving up: enough to ride out a
  * transient 5xx or reset during the first hosted upload of thousands of objects, few enough that
  * a real outage still fails the run within about a minute.
  */
@@ -68,8 +66,6 @@ export function readCredentials(env) {
  * @typedef {object} StorageEntry
  * @property {string} name the entry's name inside the listed folder
  * @property {boolean} folder true for a sub-folder (Storage lists those with a null id)
- * @property {string | null} eTag the object's eTag without quotes — the MD5 of a single-part
- *   upload — or null for a folder
  */
 
 /**
@@ -84,35 +80,30 @@ function isRetryableStatus(status) {
 }
 
 /**
- * Creates the client. Every request has a timeout; list, upload and remove are idempotent (the
- * upload upserts) and are retried with backoff on a network error, a timeout, a 5xx or a 429.
- * `rpc` is sent once: a retried `sync_spots` whose first attempt had committed would report
- * all-zero counts and mislead the report.
+ * Creates the client. Every request has a timeout; list and upload are idempotent and are retried
+ * with backoff on a network error, a timeout, a 5xx or a 429 — the upload upserts, so a retry
+ * after an attempt that did store its object still succeeds. `rpc` is sent once: a retried
+ * `sync_insert_spots` whose first attempt had committed would fail with "spot <id> already exists"
+ * and hide that the insert succeeded.
  *
- * @param {{ url: string, secretKey: string, publishableKey?: string,
- *   fetch?: typeof globalThis.fetch, timeoutMs?: number,
+ * @param {{ url: string, secretKey: string, fetch?: typeof globalThis.fetch, timeoutMs?: number,
  *   sleep?: (ms: number) => Promise<unknown> }} options `url` is the project URL, e.g.
- *   `http://127.0.0.1:54321`; `publishableKey` (`sb_publishable_…`), when given, is sent as
- *   `apikey` instead of the secret key, so a read behaves as the browser's anonymous one;
- *   `fetch`, `timeoutMs` (default {@link REQUEST_TIMEOUT_MS}) and `sleep` (the retry delay) are
- *   injected for tests
+ *   `http://127.0.0.1:54321`; `fetch`, `timeoutMs` (default {@link REQUEST_TIMEOUT_MS}) and
+ *   `sleep` (the retry delay) are injected for tests
  * @returns {{
  *   rpc: (name: string, body: object) => Promise<any>,
  *   listFolder: (folder: string) => Promise<StorageEntry[]>,
  *   upload: (key: string, bytes: Uint8Array) => Promise<void>,
- *   remove: (keys: string[]) => Promise<number>,
  * }}
  */
 export function createSupabaseClient({
   url,
   secretKey,
-  publishableKey,
   fetch = globalThis.fetch,
   timeoutMs = REQUEST_TIMEOUT_MS,
   sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
 }) {
   const base = url.replace(/\/+$/, '');
-  const apikey = publishableKey ?? secretKey;
 
   /**
    * Sends a request and returns its response body text, or throws naming `what` and the status
@@ -128,7 +119,7 @@ export function createSupabaseClient({
         // The timeout covers reading the body too: a connection can stall after the headers.
         const response = await fetch(`${base}${path}`, {
           ...init,
-          headers: { apikey, ...headers },
+          headers: { apikey: secretKey, ...headers },
           signal: AbortSignal.timeout(timeoutMs),
         });
         const body = await response.text();
@@ -198,12 +189,8 @@ export function createSupabaseClient({
           { retry: true },
         );
         const page = JSON.parse(answer);
-        for (const { name, id, metadata } of page) {
-          entries.push({
-            name,
-            folder: id === null,
-            eTag: metadata?.eTag?.replaceAll('"', '') ?? null,
-          });
+        for (const { name, id } of page) {
+          entries.push({ name, folder: id === null });
         }
         if (page.length < LIST_PAGE_SIZE) {
           return entries;
@@ -226,21 +213,6 @@ export function createSupabaseClient({
         },
         { retry: true },
       );
-    },
-
-    async remove(keys) {
-      for (let start = 0; start < keys.length; start += DELETE_BATCH_SIZE) {
-        await send(
-          'delete',
-          `/storage/v1/object/${BUCKET}`,
-          {
-            method: 'DELETE',
-            ...json({ prefixes: keys.slice(start, start + DELETE_BATCH_SIZE) }),
-          },
-          { retry: true },
-        );
-      }
-      return keys.length;
     },
   };
 }

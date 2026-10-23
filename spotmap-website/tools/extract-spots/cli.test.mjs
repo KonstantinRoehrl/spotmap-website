@@ -2,8 +2,8 @@
  * Tests for the extraction CLI: argument handling, one city's extraction, and whole runs over a
  * registry with a shared and an extra map, against a fake web in a temporary folder. An unknown
  * city must fail before any network call, so a typo never costs a full run; a city that fails
- * before its writes must leave its previous GeoJSON, report, promoted copy and photos untouched, and
- * a successful city writes its promoted copy.
+ * before its writes must leave its previous GeoJSON, report and photos untouched, and no city ever
+ * writes outside data/spots (the bundled snapshots come from the database).
  */
 import { strict as assert } from 'node:assert';
 import { existsSync } from 'node:fs';
@@ -21,7 +21,6 @@ import { test } from 'node:test';
 import sharp from 'sharp';
 import { extractCity, parseCliArgs, runExtraction } from './cli.mjs';
 import { toJsonText } from './dataset.mjs';
-import { promoteCollection } from './promote.mjs';
 import { photoFileName, spotId } from './ids.mjs';
 import { photoFingerprint } from './photos.mjs';
 
@@ -151,8 +150,9 @@ function fakeWeb(routes) {
 }
 
 /**
- * A temporary spots folder, public folder and KML cache, removed after the test, their paths and
- * those of "graz"'s outputs, and a runner for "graz" whose map `graz` has the id `MID`.
+ * A temporary spots folder, an empty public folder (which no run may write into) and a KML cache,
+ * removed after the test, their paths and those of "graz"'s outputs, and a runner for "graz" whose
+ * map `graz` has the id `MID`.
  */
 async function workspace(t) {
   const root = await mkdtemp(join(tmpdir(), 'extract-spots-cli-'));
@@ -170,28 +170,26 @@ async function workspace(t) {
     photoDir: join(spotsDir, 'graz'),
     geojsonPath: join(spotsDir, 'graz.geojson'),
     reportPath: join(spotsDir, 'graz.report.json'),
-    promotedPath: join(publicDir, 'graz.geojson'),
     cachePath: join(kmlCacheDir, 'graz.kml'),
     run: (fetch, { reencode = false } = {}) =>
       extractCity(
         'graz',
         SOURCE,
         { reencode },
-        { maps: { graz: 'MID' }, fetch, spotsDir, publicDir, kmlCacheDir },
+        { maps: { graz: 'MID' }, fetch, spotsDir, kmlCacheDir },
       ),
   };
 }
 
 /**
- * Every file a failed city must leave untouched: the data file, the report, the promoted copy and
- * the photo folder, by content.
+ * Every file a failed city must leave untouched: the data file, the report and the photo folder, by
+ * content.
  */
-async function snapshot({ geojsonPath, reportPath, promotedPath, photoDir }) {
+async function snapshot({ geojsonPath, reportPath, photoDir }) {
   const photoNames = (await readdir(photoDir)).sort();
   return {
     geojson: await readFile(geojsonPath),
     report: await readFile(reportPath),
-    promoted: await readFile(promotedPath),
     photos: await Promise.all(
       photoNames.map(async (name) => [
         name,
@@ -355,50 +353,24 @@ test('the sweep runs only after both writes, so a failed report write deletes no
   assert.ok(existsSync(join(ws.photoDir, 'stale.webp')));
 });
 
-test('a successful city writes its promoted copy into the public folder', async (t) => {
+test('a successful city writes only into the spots folder, never the public one', async (t) => {
   const ws = await workspace(t);
   await ws.run(
     fakeWeb({ [KML_URL]: kmlResponse(kmlWith([PHOTO_A])), ...live(PHOTO_A) })
       .fetch,
   );
 
-  assert.ok(existsSync(ws.promotedPath), 'graz.geojson was not promoted');
-  const collection = JSON.parse(await readFile(ws.geojsonPath, 'utf8'));
-  assert.equal(
-    await readFile(ws.promotedPath, 'utf8'),
-    toJsonText(promoteCollection(collection)),
-  );
-  const promoted = JSON.parse(await readFile(ws.promotedPath, 'utf8'));
+  assert.ok(existsSync(ws.geojsonPath), 'graz.geojson was not written');
   assert.deepEqual(
-    promoted.features.map((feature) => feature.properties),
-    [
-      {
-        id: SPOT_ID,
-        name: 'Murinsel',
-        status: 'active',
-        notes: null,
-        photos: [`graz/${PHOTO_A.file}`],
-      },
-    ],
+    await readdir(ws.publicDir),
+    [],
+    'the extractor wrote into the public folder; only snapshot:supabase may',
   );
-});
-
-test('a failed promotion fails the city with its new data file written and deletes no photo', async (t) => {
-  const ws = await workspace(t);
-  await mkdir(ws.photoDir, { recursive: true });
-  await writeFile(join(ws.photoDir, 'stale.webp'), 'unreferenced');
-  // A folder where the promoted copy goes makes its write fail after both data writes succeeded.
-  await mkdir(ws.promotedPath);
-  const web = fakeWeb({
-    [KML_URL]: kmlResponse(kmlWith([PHOTO_A])),
-    ...live(PHOTO_A),
-  });
-
-  await assert.rejects(ws.run(web.fetch), /public.graz\.geojson/);
-
-  assert.ok(existsSync(ws.geojsonPath));
-  assert.ok(existsSync(ws.reportPath));
-  assert.ok(existsSync(join(ws.photoDir, 'stale.webp')));
+  assert.deepEqual((await readdir(ws.root)).sort(), [
+    'cache',
+    'public',
+    'spots',
+  ]);
 });
 
 test('a photo written last run that now comes back dead fails the city and keeps its previous files', async (t) => {
@@ -577,9 +549,13 @@ async function runIn(t, argv, web, ws = undefined) {
     registry: REGISTRY,
     fetch: web.fetch,
     spotsDir: ws.spotsDir,
-    publicDir: ws.publicDir,
     kmlCacheDir: ws.kmlCacheDir,
   });
+  assert.deepEqual(
+    await readdir(ws.publicDir),
+    [],
+    'a run wrote into the public folder',
+  );
   const read = async (name) =>
     JSON.parse(await readFile(join(ws.spotsDir, name), 'utf8'));
   return { code, ws, read };
@@ -720,7 +696,6 @@ test('a spot an extra map fed last run that now loses its match fails the city a
   const outputs = {
     geojsonPath: join(ws.spotsDir, 'split.geojson'),
     reportPath: join(ws.spotsDir, 'split.report.json'),
-    promotedPath: join(ws.publicDir, 'split.geojson'),
     photoDir: join(ws.spotsDir, 'split'),
   };
   const before = await snapshot(outputs);
@@ -763,7 +738,6 @@ test('a spot whose Balkan placemark was renamed and moved off it fails the city 
   const outputs = {
     geojsonPath: join(ws.spotsDir, 'split.geojson'),
     reportPath: join(ws.spotsDir, 'split.report.json'),
-    promotedPath: join(ws.publicDir, 'split.geojson'),
     photoDir: join(ws.spotsDir, 'split'),
   };
   const before = await snapshot(outputs);

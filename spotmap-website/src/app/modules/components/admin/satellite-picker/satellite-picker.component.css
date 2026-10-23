@@ -1,0 +1,175 @@
+:host {
+  display: block;
+}
+
+/* The full picker uses the large radius; a host that sets it inside a step card sets
+   --picker-frame-radius to --radius-md (admin-ui-direction.md, "Picker frame"). */
+.picker__frame {
+  position: relative;
+  height: min(60vh, 28rem);
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--picker-frame-radius, var(--radius-lg));
+  overflow: hidden;
+  transition: box-shadow var(--dur-fast) ease-out;
+}
+
+/* The frame lights while the imagery is being dragged. */
+.picker__frame:has(.picker__map:active) {
+  box-shadow: var(--glow-edge-frame);
+}
+
+.picker__map {
+  position: absolute;
+  inset: 0;
+}
+
+/* The fixed centre mark: a 12 px dot with a 14 px bloom inside a 28 px ring (a black gap, then a
+   3 px ring). Its middle is the map centre. It never takes a touch, so a pan can start on it. */
+.picker__pin {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 28px;
+  height: 28px;
+  box-sizing: border-box;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  border: 3px solid var(--color-phosphor);
+  border-radius: 50%;
+  background: var(--color-bg);
+}
+
+.picker__pin::before {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border-radius: 50%;
+  background: var(--color-phosphor);
+  box-shadow: 0 0 14px var(--color-phosphor);
+}
+
+/* The live coordinates ride in a small plate at the top left, as the zoom buttons ride top right. */
+.picker__readout {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  margin: 0;
+  padding: 4px 8px;
+  border: 1px solid var(--color-phosphor-deep);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-surface) 80%, transparent);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-phosphor-dim);
+  pointer-events: none;
+}
+
+.picker__zoom {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.picker__button {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 10px 16px;
+  font: inherit;
+  font-size: 1.25rem;
+  cursor: pointer;
+}
+
+.picker__button:disabled {
+  color: var(--color-phosphor-deep);
+  text-shadow: none;
+  cursor: default;
+}
+
+/* The one main action of a screen carries the 7% green fill at rest. */
+.picker__button--primary {
+  --bloom-rest-bg: rgba(0, 255, 0, 0.07);
+  font-size: 1rem;
+  text-transform: uppercase;
+}
+
+.picker__failure {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 24px;
+  text-align: center;
+  background: var(--color-surface);
+  color: var(--color-phosphor-dim);
+}
+
+/* Status lines: unlit, 14 px, amber for care and red for a hard failure. */
+.picker__notice {
+  margin: 8px 0 0;
+  font-size: 0.875rem;
+  color: var(--color-amber);
+}
+
+.picker__notice--error {
+  color: var(--color-danger);
+}
+
+/* MapLibre injects the compact Esri credit into the map host, so it carries no Angular attribute
+   and only ::ng-deep reaches it. It ships as a white chip with black text, a 12 px radius and a
+   #0096ff focus ring; this repaints it as the public map does (spot-map.component.css), at the 12 px text floor. The
+   credit is a licence condition: restyled, never hidden. The extra .maplibregl-ctrl class lifts
+   the radius above MapLibre's own (0,3,0) rules; the button's icon is MapLibre's glyph, filled. */
+:host ::ng-deep .maplibregl-ctrl.maplibregl-ctrl-attrib.maplibregl-compact {
+  background-color: var(--color-surface);
+  border-radius: var(--radius-sm);
+  color: var(--color-phosphor-dim);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+}
+
+:host ::ng-deep .maplibregl-ctrl-attrib a {
+  color: var(--color-phosphor-dim);
+}
+
+:host ::ng-deep .maplibregl-ctrl-attrib a:hover,
+:host ::ng-deep .maplibregl-ctrl-attrib a:focus-visible {
+  color: var(--color-phosphor);
+}
+
+:host
+  ::ng-deep
+  .maplibregl-ctrl-attrib.maplibregl-compact
+  .maplibregl-ctrl-attrib-button {
+  background-color: var(--color-surface-raised);
+  border-radius: var(--radius-sm);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%2300b800' fill-rule='evenodd'%3E%3Cpath d='M4 10a6 6 0 1 0 12 0 6 6 0 1 0-12 0m5-3a1 1 0 1 0 2 0 1 1 0 1 0-2 0m0 3a1 1 0 1 1 2 0v3a1 1 0 1 1-2 0'/%3E%3C/svg%3E");
+}
+
+:host ::ng-deep .maplibregl-ctrl-attrib-button:focus {
+  box-shadow: 0 0 2px 2px var(--color-phosphor);
+}
+
+/* Notices fade in and out; reduced motion keeps the fade (styles.css motion net). */
+.picker__failure,
+.picker__notice {
+  transition: opacity var(--dur-fade) ease-out;
+}
+
+@starting-style {
+  .picker__failure,
+  .picker__notice {
+    opacity: 0;
+  }
+}
+
+.picker__notice--leaving {
+  opacity: 0;
+}

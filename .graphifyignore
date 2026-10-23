@@ -20,5 +20,5 @@ docs/superpowers/
 docs/*/on-device-checklist.md
 docs/*/on-device-results.md
 
-# Spot photos are content, not architecture; the scope's image entry is public/icon*.png
+# The bundled spot snapshots are data exported from the database, not architecture; the scope's image entry is public/icon*.png
 spotmap-website/public/spots/

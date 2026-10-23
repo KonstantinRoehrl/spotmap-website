@@ -59,9 +59,10 @@ jobs:
       - name: Install dependencies (npm ci — clean, from lockfile)
         run: npm ci
 
-      # build:pages chains the tools/ test suite, the production build, and both
-      # deploy-artifact verifiers, so this one step gates the artifact main deploys.
-      - name: Build the deploy artifact (tool tests, production build, asset verifiers)
+      # build:pages chains the tools/ test suite, the production build, and the
+      # deploy-artifact verifiers (asset paths, and no admin library in the initial
+      # bundle), so this one step gates the artifact main deploys.
+      - name: Build the deploy artifact (tool tests, production build, output verifiers)
         run: npm run build:pages
 
   test:
@@ -88,6 +89,8 @@ jobs:
         run: npm test -- --no-watch --no-progress --browsers=ChromeHeadless
 
   database:
+    # This name is a required status check in the "Protect main and dev" ruleset; renaming
+    # the job leaves that check pending forever, so change both together.
     name: 'Database: migrations, RLS and live-vs-snapshot parity'
     runs-on: ubuntu-latest
     defaults:
@@ -112,7 +115,7 @@ jobs:
       - name: Start the local Supabase stack (database, REST API, Storage) and apply the migrations
         run: npm run db:start
 
-      - name: Run the database tests (pgTAP — schema, row-level security, city_spots, sync_spots)
+      - name: Run the database tests (pgTAP — admin, access rules, city_spots, insert-only sync)
         run: npm run db:test
 
       - name: Point the sync at the local stack
@@ -120,20 +123,18 @@ jobs:
           eval "$(npx supabase status -o env 2>/dev/null)"
           echo "SUPABASE_URL=$API_URL" >> "$GITHUB_ENV"
           echo "SUPABASE_SECRET_KEY=$SECRET_KEY" >> "$GITHUB_ENV"
-          echo "SUPABASE_PUBLISHABLE_KEY=$PUBLISHABLE_KEY" >> "$GITHUB_ENV"
           case "$PUBLISHABLE_KEY" in
             sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH) ;; # gitleaks:allow
             *) echo "::warning::The local publishable key differs from src/environments/environment.ts" ;;
           esac
 
-      - name: Seed the database from the committed datasets (no photos)
+      - name: Seed the empty database from the committed datasets (no photos)
         run: npm run sync:supabase -- --db-only
 
-      # --public fails the step when SUPABASE_PUBLISHABLE_KEY is empty, instead of reading with the
-      # secret key: the reads must go through the gateway and row-level security as the browser's
-      # anonymous ones do.
-      - name: Check every city's live spots, read as the public, equal its bundled snapshot
-        run: npm run parity:supabase -- --public
+      # The second run plans against the database the first one wrote: every spot must be found
+      # already present, so a sync that would re-insert or duplicate anything fails the job.
+      - name: Re-run the sync and require that it inserts nothing
+        run: npm run sync:supabase -- --db-only --expect-no-inserts
 
   secrets:
     name: Secret scan (gitleaks)

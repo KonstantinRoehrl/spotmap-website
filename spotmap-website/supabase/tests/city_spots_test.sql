@@ -1,8 +1,9 @@
 -- city_spots(): the snapshot's GeoJSON shape, dataset order, gallery order, full-precision
--- coordinates whatever the session's extra_float_digits, and a raise for an unknown city. Passes
--- on an empty database and on one already synced with the real spots.
+-- coordinates whatever the session's extra_float_digits, soft-deleted spots left out even for a
+-- caller that bypasses row-level security, and a raise for an unknown city. Passes on an empty
+-- database and on one already synced with the real spots.
 begin;
-select plan(8);
+select plan(10);
 
 -- Start from empty tables whatever the database already holds (a synced local stack has the real
 -- spots): the superuser bypasses row-level security, photos go by cascade, and the rollback at
@@ -10,13 +11,18 @@ select plan(8);
 delete from public.spots;
 delete from public.cities;
 
-insert into public.cities (slug) values ('vienna'), ('graz'), ('linz');
+insert into public.cities (slug) values ('vienna'), ('graz'), ('linz'), ('salzburg');
 insert into public.spots (id, city, name, status, location, sort_order, notes, sources) values
   ('b-2', 'vienna', 'Beta', 'demolished', 'SRID=4326;POINT(16.4 48.22)', 1, 'gone', '[]'),
   ('a-1', 'vienna', 'Alpha', 'active', 'SRID=4326;POINT(16.3785491 48.1840844)', 0, null, '[]');
 insert into public.spot_photos (spot_id, position, object_key) values
   ('a-1', 1, 'vienna/a-1-22222222.webp'),
   ('a-1', 0, 'vienna/a-1-11111111.webp');
+-- Soft-deleted spots: one in vienna after the live ones (with a photo), and salzburg's only spot.
+insert into public.spots (id, city, name, status, location, sort_order, notes, sources, deleted_at) values
+  ('d-3', 'vienna', 'Deleted', 'active', 'SRID=4326;POINT(16.5 48.3)', 2, null, '[]', '2026-01-01'),
+  ('s-1', 'salzburg', 'Gone Too', 'active', 'SRID=4326;POINT(13.04 47.8)', 0, null, '[]', '2026-01-01');
+insert into public.spot_photos (spot_id, position, object_key) values ('d-3', 0, 'vienna/d-3-33333333.webp');
 -- Coordinates whose shortest float8 text is 16 and 17 significant digits: the only fixture where
 -- a ::numeric cast in city_spots would print differently (numeric keeps 15 digits).
 insert into public.spots (id, city, name, status, location, sort_order, notes, sources) values
@@ -63,6 +69,17 @@ select throws_ok($$select public.city_spots('atlantis')$$, 'P0001', 'unknown cit
 select is(
   (select provolatile from pg_proc where oid = 'public.city_spots(text)'::regprocedure), 's',
   'city_spots is stable, so PostgREST serves it over GET');
+
+-- The secret key (service_role) bypasses row-level security, so only city_spots' own deleted_at
+-- filter keeps soft-deleted spots out of the snapshot export.
+reset role;
+set local role service_role;
+select is(
+  jsonb_path_query_array(public.city_spots('vienna'), '$.features[*].properties.id'), '["a-1", "b-2"]'::jsonb,
+  'a soft-deleted spot is left out even for a caller that bypasses row-level security');
+select is(
+  public.city_spots('salzburg'), '{"type": "FeatureCollection", "features": []}'::jsonb,
+  'a city whose only spot is deleted has no features (Task 6''s snapshot export relies on this shape)');
 
 select * from finish();
 rollback;

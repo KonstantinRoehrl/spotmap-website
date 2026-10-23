@@ -1,0 +1,406 @@
+<section class="page">
+  <div class="stack">
+    @switch (load()) {
+      @case ('loading') {
+        <h1
+          class="notice fade"
+          data-testid="edit-loading"
+          tabindex="-1"
+          aria-label="Loading the spot"
+          animate.leave="fade--leaving"
+        >
+          &gt; …
+        </h1>
+      }
+      @case ('error') {
+        <div
+          class="group fade"
+          data-testid="edit-error"
+          animate.leave="fade--leaving"
+        >
+          <h1 class="notice" tabindex="-1">
+            &gt; Could not load the spot: {{ loadError() }}
+          </h1>
+          <div class="actions">
+            <button
+              type="button"
+              class="button phosphor-bloom phosphor-bloom--plate"
+              appPointerBloom
+              data-testid="edit-retry"
+              (click)="reload()"
+            >
+              Retry
+            </button>
+            <a
+              class="button phosphor-bloom phosphor-bloom--plate"
+              appPointerBloom
+              routerLink="/admin/spots"
+              data-testid="back-to-list"
+              >&lt; Spots</a
+            >
+          </div>
+        </div>
+      }
+      @default {
+        @if (spot(); as spot) {
+          <div class="groups fade" animate.leave="fade--leaving">
+            <header class="top">
+              <h1 class="title" data-testid="edit-title" tabindex="-1">
+                {{ spot.name }}
+              </h1>
+              <a
+                class="button phosphor-bloom phosphor-bloom--plate"
+                appPointerBloom
+                routerLink="/admin/spots"
+                data-testid="back-to-list"
+                >&lt; Spots</a
+              >
+              <p class="meta">
+                {{ spot.city }} / {{ spot.id }}
+                @if (spot.deletedAt !== null) {
+                  <span class="tag" data-testid="deleted-label">Deleted</span>
+                }
+              </p>
+            </header>
+
+            <form
+              id="details-form"
+              class="group"
+              aria-label="Spot details"
+              (submit)="onDetailsSubmit($event)"
+            >
+              <label class="field">
+                <span class="field__label">Name</span>
+                <input
+                  class="field__control"
+                  type="text"
+                  autocomplete="off"
+                  data-testid="spot-name"
+                  [value]="name()"
+                  (input)="name.set(inputValue($event))"
+                  [attr.aria-invalid]="nameError() !== null"
+                  [attr.aria-describedby]="
+                    nameError() ? 'spot-name-error' : null
+                  "
+                />
+              </label>
+              @if (nameError(); as message) {
+                <p
+                  id="spot-name-error"
+                  class="field__error fade"
+                  data-testid="spot-name-error"
+                  animate.leave="fade--leaving"
+                >
+                  {{ message }}
+                </p>
+              }
+              <label class="field">
+                <span class="field__label">Status</span>
+                <span class="select">
+                  <select
+                    class="field__control"
+                    data-testid="spot-status"
+                    (change)="status.set(selectedStatus($event))"
+                  >
+                    @for (option of statuses; track option) {
+                      <option [value]="option" [selected]="option === status()">
+                        {{ option }}
+                      </option>
+                    }
+                  </select>
+                </span>
+              </label>
+              <label class="field">
+                <span class="field__label">Description</span>
+                <textarea
+                  class="field__control"
+                  rows="4"
+                  placeholder="Access, surface, what to bring. Shown on the map popup as written."
+                  data-testid="spot-notes"
+                  [value]="notes()"
+                  (input)="notes.set(inputValue($event))"
+                ></textarea>
+              </label>
+            </form>
+
+            <section class="group" aria-labelledby="position-title">
+              <h2 id="position-title" class="group__title">Pin</h2>
+              <p class="meta" data-testid="spot-position">
+                {{ positionText() }}
+              </p>
+              @if (pickerOpen()) {
+                <div
+                  class="panel fade"
+                  data-testid="picker-panel"
+                  animate.leave="fade--leaving"
+                >
+                  <h3
+                    class="group__title"
+                    tabindex="-1"
+                    data-testid="picker-title"
+                  >
+                    Pan the imagery until the pin sits on the spot
+                  </h3>
+                  @if (pickerCentre(); as centre) {
+                    <app-satellite-picker
+                      [centre]="centre"
+                      [zoom]="pickerZoom"
+                      [token]="imageryToken()"
+                      (position)="pickedPosition.set($event)"
+                    />
+                  }
+                  <div class="actions">
+                    <button
+                      type="button"
+                      class="button button--primary phosphor-bloom phosphor-bloom--plate"
+                      appPointerBloom
+                      data-testid="save-position"
+                      [attr.aria-disabled]="!canSavePosition()"
+                      (click)="savePosition()"
+                    >
+                      Save position
+                    </button>
+                    <button
+                      type="button"
+                      class="button phosphor-bloom phosphor-bloom--plate"
+                      appPointerBloom
+                      data-testid="cancel-position"
+                      (click)="closePicker()"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              } @else {
+                <div class="actions fade" animate.leave="fade--leaving">
+                  <button
+                    type="button"
+                    class="button phosphor-bloom phosphor-bloom--plate"
+                    appPointerBloom
+                    data-testid="move-pin"
+                    (click)="openPicker()"
+                  >
+                    Move pin
+                  </button>
+                </div>
+              }
+            </section>
+
+            <section class="group" aria-labelledby="photos-title">
+              <div class="top">
+                <h2
+                  id="photos-title"
+                  class="group__title"
+                  tabindex="-1"
+                  data-testid="photos-title"
+                >
+                  Photos ({{ spot.photos.length }})
+                </h2>
+                <label
+                  class="button phosphor-bloom phosphor-bloom--plate"
+                  appPointerBloom
+                >
+                  Add photos
+                  <input
+                    class="file-input"
+                    type="file"
+                    accept="image/*,.heic,.heif"
+                    multiple
+                    data-testid="add-photos-input"
+                    (change)="addPhotos($event)"
+                  />
+                </label>
+              </div>
+              <ol class="photos">
+                @for (
+                  key of spot.photos;
+                  track key;
+                  let i = $index, first = $first, last = $last, count = $count
+                ) {
+                  <li
+                    class="photo fade"
+                    data-testid="photo-item"
+                    [attr.data-key]="key"
+                    [class.photo--settling]="settling().has(key)"
+                    animate.leave="fade--leaving"
+                  >
+                    @if (thumbUrl(key); as url) {
+                      <img
+                        [src]="url"
+                        [alt]="'Photo ' + (i + 1) + ' of ' + count"
+                        width="104"
+                        height="78"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    } @else {
+                      <span></span>
+                    }
+                    <div class="photo__actions">
+                      <button
+                        type="button"
+                        class="button phosphor-bloom phosphor-bloom--plate"
+                        appPointerBloom
+                        data-testid="photo-earlier"
+                        [attr.aria-label]="
+                          '< Move photo ' + (i + 1) + ' earlier'
+                        "
+                        [disabled]="first"
+                        (click)="movePhoto(key, -1)"
+                      >
+                        &lt;
+                      </button>
+                      <button
+                        type="button"
+                        class="button phosphor-bloom phosphor-bloom--plate"
+                        appPointerBloom
+                        data-testid="photo-later"
+                        [attr.aria-label]="'> Move photo ' + (i + 1) + ' later'"
+                        [disabled]="last"
+                        (click)="movePhoto(key, 1)"
+                      >
+                        &gt;
+                      </button>
+                      <button
+                        type="button"
+                        class="button button--danger phosphor-bloom phosphor-bloom--plate"
+                        appPointerBloom
+                        data-testid="photo-remove"
+                        [attr.aria-label]="'X Remove photo ' + (i + 1)"
+                        (click)="askRemovePhoto(key)"
+                      >
+                        X
+                      </button>
+                    </div>
+                    @if (confirmingRemoval() === key) {
+                      <div
+                        class="panel panel--danger fade"
+                        role="group"
+                        [attr.aria-label]="'Remove photo ' + (i + 1)"
+                        animate.leave="fade--leaving"
+                      >
+                        <p>
+                          Remove photo {{ i + 1 }}? Both its files are deleted.
+                        </p>
+                        <div class="actions">
+                          <button
+                            type="button"
+                            class="button button--danger phosphor-bloom phosphor-bloom--plate"
+                            appPointerBloom
+                            data-testid="photo-remove-confirm"
+                            (click)="removePhoto(key)"
+                          >
+                            Remove
+                          </button>
+                          <button
+                            type="button"
+                            class="button phosphor-bloom phosphor-bloom--plate"
+                            appPointerBloom
+                            data-testid="photo-remove-cancel"
+                            (click)="cancelRemovePhoto(key)"
+                          >
+                            Keep
+                          </button>
+                        </div>
+                      </div>
+                    }
+                  </li>
+                }
+              </ol>
+            </section>
+
+            <section class="group" aria-labelledby="visibility-title">
+              <h2 id="visibility-title" class="group__title">Visibility</h2>
+              @if (spot.deletedAt !== null) {
+                <p>Deleted: hidden from the public map until restored.</p>
+                <div class="actions">
+                  <button
+                    type="button"
+                    class="button phosphor-bloom phosphor-bloom--plate"
+                    appPointerBloom
+                    data-testid="restore-spot"
+                    (click)="restoreSpot()"
+                  >
+                    Restore spot
+                  </button>
+                </div>
+              } @else if (confirmingDelete()) {
+                <div
+                  class="panel panel--danger fade"
+                  role="group"
+                  aria-labelledby="delete-question"
+                  animate.leave="fade--leaving"
+                >
+                  <p id="delete-question">
+                    Delete {{ spot.name }}? It leaves the public map; you can
+                    restore it here.
+                  </p>
+                  <div class="actions">
+                    <button
+                      type="button"
+                      class="button button--danger phosphor-bloom phosphor-bloom--plate"
+                      appPointerBloom
+                      data-testid="delete-confirm"
+                      (click)="deleteSpot()"
+                    >
+                      Delete spot
+                    </button>
+                    <button
+                      type="button"
+                      class="button phosphor-bloom phosphor-bloom--plate"
+                      appPointerBloom
+                      data-testid="delete-cancel"
+                      (click)="cancelDelete()"
+                    >
+                      Keep
+                    </button>
+                  </div>
+                </div>
+              } @else {
+                <div class="actions fade" animate.leave="fade--leaving">
+                  <button
+                    type="button"
+                    class="button button--danger phosphor-bloom phosphor-bloom--plate"
+                    appPointerBloom
+                    data-testid="delete-spot"
+                    (click)="askDelete()"
+                  >
+                    Delete spot
+                  </button>
+                </div>
+              }
+            </section>
+          </div>
+        }
+      }
+    }
+  </div>
+
+  <div class="dock">
+    <p
+      class="status"
+      role="status"
+      aria-live="polite"
+      data-testid="edit-status"
+      [attr.data-kind]="editStatus().kind"
+    >
+      @for (line of statusLines(); track line) {
+        <span class="status__line" animate.leave="fade--leaving">{{
+          line
+        }}</span>
+      }
+    </p>
+    @if (spot() !== null) {
+      <button
+        type="submit"
+        form="details-form"
+        class="button button--primary phosphor-bloom phosphor-bloom--plate"
+        appPointerBloom
+        data-testid="save-details"
+        [attr.aria-disabled]="!canSaveDetails()"
+      >
+        Save changes
+      </button>
+    }
+  </div>
+</section>

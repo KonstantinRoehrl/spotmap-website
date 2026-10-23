@@ -1,0 +1,82 @@
+/* Rules the admin pages (spot list, spot edit, create-or-attach) share. Each of those components lists
+   this file first in styleUrls and its own stylesheet last, so a component rule still wins at equal
+   specificity. Only declarations identical across the pages live here; a page that needs a variant
+   (the tag's colour, say) adds just the difference in its own stylesheet. */
+
+.tag {
+  padding: 1px 6px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  border: 1px solid var(--color-phosphor-deep);
+  border-radius: var(--radius-sm);
+}
+
+.field__control:focus-visible {
+  outline: none;
+  border-color: var(--color-phosphor);
+  box-shadow: var(--glow-edge-frame);
+}
+
+.select {
+  position: relative;
+}
+
+.select .field__control {
+  appearance: none;
+  padding-right: 40px;
+}
+
+.select::after {
+  content: '';
+  position: absolute;
+  top: calc(50% - 2px);
+  right: 14px;
+  border: 5px solid transparent;
+  border-top-color: var(--color-phosphor-dim);
+  pointer-events: none;
+}
+
+/* A block that appears or goes away inside a step. It fades while its height and the parent's gap
+   (--reveal-gap) ease, so what follows glides instead of jumping. The inner box bleeds 14px (the
+   step's padding) so focus rings and glows are not clipped. Reduced motion keeps only the fade:
+   --shut and --pull then leave the block's height alone, as the transform eases are dropped there.
+   Only the create-or-attach template uses it today; the host sets --reveal-gap. */
+.reveal {
+  --shut: 0fr;
+  --pull: calc(var(--reveal-gap) * -1);
+  display: grid;
+  grid-template-rows: 1fr;
+  transition:
+    opacity var(--dur-fade),
+    grid-template-rows var(--dur-fast) var(--ease-out-expo),
+    margin-top var(--dur-fast) var(--ease-out-expo);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    --shut: 1fr;
+    --pull: 0px;
+  }
+}
+
+.reveal__inner {
+  min-height: 0;
+  padding: 14px;
+  margin: -14px;
+  overflow: hidden;
+}
+
+@starting-style {
+  .reveal {
+    opacity: 0;
+    grid-template-rows: var(--shut);
+    margin-top: var(--pull);
+  }
+}
+
+.reveal--leaving {
+  opacity: 0;
+  grid-template-rows: var(--shut);
+  margin-top: var(--pull);
+  pointer-events: none;
+}

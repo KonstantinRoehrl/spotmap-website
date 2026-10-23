@@ -1,14 +1,19 @@
+import { Location } from '@angular/common';
 import {
   Component,
   signal,
   ChangeDetectionStrategy,
   HostListener,
   OnInit,
+  inject,
 } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { filter } from 'rxjs';
 import { AsciiAnimationTextComponent } from './modules/components/ascii-animation-text/ascii-animation-text.component';
 import { NavBarComponent } from './modules/components/nav-bar/nav-bar.component';
 import { PointerBloomDirective } from './modules/directives/pointer-bloom.directive';
+import { isAdminPath } from './utils/admin-path';
 
 // Session-scoped flag so the intro only plays on the first visit of a browser
 // session. Cleared automatically when the tab/session ends.
@@ -17,7 +22,8 @@ const INTRO_SEEN_KEY = 'spotmap:introSeen';
 /**
  * The app shell: plays the once-per-session ASCII intro (skippable by click, Esc or the
  * `[ SKIP ]` button, which carries the shared pointer bloom), then reveals the nav bar and the
- * routed page.
+ * routed page. On the hidden admin routes it skips the intro without marking it seen and hides
+ * the public nav bar; the admin shell brings its own header.
  */
 @Component({
   selector: 'app-root',
@@ -34,12 +40,34 @@ const INTRO_SEEN_KEY = 'spotmap:introSeen';
 export class AppComponent implements OnInit {
   title = 'spotmap-website';
   protected introFinished = signal<boolean>(false);
+  /**
+   * Whether the current route is in the admin tree. Read from `Location` at construction — the
+   * router's first navigation has not ended yet, and a sign-in link lands here before it — and
+   * from every `NavigationEnd` after that.
+   */
+  protected readonly onAdminRoute = signal(
+    isAdminPath(inject(Location).path()),
+  );
+
+  constructor() {
+    inject(Router)
+      .events.pipe(
+        filter(
+          (event): event is NavigationEnd => event instanceof NavigationEnd,
+        ),
+        takeUntilDestroyed(),
+      )
+      .subscribe((event) =>
+        this.onAdminRoute.set(isAdminPath(event.urlAfterRedirects)),
+      );
+  }
 
   ngOnInit(): void {
-    // Already played this session → skip the intro and reveal content immediately
-    // (never mount the animation). Deliberately does NOT force a route, so
-    // reloading or deep-linking /home, /map, or /about stays on that page.
-    if (this.hasSeenIntro()) {
+    // Already played this session, or opened on an admin route → skip the intro and reveal
+    // content immediately (never mount the animation). Deliberately does NOT force a route, so
+    // reloading or deep-linking /home, /map, /about or /admin stays on that page. The admin case
+    // does not mark the intro seen: the maintainer's first public visit still plays it.
+    if (this.onAdminRoute() || this.hasSeenIntro()) {
       this.introFinished.set(true);
     }
   }

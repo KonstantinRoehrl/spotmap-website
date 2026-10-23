@@ -1,0 +1,584 @@
+<!-- Outside every step and empty at first, so the region exists before its first announcement. -->
+<p class="sr-only" role="status" aria-live="polite" data-testid="announcer">
+  {{ announcement() }}
+</p>
+
+<div class="steps">
+  @switch (step()) {
+    @case ('pick') {
+      <section
+        class="step"
+        animate.leave="step--leaving"
+        data-testid="step-pick"
+      >
+        <h2
+          #stepHeading
+          class="step__heading"
+          tabindex="-1"
+          data-testid="step-heading"
+        >
+          Add photos of one spot
+        </h2>
+        <p class="dim">
+          Photos picked together land on the same spot, in this order.
+        </p>
+        <div class="pick">
+          <label class="pick__button phosphor-bloom" appPointerBloom>
+            <input
+              class="sr-only"
+              type="file"
+              accept="image/*"
+              multiple
+              data-testid="photo-input"
+              (change)="onFilesPicked($event)"
+            />
+            Choose photos
+          </label>
+          <label class="pick__button phosphor-bloom" appPointerBloom>
+            <input
+              class="sr-only"
+              type="file"
+              accept="image/*"
+              capture="environment"
+              data-testid="camera-input"
+              (change)="onFilesPicked($event)"
+            />
+            Take a photo
+          </label>
+        </div>
+      </section>
+    }
+
+    @case ('processing') {
+      <section
+        class="step"
+        animate.leave="step--leaving"
+        data-testid="step-processing"
+      >
+        <h2
+          #stepHeading
+          class="step__heading"
+          tabindex="-1"
+          data-testid="step-heading"
+        >
+          Processing photos
+        </h2>
+        <ol class="batch">
+          @for (item of items(); track item.id) {
+            <li class="batch__item" [attr.data-testid]="'batch-item-' + $index">
+              @if (item.thumbUrl) {
+                <img class="batch__thumb" [src]="item.thumbUrl" alt="" />
+              }
+              <span class="batch__name">{{ item.file.name }}</span>
+              @switch (item.state) {
+                @case ('processing') {
+                  <span class="dim">processing…</span>
+                }
+                @case ('done') {
+                  <span class="dim">ready</span>
+                }
+                @case ('failed') {
+                  <span class="line care" [id]="'photo-error-' + item.id">{{
+                    item.error
+                  }}</span>
+                  <button
+                    type="button"
+                    class="action phosphor-bloom"
+                    appPointerBloom
+                    [attr.aria-describedby]="'photo-error-' + item.id"
+                    data-testid="photo-retry"
+                    (click)="retryPhoto(item.id)"
+                  >
+                    Retry
+                  </button>
+                  <button
+                    type="button"
+                    class="action phosphor-bloom"
+                    appPointerBloom
+                    [attr.aria-describedby]="'photo-error-' + item.id"
+                    data-testid="photo-drop"
+                    (click)="dropPhoto(item.id)"
+                  >
+                    Drop from batch
+                  </button>
+                }
+              }
+            </li>
+          }
+        </ol>
+      </section>
+    }
+
+    @case ('place') {
+      <section
+        class="step"
+        animate.leave="step--leaving"
+        data-testid="step-place"
+      >
+        <h2
+          #stepHeading
+          class="step__heading"
+          tabindex="-1"
+          data-testid="step-heading"
+        >
+          Place the spot
+        </h2>
+
+        <div class="field">
+          <label for="spot-city">City</label>
+          <select
+            id="spot-city"
+            class="field__control"
+            data-testid="city-select"
+            [attr.aria-describedby]="citiesFailure() ? 'cities-error' : null"
+            (change)="chooseCity(valueOf($event))"
+          >
+            <option
+              value=""
+              disabled
+              [selected]="city() === null && !addingCity()"
+            >
+              Choose a city
+            </option>
+            @for (slug of cities(); track slug) {
+              <option
+                [value]="slug"
+                [selected]="slug === city() && !addingCity()"
+              >
+                {{ slug }}
+              </option>
+            }
+            <option [value]="NEW_CITY" [selected]="addingCity()">
+              New city…
+            </option>
+          </select>
+          @if (citiesFailure(); as message) {
+            <div class="reveal" animate.leave="reveal--leaving">
+              <div class="reveal__inner">
+                <p
+                  id="cities-error"
+                  class="line care"
+                  data-testid="cities-error"
+                >
+                  {{ message }}
+                </p>
+                <button
+                  type="button"
+                  class="action phosphor-bloom"
+                  appPointerBloom
+                  (click)="loadCities()"
+                >
+                  Retry
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+
+        @if (addingCity()) {
+          <div class="reveal" animate.leave="reveal--leaving">
+            <div class="reveal__inner">
+              <div class="field" data-testid="new-city">
+                <label for="new-city-slug">New city slug</label>
+                <input
+                  id="new-city-slug"
+                  class="field__control"
+                  autocomplete="off"
+                  autocapitalize="none"
+                  data-testid="new-city-slug"
+                  [value]="newCitySlug()"
+                  [attr.aria-invalid]="newCityError() !== null"
+                  [attr.aria-describedby]="
+                    newCityError() ? 'new-city-error' : null
+                  "
+                  (input)="newCitySlug.set(valueOf($event))"
+                />
+                @if (newCityError(); as message) {
+                  <div class="reveal" animate.leave="reveal--leaving">
+                    <div class="reveal__inner">
+                      <p
+                        id="new-city-error"
+                        class="line care"
+                        data-testid="new-city-error"
+                      >
+                        {{ message }}
+                      </p>
+                    </div>
+                  </div>
+                }
+                <button
+                  type="button"
+                  class="action phosphor-bloom"
+                  appPointerBloom
+                  data-testid="new-city-create"
+                  [disabled]="creatingCity()"
+                  (click)="createCity()"
+                >
+                  Create city
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+
+        @if (spreadM() > BATCH_SPREAD_WARN_M) {
+          <div class="reveal" animate.leave="reveal--leaving">
+            <div class="reveal__inner">
+              <div class="spread" role="alert" data-testid="spread-warning">
+                <p class="line care">
+                  These photos were taken {{ spreadM().toFixed(0) }} m apart,
+                  more than {{ BATCH_SPREAD_WARN_M }} m. They may show different
+                  spots: drop the ones that do and add them separately.
+                </p>
+                <ul class="batch">
+                  @for (item of gpsItems(); track item.id) {
+                    <li class="batch__item">
+                      @if (item.thumbUrl) {
+                        <img
+                          class="batch__thumb"
+                          [src]="item.thumbUrl"
+                          alt=""
+                        />
+                      }
+                      <span class="batch__name">{{ item.file.name }}</span>
+                      <button
+                        type="button"
+                        class="action phosphor-bloom"
+                        appPointerBloom
+                        data-testid="spread-drop"
+                        (click)="dropPhoto(item.id)"
+                      >
+                        Drop from batch
+                      </button>
+                    </li>
+                  }
+                </ul>
+              </div>
+            </div>
+          </div>
+        }
+
+        @if (cityCentreFailure(); as message) {
+          <div class="reveal" animate.leave="reveal--leaving">
+            <div class="reveal__inner">
+              <p class="line care" data-testid="city-centre-error">
+                {{ message }}
+              </p>
+              <button
+                type="button"
+                class="action phosphor-bloom"
+                appPointerBloom
+                (click)="ensureCityCentre()"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        }
+        @if (token(); as token) {
+          @if (token.status === 'failed') {
+            <div class="reveal" animate.leave="reveal--leaving">
+              <div class="reveal__inner">
+                <p class="line care" data-testid="token-error">
+                  The imagery key did not load: {{ token.message }}
+                </p>
+                <button
+                  type="button"
+                  class="action phosphor-bloom"
+                  appPointerBloom
+                  data-testid="token-retry"
+                  (click)="loadToken()"
+                >
+                  Retry
+                </button>
+              </div>
+            </div>
+          }
+        }
+
+        @if (view(); as view) {
+          @if (token().status !== 'loading') {
+            <div class="reveal" animate.leave="reveal--leaving">
+              <div class="reveal__inner">
+                <app-satellite-picker
+                  [centre]="view.centre"
+                  [zoom]="view.zoom"
+                  [token]="pickerToken()"
+                  (position)="position.set($event)"
+                />
+              </div>
+            </div>
+          }
+        } @else {
+          <div class="reveal" animate.leave="reveal--leaving">
+            <div class="reveal__inner">
+              <p class="dim" data-testid="needs-city">
+                None of these photos carries a location. Choose the city to open
+                the map on it.
+              </p>
+            </div>
+          </div>
+        }
+
+        <div class="field">
+          <label for="spot-name">Name</label>
+          <input
+            id="spot-name"
+            class="field__control"
+            data-testid="spot-name"
+            [value]="name()"
+            (input)="name.set(valueOf($event))"
+          />
+        </div>
+        <fieldset class="field">
+          <legend>Status</legend>
+          <label class="choice">
+            <input
+              type="radio"
+              name="spot-status"
+              value="active"
+              data-testid="status-active"
+              [checked]="status() === 'active'"
+              (change)="status.set('active')"
+            />
+            Active
+          </label>
+          <label class="choice">
+            <input
+              type="radio"
+              name="spot-status"
+              value="demolished"
+              data-testid="status-demolished"
+              [checked]="status() === 'demolished'"
+              (change)="status.set('demolished')"
+            />
+            Demolished
+          </label>
+        </fieldset>
+        <div class="field">
+          <label for="spot-notes">Description (optional)</label>
+          <textarea
+            id="spot-notes"
+            class="field__control"
+            rows="3"
+            placeholder="Access, surface, what to bring. Shown on the map popup as written."
+            data-testid="spot-notes"
+            [value]="notes()"
+            (input)="notes.set(valueOf($event))"
+          ></textarea>
+        </div>
+
+        <p class="dim" id="save-hint">
+          Spots within 25 m, or of the same name within 100 m, are checked
+          first.
+        </p>
+        <button
+          type="button"
+          class="action action--primary phosphor-bloom"
+          appPointerBloom
+          aria-describedby="save-hint"
+          data-testid="save"
+          [disabled]="!canSave()"
+          (click)="check()"
+        >
+          Save
+        </button>
+      </section>
+    }
+
+    @case ('checking') {
+      <section
+        class="step"
+        animate.leave="step--leaving"
+        data-testid="step-checking"
+      >
+        <h2
+          #stepHeading
+          class="step__heading"
+          tabindex="-1"
+          data-testid="step-heading"
+        >
+          Checking for nearby spots
+        </h2>
+        <ng-container *ngTemplateOutlet="failurePanel" />
+      </section>
+    }
+
+    @case ('resolve') {
+      <section
+        class="step"
+        animate.leave="step--leaving"
+        data-testid="step-resolve"
+      >
+        <h2
+          #stepHeading
+          class="step__heading"
+          tabindex="-1"
+          data-testid="step-heading"
+        >
+          Spots nearby
+        </h2>
+        <ul class="candidates">
+          @for (candidate of candidates(); track candidate.id) {
+            <li
+              class="candidate"
+              [attr.data-testid]="'candidate-' + candidate.id"
+            >
+              <p class="candidate__name">
+                {{ candidate.name }}
+                @if (candidate.deleted) {
+                  <span class="tag" data-testid="candidate-deleted"
+                    >deleted</span
+                  >
+                }
+              </p>
+              <p class="dim">
+                {{ candidate.city }} · {{ candidate.distanceM.toFixed(1) }} m ·
+                {{ candidate.photoCount }}
+                {{ candidate.photoCount === 1 ? 'photo' : 'photos' }} ·
+                {{
+                  candidate.match === 'position'
+                    ? 'within 25 m'
+                    : 'same name within 100 m'
+                }}
+              </p>
+              @if (candidate.deleted) {
+                <button
+                  type="button"
+                  class="action phosphor-bloom"
+                  appPointerBloom
+                  data-testid="restore-attach"
+                  (click)="restoreAndAttach(candidate)"
+                >
+                  Restore and attach
+                </button>
+              } @else {
+                <button
+                  type="button"
+                  class="action action--primary phosphor-bloom"
+                  appPointerBloom
+                  data-testid="attach"
+                  (click)="attach(candidate)"
+                >
+                  Attach here
+                </button>
+              }
+            </li>
+          }
+        </ul>
+        <button
+          type="button"
+          class="action action--care phosphor-bloom"
+          appPointerBloom
+          data-testid="create-anyway"
+          (click)="createNew()"
+        >
+          Create a new spot anyway
+        </button>
+        <button
+          type="button"
+          class="action phosphor-bloom"
+          appPointerBloom
+          data-testid="back-to-place"
+          (click)="backToPlace()"
+        >
+          Back to placement
+        </button>
+      </section>
+    }
+
+    @case ('saving') {
+      <section
+        class="step"
+        animate.leave="step--leaving"
+        data-testid="step-saving"
+      >
+        <h2
+          #stepHeading
+          class="step__heading"
+          tabindex="-1"
+          data-testid="step-heading"
+        >
+          Saving
+        </h2>
+        <ng-container *ngTemplateOutlet="failurePanel" />
+      </section>
+    }
+
+    @case ('done') {
+      <section
+        class="step"
+        animate.leave="step--leaving"
+        data-testid="step-done"
+      >
+        <h2
+          #stepHeading
+          class="step__heading"
+          tabindex="-1"
+          data-testid="step-heading"
+        >
+          Saved {{ saved()?.name }}
+        </h2>
+        <p class="dim" data-testid="saved-id">
+          {{ saved()?.city }} · {{ saved()?.id }}
+        </p>
+        <ul class="thumbs">
+          @for (url of savedThumbs(); track url) {
+            <li>
+              <img
+                class="batch__thumb"
+                [src]="url"
+                [alt]="'Photo ' + ($index + 1) + ' of ' + saved()?.name"
+              />
+            </li>
+          }
+        </ul>
+        <button
+          type="button"
+          class="action action--primary phosphor-bloom"
+          appPointerBloom
+          data-testid="add-another"
+          (click)="addAnother()"
+        >
+          Add another spot
+        </button>
+      </section>
+    }
+  }
+</div>
+
+<ng-template #failurePanel>
+  @if (failure(); as failure) {
+    <div class="reveal" animate.leave="reveal--leaving">
+      <div class="reveal__inner">
+        <div class="failure" role="alert" data-testid="failure">
+          <p class="line care">{{ failure.message }}</p>
+          <button
+            type="button"
+            class="action phosphor-bloom"
+            appPointerBloom
+            data-testid="failure-retry"
+            (click)="failure.retry()"
+          >
+            Retry
+          </button>
+          <button
+            type="button"
+            class="action phosphor-bloom"
+            appPointerBloom
+            data-testid="back-to-place"
+            (click)="backToPlace()"
+          >
+            Back to placement
+          </button>
+        </div>
+      </div>
+    </div>
+  } @else {
+    <div class="reveal" animate.leave="reveal--leaving">
+      <div class="reveal__inner">
+        <p class="dim">One moment…</p>
+      </div>
+    </div>
+  }
+</ng-template>

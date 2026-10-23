@@ -25,8 +25,8 @@ export interface SpotSource {
 }
 
 /**
- * The served attributes of one spot pin — what the bundled `public/spots/<city>.geojson` snapshot
- * and the live `city_spots()` query both carry, built by tools/extract-spots/served-record.mjs:
+ * The served attributes of one spot pin — what the live `city_spots()` query returns and
+ * the bundled `public/spots/<city>.geojson` snapshot (exported from it by `npm run snapshot:supabase`) carries:
  * its stable id, display name, `SpotStatus`, notes and photo keys. Carried on
  * `SpotFeature.properties` and rendered by `SpotPopupComponent`.
  */
@@ -57,8 +57,8 @@ export interface SpotFeature {
 
 /**
  * The GeoJSON `FeatureCollection` of a city's spots: the live `city_spots()` answer, or the
- * bundled `spots/{city}.geojson` snapshot promoted from data/spots/ by
- * tools/extract-spots/promote.mjs — the same shape either way. The collection
+ * bundled `spots/{city}.geojson` snapshot exported from the database by
+ * `npm run snapshot:supabase` — the same shape either way. The collection
  * `SpotsService.loadSpots()` ends with; `SpotMapComponent` feeds it straight into MapLibre as the pins
  * source.
  */

@@ -47,7 +47,7 @@ src/.impeccable/
 
 # Spot extraction tool (tools/extract-spots): photos and caches stay local;
 # data/spots/*.geojson, *.report.json and sources.json are committed, and so are
-# their promoted copies public/spots/<city>.geojson (promote.mjs).
+# the snapshots public/spots/<city>.geojson (exported by tools/sync-supabase/snapshot.mjs).
 # data/thumbs/ holds the sync's derived thumbnails (tools/sync-supabase), local like the photos.
 /data/.cache/
 /data/spots/*/

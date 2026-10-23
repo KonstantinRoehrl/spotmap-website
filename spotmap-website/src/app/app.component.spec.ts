@@ -1,6 +1,13 @@
+import { Location } from '@angular/common';
+import { provideLocationMocks } from '@angular/common/testing';
+import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { AppComponent } from './app.component';
+
+/** A routed page with nothing in it, so navigations have somewhere to land. */
+@Component({ template: '' })
+class BlankPageComponent {}
 
 describe('AppComponent', () => {
   beforeEach(async () => {
@@ -87,5 +94,49 @@ describe('AppComponent', () => {
       '.intro-skip',
     )!;
     expect(skip.classList).toContain('phosphor-bloom');
+  });
+});
+
+describe('AppComponent on the admin routes', () => {
+  beforeEach(async () => {
+    sessionStorage.clear();
+    await TestBed.configureTestingModule({
+      imports: [AppComponent],
+      providers: [
+        provideRouter([
+          { path: 'admin', component: BlankPageComponent },
+          { path: 'map', component: BlankPageComponent },
+        ]),
+        provideLocationMocks(),
+      ],
+    }).compileComponents();
+  });
+
+  it('skips the intro and hides the public nav bar when the app opens on an admin path', () => {
+    TestBed.inject(Location).go('/admin/sign-in');
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('app-ascii-animation-text')).toBeNull();
+    expect(el.querySelector('app-nav-bar')).toBeNull();
+    expect(el.querySelector('router-outlet')).not.toBeNull();
+    // The public intro still plays on the maintainer's first public visit.
+    expect(sessionStorage.getItem('spotmap:introSeen')).toBeNull();
+  });
+
+  it('hides the public nav bar after navigating into the admin routes, and shows it again outside them', async () => {
+    sessionStorage.setItem('spotmap:introSeen', '1');
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('app-nav-bar')).not.toBeNull();
+
+    await TestBed.inject(Router).navigateByUrl('/admin');
+    fixture.detectChanges();
+    expect(el.querySelector('app-nav-bar')).toBeNull();
+
+    await TestBed.inject(Router).navigateByUrl('/map');
+    fixture.detectChanges();
+    expect(el.querySelector('app-nav-bar')).not.toBeNull();
   });
 });

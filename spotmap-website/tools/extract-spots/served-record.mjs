@@ -1,8 +1,9 @@
 /**
- * The served record of a spot: what the bundled snapshot (public/spots/<city>.geojson, written by
- * promote.mjs) and the live database (written by tools/sync-supabase) both carry, and what the
- * app reads as `SpotProperties` (src/app/models/spots/spot.ts). One builder for both, so the live
- * read and the snapshot it falls back to cannot drift apart in shape.
+ * The served record of a spot: what the database carries (written by tools/sync-supabase), what
+ * `city_spots()` returns and `npm run snapshot:supabase` exports into the bundled snapshot
+ * (public/spots/<city>.geojson), and what the app reads as `SpotProperties`
+ * (src/app/models/spots/spot.ts). One builder for the sync's rows, so a spot inserted from
+ * My Maps has the same shape as one the maintainer tool creates.
  */
 
 /** A data/spots photo path, `spots/<city>/<file>.webp`; the capture is the object key. */
@@ -41,8 +42,8 @@ export function notesOf(sources) {
 
 /**
  * The served record of a data/spots feature's properties, keys in served order. `notes` is
- * written as null rather than left out, because the live query writes null and the parity check
- * compares the two exactly. The input is never mutated.
+ * written as null rather than left out, because the database stores a missing note as null and
+ * `city_spots()` returns it that way. The input is never mutated.
  *
  * @param {{ id: string, name: string, status: 'active' | 'demolished', photos: string[],
  *   sources: { description?: string }[] }} properties a data/spots feature's properties

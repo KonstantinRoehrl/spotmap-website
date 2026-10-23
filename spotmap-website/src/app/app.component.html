@@ -23,19 +23,24 @@
     </div>
   }
 
-  <!-- Show routed content after intro -->
+  <!-- Show routed content after intro; the admin routes bring their own header. -->
   @if (introFinished()) {
-    <app-nav-bar
-      [links]="[
-        { name: 'Home', url: '/home', icon: '⌂' },
-        { name: 'Map', url: '/map', icon: '⌖' },
-        { name: 'About', url: '/about', icon: 'ⓘ' },
-      ]"
-      class="nav-bar"
-    >
-    </app-nav-bar>
+    @if (!onAdminRoute()) {
+      <app-nav-bar
+        [links]="[
+          { name: 'Home', url: '/home', icon: '⌂' },
+          { name: 'Map', url: '/map', icon: '⌖' },
+          { name: 'About', url: '/about', icon: 'ⓘ' },
+        ]"
+        class="nav-bar"
+      >
+      </app-nav-bar>
+    }
 
-    <div class="content-container flex-auto px-6">
+    <div
+      class="content-container flex-auto px-6"
+      [class.content-container--admin]="onAdminRoute()"
+    >
       <router-outlet></router-outlet>
     </div>
   }

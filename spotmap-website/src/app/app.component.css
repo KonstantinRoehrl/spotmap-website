@@ -74,3 +74,9 @@
     padding-bottom: 16px;
   }
 }
+
+/* Admin routes show no public nav bar, so no room is kept for the mobile bottom bar. Two classes
+   outrank the single-class rules in the media queries above. */
+.content-container.content-container--admin {
+  padding-bottom: 16px;
+}

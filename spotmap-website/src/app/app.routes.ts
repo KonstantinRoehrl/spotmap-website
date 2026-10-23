@@ -20,8 +20,14 @@ export const routes: Routes = [
         (m) => m.AboutComponent,
       ),
   },
+  // The maintainer tool: no link from the public UI; lazy, so the public bundle carries none of it.
+  {
+    path: 'admin',
+    loadChildren: () =>
+      import('./modules/pages/admin/admin.routes').then((m) => m.ADMIN_ROUTES),
+  },
   // Root has no requested page → land on the map (the intro's default
-  // destination). Explicit /home, /map, /about are matched above and preserved.
+  // destination). Explicit /home, /map, /about, /admin are matched above and preserved.
   { path: '', redirectTo: 'map', pathMatch: 'full' },
   { path: '**', redirectTo: 'home' },
 ];
