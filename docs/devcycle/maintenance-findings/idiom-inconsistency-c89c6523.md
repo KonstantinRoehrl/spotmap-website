@@ -1,0 +1,11 @@
+# Angular idioms are inconsistent: CommonModule, MatOptionModule, @HostListener and ngOnInit where specific imports, host metadata and field initialisers fit
+- finding-kind: maintenance-finding
+- finding-id: idiom-inconsistency:c89c6523
+- culprit-kind: idiom-inconsistency
+- severity: low
+- confidence: verified
+- affected-files: spotmap-website/src/app/modules/pages/map/map.component.ts, spotmap-website/src/app/app.component.ts
+- first-seen: 2026-10-23
+- last-seen: 2026-10-23
+- passes: 1
+- verify: 

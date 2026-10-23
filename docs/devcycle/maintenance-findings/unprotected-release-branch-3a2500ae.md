@@ -1,0 +1,11 @@
+# A direct push to main deploys without CI because main has no branch protection
+- finding-kind: maintenance-finding
+- finding-id: unprotected-release-branch:3a2500ae
+- culprit-kind: unprotected-release-branch
+- severity: medium
+- confidence: verified
+- affected-files: .github/workflows/deploy-angular.yml, .github/workflows/ci.yml
+- first-seen: 2026-10-23
+- last-seen: 2026-10-23
+- passes: 1
+- verify: 

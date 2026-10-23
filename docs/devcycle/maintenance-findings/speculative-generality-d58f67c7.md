@@ -1,0 +1,11 @@
+# PhotoSize 'full' is never requested by the app
+- finding-kind: maintenance-finding
+- finding-id: speculative-generality:d58f67c7
+- culprit-kind: speculative-generality
+- severity: low
+- confidence: verified
+- affected-files: spotmap-website/src/app/services/spotmap-backend.ts
+- first-seen: 2026-10-23
+- last-seen: 2026-10-23
+- passes: 1
+- verify: 

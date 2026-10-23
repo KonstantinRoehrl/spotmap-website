@@ -1,0 +1,11 @@
+# spot-map imports the MapLoadEvent type from its parent map-container folder
+- finding-kind: maintenance-finding
+- finding-id: dependency-direction:250c2fa0
+- culprit-kind: dependency-direction
+- severity: low
+- confidence: verified
+- affected-files: spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts, spotmap-website/src/app/modules/components/map-container/map-load-progress.ts
+- first-seen: 2026-10-23
+- last-seen: 2026-10-23
+- passes: 1
+- verify: 

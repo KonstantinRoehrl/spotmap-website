@@ -1,0 +1,11 @@
+# README says the production backend is unconfigured and the hosted rollout is pending, but environment.prod.ts is live
+- finding-kind: maintenance-finding
+- finding-id: docs-drift:15aea6c3
+- culprit-kind: docs-drift
+- severity: medium
+- confidence: verified
+- affected-files: spotmap-website/README.md, spotmap-website/src/environments/environment.prod.ts
+- first-seen: 2026-10-23
+- last-seen: 2026-10-23
+- passes: 1
+- verify: 

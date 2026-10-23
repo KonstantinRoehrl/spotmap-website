@@ -1,0 +1,11 @@
+# The popup factory lives in app.config.ts beside none of its sibling factories, and app.config.spec omits it
+- finding-kind: maintenance-finding
+- finding-id: seam-placement:6fb621c9
+- culprit-kind: seam-placement
+- severity: low
+- confidence: verified
+- affected-files: spotmap-website/src/app/app.config.ts, spotmap-website/src/app/app.config.spec.ts, spotmap-website/src/app/modules/components/spot-map/map-factory.ts
+- first-seen: 2026-10-23
+- last-seen: 2026-10-23
+- passes: 1
+- verify: 

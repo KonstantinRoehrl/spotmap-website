@@ -1,0 +1,11 @@
+# README project structure and script list omit spot-map, spot-popup, spot-photo-gallery, pointer-bloom, services, utils and the format/verify scripts
+- finding-kind: maintenance-finding
+- finding-id: docs-drift:2a85c922
+- culprit-kind: docs-drift
+- severity: low
+- confidence: verified
+- affected-files: spotmap-website/README.md, spotmap-website/package.json
+- first-seen: 2026-10-23
+- last-seen: 2026-10-23
+- passes: 1
+- verify: 
