@@ -1,7 +1,6 @@
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 
 import { SUPPORTED_CITIES } from '../../../models/enums/config';
 import { CityEnum } from '../../../models/enums/map-enum';
@@ -46,7 +45,6 @@ describe('MapComponent', () => {
     await TestBed.configureTestingModule({
       imports: [MapComponent],
       providers: [
-        provideNoopAnimations(),
         provideHttpClient(),
         provideHttpClientTesting(),
         { provide: MAP_FACTORY, useValue: neverResolves },

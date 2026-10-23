@@ -29,7 +29,6 @@
     "npm": ">=11"
   },
   "dependencies": {
-    "@angular/animations": "^22.2.2",
     "@angular/cdk": "^22.2.2",
     "@angular/common": "^22.2.2",
     "@angular/compiler": "^22.2.2",
@@ -37,7 +36,6 @@
     "@angular/forms": "^22.2.2",
     "@angular/material": "^22.2.2",
     "@angular/platform-browser": "^22.2.2",
-    "@angular/platform-browser-dynamic": "^22.2.2",
     "@angular/router": "^22.2.2",
     "@jsquash/webp": "^1.5.0",
     "@noble/hashes": "^2.4.0",
