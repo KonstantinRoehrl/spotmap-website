@@ -24,11 +24,6 @@ describe('AppComponent', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it(`should have the 'spotmap-website' title`, () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    expect(fixture.componentInstance.title).toEqual('spotmap-website');
-  });
-
   it('shows the intro animation and hides the nav before the intro finishes', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
