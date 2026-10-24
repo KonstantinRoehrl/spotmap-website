@@ -5,6 +5,7 @@ import { appConfig } from './app.config';
 import {
   ELEVATION_LOADER,
   MAP_FACTORY,
+  POPUP_FACTORY,
 } from './modules/components/spot-map/map-factory.token';
 import { ADMIN_SUPABASE_LOADER } from './services/admin/admin-supabase';
 import { IMAGERY_CONFIG } from './services/admin/imagery';
@@ -18,6 +19,17 @@ describe('appConfig', () => {
         p !== null &&
         'provide' in p &&
         p.provide === MAP_FACTORY,
+    );
+    expect(provided).toBe(true);
+  });
+
+  it('registers a popup factory so SpotMapComponent has one outside tests', () => {
+    const provided = appConfig.providers.some(
+      (p) =>
+        typeof p === 'object' &&
+        p !== null &&
+        'provide' in p &&
+        p.provide === POPUP_FACTORY,
     );
     expect(provided).toBe(true);
   });
