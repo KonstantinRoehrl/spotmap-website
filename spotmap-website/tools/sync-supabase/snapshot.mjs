@@ -3,8 +3,10 @@
  * Exports the bundled snapshots from the database: rewrites public/spots/<city>.geojson — the
  * copy the app falls back to when the backend is down — with exactly what `city_spots(<city>)`
  * returns, with each feature's keys put back in the served order (PostgreSQL's jsonb hands object
- * keys back sorted, not as written), so the fallback follows the database. The maintainer runs it when they like and
- * commits the result; the fallback may lag the live map in between.
+ * keys back sorted, not as written), so the fallback follows the database. Then it rewrites
+ * public/spots/index.json, every snapshot spot id mapped to its city, which lets the app resolve
+ * a cold /spot/<id> link to its city's snapshot without fetching them all. The maintainer runs it
+ * when they like and commits the result; the fallback may lag the live map in between.
  *
  *   npm run snapshot:supabase [-- --hosted] [-- --city <slug>]…
  *
@@ -13,10 +15,11 @@
  * spotmap-website/.env.local first when it exists (see .env.example). The secret key bypasses
  * row-level security, which is why `city_spots()` filters soft-deleted spots itself. --hosted
  * must be given exactly when SUPABASE_URL is not the local stack, as for the sync. A city whose
- * read or write fails is named and keeps its previous snapshot; the others are still written.
+ * read or write fails is named and keeps its previous snapshot; the others are still written, and
+ * the index is built from whatever snapshots are then on disk. A failed index write is named too.
  * Exits 0 when every city was written, 1 when any failed, 2 on bad arguments or environment.
  */
-import { readdir } from 'node:fs/promises';
+import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { parseArgs } from 'node:util';
 import { writeFileAtomic } from '../extract-spots/atomic.mjs';
@@ -34,6 +37,9 @@ const GEOJSON = '.geojson';
  * order jsonb gives them. The key order the snapshot is written in is {@link servedFeature}'s.
  */
 const SERVED_KEYS = new Set(['id', 'name', 'status', 'notes', 'photos']);
+
+/** The id → city index's file name, beside the snapshots it indexes. */
+export const SPOT_INDEX_FILE = 'index.json';
 
 /**
  * One `city_spots()` feature, rebuilt with its keys in the served order — type, geometry, then
@@ -104,6 +110,41 @@ async function existingSnapshots(publicDir) {
     .filter((name) => name.endsWith(GEOJSON))
     .map((name) => name.slice(0, -GEOJSON.length))
     .sort();
+}
+
+/**
+ * Rewrites `<publicDir>/index.json`: every spot id of every snapshot in `publicDir` mapped to its
+ * city, keys sorted (by UTF-16 code unit, as `Array.prototype.sort` compares), so the app can
+ * resolve a cold /spot/<id> link to its city with the backend down. It is built from the files on
+ * disk, not from the export's answers, so a city whose export failed is indexed from the snapshot
+ * it kept.
+ *
+ * @param {string} publicDir the folder holding the snapshots
+ * @returns {Promise<number>} how many ids were written
+ * @throws {Error} when two snapshots hold the same id, or a snapshot cannot be read or parsed;
+ *   the previous index is then left as it was
+ */
+export async function writeSpotIndex(publicDir) {
+  const cityOf = new Map();
+  for (const city of await existingSnapshots(publicDir)) {
+    const collection = JSON.parse(
+      await readFile(join(publicDir, `${city}${GEOJSON}`), 'utf8'),
+    );
+    for (const feature of collection.features ?? []) {
+      const id = feature?.properties?.id;
+      if (cityOf.has(id)) {
+        throw new Error(
+          `spot id ${id} is in both ${cityOf.get(id)} and ${city}`,
+        );
+      }
+      cityOf.set(id, city);
+    }
+  }
+  const index = Object.fromEntries(
+    [...cityOf].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)),
+  );
+  await writeFileAtomic(join(publicDir, SPOT_INDEX_FILE), toJsonText(index));
+  return cityOf.size;
 }
 
 /**
@@ -193,6 +234,14 @@ export async function runSnapshot(
       failed.push(city);
       error(`${city}: FAILED — ${problem.message}`);
     }
+  }
+  // After every city, whatever failed: a failed city kept its previous snapshot, which is what
+  // the app falls back to, so the index must describe that.
+  try {
+    log(`index: ${await writeSpotIndex(publicDir)} spots`);
+  } catch (problem) {
+    failed.push('index');
+    error(`index: FAILED — ${problem.message}`);
   }
   if (failed.length > 0) {
     error(`snapshot:supabase: failed: ${failed.join(', ')}`);

@@ -1,8 +1,9 @@
 /**
  * Tests for the snapshot export: which cities it writes, what it writes (the
- * city_spots() answer, as committed JSON, with the keys in the served order), the local-or-hosted target guard shared with the sync,
- * and the exit codes. The client is a fake that answers city_spots() from a table; snapshots go to
- * a temporary folder.
+ * city_spots() answer, as committed JSON, with the keys in the served order), the id → city index
+ * it writes beside them, the local-or-hosted target guard shared with the sync, and the exit
+ * codes. The client is a fake that answers city_spots() from a table; snapshots go to a temporary
+ * folder.
  */
 import { strict as assert } from 'node:assert';
 import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
@@ -10,7 +11,12 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { toJsonText } from '../extract-spots/dataset.mjs';
-import { parseSnapshotArgs, runSnapshot } from './snapshot.mjs';
+import {
+  parseSnapshotArgs,
+  runSnapshot,
+  SPOT_INDEX_FILE,
+  writeSpotIndex,
+} from './snapshot.mjs';
 
 const LOCAL = {
   SUPABASE_URL: 'http://127.0.0.1:54321',
@@ -21,22 +27,20 @@ const HOSTED = {
   SUPABASE_SECRET_KEY: 'sb_secret_test',
 };
 
-/** A city_spots() answer with one spot. */
-const answerOf = (city, id) => ({
+/** A city_spots() answer with one spot per id, in the order given. */
+const answerOf = (city, ...ids) => ({
   type: 'FeatureCollection',
-  features: [
-    {
-      type: 'Feature',
-      geometry: { type: 'Point', coordinates: [16.37, 48.2] },
-      properties: {
-        id,
-        name: 'Ledge',
-        status: 'active',
-        notes: null,
-        photos: [`${city}/${id}-0f0f0f0f.webp`],
-      },
+  features: ids.map((id) => ({
+    type: 'Feature',
+    geometry: { type: 'Point', coordinates: [16.37, 48.2] },
+    properties: {
+      id,
+      name: 'Ledge',
+      status: 'active',
+      notes: null,
+      photos: [`${city}/${id}-0f0f0f0f.webp`],
     },
-  ],
+  })),
 });
 
 /**
@@ -52,12 +56,18 @@ const jsonbAnswerOf = (city, id) => {
   return answer;
 };
 
+/**
+ * The previous snapshot of `city` a run finds on disk: a sound snapshot holding one spot,
+ * `<city>-stale`, so the index can still be built from a city whose export failed.
+ */
+const staleOf = (city) => toJsonText(answerOf(city, `${city}-stale`));
+
 /** A public folder holding a stale snapshot of each of `cities`. */
 async function publicFolder(t, cities) {
   const dir = await mkdtemp(join(tmpdir(), 'snapshot-supabase-'));
   t.after(() => rm(dir, { recursive: true, force: true }));
   for (const city of cities) {
-    await writeFile(join(dir, `${city}.geojson`), 'stale');
+    await writeFile(join(dir, `${city}.geojson`), staleOf(city));
   }
   return dir;
 }
@@ -143,6 +153,7 @@ test('every existing snapshot is rewritten with exactly the city_spots() answer'
     'target: 127.0.0.1:54321 (local stack)',
     'graz: 1 spots written',
     'vienna: 1 spots written',
+    'index: 2 spots',
   ]);
 });
 
@@ -186,7 +197,7 @@ test('a feature that is not the served shape fails its city and keeps the previo
   for (const city of ['graz', 'vienna']) {
     assert.equal(
       await readFile(join(publicDir, `${city}.geojson`), 'utf8'),
-      'stale',
+      staleOf(city),
     );
   }
   assert.ok(
@@ -221,6 +232,7 @@ test('--city adds a city that has no snapshot yet', async (t) => {
 
   assert.equal(code, 0);
   assert.deepEqual((await readdir(publicDir)).sort(), [
+    'index.json',
     'split.geojson',
     'vienna.geojson',
   ]);
@@ -241,7 +253,7 @@ test('a failed city is named, the others are still written, and the run exits 1'
   assert.equal(code, 1);
   assert.equal(
     await readFile(join(publicDir, 'graz.geojson'), 'utf8'),
-    'stale',
+    staleOf('graz'),
   );
   assert.equal(
     await readFile(join(publicDir, 'vienna.geojson'), 'utf8'),
@@ -252,6 +264,11 @@ test('a failed city is named, the others are still written, and the run exits 1'
     lines.join('\n'),
   );
   assert.equal(lines.at(-1), 'ERR snapshot:supabase: failed: graz');
+  // The failed city keeps its previous snapshot, and the index follows what is on disk.
+  assert.equal(
+    await readFile(join(publicDir, SPOT_INDEX_FILE), 'utf8'),
+    toJsonText({ 'a-1': 'vienna', 'graz-stale': 'graz' }),
+  );
 });
 
 test('an answer that is not a FeatureCollection fails its city and writes nothing', async (t) => {
@@ -266,7 +283,7 @@ test('an answer that is not a FeatureCollection fails its city and writes nothin
   assert.equal(code, 1);
   assert.equal(
     await readFile(join(publicDir, 'vienna.geojson'), 'utf8'),
-    'stale',
+    staleOf('vienna'),
   );
   assert.ok(
     lines.includes(
@@ -319,4 +336,64 @@ test('a missing key, an unknown flag and an empty public folder without --city e
     assert.deepEqual(fake.calls, []);
     assert.match(lines.join('\n'), message);
   }
+});
+
+test('the index maps every spot id to its city, keys sorted', async (t) => {
+  const publicDir = await publicFolder(t, ['graz', 'vienna']);
+  const fake = fakeConnect({
+    graz: answerOf('graz', 'm-5'),
+    vienna: answerOf('vienna', 'z-9', 'a-1'),
+  });
+
+  const { code, lines } = await snapshot([], {
+    publicDir,
+    connect: fake.connect,
+  });
+
+  assert.equal(code, 0, lines.join('\n'));
+  const text = await readFile(join(publicDir, SPOT_INDEX_FILE), 'utf8');
+  assert.equal(
+    text,
+    toJsonText({ 'a-1': 'vienna', 'm-5': 'graz', 'z-9': 'vienna' }),
+  );
+  assert.deepEqual(Object.keys(JSON.parse(text)), ['a-1', 'm-5', 'z-9']);
+  assert.ok(lines.includes('index: 3 spots'), lines.join('\n'));
+});
+
+test('writeSpotIndex skips files that are not snapshots and says how many ids it wrote', async (t) => {
+  const publicDir = await publicFolder(t, ['vienna']);
+  await writeFile(join(publicDir, '.DS_Store'), 'not json');
+  await writeFile(join(publicDir, SPOT_INDEX_FILE), 'an older index');
+
+  assert.equal(await writeSpotIndex(publicDir), 1);
+  assert.equal(
+    await readFile(join(publicDir, SPOT_INDEX_FILE), 'utf8'),
+    toJsonText({ 'vienna-stale': 'vienna' }),
+  );
+});
+
+test('an id two snapshots share fails the index, names both cities, and exits 1', async (t) => {
+  const publicDir = await publicFolder(t, ['graz', 'vienna']);
+  const fake = fakeConnect({
+    graz: answerOf('graz', 'x-1'),
+    vienna: answerOf('vienna', 'x-1'),
+  });
+
+  const { code, lines } = await snapshot([], {
+    publicDir,
+    connect: fake.connect,
+  });
+
+  assert.equal(code, 1);
+  assert.ok(
+    lines.includes(
+      'ERR index: FAILED — spot id x-1 is in both graz and vienna',
+    ),
+    lines.join('\n'),
+  );
+  assert.equal(lines.at(-1), 'ERR snapshot:supabase: failed: index');
+  assert.deepEqual((await readdir(publicDir)).sort(), [
+    'graz.geojson',
+    'vienna.geojson',
+  ]);
 });
