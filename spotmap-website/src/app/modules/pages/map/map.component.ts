@@ -1,11 +1,5 @@
-import { CommonModule, KeyValue } from '@angular/common';
-import {
-  Component,
-  OnInit,
-  signal,
-  ChangeDetectionStrategy,
-} from '@angular/core';
-import { MatOptionModule } from '@angular/material/core';
+import { KeyValue, KeyValuePipe, UpperCasePipe } from '@angular/common';
+import { Component, signal, ChangeDetectionStrategy } from '@angular/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { SUPPORTED_CITIES } from '../../../models/map/supported-cities';
@@ -22,35 +16,40 @@ import { PointerBloomDirective } from '../../directives/pointer-bloom.directive'
 @Component({
   selector: 'app-map',
   imports: [
-    CommonModule,
+    KeyValuePipe,
+    UpperCasePipe,
     AsciiAnimationTextComponent,
     MapContainerComponent,
     MatFormFieldModule,
     MatSelectModule,
-    MatOptionModule,
     PointerBloomDirective,
   ],
   templateUrl: './map.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: './map.component.css',
 })
-export class MapComponent implements OnInit {
-  protected selectedCity = signal<MapItem>(SUPPORTED_CITIES[CityEnum.Vienna]);
-
+export class MapComponent {
   // The key under which to store the last used city of the user
   protected localStorageKeyUserCity = 'userCity';
 
+  /** The city whose map is shown: the stored choice from the last visit, else Vienna. */
+  protected selectedCity = signal<MapItem>(this.storedCityOrVienna());
+
+  /** The picker's optgroups: every supported city, grouped by country and sorted by name. */
   protected citiesGroupedByCountry = signal<Map<CountryCodeEnum, MapItem[]>>(
-    new Map<CountryCodeEnum, MapItem[]>(),
+    this.citiesByCountry(),
   );
 
-  ngOnInit() {
+  /**
+   * The city remembered from the last visit, when localStorage holds one that is still a
+   * supported city; Vienna otherwise (nothing stored, an unknown key, or storage unavailable).
+   */
+  private storedCityOrVienna(): MapItem {
     const userCity = this.readStoredCity();
-    if (userCity && SUPPORTED_CITIES[userCity as CityEnum]) {
-      this.selectedCity.set(SUPPORTED_CITIES[userCity as CityEnum]);
-    }
-
-    this.citiesGroupedByCountry.set(this.citiesByCountry());
+    return (
+      (userCity && SUPPORTED_CITIES[userCity as CityEnum]) ||
+      SUPPORTED_CITIES[CityEnum.Vienna]
+    );
   }
 
   private readStoredCity(): string | null {
