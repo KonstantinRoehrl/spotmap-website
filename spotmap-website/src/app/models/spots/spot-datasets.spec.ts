@@ -1,7 +1,7 @@
 import { HttpClient, provideHttpClient } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
-import { SUPPORTED_CITIES } from '../enums/config';
+import { SUPPORTED_CITIES } from '../map/supported-cities';
 import { CityEnum } from '../enums/map-enum';
 import { SpotCollection, SpotStatus } from './spot';
 

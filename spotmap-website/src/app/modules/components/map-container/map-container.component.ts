@@ -9,7 +9,7 @@ import {
   signal,
   ChangeDetectionStrategy,
 } from '@angular/core';
-import { CityEnum, MapFailureReason } from '../../../models/enums/map-enum';
+import { CityEnum } from '../../../models/enums/map-enum';
 import { PointerBloomDirective } from '../../directives/pointer-bloom.directive';
 import { MapLoaderComponent } from '../map-loader/map-loader.component';
 import { SpotMapComponent } from '../spot-map/spot-map.component';
@@ -18,6 +18,7 @@ import {
   MapLoadProgress,
   MapLoadState,
 } from './map-load-progress';
+import type { MapFailureReason } from '../../../models/map/map-failure-reason';
 import type { MapLoadEvent } from '../../../models/map/map-load-event';
 
 /**

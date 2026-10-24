@@ -66,7 +66,8 @@ src/
       pages/admin/  # the maintainer tool: shell, sign-in, create-or-attach, spot list, spot edit (lazy)
       directives/   # glitch-text (per-character scramble),
                     # pointer-bloom (centres the shared hover bloom on the pointer)
-    models/         # admin/, enums/ (city / country / config data, SUPPORTED_CITIES), spots/
+    models/         # admin/, enums/ (city / country enums), map/ (SUPPORTED_CITIES registry,
+                    # map failure and load-event types), spots/
     services/       # spots.service.ts (live spots with snapshot fallback),
                     # spotmap-backend.ts (the backend the app talks to);
                     # admin/ (the maintainer tool's sign-in, data access, imagery and photo pipeline)
@@ -372,7 +373,7 @@ the spot. Every edit is one database call and shows saving, saved or the error.
 **New city.** "New city…" in the city field inserts a `cities` row only.
 Visitors see the city after a normal code change adds it to `CityEnum`
 (`src/app/models/enums/map-enum.ts`), `SUPPORTED_CITIES`
-(`src/app/models/enums/config.ts`) and, if it has a My Maps map,
+(`src/app/models/map/supported-cities.ts`) and, if it has a My Maps map,
 `data/spots/sources.json`, plus its snapshot via
 `npm run snapshot:supabase -- --hosted --city <slug>`.
 

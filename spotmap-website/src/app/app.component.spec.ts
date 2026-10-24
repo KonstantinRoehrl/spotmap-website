@@ -35,7 +35,7 @@ describe('AppComponent', () => {
   it('skips the intro when it was already seen this browser session', () => {
     sessionStorage.setItem('spotmap:introSeen', '1');
     const fixture = TestBed.createComponent(AppComponent);
-    fixture.detectChanges(); // ngOnInit -> already seen -> reveal content in place
+    fixture.detectChanges(); // seen at construction -> reveal content in place
 
     const el = fixture.nativeElement as HTMLElement;
     expect(el.querySelector('app-ascii-animation-text')).toBeFalsy();

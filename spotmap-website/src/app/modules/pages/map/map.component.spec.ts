@@ -2,7 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { SUPPORTED_CITIES } from '../../../models/enums/config';
+import { SUPPORTED_CITIES } from '../../../models/map/supported-cities';
 import { CityEnum } from '../../../models/enums/map-enum';
 import {
   ELEVATION_LOADER,

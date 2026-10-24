@@ -20,7 +20,7 @@ import type {
   MapMouseEvent,
 } from 'maplibre-gl';
 import { filter, lastValueFrom, Subject, takeUntil, tap } from 'rxjs';
-import { CityEnum, MapFailureReason } from '../../../models/enums/map-enum';
+import { CityEnum } from '../../../models/enums/map-enum';
 import { SpotCollection, SpotFeature } from '../../../models/spots/spot';
 import {
   SpotsLoaded,
@@ -29,6 +29,7 @@ import {
 } from '../../../services/spots.service';
 import { SpotPopupComponent } from '../spot-popup/spot-popup.component';
 import { demMaxzoomFor, type ElevationTiles } from './elevation';
+import type { MapFailureReason } from '../../../models/map/map-failure-reason';
 import type { MapLoadEvent } from '../../../models/map/map-load-event';
 import { framingBounds } from './fit-bounds';
 import {
