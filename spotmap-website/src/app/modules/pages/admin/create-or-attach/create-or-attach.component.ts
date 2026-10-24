@@ -163,7 +163,7 @@ export class CreateOrAttachComponent {
   protected readonly name = signal('');
   /** The spot's status; new spots start active. */
   protected readonly status = signal<SpotStatus>('active');
-  /** The spot's notes as typed; shown verbatim on the map popup. */
+  /** The spot's notes as typed; shown verbatim in the spot's detail on the map page. */
   protected readonly notes = signal('');
   /**
    * The position under the picker's pin; null until the picker has loaded, and again whenever the
