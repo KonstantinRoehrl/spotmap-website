@@ -9,15 +9,15 @@
 
 .map-frame {
   opacity: 0;
-  transition: opacity 0.4s ease-in-out;
+  transition: opacity var(--dur-crossfade) ease-in-out;
 }
 
 /* Loader and failure overlay crossfade in and out of each other and of the map (DESIGN.md motion rule). */
 .map-container__overlay {
   position: absolute;
   inset: 0;
-  /* 300 ms is the spec's crossfade into the map, longer than the tokens' 200 ms. */
-  transition: opacity 300ms ease-in-out;
+  /* Shared with .map-frame, so the map arrives as the overlay leaves. */
+  transition: opacity var(--dur-crossfade) ease-in-out;
 }
 
 @starting-style {

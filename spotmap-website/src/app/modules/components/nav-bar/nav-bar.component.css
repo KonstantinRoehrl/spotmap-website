@@ -3,6 +3,8 @@
 -------------------- */
 .nav-bar {
   overflow: visible;
+  /* The bar's hairline edge: top on mobile, bottom on desktop. */
+  --nav-hairline: color-mix(in srgb, var(--color-phosphor) 30%, transparent);
 }
 
 .nav-bar ul {
@@ -54,7 +56,7 @@
   background: linear-gradient(
     to bottom,
     transparent,
-    rgba(0, 255, 0, 0.6),
+    color-mix(in srgb, var(--color-phosphor) 60%, transparent),
     transparent
   );
   min-height: 60px;
@@ -73,8 +75,8 @@
     left: 0;
     right: 0;
     height: 60px;
-    border-top: 1px solid rgba(0, 255, 0, 0.3);
-    background-color: rgba(0, 0, 0, 0.95);
+    border-top: 1px solid var(--nav-hairline);
+    background-color: color-mix(in srgb, var(--color-bg) 95%, transparent);
     z-index: 1000;
   }
 
@@ -110,7 +112,7 @@
 @media (min-width: 769px) {
   .nav-bar {
     position: relative;
-    border-bottom: 1px solid rgba(0, 255, 0, 0.3);
+    border-bottom: 1px solid var(--nav-hairline);
     padding: 0.8rem 2rem;
   }
 
