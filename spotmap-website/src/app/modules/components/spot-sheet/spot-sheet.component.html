@@ -1,0 +1,58 @@
+<div class="spot-sheet__handle" aria-hidden="true">
+  <span class="spot-sheet__grip"></span>
+</div>
+
+<!-- Both head variants share one grid cell, so swapping them is a crossfade, not a cut. -->
+<div class="spot-sheet__head">
+  @if (state() === 'detail') {
+    <div
+      class="spot-sheet__head-content spot-sheet__head-content--detail"
+      animate.leave="spot-sheet__head-content--leaving"
+    >
+      <button
+        type="button"
+        class="spot-sheet__back phosphor-bloom phosphor-bloom--inset phosphor-bloom--plate"
+        appPointerBloom
+        aria-label="Back to the list"
+        (click)="back.emit()"
+      >
+        {{ backLabel() }}
+      </button>
+      <button
+        type="button"
+        class="spot-sheet__close phosphor-bloom phosphor-bloom--inset phosphor-bloom--plate"
+        appPointerBloom
+        aria-label="Close"
+        (click)="close.emit()"
+      >
+        ✕
+      </button>
+    </div>
+  } @else {
+    <div
+      class="spot-sheet__head-content"
+      animate.leave="spot-sheet__head-content--leaving"
+    >
+      <button
+        type="button"
+        class="spot-sheet__toggle phosphor-bloom phosphor-bloom--inset"
+        appPointerBloom
+        [attr.aria-label]="state() === 'peek' ? 'Show list' : 'Show map'"
+        (click)="headTap.emit()"
+      >
+        <span>{{ countLine() }}</span>
+        <span class="spot-sheet__hint" aria-hidden="true">{{
+          state() === 'peek' ? 'LIST ▲' : 'MAP ▼'
+        }}</span>
+      </button>
+    </div>
+  }
+</div>
+
+<div
+  class="spot-sheet__body"
+  [class.spot-sheet__body--hidden]="state() === 'peek'"
+  [inert]="state() === 'peek'"
+>
+  <ng-content />
+</div>
