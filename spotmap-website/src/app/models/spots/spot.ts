@@ -28,7 +28,8 @@ export interface SpotSource {
  * The served attributes of one spot pin — what the live `city_spots()` query returns and
  * the bundled `public/spots/<city>.geojson` snapshot (exported from it by `npm run snapshot:supabase`) carries:
  * its stable id, display name, `SpotStatus`, notes and photo keys. Carried on
- * `SpotFeature.properties` and rendered by `SpotPopupComponent`.
+ * `SpotFeature.properties` and rendered by `SpotPopupComponent`. This is the full shape; the pins and
+ * the list read the lighter {@link SpotListProperties}, and an opened spot the {@link SpotDetail}.
  */
 export interface SpotProperties {
   /** The extraction's re-extraction-stable id, e.g. `hbf-curb-99f6e5`. */
@@ -65,4 +66,55 @@ export interface SpotFeature {
 export interface SpotCollection {
   type: 'FeatureCollection';
   features: SpotFeature[];
+}
+
+/**
+ * The light fields of one spot that its pin and its list row need: the list shape `city_spot_list()`
+ * serves for a whole city, which leaves out the notes and the full photo list. The bundled snapshot
+ * keeps the full shape; `toListFeature()` derives this one from it.
+ */
+export interface SpotListProperties {
+  /** The extraction's re-extraction-stable id, as in {@link SpotProperties.id}. */
+  id: string;
+  name: string;
+  status: SpotStatus;
+  /** The first photo's object key in gallery order, or null when the spot has no photos. */
+  cover: string | null;
+  /** How many photos the spot has; 0 without photos. */
+  photoCount: number;
+}
+
+/** One spot in the list shape, as a GeoJSON `Point` Feature: what the pins and the list draw. */
+export interface SpotListFeature {
+  type: 'Feature';
+  geometry: { type: 'Point'; coordinates: [number, number] };
+  properties: SpotListProperties;
+}
+
+/**
+ * A city's spots in the list shape: the live `city_spot_list()` answer, or the bundled snapshot
+ * mapped through `toListCollection()`. `SpotsService.loadSpotList()` ends with it.
+ */
+export interface SpotListCollection {
+  type: 'FeatureCollection';
+  features: SpotListFeature[];
+}
+
+/**
+ * One spot's full record, fetched when it is opened: the live `spot_detail()` answer, or the
+ * snapshot's feature mapped through `toSpotDetail()`. `city` is what resolves a cold `/spot/<id>`
+ * link to the city whose map must open.
+ */
+export interface SpotDetail {
+  id: string;
+  /** The city slug the spot belongs to, a `CityEnum` value when the app knows the city. */
+  city: string;
+  name: string;
+  status: SpotStatus;
+  /** The spot's notes verbatim (may contain newlines); null when it has none. */
+  notes: string | null;
+  /** Every photo object key, `<city>/<file>.webp`, in gallery order — keys, never URLs. */
+  photos: string[];
+  /** `[longitude, latitude]` in degrees. */
+  coordinates: [number, number];
 }
