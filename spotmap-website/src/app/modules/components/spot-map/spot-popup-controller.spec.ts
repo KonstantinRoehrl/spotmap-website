@@ -44,6 +44,11 @@ describe('SpotPopupController', () => {
   let popupFactoryRejects: boolean;
   /** While set, the fake popup factory answers only once it settles: the popup chunk still loading. */
   let popupGate: Promise<void> | undefined;
+  /**
+   * The `onCloseRequested` callback the controller handed {@link createContent} for each popup
+   * component, in creation order: calling one is that popup's close button being pressed.
+   */
+  let closeRequests: (() => void)[];
 
   beforeEach(() => {
     fake = new FakeMap();
@@ -51,6 +56,7 @@ describe('SpotPopupController', () => {
     current = true;
     popupFactoryRejects = false;
     popupGate = undefined;
+    closeRequests = [];
     hold = undefined;
     controller = undefined;
     host = document.createElement('div');
@@ -93,7 +99,11 @@ describe('SpotPopupController', () => {
     );
   }
 
-  /** SpotMapComponent's `createContent`: a real popup component, attached, rendered, wired to close. */
+  /**
+   * SpotMapComponent's `createContent`: a real popup component, attached, rendered, wired to close.
+   * The callback is also kept in {@link closeRequests}, so a spec can press a popup's close button
+   * after the popup has been superseded or has started closing.
+   */
   function createContent(
     spot: SpotFeature,
     onCloseRequested: () => void,
@@ -103,6 +113,7 @@ describe('SpotPopupController', () => {
     });
     ref.setInput('spot', spot);
     ref.instance.closeRequested.subscribe(onCloseRequested);
+    closeRequests.push(onCloseRequested);
     TestBed.inject(ApplicationRef).attachView(ref.hostView);
     ref.changeDetectorRef.detectChanges();
     return ref;
@@ -332,6 +343,49 @@ describe('SpotPopupController', () => {
     await settleAnimations(popups[0]);
     expect(popups[0]?.removed).toBe(true);
     expect(appRef.viewCount).toBe(baseline);
+  });
+
+  it('ignores the close button of a popup a later tap has superseded, leaving the newer popup open', async () => {
+    createController();
+    await tap('a');
+    await tap('b');
+    // a is playing its close; its button still reaches the controller.
+    closeRequests[0]!();
+    expect(controller!.hasOpenPopup())
+      .withContext('b is still the open popup')
+      .toBe(true);
+    expect(fake.featureStates['b']?.['selected'])
+      .withContext("a's request does not deselect b")
+      .toBe(true);
+    await settleAnimations(popups[1]);
+    expect(popups[1]?.removed)
+      .withContext('b was never told to close')
+      .toBe(false);
+  });
+
+  it('ignores the close button of a popup that has started closing to swap sides, keeping its pin selected', async () => {
+    requestReducedMotion(true);
+    holdAnimationFrames();
+    createController();
+    fake.projected = { x: 500, y: 40 };
+    await tap('a');
+    const letThrough = holdPopupFactory();
+    fake.projected = { x: 500, y: 560 };
+    fake.emit('resize');
+    const frames = window.requestAnimationFrame as jasmine.Spy;
+    (frames.calls.mostRecent().args[0] as FrameRequestCallback)(0);
+    expect(controller!.hasOpenPopup())
+      .withContext('the other side is still loading: nothing is open')
+      .toBe(false);
+    // The pressed button belongs to a, which is already playing its close.
+    closeRequests[0]!();
+    expect(fake.featureStates['a']?.['selected'])
+      .withContext('the pin stays selected through the swap')
+      .toBe(true);
+    await letThrough();
+    expect(popups[1]?.options.anchor).toBe('bottom');
+    expect(controller!.hasOpenPopup()).toBe(true);
+    expect(fake.featureStates['a']?.['selected']).toBe(true);
   });
 
   it('moves the selection on a second tap instead of stacking popups', async () => {
@@ -819,6 +873,29 @@ describe('SpotPopupController', () => {
         .withContext('the swapped popup waits for the drag to end')
         .toBe(true);
       fake.release();
+      expect(pansRequested())
+        .withContext('the visitor held the map when it was swapped: no pan')
+        .toEqual([]);
+      expect(popups[1]?.isPending()).toBe(false);
+    });
+
+    it('does not pan a swapped popup in when the visitor lets go while it is still loading', async () => {
+      requestReducedMotion(false);
+      holdAnimationFrames();
+      createController();
+      fake.projected = { x: 500, y: 40 };
+      fake.grab();
+      await tap('a');
+      expect(popups[0]?.options.anchor).toBe('top');
+      const letThrough = holdPopupFactory();
+      fake.projected = { x: 20, y: 560 };
+      fake.resize();
+      runRefitFrame();
+      // The visitor lifts the finger after the swap began: nothing holds the map by the time the
+      // swapped popup is fitted, so only the hold seen at the swap keeps it from panning.
+      fake.release();
+      await letThrough();
+      expect(popups[1]?.options.anchor).toBe('bottom');
       expect(pansRequested())
         .withContext('the visitor held the map when it was swapped: no pan')
         .toEqual([]);

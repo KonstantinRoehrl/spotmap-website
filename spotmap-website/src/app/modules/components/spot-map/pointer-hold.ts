@@ -8,7 +8,7 @@ import type { Map as MapLibreMap } from 'maplibre-gl';
  *
  * The keyboard handler is left out: it never reports itself active (`KeyboardHandler.isActive`
  * returns a flag nothing sets), so an arrow key cannot be told from no input. Its ease replaces a
- * pan this component has just started instead, which loses nothing: the popup is revealed when the
+ * pan the popup controller has just started instead, which loses nothing: the popup is revealed when the
  * key's ease ends.
  */
 const GESTURE_HANDLERS = [

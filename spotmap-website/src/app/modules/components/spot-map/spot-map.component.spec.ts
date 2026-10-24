@@ -916,6 +916,13 @@ describe('SpotMapComponent', () => {
       const types = removed.calls.allArgs().map(([type]) => type);
       expect(types).toContain('pointerup');
       expect(types).toContain('pointercancel');
+      // They were added in the capture phase, and removal must name that phase to find them.
+      const captured = removed.calls
+        .allArgs()
+        .filter(([, , capture]) => capture === true)
+        .map(([type]) => type);
+      expect(captured).toContain('pointerup');
+      expect(captured).toContain('pointercancel');
     });
   });
 
@@ -962,6 +969,32 @@ describe('SpotMapComponent', () => {
     expect(fake.featureStates['a']?.['selected']).toBeUndefined();
     await settleAnimations(popups[0]);
     expect(popups[0]?.removed).toBe(true);
+  });
+
+  it('closes a popup still waiting for the camera on a map click that misses every pin, never fitting or revealing it', async () => {
+    await create();
+    fake.emit('load');
+    // The camera is mid-move, so the tapped pin's popup waits hidden for it to settle.
+    fake.startMove();
+    await tap('a');
+    expect(popups[0]?.isPending())
+      .withContext('waiting for the camera')
+      .toBe(true);
+    fake.renderedPins = [];
+    fake.emit('click', { point: { x: 1, y: 1 } });
+    expect(fake.featureStates['a']?.['selected'])
+      .withContext('the click closed the waiting popup')
+      .toBeUndefined();
+    await fixture.whenStable();
+    expect(popups[0]?.removed).toBe(true);
+    fake.emit('moveend');
+    expect(popups[0]?.getElement().getAnimations().length)
+      .withContext('never revealed')
+      .toBe(0);
+    expect(popups[0]?.getElement().style.getPropertyValue(POPUP_MAX_HEIGHT_VAR))
+      .withContext('never fitted')
+      .toBe('');
+    expect(pansRequested()).toEqual([]);
   });
 
   it('removes every popup at once on teardown, a failure or a city switch', async () => {

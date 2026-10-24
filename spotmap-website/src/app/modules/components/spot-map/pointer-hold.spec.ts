@@ -122,4 +122,17 @@ describe('trackPointerHold', () => {
       .withContext('a pointer after stop() is not tracked')
       .toBe(false);
   });
+
+  it('removes the window pointer-end listeners with the capture flag they were added with', () => {
+    const fromWindow = spyOn(window, 'removeEventListener').and.callThrough();
+    hold.stop();
+    // The capture flag is part of a listener's identity: removing without it leaves them attached.
+    const captured = fromWindow.calls
+      .allArgs()
+      .filter(([, , capture]) => capture === true)
+      .map(([type]) => type);
+    expect(captured).toEqual(
+      jasmine.arrayContaining(['pointerup', 'pointercancel']),
+    );
+  });
 });
