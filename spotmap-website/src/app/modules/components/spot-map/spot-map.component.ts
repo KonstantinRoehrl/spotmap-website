@@ -42,6 +42,7 @@ import {
   MAP_FACTORY,
   POPUP_FACTORY,
 } from './map-factory.token';
+import { type PointerHold, trackPointerHold } from './pointer-hold';
 import {
   type Box,
   fitBoxWithin,
@@ -101,37 +102,6 @@ interface OpenPopup {
    * saw, so a `transitionend` that finds the same width has nothing new to re-measure.
    */
   fittedWidth: number;
-}
-
-/**
- * The MapLibre handlers a visitor moves the map through. Each reports itself active from the
- * moment a finger or button goes down or the wheel starts, before the camera has moved.
- *
- * The keyboard handler is left out: it never reports itself active (`KeyboardHandler.isActive`
- * returns a flag nothing sets, maplibre-gl-dev.mjs:21517), so an arrow key cannot be told from
- * no input. Its ease replaces a pan this component has just started instead, which loses nothing:
- * the popup is revealed when the key's ease ends.
- */
-const GESTURE_HANDLERS = [
-  'dragPan',
-  'touchZoomRotate',
-  'scrollZoom',
-  'doubleClickZoom',
-  'boxZoom',
-] as const;
-
-/**
- * Whether a MapLibre gesture handler is active. MapLibre stops a running ease the instant a
- * gesture handler turns active (`HandlerManager.handleEvent`, maplibre-gl-dev.mjs:22392) - firing
- * that ease's `moveend` synchronously, with `isMoving()` already false and no `movestart` of the
- * gesture yet - so this is the only way to tell that `moveend` from an ease running to its end.
- *
- * It is not enough to know a finger is down: `Map.resize()` on an idle map stops the camera, which
- * resets every handler (`:24950-24953`, `:23384`, `:24095`) while the finger stays where it is.
- * {@link SpotMapComponent} therefore pairs this with the pointers it tracks itself.
- */
-function isGestureActive(map: MapLibreMap): boolean {
-  return GESTURE_HANDLERS.some((name) => map[name].isActive());
 }
 
 /**
@@ -224,14 +194,8 @@ export class SpotMapComponent {
   private pendingRef?: ComponentRef<SpotPopupComponent>;
   /** The animation frame a coalesced resize re-fit waits on. */
   private refitFrame?: number;
-  /**
-   * The pointers currently down on the map's canvas container, by pointer id. Kept apart from
-   * MapLibre's gesture handlers, which a resize resets under a resting finger: this is the fact
-   * that a visitor holds the map, and it ends only when the pointer does.
-   */
-  private readonly heldPointers = new Set<number>();
-  /** Removes the pointer listeners of the current map; set while a map is attached. */
-  private stopTrackingPointers?: () => void;
+  /** The visitor's hold on the current map; set while a map is attached. */
+  private pointerHold?: PointerHold;
   /** Disconnects the observer on the attribution control; set while a painted map is attached. */
   private stopWatchingAttribution?: () => void;
   /**
@@ -363,7 +327,7 @@ export class SpotMapComponent {
       return;
     }
     this.map = map;
-    this.trackPointers(map);
+    this.pointerHold = trackPointerHold(map);
     this.reportLoad({ kind: 'renderer-ready' }, generation);
 
     // A style passed as an object is loaded a frame after construction
@@ -663,7 +627,7 @@ export class SpotMapComponent {
     visitorHeldMap = false,
   ): void {
     this.armedReveal = undefined;
-    const held = visitorHeldMap || this.isHeld(map);
+    const held = visitorHeldMap || this.isHeld();
     if (!map.isMoving()) {
       const fit = this.fitToCamera(map, open, held);
       if (fit) {
@@ -915,7 +879,7 @@ export class SpotMapComponent {
     if (!open?.fitted) {
       return;
     }
-    const held = this.isHeld(map);
+    const held = this.isHeld();
     const fit = this.fitToCamera(map, open, held);
     if (!held && fit && (fit.panBy[0] !== 0 || fit.panBy[1] !== 0)) {
       // This pan stops the one a pending popup waits on, so its reveal moves to this pan's end.
@@ -972,42 +936,9 @@ export class SpotMapComponent {
     );
   }
 
-  /**
-   * Whether the visitor has hold of the map: a pointer is down on it, or a MapLibre gesture
-   * handler is active. The pointer alone would miss a wheel zoom and the handler alone a resize,
-   * which resets the handlers under a finger that has not moved.
-   */
-  private isHeld(map: MapLibreMap): boolean {
-    return this.heldPointers.size > 0 || isGestureActive(map);
-  }
-
-  /**
-   * Tracks the pointers down on `map`'s canvas container until the component lets the map go. Their
-   * ends are heard on the window, in the capture phase: a mouse button let go away from the map
-   * ends on whatever is under it, and a touch the browser takes over for a scroll ends in
-   * `pointercancel`. A context menu or a lost window focus may swallow the end altogether, so
-   * both let go of every pointer rather than leave the map held for good.
-   */
-  private trackPointers(map: MapLibreMap): void {
-    const container = map.getCanvasContainer();
-    const down = (event: PointerEvent) =>
-      this.heldPointers.add(event.pointerId);
-    const up = (event: PointerEvent) =>
-      this.heldPointers.delete(event.pointerId);
-    const releaseAll = () => this.heldPointers.clear();
-    container.addEventListener('pointerdown', down);
-    container.addEventListener('contextmenu', releaseAll);
-    window.addEventListener('pointerup', up, true);
-    window.addEventListener('pointercancel', up, true);
-    window.addEventListener('blur', releaseAll);
-    this.stopTrackingPointers = () => {
-      container.removeEventListener('pointerdown', down);
-      container.removeEventListener('contextmenu', releaseAll);
-      window.removeEventListener('pointerup', up, true);
-      window.removeEventListener('pointercancel', up, true);
-      window.removeEventListener('blur', releaseAll);
-      this.heldPointers.clear();
-    };
+  /** Whether the visitor has hold of the current map; see {@link PointerHold.isHeld}. */
+  private isHeld(): boolean {
+    return this.pointerHold?.isHeld() ?? false;
   }
 
   /**
@@ -1158,8 +1089,8 @@ export class SpotMapComponent {
     this.superseded.next();
     this.outcome = 'pending';
     this.removePopupsNow();
-    this.stopTrackingPointers?.();
-    this.stopTrackingPointers = undefined;
+    this.pointerHold?.stop();
+    this.pointerHold = undefined;
     this.stopWatchingAttribution?.();
     this.stopWatchingAttribution = undefined;
     this.map?.remove();
