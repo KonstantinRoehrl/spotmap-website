@@ -18,7 +18,18 @@ import { SpotListCollection } from '../../../models/spots/spot';
 import type { ViewBounds } from '../../../models/spots/spots-in-view';
 import type { ElevationTiles } from './elevation';
 import { ELEVATION_LOADER, MAP_FACTORY } from './map-factory.token';
-import { LOCK_ON_AT_REST_FILTER } from './spot-layers';
+import {
+  SPOTMAP_BACKEND,
+  type SpotmapBackend,
+  UNCONFIGURED_BACKEND,
+} from '../../../services/spotmap-backend';
+import {
+  FLAG_AT_REST_FILTER,
+  flagFilter,
+  HAS_COVER,
+  LOCK_ON_AT_REST_FILTER,
+  photoPinFilter,
+} from './spot-layers';
 import { SpotMapComponent } from './spot-map.component';
 import { BASEMAP_SOURCE_ID } from './terminal-map-style';
 import {
@@ -29,6 +40,7 @@ import {
   holdAnimationFrames,
   LOCK_ON_AT_REST,
   onlySpot,
+  requestHoverPointer,
   requestReducedMotion,
   setWidth,
   tapOn,
@@ -90,9 +102,12 @@ describe('SpotMapComponent', () => {
   let elevation: ElevationTiles | null;
   /** What the fake `ELEVATION_LOADER` hands back; resolves `elevation` unless a spec holds it. */
   let loadElevation: (demMaxzoom: number) => Promise<ElevationTiles | null>;
+  /** The backend `SPOTMAP_BACKEND` answers with; set before `create()`, which first reads it. */
+  let backend: SpotmapBackend;
 
   beforeEach(async () => {
     elevation = null;
+    backend = UNCONFIGURED_BACKEND;
     loadElevation = () => Promise.resolve(elevation);
     fake = new FakeMap();
     // Headless Chrome hands out no WebGL context, so the component's support probe is faked
@@ -116,6 +131,7 @@ describe('SpotMapComponent', () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         { provide: MAP_FACTORY, useValue: mapFactory },
+        { provide: SPOTMAP_BACKEND, useFactory: () => backend },
         {
           provide: ELEVATION_LOADER,
           useValue: (demMaxzoom: number) => loadElevation(demMaxzoom),
@@ -237,6 +253,7 @@ describe('SpotMapComponent', () => {
       'spots-selected',
       'spots-lock-on',
       'spots-body',
+      'spots-hover',
       'spots-demolished-mark',
     ]);
   });
@@ -1400,6 +1417,201 @@ describe('SpotMapComponent', () => {
       fixture.componentRef.setInput('attributionCorner', 'bottom-right');
       fixture.detectChanges();
       expect(host.classList).not.toContain('spot-map--attribution-top');
+    });
+  });
+
+  describe('photo pins, the flag and hover', () => {
+    const PHOTO_HOST = 'https://photos.test';
+    const withPhotoHost = () => {
+      backend = { ...UNCONFIGURED_BACKEND, photoBaseUrl: PHOTO_HOST };
+    };
+    const filtersOn = (layer: string) =>
+      fake.filterCalls.filter((c) => c.layer === layer);
+    const tooltip = () =>
+      (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>(
+        '.spot-map__tooltip',
+      );
+
+    it('adds no photo pins, flag or image resolver without a photo host', async () => {
+      await create();
+      fake.emit('load');
+      expect(fake.layers.map((l) => l.id)).not.toContain('spots-photo');
+      expect(fake.missingImageResolver).toBeNull();
+    });
+
+    it('adds the photo pins and the flag above the pins with a photo host, the resolver first', async () => {
+      withPhotoHost();
+      await create();
+      spyOn(fake, 'addSource').and.callFake((id: string, source: unknown) => {
+        expect(fake.missingImageResolver)
+          .withContext('resolver before the pins')
+          .not.toBeNull();
+        fake.sources[id] = source;
+      });
+      fake.emit('load');
+      expect(fake.layers.map((l) => l.id).slice(-2)).toEqual([
+        'spots-photo',
+        'spots-flag',
+      ]);
+    });
+
+    it('flies the flag over a selected spot with a photo and lowers it on close', async () => {
+      withPhotoHost();
+      await create();
+      fake.emit('load');
+      select('a');
+      expect(filtersOn('spots-flag').at(-1)?.filter).toEqual(flagFilter('a'));
+      expect(filtersOn('spots-photo').at(-1)?.filter).toEqual(
+        photoPinFilter('a'),
+      );
+      select(null);
+      expect(filtersOn('spots-flag').at(-1)?.filter).toBe(FLAG_AT_REST_FILTER);
+      expect(filtersOn('spots-photo').at(-1)?.filter).toEqual(HAS_COVER);
+    });
+
+    it('keeps the flag down for a selected spot with no photo', async () => {
+      withPhotoHost();
+      await create({
+        collection: {
+          type: 'FeatureCollection',
+          features: [
+            {
+              type: 'Feature',
+              geometry: { type: 'Point', coordinates: [16.37, 48.2] },
+              properties: {
+                id: 'a',
+                name: 'Alpha Bank',
+                status: 'active',
+                notes: null,
+                photos: [],
+              },
+            },
+          ],
+        },
+      });
+      fake.emit('load');
+      select('a');
+      expect(filtersOn('spots-flag').at(-1)?.filter).toBe(FLAG_AT_REST_FILTER);
+    });
+
+    it('lights the pin hoveredId names and moves the light with it', async () => {
+      await create();
+      fake.emit('load');
+      fixture.componentRef.setInput('hoveredId', 'a');
+      fixture.detectChanges();
+      expect(fake.featureStates['a']?.['hovered']).toBe(true);
+      fixture.componentRef.setInput('hoveredId', 'b');
+      fixture.detectChanges();
+      expect(fake.featureStates['a']?.['hovered']).toBeUndefined();
+      expect(fake.featureStates['b']?.['hovered']).toBe(true);
+      fixture.componentRef.setInput('hoveredId', null);
+      fixture.detectChanges();
+      expect(fake.featureStates['b']?.['hovered']).toBeUndefined();
+    });
+
+    it('reports the pin under a hovering pointer once, and the pointer leaving it', async () => {
+      requestHoverPointer(true);
+      const c = await create();
+      fake.emit('load');
+      const hovers: (string | null)[] = [];
+      c.pinHover.subscribe((id) => hovers.push(id));
+      fake.emit('mousemove', tapOn('a'), 'spots-hit');
+      fake.emit('mousemove', tapOn('a'), 'spots-hit');
+      fake.emit('mouseleave', undefined, 'spots-hit');
+      expect(hovers).toEqual(['a', null]);
+    });
+
+    it('reports no hover from a pointer that cannot hover', async () => {
+      requestHoverPointer(false);
+      const c = await create();
+      fake.emit('load');
+      const hovers: (string | null)[] = [];
+      c.pinHover.subscribe((id) => hovers.push(id));
+      fake.emit('mousemove', tapOn('a'), 'spots-hit');
+      fake.emit('mouseleave', undefined, 'spots-hit');
+      expect(hovers).toEqual([]);
+    });
+
+    it('shows the hovered spot’s name above its pin, and nothing for the selected spot', async () => {
+      await create();
+      fake.emit('load');
+      fixture.componentRef.setInput('hoveredId', 'a');
+      fixture.detectChanges();
+      expect(tooltip()?.textContent).toContain('Alpha Bank');
+      expect(tooltip()?.style.transform).toBe('translate(500px, 300px)');
+      expect(tooltip()?.querySelector('img'))
+        .withContext('no photo host, so a name-only plate')
+        .toBeNull();
+      select('a');
+      expect(tooltip()).toBeNull();
+    });
+
+    it('shows the cover photo in the tooltip with a photo host', async () => {
+      withPhotoHost();
+      await create();
+      fake.emit('load');
+      fixture.componentRef.setInput('hoveredId', 'a');
+      fixture.detectChanges();
+      expect(tooltip()?.querySelector('img')?.getAttribute('src')).toBe(
+        `${PHOTO_HOST}/thumb/spots/vienna/a-1.webp`,
+      );
+    });
+
+    it('moves the tooltip with the map, once a frame', async () => {
+      const runFrames = captureFrames();
+      await create();
+      fake.emit('load');
+      fixture.componentRef.setInput('hoveredId', 'a');
+      fixture.detectChanges();
+      fake.projected = { x: 100, y: 200 };
+      fake.emit('move');
+      runFrames();
+      fixture.detectChanges();
+      expect(tooltip()?.style.transform).toBe('translate(100px, 200px)');
+    });
+
+    it('fades the tooltip out instead of cutting it', async () => {
+      await create();
+      fake.emit('load');
+      fixture.componentRef.setInput('hoveredId', 'a');
+      fixture.detectChanges();
+      const anchor = tooltip()!;
+      expect(getComputedStyle(anchor).transitionProperty).toContain('opacity');
+      // Read the leave's end state, not the fade's first frame.
+      anchor.style.transition = 'none';
+      anchor.classList.add('spot-map__tooltip--leaving');
+      expect(getComputedStyle(anchor).opacity).toBe('0');
+    });
+
+    it('swaps in a new tooltip for the next spot rather than moving the old one', async () => {
+      await create();
+      fake.emit('load');
+      fixture.componentRef.setInput('hoveredId', 'a');
+      fixture.detectChanges();
+      const first = tooltip();
+      fixture.componentRef.setInput('hoveredId', 'b');
+      fixture.detectChanges();
+      expect(tooltip()?.textContent).toContain('Beta Ledge');
+      expect(tooltip()).not.toBe(first);
+    });
+
+    it('reports the hover gone when a city change tears the hovered map down', async () => {
+      requestHoverPointer(true);
+      const c = await create();
+      fake.emit('load');
+      const hovers: (string | null)[] = [];
+      c.pinHover.subscribe((id) => hovers.push(id));
+      fake.emit('mousemove', tapOn('a'), 'spots-hit');
+      await retry(1);
+      expect(hovers).toEqual(['a', null]);
+    });
+
+    it('lets go of the photo pins on teardown', async () => {
+      withPhotoHost();
+      await create();
+      fake.emit('load');
+      fixture.destroy();
+      expect(fake.handlers.get('idle')).toEqual([]);
     });
   });
 });

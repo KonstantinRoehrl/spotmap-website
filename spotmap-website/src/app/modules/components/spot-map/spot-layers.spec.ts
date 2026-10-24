@@ -1,6 +1,11 @@
 import { MAP_PALETTE } from './map-palette';
 import {
+  FLAG_AT_REST_FILTER,
+  flagFilter,
+  HAS_COVER,
   LOCK_ON_AT_REST_FILTER,
+  PHOTO_PIN_LAYERS,
+  photoPinFilter,
   SELECTED_RING_RADIUS,
   SPOT_LAYERS,
   SPOT_SOURCE_ID,
@@ -11,6 +16,8 @@ interface Pin {
   id: string;
   status: 'active' | 'demolished';
   selected: boolean;
+  /** Whether a pointer or its list row hovers it. */
+  hovered?: boolean;
 }
 
 /**
@@ -38,7 +45,11 @@ function evaluate(expression: unknown, pin: Pin): unknown {
       return key === 'status' || key === 'id' ? pin[key] : null;
     }
     case 'feature-state':
-      return args[0] === 'selected' ? pin.selected : null;
+      return args[0] === 'selected'
+        ? pin.selected
+        : args[0] === 'hovered'
+          ? (pin.hovered ?? false)
+          : null;
     case 'boolean': {
       const value = evaluate(args[0], pin);
       return typeof value === 'boolean' ? value : evaluate(args[1], pin);
@@ -79,6 +90,7 @@ describe('SPOT_LAYERS', () => {
       'spots-selected',
       'spots-lock-on',
       'spots-body',
+      'spots-hover',
       'spots-demolished-mark',
     ]);
     for (const l of SPOT_LAYERS) {
@@ -136,9 +148,7 @@ describe('SPOT_LAYERS', () => {
 
   it('draws every standing spot alike: Decision 1 left two states', () => {
     expect(JSON.stringify(SPOT_LAYERS)).not.toContain('unclassified');
-    expect(
-      (layer('spots-glow').paint as Record<string, unknown>)['circle-opacity'],
-    ).toBe(0.5);
+    expect(paintFor('spots-glow', 'circle-opacity', active)).toBe(0.5);
     expect(
       (layer('spots-body').paint as Record<string, unknown>)['circle-radius'],
     ).toEqual([
@@ -206,5 +216,75 @@ describe('SPOT_LAYERS', () => {
     expect(layer('spots-lock-on').filter as unknown).toBe(
       LOCK_ON_AT_REST_FILTER,
     );
+  });
+
+  it('lights a hovered pin with a stronger bloom and a thin bright ring', () => {
+    const hovered = { ...active, hovered: true };
+    expect(paintFor('spots-glow', 'circle-radius', hovered)).toBe(18);
+    expect(paintFor('spots-glow', 'circle-opacity', hovered)).toBe(0.85);
+    expect(paintFor('spots-glow', 'circle-radius', active)).toBe(14);
+    expect(paintFor('spots-hover', 'circle-stroke-opacity', hovered)).toBe(1);
+    expect(paintFor('spots-hover', 'circle-stroke-opacity', active)).toBe(0);
+    expect(paintFor('spots-hover', 'circle-stroke-width', hovered)).toBe(1);
+    expect(paintFor('spots-hover', 'circle-stroke-color', hovered)).toBe(
+      MAP_PALETTE.pinHover,
+    );
+  });
+
+  it('lets a × never take a photo pin’s place', () => {
+    expect(
+      (layer('spots-demolished-mark').layout as Record<string, unknown>)[
+        'text-ignore-placement'
+      ],
+    ).toBeTrue();
+  });
+});
+
+describe('PHOTO_PIN_LAYERS', () => {
+  const photo = PHOTO_PIN_LAYERS.find((l) => l.id === 'spots-photo')!;
+  const flag = PHOTO_PIN_LAYERS.find((l) => l.id === 'spots-flag')!;
+
+  it('draws the flag over the photo pins, both from the spot source', () => {
+    expect(PHOTO_PIN_LAYERS.map((l) => l.id)).toEqual([
+      'spots-photo',
+      'spots-flag',
+    ]);
+    for (const l of PHOTO_PIN_LAYERS) {
+      expect(l.source).withContext(l.id).toBe(SPOT_SOURCE_ID);
+    }
+  });
+
+  it('gives every spot with a photo a photo pin that yields to a neighbour with more photos', () => {
+    expect(photo.filter as unknown).toEqual(HAS_COVER);
+    expect(photo.layout as unknown).toEqual(
+      jasmine.objectContaining({
+        'icon-image': ['concat', 'spot-photo:', ['get', 'id']],
+        'icon-anchor': 'bottom',
+        'icon-allow-overlap': false,
+        'symbol-sort-key': ['-', ['get', 'photoCount']],
+      }),
+    );
+  });
+
+  it('rests the flag on no spot and shows it whatever it overlaps, still keeping others off it', () => {
+    expect(flag.filter as unknown).toBe(FLAG_AT_REST_FILTER);
+    expect(flag.layout as unknown).toEqual(
+      jasmine.objectContaining({
+        'icon-image': ['concat', 'spot-flag:', ['get', 'id']],
+        'icon-allow-overlap': true,
+        'icon-ignore-placement': false,
+      }),
+    );
+  });
+
+  it('points the flag at the selected spot and takes its photo pin away while it flies', () => {
+    expect(flagFilter('a') as unknown).toEqual(['==', ['get', 'id'], 'a']);
+    expect(flagFilter(null) as unknown).toBe(FLAG_AT_REST_FILTER);
+    expect(photoPinFilter('a') as unknown).toEqual([
+      'all',
+      HAS_COVER,
+      ['!=', ['get', 'id'], 'a'],
+    ]);
+    expect(photoPinFilter(null) as unknown).toEqual(HAS_COVER);
   });
 });

@@ -1,4 +1,9 @@
-import { LOCK_ON_AT_REST_FILTER } from './spot-layers';
+import {
+  FLAG_AT_REST_FILTER,
+  flagFilter,
+  LOCK_ON_AT_REST_FILTER,
+  photoPinFilter,
+} from './spot-layers';
 import { SpotSelection } from './spot-selection';
 import {
   FakeMap,
@@ -94,5 +99,43 @@ describe('SpotSelection', () => {
     selection.dispose();
     expect(cancelFrame).toHaveBeenCalled();
     expect(fake.lastLockOnFilter()).toBe(LOCK_ON_AT_REST_FILTER);
+  });
+
+  describe('with the photo layers on the map', () => {
+    const flagFilters = () =>
+      fake.filterCalls.filter((c) => c.layer === 'spots-flag');
+    const photoFilters = () =>
+      fake.filterCalls.filter((c) => c.layer === 'spots-photo');
+
+    it('flies the flag over a selected spot with a photo, taking its photo pin away', () => {
+      new SpotSelection(fake, { flag: true }).show('a', {
+        pulse: false,
+        hasCover: true,
+      });
+      expect(flagFilters().at(-1)?.filter).toEqual(flagFilter('a'));
+      expect(photoFilters().at(-1)?.filter).toEqual(photoPinFilter('a'));
+    });
+
+    it('keeps the flag down for a selected spot with no photo', () => {
+      new SpotSelection(fake, { flag: true }).show('a', {
+        pulse: false,
+        hasCover: false,
+      });
+      expect(flagFilters().at(-1)?.filter).toBe(FLAG_AT_REST_FILTER);
+    });
+
+    it('lowers the flag and gives the photo pin back when the selection clears', () => {
+      const selection = new SpotSelection(fake, { flag: true });
+      selection.show('a', { pulse: false, hasCover: true });
+      selection.show(null, { pulse: false });
+      expect(flagFilters().at(-1)?.filter).toBe(FLAG_AT_REST_FILTER);
+      expect(photoFilters().at(-1)?.filter).toEqual(photoPinFilter(null));
+    });
+
+    it('never touches the photo layers when the map has none', () => {
+      new SpotSelection(fake).show('a', { pulse: false, hasCover: true });
+      expect(flagFilters()).toEqual([]);
+      expect(photoFilters()).toEqual([]);
+    });
   });
 });

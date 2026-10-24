@@ -1,12 +1,14 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   DestroyRef,
   effect,
   ElementRef,
   inject,
   input,
   output,
+  signal,
   untracked,
   viewChild,
 } from '@angular/core';
@@ -24,6 +26,7 @@ import {
   SpotListLoadEvent,
   SpotsService,
 } from '../../../services/spots.service';
+import { photoUrl, SPOTMAP_BACKEND } from '../../../services/spotmap-backend';
 import { demMaxzoomFor, type ElevationTiles } from './elevation';
 import {
   NO_INSETS,
@@ -36,6 +39,7 @@ import type { MapFailureReason } from '../../../models/map/map-failure-reason';
 import type { MapLoadEvent } from '../../../models/map/map-load-event';
 import { framingBounds } from './fit-bounds';
 import { ELEVATION_LOADER, MAP_FACTORY } from './map-factory.token';
+import { PhotoPins } from './photo-pins';
 import { type PointerHold, trackPointerHold } from './pointer-hold';
 import {
   boundsOfRect,
@@ -44,7 +48,12 @@ import {
   SelectionCamera,
   uncoveredRect,
 } from './selection-camera';
-import { SPOT_HIT_LAYER_ID, SPOT_LAYERS, SPOT_SOURCE_ID } from './spot-layers';
+import {
+  PHOTO_PIN_LAYERS,
+  SPOT_HIT_LAYER_ID,
+  SPOT_LAYERS,
+  SPOT_SOURCE_ID,
+} from './spot-layers';
 import { SpotSelection } from './spot-selection';
 import {
   BASEMAP_SOURCE_ID,
@@ -97,10 +106,34 @@ function namesAnUnusableSource(
   );
 }
 
+/** What the hover tooltip shows, and where: the hovered pin's canvas position. */
+interface SpotTooltip {
+  /** The hovered spot's id: each spot gets its own card, so a move to another pin crossfades. */
+  readonly id: string;
+  /** The spot's name, the tooltip's text. */
+  readonly name: string;
+  /** The cover's thumbnail URL, or `null` for a name-only plate. */
+  readonly photo: string | null;
+  /** The pin's canvas x, in px. */
+  readonly x: number;
+  /** The pin's canvas y, in px. */
+  readonly y: number;
+}
+
+/** Whether the visitor's pointer can hover: a tap on a touch screen must leave no hover behind. */
+function hasHoverPointer(): boolean {
+  return (
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(hover: hover)').matches
+  );
+}
+
 /**
  * Draws a city's spots on a MapLibre map, reports the loaded spots, pin taps and taps on empty
  * map, and shows the selection its `selectedId` input names — the URL's, which is the selection's
- * one source (spec §7). The container owns the loading and failure chrome.
+ * one source (spec §7). The container owns the loading and failure chrome. With a photo host it
+ * frames each spot's first photo on its pin where there is room, and flies the selected one's as
+ * an amber flag; a hovered pin lights and shows a tooltip.
  *
  * MapLibre internals named in this file were read in maplibre-gl 6.15.0.
  */
@@ -143,6 +176,8 @@ export class SpotMapComponent {
    * edge: the credit is a licence condition and must stay visible.
    */
   attributionCorner = input<AttributionCorner>('bottom-right');
+  /** The spot a pointer or its list row hovers, or `null`: its pin lights and its tooltip shows. */
+  hoveredId = input<string | null>(null);
 
   /** The pins are on the painted map — the end of DRAW. */
   ready = output<void>();
@@ -170,12 +205,16 @@ export class SpotMapComponent {
    * and whenever the covered strips change; never from a build that has been replaced.
    */
   boundsChange = output<ViewBounds>();
+  /** The pin under a hovering pointer, or `null` once it leaves; only from pointers that hover. */
+  pinHover = output<string | null>();
 
   private readonly canvasHost =
     viewChild.required<ElementRef<HTMLDivElement>>('canvasHost');
   private readonly spots = inject(SpotsService);
   private readonly mapFactory = inject(MAP_FACTORY);
   private readonly loadElevation = inject(ELEVATION_LOADER);
+  /** Where the photos come from; with no photo host there are no photo pins or tooltip photos. */
+  private readonly backend = inject(SPOTMAP_BACKEND);
 
   private map?: MapLibreMap;
 
@@ -205,8 +244,24 @@ export class SpotMapComponent {
    * but new `coveredInsets` object must not re-centre a map the visitor has panned since.
    */
   private framedFor?: CameraFrame;
-  /** The animation frame the next bounds report waits on. */
+  /** The animation frame the next bounds report and tooltip position wait on. */
   private boundsFrame?: number;
+  /** The current build's photo pin images; set once its pins are drawn, with a photo host only. */
+  private photoPins?: PhotoPins;
+  /** The pin whose `hovered` feature state is set on the current map. */
+  private hoveredOnMap: string | null = null;
+  /** The pin last reported under the pointer, so a pointer moving over one pin reports it once. */
+  private pinUnderPointer: string | null = null;
+  /** The hover tooltip, or `null` while none shows. */
+  private readonly tooltip = signal<SpotTooltip | null>(null);
+  /**
+   * The tooltip as a list of at most one, so the template can key its card by spot id: the card
+   * leaving and the next one arriving fade past each other instead of one card jumping pins.
+   */
+  protected readonly tooltips = computed(() => {
+    const tip = this.tooltip();
+    return tip ? [tip] : [];
+  });
 
   /**
    * Bumped by every teardown. A build whose await resolves against a stale generation lost its
@@ -219,7 +274,11 @@ export class SpotMapComponent {
   private readonly superseded = new Subject<void>();
 
   constructor() {
-    inject(DestroyRef).onDestroy(() => this.teardown());
+    inject(DestroyRef).onDestroy(() => {
+      // A destroyed component's outputs are closed, so teardown has no hover left to report.
+      this.pinUnderPointer = null;
+      this.teardown();
+    });
 
     // The container reuses this instance across city selections and retries, so both inputs
     // re-arm the renderer: drop the old map (releasing its WebGL context) and rebuild.
@@ -241,6 +300,16 @@ export class SpotMapComponent {
       untracked(() => {
         this.followSelection();
         this.scheduleBounds();
+        this.updateTooltip();
+      });
+    });
+
+    // A hovered pin or list row lights its pin and shows its tooltip, once the pins are drawn.
+    effect(() => {
+      this.hoveredId();
+      untracked(() => {
+        this.showHover();
+        this.updateTooltip();
       });
     });
   }
@@ -471,18 +540,29 @@ export class SpotMapComponent {
       }
       this.outcome = 'painted';
       this.reportLoad({ kind: 'painted' }, generation);
+      // The resolver must be in place before the layers that ask it for images.
+      if (this.backend.photoBaseUrl) {
+        this.photoPins = new PhotoPins(
+          map,
+          collection,
+          this.backend.photoBaseUrl,
+        );
+        this.photoPins.install();
+      }
       this.drawSpots(map, collection);
       // Feature state needs the spot source, so the selection starts here. One already in the URL
       // — a shared link opened cold, or a rebuild — is no tap: it shows without the pulse, and the
       // camera only jumps it into a phone's strip, saving no view to go back to.
       this.collection = collection;
-      this.selection = new SpotSelection(map);
+      this.selection = new SpotSelection(map, {
+        flag: this.photoPins !== undefined,
+      });
       this.camera = new SelectionCamera(
         map,
         () => this.pointerHold?.isHeld() ?? false,
       );
       const id = this.selectedId();
-      this.selection.show(id, { pulse: false });
+      this.selection.show(id, { pulse: false, hasCover: this.hasCover(id) });
       const frame = this.cameraFrame();
       this.framedFor = frame;
       const pin = id === null ? null : this.coordinatesOf(id);
@@ -490,6 +570,8 @@ export class SpotMapComponent {
         this.camera.place(pin, frame);
       }
       this.emitBounds();
+      this.showHover();
+      this.updateTooltip();
       // The pins are drawn on the first frame rendered once their source has loaded. MapLibre's
       // `idle` would also wait for every DEM tile, and relief must never hold the reveal.
       const pinsDrawn = () => {
@@ -516,7 +598,7 @@ export class SpotMapComponent {
 
   /**
    * Wires the visitor-facing listeners: the attribution collapse when the map narrows, a pin tap
-   * and a tap on empty map reported to the page, and the pointer cursor over a pin.
+   * and a tap on empty map reported to the page, and the pointer cursor and hover over a pin.
    */
   private wireInteractions(map: MapLibreMap, generation: number): void {
     // A phone turned from landscape to portrait narrows a map that opened wide, and MapLibre
@@ -564,8 +646,22 @@ export class SpotMapComponent {
     map.on('mouseenter', SPOT_HIT_LAYER_ID, () => {
       map.getCanvas().style.cursor = 'pointer';
     });
+    // Hover is reported only from a pointer that can hover, so a tap leaves no tooltip behind.
+    map.on('mousemove', SPOT_HIT_LAYER_ID, (event: MapLayerMouseEvent) => {
+      const id = event.features?.[0]?.id;
+      if (
+        generation === this.generation &&
+        id !== undefined &&
+        hasHoverPointer()
+      ) {
+        this.reportPinHover(String(id));
+      }
+    });
     map.on('mouseleave', SPOT_HIT_LAYER_ID, () => {
       map.getCanvas().style.cursor = '';
+      if (generation === this.generation) {
+        this.reportPinHover(null);
+      }
     });
   }
 
@@ -585,7 +681,7 @@ export class SpotMapComponent {
     const reframed =
       this.framedFor === undefined || !sameFrame(this.framedFor, frame);
     this.framedFor = frame;
-    selection.show(id, { pulse: true });
+    selection.show(id, { pulse: true, hasCover: this.hasCover(id) });
     if (id === null) {
       if (previous !== null) {
         camera.restore();
@@ -634,6 +730,74 @@ export class SpotMapComponent {
     this.boundsFrame = requestAnimationFrame(() => {
       this.boundsFrame = undefined;
       this.emitBounds();
+      this.updateTooltip();
+    });
+  }
+
+  /** Whether the current build's spot `id` has a photo. */
+  private hasCover(id: string | null): boolean {
+    return (
+      id !== null &&
+      (this.collection?.features.find((feature) => feature.properties.id === id)
+        ?.properties.cover ?? null) !== null
+    );
+  }
+
+  /** Moves the `hovered` feature state to the pin `hoveredId` names, once the pins are drawn. */
+  private showHover(): void {
+    const map = this.map;
+    const id = this.hoveredId();
+    if (!map || !this.selection || id === this.hoveredOnMap) {
+      return;
+    }
+    if (this.hoveredOnMap !== null) {
+      map.removeFeatureState(
+        { source: SPOT_SOURCE_ID, id: this.hoveredOnMap },
+        'hovered',
+      );
+    }
+    if (id !== null) {
+      map.setFeatureState({ source: SPOT_SOURCE_ID, id }, { hovered: true });
+    }
+    this.hoveredOnMap = id;
+  }
+
+  /** Reports the pin under the pointer when it changes. */
+  private reportPinHover(id: string | null): void {
+    if (id !== this.pinUnderPointer) {
+      this.pinUnderPointer = id;
+      this.pinHover.emit(id);
+    }
+  }
+
+  /**
+   * Shows the tooltip above the hovered pin — never the selected one, whose detail is open — or
+   * hides it; repositioned once a frame while the map moves.
+   */
+  private updateTooltip(): void {
+    const map = this.map;
+    const id = this.hoveredId();
+    const spot =
+      !map || !this.selection || id === null || id === this.selectedId()
+        ? undefined
+        : this.collection?.features.find(
+            (feature) => feature.properties.id === id,
+          );
+    if (!map || !spot) {
+      if (this.tooltip() !== null) {
+        this.tooltip.set(null);
+      }
+      return;
+    }
+    const { x, y } = map.project(spot.geometry.coordinates);
+    const base = this.backend.photoBaseUrl;
+    const cover = spot.properties.cover;
+    this.tooltip.set({
+      id: spot.properties.id,
+      name: spot.properties.name,
+      photo: base && cover ? photoUrl(base, cover, 'thumb') : null,
+      x,
+      y,
     });
   }
 
@@ -664,6 +828,19 @@ export class SpotMapComponent {
   }
 
   /**
+   * Lets go of the current build's photo pins — their listeners, frames and pending fetches — and
+   * forgets its hover and tooltip. Called before the map is removed.
+   */
+  private releaseHover(): void {
+    this.photoPins?.dispose();
+    this.photoPins = undefined;
+    this.hoveredOnMap = null;
+    // The removed map never fires `mouseleave`, so the page is told the hover is gone here.
+    this.reportPinHover(null);
+    this.tooltip.set(null);
+  }
+
+  /**
    * Gives up on this build: the container puts its failure chrome up, so the map is released
    * rather than left holding a WebGL context behind it. A build that already lost its race, or
    * one that has already painted or failed, reports nothing.
@@ -676,12 +853,13 @@ export class SpotMapComponent {
     this.selection?.dispose();
     this.selection = undefined;
     this.releaseCamera();
+    this.releaseHover();
     this.map?.remove();
     this.map = undefined;
     this.failed.emit(reason);
   }
 
-  /** Adds the spot source, in the list shape, and its pins. */
+  /** Adds the spot source, in the list shape, its pins and — with a photo host — the photo pins and flag. */
   private drawSpots(map: MapLibreMap, collection: SpotListCollection): void {
     map.addSource(SPOT_SOURCE_ID, {
       type: 'geojson',
@@ -691,6 +869,11 @@ export class SpotMapComponent {
     });
     for (const layer of SPOT_LAYERS) {
       map.addLayer(layer);
+    }
+    if (this.photoPins) {
+      for (const layer of PHOTO_PIN_LAYERS) {
+        map.addLayer(layer);
+      }
     }
   }
 
@@ -795,6 +978,7 @@ export class SpotMapComponent {
     this.pointerHold?.stop();
     this.pointerHold = undefined;
     this.releaseCamera();
+    this.releaseHover();
     this.map?.remove();
     this.map = undefined;
   }

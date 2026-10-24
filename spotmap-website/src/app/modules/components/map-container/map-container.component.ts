@@ -68,7 +68,11 @@ export class MapContainerComponent {
   openOn = input<MapFocus | null>(null);
   /** The attribution's corner; see `SpotMapComponent.attributionCorner`. */
   attributionCorner = input<AttributionCorner>('bottom-right');
+  /** The spot a pointer or list row hovers, handed to the map; see `SpotMapComponent.hoveredId`. */
+  hoveredId = input<string | null>(null);
 
+  /** The pin under a hovering pointer, re-emitted from `SpotMapComponent.pinHover`. */
+  pinHover = output<string | null>();
   /** The map's spots in the list shape, re-emitted from `SpotMapComponent.spotsLoaded`. */
   spotsLoaded = output<SpotListCollection>();
   /** A pin tap, re-emitted from `SpotMapComponent.spotClick`. */

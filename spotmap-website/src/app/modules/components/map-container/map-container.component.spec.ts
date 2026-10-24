@@ -476,4 +476,19 @@ describe('MapContainerComponent', () => {
     expect(fixture.nativeElement.querySelector('.map-error__retry')).toBeNull();
     fixture.destroy();
   });
+
+  it('hands the hovered spot to the map and re-emits the pin under the pointer', () => {
+    const fixture = create(true);
+    fixture.componentRef.setInput('hoveredId', 'a');
+    fixture.detectChanges();
+    const map = fixture.debugElement.query(By.directive(SpotMapComponent))
+      .componentInstance as SpotMapComponent;
+    expect(map.hoveredId()).toBe('a');
+    const hovers: (string | null)[] = [];
+    fixture.componentInstance.pinHover.subscribe((id) => hovers.push(id));
+    map.pinHover.emit('b');
+    map.pinHover.emit(null);
+    expect(hovers).toEqual(['b', null]);
+    fixture.destroy();
+  });
 });

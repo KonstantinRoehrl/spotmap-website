@@ -139,6 +139,19 @@ export class FakeMap {
   zoom = 13;
   /** What `queryRenderedFeatures()` finds under a map click: a pin, or nothing. */
   renderedPins: unknown[] = [];
+  /** Every image the component added or updated, by id, as the map holds it now. */
+  readonly images = new Map<
+    string,
+    { width: number; height: number; data: Uint8Array | Uint8ClampedArray }
+  >();
+  /** The options each image was added with, by id. */
+  readonly imageOptions = new Map<string, unknown>();
+  /** The id of every `updateImage` call, in order. */
+  readonly imageUpdates: string[] = [];
+  /** The missing-image resolver the component installed, if any. */
+  missingImageResolver: ((id: string) => void | Promise<void>) | null = null;
+  /** The photo pins MapLibre has placed on screen: what `queryRenderedFeatures` finds on the photo layer. */
+  placedPhotos: { properties: { id: string } }[] = [];
 
   constructor() {
     this.canvasContainer.append(this.canvas);
@@ -245,8 +258,20 @@ export class FakeMap {
   isMoving() {
     return this.wheelZooming;
   }
-  queryRenderedFeatures() {
-    return this.renderedPins;
+  /**
+   * What MapLibre finds rendered: the placed photo pins for a query on the photo layer, otherwise
+   * `renderedPins` — the pins under a map click.
+   */
+  queryRenderedFeatures(
+    geometryOrOptions?: unknown,
+    options?: { layers?: string[] },
+  ) {
+    const layers =
+      options?.layers ??
+      (geometryOrOptions as { layers?: string[] } | undefined)?.layers;
+    return layers?.includes('spots-photo')
+      ? this.placedPhotos
+      : this.renderedPins;
   }
   /** A handler that removes itself after its first call, as MapLibre's `once` does. */
   once(event: string, fn: (e?: unknown) => void) {
@@ -289,6 +314,44 @@ export class FakeMap {
   }
   private key(event: string, layer?: string) {
     return layer ? `${event}:${layer}` : event;
+  }
+  /** MapLibre's `setMissingStyleImageResolver`: who answers a layer asking for an image it lacks. */
+  setMissingStyleImageResolver(
+    resolver: ((id: string) => void | Promise<void>) | null,
+  ) {
+    this.missingImageResolver = resolver;
+    return this;
+  }
+  /** Adds an image to the style, remembering the options (its pixel ratio) it came with. */
+  addImage(
+    id: string,
+    image: {
+      width: number;
+      height: number;
+      data: Uint8Array | Uint8ClampedArray;
+    },
+    options?: unknown,
+  ) {
+    this.images.set(id, image);
+    this.imageOptions.set(id, options);
+    return this;
+  }
+  /** Replaces an image's pixels in place, recording the update. */
+  updateImage(
+    id: string,
+    image: {
+      width: number;
+      height: number;
+      data: Uint8Array | Uint8ClampedArray;
+    },
+  ) {
+    this.images.set(id, image);
+    this.imageUpdates.push(id);
+    return this;
+  }
+  /** Whether the style holds an image with this id. */
+  hasImage(id: string) {
+    return this.images.has(id);
   }
   addSource(id: string, source: unknown) {
     this.sources[id] = source;
@@ -549,21 +612,30 @@ export const COLLECTION = {
   ],
 };
 
+/** What the faked media queries answer; reset whenever a spec installs the fake afresh. */
+const fakeMedia = { reducedMotion: false, hoverPointer: false };
+
 /**
- * Answers the media query `prefersReducedMotion()` asks — the same `window.matchMedia` fake the
- * ascii-animation-text spec drives its reduced-motion branch with. Call before `create()`: the
- * preference is read while the map draws. A second call within one spec changes the answer.
+ * Installs (or reuses) the `window.matchMedia` spy that answers from {@link fakeMedia} — the same
+ * fake the ascii-animation-text spec drives its reduced-motion branch with. A new spy starts from
+ * no reduced motion and no hover pointer, so nothing leaks between specs.
  */
-export function requestReducedMotion(reduce: boolean): void {
-  const matchMedia: jasmine.Spy<typeof window.matchMedia> = jasmine.isSpy(
-    window.matchMedia,
-  )
-    ? (window.matchMedia as jasmine.Spy<typeof window.matchMedia>)
-    : spyOn(window, 'matchMedia');
+function fakeMatchMedia(): void {
+  let matchMedia: jasmine.Spy<typeof window.matchMedia>;
+  if (jasmine.isSpy(window.matchMedia)) {
+    matchMedia = window.matchMedia as jasmine.Spy<typeof window.matchMedia>;
+  } else {
+    fakeMedia.reducedMotion = false;
+    fakeMedia.hoverPointer = false;
+    matchMedia = spyOn(window, 'matchMedia');
+  }
   matchMedia.and.callFake(
     (query: string) =>
       ({
-        matches: reduce && query.includes('prefers-reduced-motion'),
+        matches:
+          (fakeMedia.reducedMotion &&
+            query.includes('prefers-reduced-motion')) ||
+          (fakeMedia.hoverPointer && query.includes('(hover: hover)')),
         media: query,
         onchange: null,
         addListener: () => {},
@@ -573,6 +645,21 @@ export function requestReducedMotion(reduce: boolean): void {
         dispatchEvent: () => false,
       }) as MediaQueryList,
   );
+}
+
+/**
+ * Answers the media query `prefersReducedMotion()` asks. Call before `create()`: the preference
+ * is read while the map draws. A second call within one spec changes the answer.
+ */
+export function requestReducedMotion(reduce: boolean): void {
+  fakeMatchMedia();
+  fakeMedia.reducedMotion = reduce;
+}
+
+/** Answers `(hover: hover)`: whether the visitor's pointer can hover, as a mouse can and a finger cannot. */
+export function requestHoverPointer(hover: boolean): void {
+  fakeMatchMedia();
+  fakeMedia.hoverPointer = hover;
 }
 
 /**

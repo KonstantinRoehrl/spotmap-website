@@ -1,1 +1,25 @@
 <div #canvasHost class="spot-map__canvas"></div>
+
+<!-- Pointer-only, and the list carries the same name for everyone else, so it is hidden from
+     assistive technology and never takes a pointer itself. Keyed by spot, so moving to another
+     pin fades this card out as the next one rises in. -->
+@for (tip of tooltips(); track tip.id) {
+  <div
+    class="spot-map__tooltip"
+    animate.leave="spot-map__tooltip--leaving"
+    aria-hidden="true"
+    [style.transform]="'translate(' + tip.x + 'px, ' + tip.y + 'px)'"
+  >
+    <div class="spot-map__tooltip-card">
+      @if (tip.photo) {
+        <img
+          class="spot-map__tooltip-photo"
+          [src]="tip.photo"
+          alt=""
+          decoding="async"
+        />
+      }
+      <span class="spot-map__tooltip-name">{{ tip.name }}</span>
+    </div>
+  </div>
+}

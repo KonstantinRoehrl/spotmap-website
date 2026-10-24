@@ -1,5 +1,7 @@
+/* Positioned, so the hover tooltip is placed against the map's own box. */
 :host {
   display: block;
+  position: relative;
   height: 100%;
   width: 100%;
 }
@@ -73,4 +75,71 @@
   .maplibregl-ctrl-bottom-right
   .maplibregl-ctrl {
   margin: 10px 10px 0 0;
+}
+
+/* The hover tooltip: an anchor at the pin's canvas point, and above it the card. Never a pointer
+   target, so it cannot steal the hover from the pin under it. */
+.spot-map__tooltip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 1;
+  transition: opacity var(--dur-fade) ease-out;
+}
+
+/* It fades out in place, without the rise, short enough that the next pin's card is not kept
+   waiting behind it. */
+.spot-map__tooltip--leaving {
+  opacity: 0;
+}
+
+/* Lifted clear of a photo pin's stem; the halo is the pointer bloom's (DESIGN.md, "Edge glow —
+   pointer bloom"), the one glow a hover-lit element wears. */
+.spot-map__tooltip-card {
+  position: absolute;
+  bottom: 16px;
+  left: 0;
+  width: 132px;
+  translate: -50% 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-phosphor-deep);
+  border-radius: var(--radius-md);
+  box-shadow: 0 0 14px rgba(0, 255, 0, 0.35);
+  transition:
+    opacity var(--dur-hover-in) ease-out,
+    translate var(--dur-hover-in) ease-out;
+}
+
+/* It rises in: 6 px and a fade. The reduced-motion net keeps the fade and drops the rise. */
+@starting-style {
+  .spot-map__tooltip-card {
+    opacity: 0;
+    translate: -50% 6px;
+  }
+}
+
+.spot-map__tooltip-photo {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  box-sizing: border-box;
+}
+
+.spot-map__tooltip-name {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.25;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-phosphor-bright);
+  text-shadow: var(--glow-text-display);
+  overflow-wrap: anywhere;
 }
