@@ -127,7 +127,7 @@ jobs:
       - name: Start the local Supabase stack (database, REST API, Storage) and apply the migrations
         run: npm run db:start
 
-      - name: Run the database tests (pgTAP — admin, access rules, city_spots, insert-only sync)
+      - name: Run the database tests (pgTAP — admin, access rules, city_spots, spot list and detail, insert-only sync)
         run: npm run db:test
 
       - name: Point the sync at the local stack
