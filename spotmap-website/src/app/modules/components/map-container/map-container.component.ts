@@ -15,10 +15,10 @@ import { MapLoaderComponent } from '../map-loader/map-loader.component';
 import { SpotMapComponent } from '../spot-map/spot-map.component';
 import {
   INITIAL_MAP_LOAD_STATE,
-  MapLoadEvent,
   MapLoadProgress,
   MapLoadState,
 } from './map-load-progress';
+import type { MapLoadEvent } from '../../../models/map/map-load-event';
 
 /**
  * How long a load may run before the watchdog steps in: it reveals a map that has painted, and

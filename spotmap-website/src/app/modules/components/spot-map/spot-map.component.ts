@@ -34,7 +34,7 @@ import {
   SpotPopupComponent,
 } from '../spot-popup/spot-popup.component';
 import { demMaxzoomFor, type ElevationTiles } from './elevation';
-import type { MapLoadEvent } from '../map-container/map-load-progress';
+import type { MapLoadEvent } from '../../../models/map/map-load-event';
 import { framingBounds } from './fit-bounds';
 import { startLockOn } from './lock-on-pulse';
 import {

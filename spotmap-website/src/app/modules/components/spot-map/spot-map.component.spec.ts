@@ -7,7 +7,7 @@ import {
 import { ApplicationRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CityEnum } from '../../../models/enums/map-enum';
-import type { MapLoadEvent } from '../map-container/map-load-progress';
+import type { MapLoadEvent } from '../../../models/map/map-load-event';
 import type { ElevationTiles } from './elevation';
 import {
   ELEVATION_LOADER,

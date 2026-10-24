@@ -16,11 +16,8 @@ import {
 } from '../spot-map/map-factory.token';
 import { MapLoaderComponent } from '../map-loader/map-loader.component';
 import { SpotMapComponent } from '../spot-map/spot-map.component';
-import {
-  INITIAL_MAP_LOAD_STATE,
-  MapLoadEvent,
-  MapLoadState,
-} from './map-load-progress';
+import { INITIAL_MAP_LOAD_STATE, MapLoadState } from './map-load-progress';
+import type { MapLoadEvent } from '../../../models/map/map-load-event';
 import { MapContainerComponent } from './map-container.component';
 
 // Mirror the private watchdog constant in map-container.component.ts.
