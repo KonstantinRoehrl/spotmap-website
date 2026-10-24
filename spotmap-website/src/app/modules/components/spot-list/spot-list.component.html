@@ -1,0 +1,55 @@
+@if (notice() === 'not-found') {
+  <p
+    class="spot-list__line spot-list__line--dim spot-list__notice"
+    animate.leave="spot-list__notice--leaving"
+  >
+    &gt; FILE NOT FOUND // GONE FROM THE ARCHIVE
+  </p>
+}
+
+@let rows = spots();
+@if (rows === null) {
+  <p class="spot-list__line spot-list__line--dim">&gt; LOADING SPOTS…</p>
+} @else if (rows.length === 0) {
+  <p class="spot-list__line spot-list__line--lit">&gt; NO SPOTS IN VIEW</p>
+  <p class="spot-list__line spot-list__line--dim">
+    pan around or zoom out. the city’s bigger than this.
+  </p>
+} @else {
+  <ul class="spot-list" role="list">
+    @for (spot of rows; track spot.properties.id) {
+      <li class="spot-list__item" animate.leave="spot-list__item--leaving">
+        <a
+          class="spot-row phosphor-bloom phosphor-bloom--inset"
+          appPointerBloom
+          [class.is-highlighted]="spot.properties.id === highlightedId()"
+          [attr.data-spot-id]="spot.properties.id"
+          [href]="hrefFor(spot.properties.id)"
+          (click)="onRowClick($event, spot.properties.id)"
+          (mouseenter)="onRowHover(spot.properties.id)"
+          (mouseleave)="onRowHover(null)"
+        >
+          @if (thumbnailFor(spot); as src) {
+            <img
+              class="spot-row__thumb"
+              [src]="src"
+              alt=""
+              loading="lazy"
+              decoding="async"
+            />
+          } @else {
+            <span
+              class="spot-row__thumb spot-row__thumb--empty"
+              aria-hidden="true"
+              >NO PHOTO</span
+            >
+          }
+          <span class="spot-row__text">
+            <span class="spot-row__name">{{ spot.properties.name }}</span>
+            <span class="spot-row__meta">{{ metaFor(spot) }}</span>
+          </span>
+        </a>
+      </li>
+    }
+  </ul>
+}
