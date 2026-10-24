@@ -18,10 +18,10 @@ import { MapLoaderComponent } from '../map-loader/map-loader.component';
 import { SpotMapComponent } from '../spot-map/spot-map.component';
 import { INITIAL_MAP_LOAD_STATE, MapLoadState } from './map-load-progress';
 import type { MapLoadEvent } from '../../../models/map/map-load-event';
-import { MapContainerComponent } from './map-container.component';
-
-// Mirror the private watchdog constant in map-container.component.ts.
-const LOAD_TIMEOUT_MS = 15_000;
+import {
+  LOAD_TIMEOUT_MS,
+  MapContainerComponent,
+} from './map-container.component';
 
 /**
  * SpotMapComponent injects both maplibre factories and the elevation loader the moment it is
