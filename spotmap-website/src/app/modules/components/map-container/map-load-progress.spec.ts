@@ -1,9 +1,9 @@
 import {
   INITIAL_MAP_LOAD_STATE,
   lockedLetterCount,
-  MapLoadEvent,
   MapLoadProgress,
 } from './map-load-progress';
+import type { MapLoadEvent } from '../../../models/map/map-load-event';
 
 /** Applies events in order and returns the last state. */
 function run(...events: MapLoadEvent[]) {

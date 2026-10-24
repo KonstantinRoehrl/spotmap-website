@@ -10,13 +10,13 @@ import { environment } from '../environments/environment';
 import { routes } from './app.routes';
 import {
   createMapLibreMap,
+  createMapLibrePopup,
   loadElevation,
 } from './modules/components/spot-map/map-factory';
 import {
   ELEVATION_LOADER,
   MAP_FACTORY,
   POPUP_FACTORY,
-  PopupFactory,
 } from './modules/components/spot-map/map-factory.token';
 import { provideAdminAuthCallback } from './services/admin/admin-auth-callback';
 import {
@@ -25,12 +25,6 @@ import {
 } from './services/admin/admin-supabase';
 import { IMAGERY_CONFIG } from './services/admin/imagery';
 import { SPOTMAP_BACKEND } from './services/spotmap-backend';
-
-/** Loads maplibre-gl on first use, keeping it out of the initial route chunk. */
-const createMapLibrePopup: PopupFactory = async (options) => {
-  const { Popup } = await import('maplibre-gl');
-  return new Popup(options);
-};
 
 /**
  * The app's root providers: the real maplibre factories, the elevation loader, the build

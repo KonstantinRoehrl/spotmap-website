@@ -1,10 +1,19 @@
 import { createElevationLoader, type ElevationLoader } from './elevation';
-import type { MapFactory } from './map-factory.token';
+import type { MapFactory, PopupFactory } from './map-factory.token';
 
 /** Loads maplibre-gl on first use, keeping it out of the initial route chunk. */
 export const createMapLibreMap: MapFactory = async (options) => {
   const { Map } = await import('maplibre-gl');
   return new Map(options);
+};
+
+/**
+ * Builds the frame of a tapped spot's popup, loading maplibre-gl on first use like
+ * {@link createMapLibreMap}, so the popup costs the initial route chunk nothing either.
+ */
+export const createMapLibrePopup: PopupFactory = async (options) => {
+  const { Popup } = await import('maplibre-gl');
+  return new Popup(options);
 };
 
 /**
