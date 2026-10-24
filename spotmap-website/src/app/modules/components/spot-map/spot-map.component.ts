@@ -65,17 +65,19 @@ const NARROW_MAP_MAX_WIDTH_PX = 640;
  * failure this map can never paint through. Both fields are read off the payload, since neither
  * is declared on maplibre-gl's public `ErrorEvent`:
  *
- * - `sourceId` is attached to every event bubbling out of a source's tile manager
- *   (maplibre-gl-dev.mjs:15165-15169), so an error fired on the style itself — `Source layer …
- *   does not exist` at `:14888` — carries none, and a map that can still paint is left alone.
- * - `tile` is attached only when a single tile failed (`:6422`; a 404 fires nothing at all,
- *   `:6423`). A glyph range is fetched while a tile is parsed, so it arrives the same way.
- * - a source that did come up fired `data`/`metadata` first (`:2871`) — the success branch the
- *   failing path at `:2877-2881` skips — so a source still awaiting metadata never loaded.
+ * - `sourceId` is attached to every event bubbling out of a source's tile manager (the
+ *   evented-parent data `Style` gives each `TileManager`), so an error fired on the style itself
+ *   — `Source layer … does not exist` from `Style._validateLayer` — carries none, and a map that
+ *   can still paint is left alone.
+ * - `tile` is attached only when a single tile failed (`TileManager._loadTile`'s catch; a 404
+ *   fires nothing at all). A glyph range is fetched while a tile is parsed, so it arrives the
+ *   same way.
+ * - a source that did come up fired `data`/`metadata` first (`VectorTileSource.load`) — the
+ *   success branch its catch skips — so a source still awaiting metadata never loaded.
  *
  * `map.isStyleLoaded()` is no use here: it already reports `true` by the time a source error
- * reaches this handler, because the tile manager's own `error` listener (`:6359-6360`)
- * short-circuits `TileManager.loaded()` (`:6391`) and with it `Style.loaded()` (`:14890-14894`).
+ * reaches this handler, because the tile manager's own `error` listener sets `_sourceErrored`,
+ * which short-circuits `TileManager.loaded()` and with it `Style.loaded()`.
  */
 function namesAnUnusableSource(
   event: unknown,
@@ -92,6 +94,8 @@ function namesAnUnusableSource(
 /**
  * Draws a city's spots on a MapLibre map and builds each map's {@link SpotPopupController}, which
  * owns the tapped spot's popup. The container owns the loading and failure chrome.
+ *
+ * MapLibre internals named in this file were read in maplibre-gl 6.15.0.
  */
 @Component({
   selector: 'app-spot-map',
@@ -226,7 +230,7 @@ export class SpotMapComponent {
     }
 
     // The map is built already framed on the city: MapLibre applies `bounds` in its constructor
-    // with no animation (maplibre-gl-dev.mjs:24156), so its first paint is the framed city and
+    // with no animation (`fitBounds` at `duration: 0`), so its first paint is the framed city and
     // no opening camera move follows it.
     const bounds = framingBounds(
       collection.features.map((feature) => feature.geometry.coordinates),
@@ -304,12 +308,13 @@ export class SpotMapComponent {
 
     // Rotation and pitch are off: the map stays flat and north-up whatever the gesture. Four
     // handlers can move those two degrees of freedom and each needs its own switch — MapLibre
-    // wires them separately (maplibre-gl-dev.mjs:22512-22561) and skips only the ones reporting
-    // `isEnabled() === false` (`:22363`). `dragRotate.disable()` reaches the mouse trio alone
-    // (`:22064-22068`) and `touchZoomRotate.disableRotation()` the two-finger twist alone
-    // (`:22188-22191`), which leaves the two-finger tilt and Shift+Arrow live by default
-    // (`:23927-23930`). Keyboard pan and zoom stay: `disableRotation()` zeroes only the bearing
-    // and pitch steps (`:21529-21531`), and arrow keys are the only pointer-free way to move.
+    // wires them separately (`HandlerManager._addDefaultHandlers`) and `handleEvent` skips only
+    // the ones reporting `isEnabled() === false`. `dragRotate.disable()` reaches the mouse
+    // rotate/pitch/roll trio alone and `touchZoomRotate.disableRotation()` the two-finger twist
+    // alone, which leaves the two-finger tilt and Shift+Arrow live by default (the map's
+    // `touchPitch` and `keyboard` options default to on). Keyboard pan and zoom stay:
+    // `KeyboardHandler.disableRotation()` zeroes only the bearing and pitch steps, and arrow keys
+    // are the only pointer-free way to move.
     map.dragRotate.disable();
     map.touchZoomRotate.disableRotation();
     map.touchPitch.disable();
@@ -330,8 +335,8 @@ export class SpotMapComponent {
     demMaxzoom: number,
     popups: SpotPopupController,
   ): void {
-    // A style passed as an object is loaded a frame after construction
-    // (maplibre-gl-dev.mjs:14802-14809), so this listener still hears it.
+    // A style passed as an object is loaded a frame after construction (`Style.loadJSON` waits a
+    // frame before `_load`), so this listener still hears it.
     map.on('style.load', () => {
       this.reportLoad({ kind: 'style-loaded' }, generation);
     });
@@ -339,7 +344,7 @@ export class SpotMapComponent {
     // Basemap tiles only, and only until the paint: relief tiles must never hold the reveal. A
     // tile request fires `sourcedataloading` with its tile only on a cache miss, a loaded tile
     // `sourcedata` with its tile, and an aborted one `sourcedataabort`; a 404 fires nothing
-    // (maplibre-gl-dev.mjs:6776, :6501, :6431, :6422-6423).
+    // (`TileManager._addTile`, `_tileLoaded`, `_abortTile` and `_loadTile`).
     let tilesRequested = 0;
     let tilesLoaded = 0;
     const countsAsBasemapTile = (event: { sourceId: string; tile?: unknown }) =>
@@ -387,10 +392,9 @@ export class SpotMapComponent {
         return;
       }
       // Attaching this listener took MapLibre's own logging away: `Evented.fire` writes an
-      // error to the console only while nothing listens for it
-      // (maplibre-gl-shared-dev.mjs:3149, :3163). Both outcomes below need it back — a fatal
-      // one shows the user four words, and a map that paints on without its glyphs shows
-      // nothing at all.
+      // error to the console only while nothing listens for it. Both outcomes below need it
+      // back — a fatal one shows the user four words, and a map that paints on without its
+      // glyphs shows nothing at all.
       console.error(event.error);
       if (namesAnUnusableSource(event, sourcesAwaitingMetadata)) {
         this.fail('unreachable', generation);
@@ -675,10 +679,9 @@ export class SpotMapComponent {
    * Whether this browser can draw the map at all. `webgl2` and nothing else: maplibre-gl v6
    * requests exactly that one context in `Map._setupPainter()` and throws
    * `GPUInitializationError` — "WebGL2 is required to display this map" — when it comes back
-   * null (maplibre-gl-dev.mjs:27022-27023), which the `Map` constructor rethrows
-   * (`:24123-24128`). A WebGL1 fallback here would wave through the very browsers the
-   * renderer cannot run on — iOS 14, older Android WebViews — and they would reach the
-   * factory only to have it throw.
+   * null, which the `Map` constructor rethrows after cleaning up its container. A WebGL1
+   * fallback here would wave through the very browsers the renderer cannot run on — iOS 14,
+   * older Android WebViews — and they would reach the factory only to have it throw.
    *
    * The probe's own context is handed straight back: this runs on every build, and the browser
    * caps how many contexts may be alive (QC6).

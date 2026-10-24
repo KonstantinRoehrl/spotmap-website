@@ -33,6 +33,8 @@ import {
   tapOn,
 } from './testing/fake-map';
 
+// MapLibre internals named in this file were read in maplibre-gl 6.15.0.
+
 /** Stand-in tile URLs in the shape maplibre-contour hands out. */
 const ELEVATION_TILES: ElevationTiles = {
   demTiles: 'dem-shared://{z}/{x}/{y}',
@@ -59,7 +61,7 @@ function painted(property: 'border-radius', token: string): string {
 }
 
 /**
- * The corner rules of maplibre-gl.css 6.9.0 that the attribution control's radius depends on,
+ * The corner rules of maplibre-gl.css 6.15.0 that the attribution control's radius depends on,
  * copied verbatim from its `@media screen` block: the Karma build does not load that stylesheet.
  * The open-state rule is `(0,3,0)` and only matches a control directly inside a left corner.
  */
@@ -549,9 +551,9 @@ describe('SpotMapComponent', () => {
   });
 
   it('opens on the framed city with no opening camera move, reduced motion or not', async () => {
-    // MapLibre applies the `bounds` option with `duration: 0` in its constructor
-    // (maplibre-gl-dev.mjs:24156), so `load` paints the city already framed and nothing is left to
-    // ease into view, whichever motion preference is set.
+    // MapLibre applies the `bounds` option with `duration: 0` in its constructor, so `load` paints
+    // the city already framed and nothing is left to ease into view, whichever motion preference
+    // is set.
     requestReducedMotion(true);
     await create();
     fake.emit('load');
@@ -645,9 +647,9 @@ describe('SpotMapComponent', () => {
     c.failed.subscribe(failed);
     fake.emit('load');
     // Attaching an `error` listener took MapLibre's own logging away: `Evented.fire` writes an
-    // error to the console only while nothing listens for it (maplibre-gl-shared-dev.mjs:3149,
-    // :3163). A dead glyph endpoint drops every label off a map that still paints, and without
-    // this the only diagnostic left for that is the raw network tab.
+    // error to the console only while nothing listens for it. A dead glyph endpoint drops every
+    // label off a map that still paints, and without this the only diagnostic left for that is
+    // the raw network tab.
     const logged = spyOn(console, 'error');
     fake.failOneResource();
     expect(failed).not.toHaveBeenCalled();
@@ -676,8 +678,8 @@ describe('SpotMapComponent', () => {
     c.failed.subscribe(failed);
     c.ready.subscribe(ready);
     fake.failBasemapSource();
-    // MapLibre fires `load` even for a map whose source died, because `Map.loaded()` reads the
-    // same short-circuited `Style.loaded()` (maplibre-gl-dev.mjs:27046-27047, :27140-27142).
+    // MapLibre fires `load` even for a map whose source died, because the render loop fires it
+    // once `Map.loaded()` is true, and that reads the same short-circuited `Style.loaded()`.
     fake.emit('load');
     fake.drawPins();
     expect(failed).toHaveBeenCalledWith('unreachable');
@@ -723,10 +725,10 @@ describe('SpotMapComponent', () => {
   it('fails as unsupported on a browser whose WebGL stops at version 1', async () => {
     // maplibre-gl v6 asks for one context and one only: `Map._setupPainter()` requests `webgl2`
     // and throws `GPUInitializationError` — "WebGL2 is required to display this map" — the
-    // moment it comes back null (maplibre-gl-dev.mjs:27022-27023, :20164-20167), and the `Map`
-    // constructor rethrows it after cleanup (`:24123-24128`). So a browser that answers
-    // `getContext('webgl')` but not `getContext('webgl2')` — iOS 14, older Android WebViews, a
-    // GPU blocklist that stops at WebGL2 — cannot draw this map at all.
+    // moment it comes back null, and the `Map` constructor rethrows it after cleaning up its
+    // container. So a browser that answers `getContext('webgl')` but not `getContext('webgl2')`
+    // — iOS 14, older Android WebViews, a GPU blocklist that stops at WebGL2 — cannot draw this
+    // map at all.
     getContext.and.callFake((contextId: string) =>
       contextId === 'webgl2'
         ? null
@@ -788,11 +790,11 @@ describe('SpotMapComponent', () => {
   });
 
   it('reports a map the GPU refused to build as unreachable, not unsupported', async () => {
-    // `new Map(...)` throwing `GPUInitializationError` inside the async factory
-    // (maplibre-gl-dev.mjs:24123-24128) even though the probe just held a WebGL2 context: the
-    // context could not be created *this time* — one live context too many, a driver that
-    // dropped out. The probe already turned away the browsers that can never render, so this is
-    // a build that failed rather than a browser that is out, and RETRY may well get a context.
+    // `new Map(...)` rethrowing `GPUInitializationError` inside the async factory, even though
+    // the probe just held a WebGL2 context: the context could not be created *this time* — one
+    // live context too many, a driver that dropped out. The probe already turned away the
+    // browsers that can never render, so this is a build that failed rather than a browser that
+    // is out, and RETRY may well get a context.
     const gpuError = new Error('WebGL2 is required to display this map.');
     gpuError.name = 'GPUInitializationError';
     mapFactory.and.callFake(() => Promise.reject(gpuError));

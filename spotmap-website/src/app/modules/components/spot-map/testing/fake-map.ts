@@ -3,6 +3,8 @@ import { BASEMAP_SOURCE_ID } from '../terminal-map-style';
 /*
  * Stand-ins for MapLibre's map and popup, and the small page fakes the spot-map specs share. Spec
  * files import this; no app code does, so the production build never compiles it.
+ *
+ * MapLibre internals named in this file were read in maplibre-gl 6.15.0.
  */
 
 /** One camera move the component asked for, trimmed to the option that decides its motion. */
@@ -29,24 +31,30 @@ export class FakeMap {
   readonly canvas = document.createElement('canvas');
   /**
    * MapLibre's canvas container, which its handlers listen on and which holds the canvas but not
-   * the popups or controls (`getCanvasContainer`, maplibre-gl-dev.mjs:26893). Attached to the page
-   * so a pointer released away from the map still bubbles to the window; `remove()` takes it off.
+   * the popups or controls (`getCanvasContainer`). Attached to the page so a pointer released away
+   * from the map still bubbles to the window; `remove()` takes it off.
    */
   readonly canvasContainer = document.createElement('div');
   /**
    * The four handlers that can tilt or turn the map, each gated on the one call that actually
-   * switches it off. MapLibre wires them as separate handlers in `_addDefaultHandlers`
-   * (maplibre-gl-dev.mjs:22512-22561) and skips any reporting `isEnabled() === false`
-   * (`:22363`), so turning one off leaves the other three answering gestures.
+   * switches it off. MapLibre wires them as separate handlers in
+   * `HandlerManager._addDefaultHandlers`, and `handleEvent` skips any reporting
+   * `isEnabled() === false`, so turning one off leaves the other three answering gestures.
    */
   readonly dragRotate = {
-    /** The mouse rotate/pitch/roll trio, and nothing touch or keyboard (`:22064-22068`). */
+    /**
+     * The mouse rotate/pitch/roll trio, and nothing touch or keyboard
+     * (`DragRotateHandler.disable`).
+     */
     disable: jasmine.createSpy('dragRotate.disable').and.callFake(() => {
       this.mouseRotatePitch = false;
     }),
   };
   readonly touchZoomRotate = {
-    /** Only the two-finger twist; pinch-zoom and two-finger pitch survive (`:22188-22191`). */
+    /**
+     * Only the two-finger twist; pinch-zoom and two-finger pitch survive
+     * (`TwoFingersTouchZoomRotateHandler.disableRotation`).
+     */
     disableRotation: jasmine.createSpy('disableRotation').and.callFake(() => {
       this.twoFingerRotate = false;
     }),
@@ -60,26 +68,32 @@ export class FakeMap {
     }),
   };
   readonly keyboard = {
-    /** Zeroes the bearing and pitch steps, leaving the arrow-key pan and zoom (`:21529-21531`). */
+    /**
+     * Zeroes the bearing and pitch steps, leaving the arrow-key pan and zoom
+     * (`KeyboardHandler.disableRotation`).
+     */
     disableRotation: jasmine
       .createSpy('keyboard.disableRotation')
       .and.callFake(() => {
         this.keyboardRotatePitch = false;
       }),
-    /** Never active, as MapLibre's keyboard handler never is (maplibre-gl-dev.mjs:21517). */
+    /**
+     * Never active, as MapLibre's keyboard handler never is (`KeyboardHandler.isActive` returns a
+     * flag nothing sets).
+     */
     isActive: () => false,
   };
   /**
    * The one-finger and mouse pan handler. MapLibre's manager treats it as active from the moment a
-   * finger or button goes down — `activateOnStart` for the mouse (maplibre-gl-dev.mjs:21015,
-   * `:20865`), `_active` set by the first `touchstart` for touch (`:21098`) — long before the
-   * camera has moved.
+   * finger or button goes down — `activateOnStart` for the mouse (`generateMousePanHandler`,
+   * `DragHandler.dragStart`), `_active` set by the first `touchstart` for touch
+   * (`TouchPanHandler._calculateTransform`) — long before the camera has moved.
    */
   readonly dragPan = { isActive: () => this.fingerDown };
   /**
    * The wheel and trackpad-pinch zoom. Active from the first wheel event until its finish timeout
-   * runs out (`isActive`, maplibre-gl-dev.mjs:21606), and counted by `map.isMoving()` for as long
-   * as it zooms (`:22587`, `:25356`).
+   * runs out (`ScrollZoomHandler.isActive`), and counted by `map.isMoving()` for as long as it
+   * zooms (`Map.isMoving` → `HandlerManager.isMoving` → `HandlerManager.isZooming`).
    */
   readonly scrollZoom = { isActive: () => this.wheelZooming };
   /** The shift-drag box and double-click zooms, which the specs never drive. */
@@ -94,11 +108,10 @@ export class FakeMap {
   /**
    * Drives `isStyleLoaded()`, and is flipped to `true` by `failBasemapSource()` on purpose:
    * MapLibre reports the style loaded the instant a source errors. `VectorTileSource.load()`'s
-   * catch sets `_loaded` before firing the error (maplibre-gl-dev.mjs:2877-2881), the tile
-   * manager's own `error` listener flips `_sourceErrored` (`:6359-6360`), and that
-   * short-circuits `TileManager.loaded()` (`:6391`), `Style.loaded()` (`:14890-14894`) and
-   * `Map.isStyleLoaded()` (`:25824`) to true. Modelling that here keeps a discriminator from
-   * looking right against the fake while misreading every real failure.
+   * catch sets `_loaded` before firing the error, the tile manager's own `error` listener flips
+   * `_sourceErrored`, and that short-circuits `TileManager.loaded()`, `Style.loaded()` and
+   * `Map.isStyleLoaded()` to true. Modelling that here keeps a discriminator from looking right
+   * against the fake while misreading every real failure.
    */
   styleLoaded = false;
   removed = false;
@@ -137,7 +150,7 @@ export class FakeMap {
   /**
    * Whether the camera is mid-move: a `panBy` ease or a gesture's move began, and no `moveend`
    * has ended it yet. Every `moveend` the fake emits ends it, as MapLibre clears `_moving` before
-   * it fires the event (maplibre-gl-dev.mjs:23241, :23251).
+   * it fires the event (`Camera._afterEase`).
    */
   private panning = false;
 
@@ -167,9 +180,9 @@ export class FakeMap {
 
   /**
    * MapLibre's `Map.resize()`: an idle map stops its camera first, and that stop resets every
-   * gesture handler (`resize` → `stop` → `_stopHandlers` → `HandlerManager.stop`,
-   * maplibre-gl-dev.mjs:24950-24953, :23384, :24095), finger down or not. A map already moving
-   * skips the stop. Then the `resize` event fires.
+   * gesture handler (`Map.resize` → `Map.stop` → `Camera.stop` → `Camera._stopHandlers` →
+   * `HandlerManager.stop`), finger down or not. A map already moving skips the stop. Then the
+   * `resize` event fires.
    */
   resize() {
     if (!this.isMoving()) {
@@ -181,10 +194,10 @@ export class FakeMap {
 
   /**
    * The visitor putting a finger or button down on the map, without moving it yet. MapLibre's
-   * manager sees an active handler and stops the camera's ease (`handleEvent`, `:22392`), which
-   * fires that ease's `moveend` synchronously: with `isMoving()` already false (`:23241`), the
-   * pan handler already active, and the drag's own `movestart` still to come. The camera starts
-   * moving under the finger only afterwards, once the pointer travels.
+   * manager sees an active handler and stops the camera's ease (`HandlerManager.handleEvent`),
+   * which fires that ease's `moveend` synchronously: with `isMoving()` already false
+   * (`Camera._afterEase`), the pan handler already active, and the drag's own `movestart` still
+   * to come. The camera starts moving under the finger only afterwards, once the pointer travels.
    */
   grab() {
     this.touchDown();
@@ -195,9 +208,9 @@ export class FakeMap {
 
   /**
    * The visitor turning the wheel, or pinching a trackpad, on the map. `ScrollZoomHandler._start`
-   * sets `_zooming` before the manager stops the camera's ease (`:21681`, `:22392`), so the stopped
-   * ease's `moveend` fires with the scroll-zoom handler active and `isMoving()` already true
-   * (`:22587`): the zoom itself has no `moveend` yet.
+   * sets `_zooming` before the manager stops the camera's ease (`HandlerManager.handleEvent`), so
+   * the stopped ease's `moveend` fires with the scroll-zoom handler active and `isMoving()`
+   * already true (`HandlerManager.isZooming`): the zoom itself has no `moveend` yet.
    */
   wheel() {
     this.wheelZooming = true;
@@ -253,14 +266,14 @@ export class FakeMap {
    * starts while another is still running stops it first, and MapLibre fires the stopped ease's
    * `moveend` synchronously from inside the new `panBy` (`easeTo` → `_stop` → `_afterEase`).
    * MapLibre also zeroes the duration of an ease that is not `essential` when the visitor asks for
-   * reduced motion (`easeTo`, maplibre-gl-dev.mjs:23085), and a zero-duration ease finishes, firing
-   * its own `moveend`, before `panBy` returns (`_ease`, `:23387-23391`).
+   * reduced motion (`Camera.easeTo`), and a zero-duration ease finishes, firing its own `moveend`,
+   * before `panBy` returns (`Camera._ease`).
    */
   panBy(offset: [number, number], options: CameraMove['options']) {
     if (this.panning) {
       this.emit('moveend');
     }
-    // `easeTo` stops the gestures too (`_stop(false)` → `_stopHandlers`, `:23384`): a pan the
+    // `easeTo` stops the gestures too (`Camera._stop(false)` → `_stopHandlers`): a pan the
     // component starts under a visitor's finger takes the drag away from them.
     this.fingerDown = false;
     this.wheelZooming = false;
@@ -434,9 +447,10 @@ export class FakeMap {
 
   /**
    * Two fingers dragged up or down together, each moving at least 2 px: the pitch handler reads
-   * that as vertical (maplibre-gl-dev.mjs:21359-21372) and returns
-   * `pitchDelta = mean(travel.y) * -0.5` (`:21357`), which the manager adds to the camera's
-   * pitch (`:11963`). `travel` is each finger's vertical travel in px, negative dragging up.
+   * that as vertical (`TwoFingersTouchPitchHandler.gestureBeginsVertically`) and returns
+   * `pitchDelta = mean(travel.y) * -0.5` (`_move`), which the camera helper adds to the camera's
+   * pitch (`handleMapControlsRollPitchBearingZoom`). `travel` is each finger's vertical travel
+   * in px, negative dragging up.
    */
   twoFingerVerticalDrag(travel: number) {
     if (!this.twoFingerPitch) {
@@ -445,7 +459,10 @@ export class FakeMap {
     this.tilt(travel * -0.5);
   }
 
-  /** Two fingers twisted: the rotate handler's bearing delta, in degrees (`:21302-21310`). */
+  /**
+   * Two fingers twisted: the rotate handler's bearing delta, in degrees
+   * (`TwoFingersTouchRotateHandler._move`).
+   */
   twoFingerTwist(degrees: number) {
     if (!this.twoFingerRotate) {
       return;
@@ -455,7 +472,11 @@ export class FakeMap {
 
   /**
    * A right-button drag, MapLibre's mouse rotate and pitch pair: `bearingDelta = travel.x * 0.8`
-   * (`:21031`, rate `:23951`) and `pitchDelta = travel.y * -0.5` (`:21039`, rate `:23952`).
+   * (`generateMouseRotationHandler`, default `rotateSpeed`) and `pitchDelta = travel.y * -0.5`
+   * (`generateMousePitchHandler`, default `pitchSpeed`). The bearing is the linear form only: by
+   * default `dragRotate` moves circularly, flipping the sign above the map's centre and turning to
+   * the angle around the centre more than 100 px above or below it. The specs only check that a
+   * disabled handler moves nothing, so the linear form is enough.
    */
   rightButtonDrag(travel: { x: number; y: number }) {
     if (!this.mouseRotatePitch) {
@@ -467,7 +488,7 @@ export class FakeMap {
 
   /**
    * Shift with an arrow key, which the keyboard handler turns into a 15° bearing step or a 10°
-   * pitch step (`:21443-21456`, `:21470-21471`, steps `:21377-21379`).
+   * pitch step (`KeyboardHandler.keydown`, default `bearingStep` and `pitchStep`).
    */
   shiftArrowUp() {
     if (!this.keyboardRotatePitch) {
@@ -476,15 +497,18 @@ export class FakeMap {
     this.tilt(10);
   }
 
-  /** Pitch is clamped to the map's own 0–60° range (`:9967-9968`, defaults `:23899-23900`). */
+  /**
+   * Pitch is clamped to the map's own 0–60° range (`TransformHelper.setPitch` clamps to
+   * `minPitch`/`maxPitch`, which default to 0 and 60).
+   */
   private tilt(degrees: number) {
     this.pitch = Math.min(Math.max(this.pitch + degrees, 0), 60);
   }
 
   /**
-   * The basemap's TileJSON arriving: the source fires `data`/`metadata`
-   * (maplibre-gl-dev.mjs:2871), the tile manager bubbles it carrying its `sourceId`
-   * (`:15165-15169`), and the map re-fires it as `sourcedata` (`:24181`).
+   * The basemap's TileJSON arriving: the source fires `data`/`metadata` (`VectorTileSource.load`),
+   * the tile manager bubbles it carrying its `sourceId` (the evented-parent data `Style` gives
+   * it), and the map re-fires it as `sourcedata` (the `Map` constructor's `data` listener).
    */
   loadBasemapMetadata() {
     this.emit('sourcedata', {
@@ -496,8 +520,8 @@ export class FakeMap {
 
   /**
    * The basemap never coming up. The TileJSON request failed, so the catch fires an error naming
-   * the source and nothing else, and the `metadata` event never happens at all — 2877-2881 is
-   * the failure branch of the `:2868-2875` success branch that fires it.
+   * the source and nothing else, and the `metadata` event never happens at all —
+   * `VectorTileSource.load`'s catch is the failure branch of the success branch that fires it.
    */
   failBasemapSource() {
     this.styleLoaded = true;
@@ -520,9 +544,9 @@ export class FakeMap {
 
   /**
    * One resource of a live basemap failing: a vector tile, or a glyph range fetched while that
-   * tile is parsed (maplibre-gl-worker-dev.mjs:164-226). MapLibre fires it on the source with
-   * the tile attached (maplibre-gl-dev.mjs:6422); other tiles are still in flight, so the style
-   * is not loaded at that point.
+   * tile is parsed (`WorkerTile.parse` asks the main thread for its glyphs and waits for them).
+   * MapLibre fires it on the source with the tile attached (`TileManager._loadTile`'s catch);
+   * other tiles are still in flight, so the style is not loaded at that point.
    */
   failOneResource() {
     this.emit('error', {
@@ -534,7 +558,7 @@ export class FakeMap {
 
   /**
    * A style-level error the map paints through: `Source layer … does not exist` is fired on the
-   * style itself (maplibre-gl-dev.mjs:14888), so it names no source at all.
+   * style itself (`Style._validateLayer`), so it names no source at all.
    */
   failStyleValidation() {
     this.emit('error', {
@@ -738,12 +762,12 @@ export function setWidth(host: HTMLElement, width: number): void {
 export type ControlCorner = 'bottom-right' | 'bottom-left';
 
 /**
- * Builds the control the way MapLibre injects it (`AttributionControl.onAdd`,
- * maplibre-gl-dev.mjs:23477-23480; `addControl`, `:24228`): a `details` carrying the info button,
- * open as it opens on a map of any width until the first drag, as the only child of its corner
- * inside the map's control container. The nesting matters: MapLibre's open-state rule only matches
- * a control that is the direct child of a left corner. The app adds the control with no position,
- * so it lands in `bottom-right` (`getDefaultPosition`, `:23472`).
+ * Builds the control the way MapLibre injects it (`AttributionControl.onAdd`, `Map.addControl`):
+ * a `details` carrying the info button, open as it opens on a map of any width until the first
+ * drag, as the only child of its corner inside the map's control container. The nesting matters:
+ * MapLibre's open-state rule only matches a control that is the direct child of a left corner.
+ * The app adds the control with no position, so it lands in `bottom-right`
+ * (`AttributionControl.getDefaultPosition`).
  */
 export function buildAttributionControl(corner: ControlCorner): HTMLElement {
   const container = document.createElement('div');

@@ -1,13 +1,15 @@
 import type { Map as MapLibreMap } from 'maplibre-gl';
 
+// MapLibre internals named in this file were read in maplibre-gl 6.15.0.
+
 /**
  * The MapLibre handlers a visitor moves the map through. Each reports itself active from the
  * moment a finger or button goes down or the wheel starts, before the camera has moved.
  *
  * The keyboard handler is left out: it never reports itself active (`KeyboardHandler.isActive`
- * returns a flag nothing sets, maplibre-gl-dev.mjs:21517), so an arrow key cannot be told from
- * no input. Its ease replaces a pan this component has just started instead, which loses nothing:
- * the popup is revealed when the key's ease ends.
+ * returns a flag nothing sets), so an arrow key cannot be told from no input. Its ease replaces a
+ * pan this component has just started instead, which loses nothing: the popup is revealed when the
+ * key's ease ends.
  */
 const GESTURE_HANDLERS = [
   'dragPan',
@@ -19,13 +21,14 @@ const GESTURE_HANDLERS = [
 
 /**
  * Whether a MapLibre gesture handler is active. MapLibre stops a running ease the instant a
- * gesture handler turns active (`HandlerManager.handleEvent`, maplibre-gl-dev.mjs:22392) - firing
- * that ease's `moveend` synchronously, with `isMoving()` already false and no `movestart` of the
- * gesture yet - so this is the only way to tell that `moveend` from an ease running to its end.
+ * gesture handler turns active (`HandlerManager.handleEvent`) - firing that ease's `moveend`
+ * synchronously, with `isMoving()` already false and no `movestart` of the gesture yet - so this is
+ * the only way to tell that `moveend` from an ease running to its end.
  *
  * It is not enough to know a finger is down: `Map.resize()` on an idle map stops the camera, which
- * resets every handler (`:24950-24953`, `:23384`, `:24095`) while the finger stays where it is.
- * {@link trackPointerHold} therefore pairs this with the pointers it tracks itself.
+ * resets every handler (`Map.resize` → `Map.stop` → `Camera.stop` → `Camera._stopHandlers` →
+ * `HandlerManager.stop`) while the finger stays where it is. {@link trackPointerHold} therefore
+ * pairs this with the pointers it tracks itself.
  */
 function isGestureActive(map: MapLibreMap): boolean {
   return GESTURE_HANDLERS.some((name) => map[name].isActive());
