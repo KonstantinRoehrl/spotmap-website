@@ -131,6 +131,23 @@ describe('MapContainerComponent', () => {
     fixture.destroy();
   });
 
+  it('fades the map in over the same crossfade as the loader leaving', () => {
+    const fixture = create(true);
+    const host = fixture.nativeElement as HTMLElement;
+    const frame = getComputedStyle(host.querySelector('.map-frame')!);
+    const overlay = getComputedStyle(
+      host.querySelector('.map-container__overlay')!,
+    );
+    expect(frame.transitionDuration).toBe(overlay.transitionDuration);
+    expect(overlay.transitionDuration).toBe('0.3s');
+    expect(
+      getComputedStyle(document.documentElement)
+        .getPropertyValue('--dur-crossfade')
+        .trim(),
+    ).toBe('300ms');
+    fixture.destroy();
+  });
+
   it('renders the maplibre map for vienna', () => {
     const fixture = create(true, CityEnum.Vienna);
     expect(fixture.nativeElement.querySelector('app-spot-map')).toBeTruthy();

@@ -112,6 +112,7 @@
   --dur-fade: 200ms; /* the one fade length reduced motion keeps (DESIGN.md motion rule) */
   --dur-hover-in: 120ms; /* pointer bloom lighting up: quick */
   --dur-hover-out: 700ms; /* pointer bloom letting go: a slow phosphor decay */
+  --dur-crossfade: 300ms; /* overlay ↔ map and gallery rain ↔ photo: a crossfade, longer than a fade */
 }
 
 /* --------------------

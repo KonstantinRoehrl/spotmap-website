@@ -23,7 +23,7 @@
   object-fit: cover;
   display: block;
   opacity: 0;
-  transition: opacity 300ms ease-out;
+  transition: opacity var(--dur-crossfade) ease-out;
 }
 
 .gallery__photo--loaded {
@@ -51,7 +51,7 @@
   inset: 0;
   display: grid;
   place-items: center;
-  transition: opacity 300ms ease-out;
+  transition: opacity var(--dur-crossfade) ease-out;
 }
 
 .gallery__loading app-ascii-rain {
