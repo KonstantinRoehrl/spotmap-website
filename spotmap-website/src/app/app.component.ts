@@ -3,8 +3,6 @@ import {
   Component,
   signal,
   ChangeDetectionStrategy,
-  HostListener,
-  OnInit,
   inject,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -36,9 +34,9 @@ const INTRO_SEEN_KEY = 'spotmap:introSeen';
   templateUrl: './app.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: './app.component.css',
+  host: { '(document:keydown.escape)': 'onEscape()' },
 })
-export class AppComponent implements OnInit {
-  protected introFinished = signal<boolean>(false);
+export class AppComponent {
   /**
    * Whether the current route is in the admin tree. Read from `Location` at construction — the
    * router's first navigation has not ended yet, and a sign-in link lands here before it — and
@@ -46,6 +44,16 @@ export class AppComponent implements OnInit {
    */
   protected readonly onAdminRoute = signal(
     isAdminPath(inject(Location).path()),
+  );
+  /**
+   * Whether the intro is over and the nav bar and routed page show. Starts true when the intro
+   * already played this session or the app opened on an admin route: content then shows
+   * immediately and the animation never mounts. Deliberately does NOT force a route, so reloading
+   * or deep-linking /home, /map, /about or /admin stays on that page. The admin case does not mark
+   * the intro seen: the maintainer's first public visit still plays it.
+   */
+  protected introFinished = signal<boolean>(
+    this.onAdminRoute() || this.hasSeenIntro(),
   );
 
   constructor() {
@@ -61,18 +69,7 @@ export class AppComponent implements OnInit {
       );
   }
 
-  ngOnInit(): void {
-    // Already played this session, or opened on an admin route → skip the intro and reveal
-    // content immediately (never mount the animation). Deliberately does NOT force a route, so
-    // reloading or deep-linking /home, /map, /about or /admin stays on that page. The admin case
-    // does not mark the intro seen: the maintainer's first public visit still plays it.
-    if (this.onAdminRoute() || this.hasSeenIntro()) {
-      this.introFinished.set(true);
-    }
-  }
-
   /** Escape from anywhere ends the intro early (a11y skip standard). */
-  @HostListener('document:keydown.escape')
   protected onEscape(): void {
     this.skipIntro();
   }
