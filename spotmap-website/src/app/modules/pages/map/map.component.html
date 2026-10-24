@@ -1,51 +1,119 @@
-<div
-  class="map-page flex flex-col h-full flex-auto w-full md:w-10/12 lg:w-9/12 xl:w-8/12 mx-auto"
->
-  <!-- Header row: stacked on mobile, side-by-side on larger screens -->
-  <div class="flex flex-col md:flex-row justify-between items-center py-4">
-    <!-- ASCII animation - full width on mobile, 8 cols on desktop -->
-    <div
-      class="ascii-header w-full md:w-8/12 text-center md:text-left mb-4 md:mb-0 px-0 md:px-2"
-    >
+<div class="map-page" [class.map-page--wide]="wide()">
+  @if (!wide()) {
+    <header class="map-topbar">
       <app-ascii-animation-text
-        [messages]="[
-          selectedCity().city.toUpperCase() + ' SPOTMAP',
-          'RESPECT THE LOCALS',
-          'EXPLORE THE CONCRETE JUNGLE',
-          'TOUCH THE UNTOUCHED SPOTS',
-          'CAN SOMEONE BRING WAX?',
-          'LET`S GO PLAZA',
-          'SKATEVIDEOS > INSTAGRAM',
-          'SUPPORTED BY ROLLTROTTEL-VERBAND',
-          'ANYONE HAS A PIN?',
-          'JUST SOME RANDOM TEXT',
-          'FOR EDUCATIONAL PURPOSES ONLY',
-          'CONTINUOUSLY UPDATED',
-        ]"
+        class="map-topbar__banner"
+        [messages]="bannerMessages()"
         [waitFrames]="40"
         [animationSpeed]="45"
         [loop]="true"
-        [centered]="true"
-        class="ascii-animation inline-block px-0"
-      >
-      </app-ascii-animation-text>
-    </div>
-
-    <!-- City picker - full width on mobile, 4 cols on desktop -->
-    <div class="w-full md:w-4/12 px-0 md:px-2">
-      <app-city-picker
-        [selected]="selectedCity()"
-        (citySelected)="selectCity($event)"
       />
+      <app-city-picker
+        class="map-topbar__picker"
+        [selected]="store.city()"
+        (citySelected)="store.selectCity($event)"
+      />
+    </header>
+  }
+
+  <div #body class="map-page__body">
+    <!-- Outside every layout @if: crossing 1024 px must never rebuild the map. -->
+    <div class="map-page__map">
+      @if (store.mapCity(); as city) {
+        <app-map-container
+          class="map-page__map-container select-none"
+          [city]="city"
+          [selectedId]="store.selectedId()"
+          [hoveredId]="store.hoveredId()"
+          [openOn]="store.openOn()"
+          [coveredInsets]="coveredInsets()"
+          [selectionFraming]="wide() ? 'reveal' : 'centre'"
+          [attributionCorner]="wide() ? 'bottom-right' : 'top-right'"
+          (spotsLoaded)="store.setList($event)"
+          (boundsChange)="store.setBounds($event)"
+          (spotClick)="store.open($event, 'pin')"
+          (emptyClick)="onEmptyMapTap()"
+          (pinHover)="store.setHovered($event)"
+        />
+      }
     </div>
+
+    @if (wide()) {
+      <aside class="spot-column" aria-label="Spots">
+        <div class="spot-column__banner">
+          <app-ascii-animation-text
+            class="ascii-animation"
+            [messages]="bannerMessages()"
+            [waitFrames]="40"
+            [animationSpeed]="45"
+            [loop]="true"
+            [centered]="true"
+          />
+        </div>
+        <app-city-picker
+          class="spot-column__picker"
+          [selected]="store.city()"
+          (citySelected)="store.selectCity($event)"
+        />
+        <div class="spot-column__count">
+          @if (store.detail()) {
+            <button
+              type="button"
+              class="spot-column__back phosphor-bloom phosphor-bloom--plate"
+              appPointerBloom
+              aria-label="Back to the list"
+              (click)="store.close()"
+            >
+              {{ backLabel() }}
+            </button>
+          } @else {
+            <span class="spot-column__count-line">{{ countLine() }}</span>
+            <span class="spot-column__order" aria-hidden="true">A–Z</span>
+          }
+        </div>
+        <div class="spot-pane">
+          <ng-container [ngTemplateOutlet]="pane" />
+        </div>
+      </aside>
+    } @else {
+      <app-spot-sheet
+        class="map-page__sheet"
+        [state]="sheet().state"
+        [availableHeight]="bodyHeight()"
+        [count]="count()"
+        (headTap)="feedSheet('head')"
+        (back)="onSheetBack()"
+        (close)="onSheetClose()"
+      >
+        <div class="spot-pane">
+          <ng-container [ngTemplateOutlet]="pane" />
+        </div>
+      </app-spot-sheet>
+    }
   </div>
 
-  <!-- Map container -->
-  <div class="flex-row h-full">
-    <app-map-container
-      [city]="selectedCity().city"
-      class="h-full w-full select-none block"
-    >
-    </app-map-container>
-  </div>
+  <p class="sr-only" role="status" aria-live="polite">{{ announcement() }}</p>
 </div>
+
+<!-- The one pane, list or open spot, rendered into the column or the sheet. -->
+<ng-template #pane>
+  @if (store.detail(); as view) {
+    <app-spot-detail
+      class="spot-pane__view"
+      animate.leave="spot-pane__view--leaving"
+      [view]="view"
+      (retry)="store.retryDetail()"
+    />
+  } @else {
+    <app-spot-list
+      class="spot-pane__view"
+      animate.leave="spot-pane__view--leaving"
+      [spots]="store.shownSpots()"
+      [notice]="store.notice()"
+      [highlightedId]="store.hoveredId()"
+      [focusId]="store.returnFocusTo()"
+      (open)="store.open($event, 'list')"
+      (hover)="store.setHovered($event)"
+    />
+  }
+</ng-template>

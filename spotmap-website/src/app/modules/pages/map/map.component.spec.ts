@@ -1,37 +1,101 @@
+import { BreakpointObserver } from '@angular/cdk/layout';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Component, input, signal } from '@angular/core';
+import {
+  ComponentFixture,
+  discardPeriodicTasks,
+  fakeAsync,
+  TestBed,
+  tick,
+} from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
+import { BehaviorSubject, map } from 'rxjs';
 
-import { SUPPORTED_CITIES } from '../../../models/map/supported-cities';
 import { CityEnum } from '../../../models/enums/map-enum';
+import { MapFocus, NO_INSETS } from '../../../models/map/map-camera';
+import { SUPPORTED_CITIES } from '../../../models/map/supported-cities';
+import type { SpotListFeature } from '../../../models/spots/spot';
+import type { SpotDetailView } from '../../../models/spots/spot-detail-view';
+import { AsciiAnimationTextComponent } from '../../components/ascii-animation-text/ascii-animation-text.component';
 import { CityPickerComponent } from '../../components/city-picker/city-picker.component';
-import { USER_CITY_STORAGE_KEY } from '../../components/city-picker/stored-city';
 import { MapContainerComponent } from '../../components/map-container/map-container.component';
 import {
   ELEVATION_LOADER,
   MAP_FACTORY,
 } from '../../components/spot-map/map-factory.token';
 import { SpotMapComponent } from '../../components/spot-map/spot-map.component';
-import { MapComponent } from './map.component';
+import { SpotDetailComponent } from '../../components/spot-detail/spot-detail.component';
+import { SpotListComponent } from '../../components/spot-list/spot-list.component';
+import { SpotSheetComponent } from '../../components/spot-sheet/spot-sheet.component';
+import { sheetHeight } from '../../components/spot-sheet/spot-sheet-state';
+import {
+  COUNT_ANNOUNCE_DEBOUNCE_MS,
+  MapComponent,
+  WIDE_LAYOUT_QUERY,
+} from './map.component';
+import { SpotBrowserStore } from './spot-browser.store';
 
 /**
- * Vienna — the city this page defaults to — renders through SpotMapComponent, which injects
- * the maplibre map factory and the elevation loader as soon as it is constructed. These tests
- * never let it call any of them, so never-resolving stubs are enough; providing them is also
- * what keeps the ESM-only maplibre-gl and maplibre-contour out of the karma bundle, the reason
- * neither token carries a default (map-factory.token.ts). The HTTP testing backend
- * below belongs to the same seal: a browser that does report WebGL would let the renderer start
- * loading a city's spots, and these tests are about the page's city selection, not about that
- * request.
+ * The map factories and the elevation loader are injected the moment SpotMapComponent is built;
+ * never-resolving stubs keep the ESM-only maplibre-gl and maplibre-contour out of the Karma bundle
+ * (map-factory.token.ts). The map's own template is blanked: the page is under test, not the map.
  */
 const neverResolves = () => new Promise<never>(() => {});
 
+/** The ASCII banner without its endless typewriter timers, which no fakeAsync zone could drain. */
+@Component({ selector: 'app-ascii-animation-text', template: '' })
+class StubBannerComponent {
+  readonly messages = input<string[]>([]);
+  readonly waitFrames = input(0);
+  readonly animationSpeed = input(0);
+  readonly loop = input(false);
+  readonly centered = input(false);
+}
+
+function listFeature(id: string, name: string): SpotListFeature {
+  return {
+    type: 'Feature',
+    geometry: { type: 'Point', coordinates: [16.37, 48.2] },
+    properties: { id, name, status: 'active', cover: null, photoCount: 0 },
+  };
+}
+
+const ALPHA = listFeature('a', 'Alpha Bank');
+const BETA = listFeature('b', 'Beta Ledge');
+
+/** A store the specs drive by hand: every state a writable signal, every action a spy. */
+function fakeStore() {
+  return {
+    city: signal(SUPPORTED_CITIES[CityEnum.Vienna]),
+    mapCity: signal<CityEnum | null>(CityEnum.Vienna),
+    openOn: signal<MapFocus | null>(null),
+    selectedId: signal<string | null>(null),
+    shownSpots: signal<readonly SpotListFeature[] | null>(null),
+    detail: signal<SpotDetailView | null>(null),
+    notice: signal<'not-found' | null>(null),
+    hoveredId: signal<string | null>(null),
+    returnFocusTo: signal<string | null>(null),
+    selectCity: jasmine.createSpy('selectCity'),
+    setList: jasmine.createSpy('setList'),
+    setBounds: jasmine.createSpy('setBounds'),
+    open: jasmine.createSpy('open'),
+    close: jasmine.createSpy('close'),
+    retryDetail: jasmine.createSpy('retryDetail'),
+    setHovered: jasmine.createSpy('setHovered'),
+    dismissNotice: jasmine.createSpy('dismissNotice'),
+  };
+}
+
 describe('MapComponent', () => {
   let fixture: ComponentFixture<MapComponent>;
+  let store: ReturnType<typeof fakeStore>;
+  /** Whether the viewport is at least 1024 px wide, as the breakpoint stub reports it. */
+  let wide: BehaviorSubject<boolean>;
 
   beforeEach(async () => {
-    localStorage.removeItem(USER_CITY_STORAGE_KEY);
+    store = fakeStore();
+    wide = new BehaviorSubject(true);
     await TestBed.configureTestingModule({
       imports: [MapComponent],
       providers: [
@@ -39,51 +103,338 @@ describe('MapComponent', () => {
         provideHttpClientTesting(),
         { provide: MAP_FACTORY, useValue: neverResolves },
         { provide: ELEVATION_LOADER, useValue: neverResolves },
+        {
+          provide: BreakpointObserver,
+          useValue: {
+            isMatched: (query: string) =>
+              query === WIDE_LAYOUT_QUERY && wide.value,
+            observe: () =>
+              wide.pipe(
+                map((matches) => ({
+                  matches,
+                  breakpoints: { [WIDE_LAYOUT_QUERY]: matches },
+                })),
+              ),
+          },
+        },
       ],
     }).compileComponents();
-
-    // The page owns the city selection, not the renderer: blank the map's template so these
-    // tests never build a WebGL context. Its own markup is covered by spot-map.component.spec.ts.
     TestBed.overrideComponent(SpotMapComponent, { set: { template: '' } });
+    // Two calls: Angular rejects one override that mixes `set` with `add`/`remove`.
+    TestBed.overrideComponent(MapComponent, {
+      set: { providers: [{ provide: SpotBrowserStore, useValue: store }] },
+    });
+    TestBed.overrideComponent(MapComponent, {
+      remove: { imports: [AsciiAnimationTextComponent] },
+      add: { imports: [StubBannerComponent] },
+    });
   });
 
-  afterEach(() => {
-    fixture?.destroy();
-    localStorage.removeItem(USER_CITY_STORAGE_KEY);
-  });
+  afterEach(() => fixture?.destroy());
 
-  /** Creates the page and renders it once. */
-  function create(): void {
+  function create(): HTMLElement {
     fixture = TestBed.createComponent(MapComponent);
+    const host = fixture.nativeElement as HTMLElement;
+    host.style.cssText = 'display:block;width:1200px;height:800px';
+    fixture.detectChanges();
+    // A fixture's detectChanges runs no render hooks; the app tick runs the page's body measuring.
+    TestBed.tick();
+    fixture.detectChanges();
+    return host;
+  }
+
+  function container(): MapContainerComponent {
+    return fixture.debugElement.query(By.directive(MapContainerComponent))
+      .componentInstance as MapContainerComponent;
+  }
+
+  function sheet(): SpotSheetComponent {
+    return fixture.debugElement.query(By.directive(SpotSheetComponent))
+      .componentInstance as SpotSheetComponent;
+  }
+
+  function goNarrow(): void {
+    wide.next(false);
+    fixture.detectChanges();
     fixture.detectChanges();
   }
 
-  /** The page's city picker and map container. */
-  const picker = () =>
-    fixture.debugElement.query(By.directive(CityPickerComponent))
+  /** The body's height as the page measured it, which the sheet's covered height derives from. */
+  function bodyHeight(host: HTMLElement): number {
+    return host.querySelector<HTMLElement>('.map-page__body')!.clientHeight;
+  }
+
+  describe('on a wide screen', () => {
+    it('puts the column beside the map with the picker, the count and the list', () => {
+      store.shownSpots.set([ALPHA, BETA]);
+      const host = create();
+
+      const column = host.querySelector('aside.spot-column')!;
+      expect(column).not.toBeNull();
+      expect(column.querySelector('app-city-picker')).not.toBeNull();
+      expect(
+        column.querySelector('.spot-column__count')!.textContent,
+      ).toContain('> 2 SPOTS IN VIEW');
+      expect(column.querySelector('app-spot-list')).not.toBeNull();
+      expect(host.querySelector('app-spot-sheet')).toBeNull();
+      expect(host.querySelector('.map-topbar')).toBeNull();
+    });
+
+    it('says one spot in the singular and shows a loading line before the count is known', () => {
+      const host = create();
+      const count = () =>
+        host.querySelector('.spot-column__count')!.textContent!;
+      expect(count()).toContain('> LOADING SPOTS…');
+
+      store.shownSpots.set([ALPHA]);
+      fixture.detectChanges();
+      expect(count()).toContain('> 1 SPOT IN VIEW');
+    });
+
+    it('turns the count into a back button while a spot is open', () => {
+      store.shownSpots.set([ALPHA, BETA]);
+      store.selectedId.set('a');
+      store.detail.set({ status: 'loading', id: 'a', preview: ALPHA });
+      const host = create();
+
+      const back = host.querySelector<HTMLButtonElement>(
+        '.spot-column__count button',
+      )!;
+      expect(back.textContent!.trim()).toBe('‹ 2 IN VIEW');
+      expect(back.getAttribute('aria-label')).toBe('Back to the list');
+      expect(back.classList).toContain('phosphor-bloom--plate');
+      back.click();
+      expect(store.close).toHaveBeenCalledTimes(1);
+      expect(host.querySelector('app-spot-detail')).not.toBeNull();
+    });
+
+    it('lets the map run edge to edge with nothing covered, and reveals a selected pin only when hidden', () => {
+      create();
+      expect(container().coveredInsets()).toEqual(NO_INSETS);
+      expect(container().selectionFraming()).toBe('reveal');
+      expect(container().attributionCorner()).toBe('bottom-right');
+    });
+  });
+
+  describe('on a phone', () => {
+    beforeEach(() => wide.next(false));
+
+    it('puts a slim top bar over the map and the sheet under it', () => {
+      const host = create();
+      expect(host.querySelector('.map-topbar app-city-picker')).not.toBeNull();
+      expect(host.querySelector('app-spot-sheet app-spot-list')).not.toBeNull();
+      expect(host.querySelector('aside.spot-column')).toBeNull();
+    });
+
+    it('keeps the uncovered map in view: covered by the sheet, the selection centred, credits top right', () => {
+      const host = create();
+      expect(container().coveredInsets()).toEqual({
+        ...NO_INSETS,
+        bottom: sheetHeight('peek', bodyHeight(host)),
+      });
+      expect(container().selectionFraming()).toBe('centre');
+      expect(container().attributionCorner()).toBe('top-right');
+    });
+
+    it('opens the list from the sheet head and covers more of the map', () => {
+      const host = create();
+      sheet().headTap.emit();
+      fixture.detectChanges();
+
+      expect(sheet().state()).toBe('list');
+      expect(container().coveredInsets().bottom).toBe(
+        sheetHeight('list', bodyHeight(host)),
+      );
+    });
+
+    it('opens the sheet to the detail when a spot is selected, and back to where it was when it closes elsewhere', () => {
+      create();
+      store.selectedId.set('a');
+      store.detail.set({ status: 'loading', id: 'a', preview: ALPHA });
+      fixture.detectChanges();
+      expect(sheet().state()).toBe('detail');
+
+      store.selectedId.set(null);
+      store.detail.set(null);
+      fixture.detectChanges();
+      expect(sheet().state()).toBe('peek');
+    });
+
+    it('opens on the detail for a spot already selected when the page starts (a shared link)', () => {
+      store.selectedId.set('a');
+      store.detail.set({ status: 'loading', id: 'a', preview: null });
+      create();
+      expect(sheet().state()).toBe('detail');
+    });
+
+    it('goes back to the list from the sheet, closing the spot', () => {
+      store.selectedId.set('a');
+      store.detail.set({ status: 'loading', id: 'a', preview: ALPHA });
+      create();
+
+      sheet().back.emit();
+      fixture.detectChanges();
+      expect(store.close).toHaveBeenCalledTimes(1);
+      expect(sheet().state()).toBe('list');
+
+      store.selectedId.set(null);
+      store.detail.set(null);
+      fixture.detectChanges();
+      expect(sheet().state()).toBe('list');
+    });
+
+    it('closes the spot to the peek bar from the sheet', () => {
+      store.selectedId.set('a');
+      store.detail.set({ status: 'loading', id: 'a', preview: ALPHA });
+      create();
+
+      sheet().close.emit();
+      fixture.detectChanges();
+      expect(store.close).toHaveBeenCalledTimes(1);
+      expect(sheet().state()).toBe('peek');
+    });
+
+    it('closes an open spot on a tap on empty map', () => {
+      store.selectedId.set('a');
+      store.detail.set({ status: 'loading', id: 'a', preview: ALPHA });
+      create();
+
+      container().emptyClick.emit();
+      fixture.detectChanges();
+      expect(store.close).toHaveBeenCalledTimes(1);
+      expect(sheet().state()).toBe('peek');
+    });
+
+    it('ignores a tap on empty map while no spot is open', () => {
+      create();
+      container().emptyClick.emit();
+      expect(store.close).not.toHaveBeenCalled();
+    });
+
+    it('opens the sheet to the list to show the not-found notice', () => {
+      create();
+      store.notice.set('not-found');
+      fixture.detectChanges();
+      expect(sheet().state()).toBe('list');
+    });
+  });
+
+  it('shows one city picker in either layout', () => {
+    const host = create();
+    expect(host.querySelectorAll('app-city-picker').length).toBe(1);
+    goNarrow();
+    expect(host.querySelectorAll('app-city-picker').length).toBe(1);
+  });
+
+  it('keeps the same map across the breakpoint, so a resize never rebuilds it', () => {
+    create();
+    const before = container();
+    goNarrow();
+    expect(container()).toBe(before);
+  });
+
+  it('builds no map while a shared link is still finding its city', () => {
+    store.mapCity.set(null);
+    const host = create();
+    expect(host.querySelector('app-map-container')).toBeNull();
+    expect(host.querySelector('.map-page__map')).not.toBeNull();
+  });
+
+  it('hands the store’s selection, hover and opening view to the map', () => {
+    const focus: MapFocus = { center: [15.44, 47.07], zoom: 16 };
+    store.selectedId.set('a');
+    store.hoveredId.set('b');
+    store.openOn.set(focus);
+    create();
+    expect(container().city()).toBe(CityEnum.Vienna);
+    expect(container().selectedId()).toBe('a');
+    expect(container().hoveredId()).toBe('b');
+    expect(container().openOn()).toEqual(focus);
+  });
+
+  it('feeds what the map reports into the store', () => {
+    create();
+    const collection = {
+      type: 'FeatureCollection' as const,
+      features: [ALPHA],
+    };
+    const bounds = { west: 16, south: 48, east: 17, north: 49 };
+    container().spotsLoaded.emit(collection);
+    container().boundsChange.emit(bounds);
+    container().spotClick.emit('a');
+    container().pinHover.emit('b');
+
+    expect(store.setList).toHaveBeenCalledWith(collection);
+    expect(store.setBounds).toHaveBeenCalledWith(bounds);
+    expect(store.open).toHaveBeenCalledWith('a', 'pin');
+    expect(store.setHovered).toHaveBeenCalledWith('b');
+  });
+
+  it('feeds the list and the picker into the store', () => {
+    store.shownSpots.set([ALPHA, BETA]);
+    store.notice.set('not-found');
+    store.returnFocusTo.set('a');
+    store.hoveredId.set('b');
+    create();
+    const list = fixture.debugElement.query(By.directive(SpotListComponent))
+      .componentInstance as SpotListComponent;
+    expect(list.spots()).toEqual([ALPHA, BETA]);
+    expect(list.notice()).toBe('not-found');
+    expect(list.focusId()).toBe('a');
+    expect(list.highlightedId()).toBe('b');
+
+    list.open.emit('b');
+    list.hover.emit('a');
+    const picker = fixture.debugElement.query(By.directive(CityPickerComponent))
       .componentInstance as CityPickerComponent;
-  const container = () =>
-    fixture.debugElement.query(By.directive(MapContainerComponent))
-      .componentInstance as MapContainerComponent;
+    picker.citySelected.emit(SUPPORTED_CITIES[CityEnum.Graz]);
 
-  it('should create', () => {
-    create();
-    expect(fixture.componentInstance).toBeTruthy();
+    expect(store.open).toHaveBeenCalledWith('b', 'list');
+    expect(store.setHovered).toHaveBeenCalledWith('a');
+    expect(store.selectCity).toHaveBeenCalledWith(
+      SUPPORTED_CITIES[CityEnum.Graz],
+    );
   });
 
-  it('opens on the city remembered from the last visit', () => {
-    localStorage.setItem(USER_CITY_STORAGE_KEY, CityEnum.Linz);
+  it('shows the detail in the pane and passes its retry to the store', () => {
+    const view: SpotDetailView = { status: 'failed', id: 'a', preview: ALPHA };
+    store.selectedId.set('a');
+    store.detail.set(view);
     create();
-    expect(picker().selected()).toBe(SUPPORTED_CITIES[CityEnum.Linz]);
-    expect(container().city()).toBe(CityEnum.Linz);
+    const detail = fixture.debugElement.query(By.directive(SpotDetailComponent))
+      .componentInstance as SpotDetailComponent;
+    expect(detail.view()).toEqual(view);
+    detail.retry.emit();
+    expect(store.retryDetail).toHaveBeenCalledTimes(1);
   });
 
-  it('stores a city chosen in the picker and shows its map', () => {
-    create();
-    picker().citySelected.emit(SUPPORTED_CITIES[CityEnum.Graz]);
+  it('announces the count politely, once it has held still', fakeAsync(() => {
+    const host = create();
+    const region = host.querySelector(
+      // The page's own region, not the map container's loader announcement before it.
+      '.map-page > [role="status"][aria-live="polite"]',
+    )!;
+    store.shownSpots.set([ALPHA]);
     fixture.detectChanges();
-    expect(localStorage.getItem(USER_CITY_STORAGE_KEY)).toBe(CityEnum.Graz);
-    expect(picker().selected()).toBe(SUPPORTED_CITIES[CityEnum.Graz]);
-    expect(container().city()).toBe(CityEnum.Graz);
+    store.shownSpots.set([ALPHA, BETA]);
+    fixture.detectChanges();
+
+    tick(COUNT_ANNOUNCE_DEBOUNCE_MS - 1);
+    fixture.detectChanges();
+    expect(region.textContent!.trim()).toBe('');
+
+    tick(1);
+    fixture.detectChanges();
+    expect(region.textContent!.trim()).toBe('2 spots in view');
+    discardPeriodicTasks();
+  }));
+
+  it('drops the not-found notice on the next pointer or key press anywhere on the page', () => {
+    const host = create();
+    host.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+    host.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'a', bubbles: true }),
+    );
+    expect(store.dismissNotice).toHaveBeenCalledTimes(2);
   });
 });
