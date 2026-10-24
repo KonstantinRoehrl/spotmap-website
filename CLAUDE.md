@@ -20,7 +20,9 @@ never committed.
 
 Notes:
 - **Scope is locked** by `.graphifyignore`: the graph covers the Angular app, its
-  committed spot datasets, and the real docs (`DESIGN.md`, `PRODUCT.md`, `README.md`,
+  spot source registry and per-city reports (`spotmap-website/data/spots/sources.json`
+  and `*.report.json`; graphify does not ingest the `.geojson` files), and the real
+  docs (`DESIGN.md`, `PRODUCT.md`, `README.md`,
   the tracked notes under `docs/devcycle/maintenance-findings/`, `public/icon*.png`).
   It excludes process scaffolding (`.superpowers/`, `.claude/`, `.impeccable/`,
   `.devcycle/`), planning artifacts (`docs/superpowers/`), local audits
