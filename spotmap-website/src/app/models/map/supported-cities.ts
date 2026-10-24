@@ -1,5 +1,5 @@
-import { MapItem } from './interfaces/map-item-interface';
-import { CityEnum, CountryEnum, CountryCodeEnum } from './map-enum';
+import { MapItem } from '../enums/interfaces/map-item-interface';
+import { CityEnum, CountryEnum, CountryCodeEnum } from '../enums/map-enum';
 
 /** Every city's picker entry; the picker lists them in this order, grouped by country. */
 export const SUPPORTED_CITIES: Record<CityEnum, MapItem> = {

@@ -1,5 +1,5 @@
 import type mlcontour from 'maplibre-contour';
-import { SUPPORTED_CITIES } from '../../../models/enums/config';
+import { SUPPORTED_CITIES } from '../../../models/map/supported-cities';
 import { CityEnum, CountryCodeEnum } from '../../../models/enums/map-enum';
 
 /** maplibre-contour's DEM source; the loader creates one per DEM zoom, so at most two per page. */

@@ -8,7 +8,7 @@ import {
 } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 
-import { CityEnum, MapFailureReason } from '../../../models/enums/map-enum';
+import { CityEnum } from '../../../models/enums/map-enum';
 import {
   ELEVATION_LOADER,
   MAP_FACTORY,
@@ -17,6 +17,7 @@ import {
 import { MapLoaderComponent } from '../map-loader/map-loader.component';
 import { SpotMapComponent } from '../spot-map/spot-map.component';
 import { INITIAL_MAP_LOAD_STATE, MapLoadState } from './map-load-progress';
+import type { MapFailureReason } from '../../../models/map/map-failure-reason';
 import type { MapLoadEvent } from '../../../models/map/map-load-event';
 import {
   LOAD_TIMEOUT_MS,

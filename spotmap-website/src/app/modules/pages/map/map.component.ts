@@ -8,7 +8,7 @@ import {
 import { MatOptionModule } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
-import { SUPPORTED_CITIES } from '../../../models/enums/config';
+import { SUPPORTED_CITIES } from '../../../models/map/supported-cities';
 import { MapItem } from '../../../models/enums/interfaces/map-item-interface';
 import { CityEnum, CountryCodeEnum } from '../../../models/enums/map-enum';
 import { AsciiAnimationTextComponent } from '../../components/ascii-animation-text/ascii-animation-text.component';
