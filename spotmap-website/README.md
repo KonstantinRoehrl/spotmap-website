@@ -276,10 +276,12 @@ from the public `spot-photos` bucket as `full/<city>/<file>.webp` (the 1400px
 encode) and `thumb/<city>/<file>.webp` (640px, what the popup shows); with no
 photo host configured, popups show no gallery.
 
-Each build's backend is set in `src/environments/`. The production one,
-`environment.prod.ts`, stays empty until the hosted project is set up (see
-[Rollout to the hosted project](#rollout-to-the-hosted-project)); until then
-the deployed site serves the snapshot and shows no photos.
+Each build's backend is set in `src/environments/`. Production builds
+(`environment.prod.ts`) talk to the hosted EU Supabase project, so the deployed
+site shows live spots and photos and falls back to the snapshot as described
+above. Development builds talk to the local stack (see [Local stack](#local-stack)).
+[The hosted project](#the-hosted-project) records how the production project is
+set up and how to re-point the site at another one.
 
 ### The maintainer loop
 
@@ -413,10 +415,11 @@ already has a snapshot, plus each `--city` given (repeatable). Exit codes: 0 all
 written, 1 a city failed, 2 bad arguments or a target refused (a hosted URL
 without `--hosted`, or `--hosted` against the local stack).
 
-### Rollout to the hosted project
+### The hosted project
 
-`main` deploys to GitHub Pages, so the hosted project is set up and verified
-before the branch that turns the backend on is merged:
+Production runs on one hosted Supabase project. These steps set one up from
+nothing; to move the site to a different project, run them against the new
+one and redeploy:
 
 1. Create the Supabase project (EU region, free tier).
 2. Apply the migrations to it. All of them must be in before steps 5 and 7,
@@ -428,9 +431,6 @@ before the branch that turns the backend on is merged:
    npx supabase link --project-ref <project-ref>
    npx supabase db push
    ```
-
-   A project that already went through the earlier rollout holds only the first
-   migration: run `npx supabase db push` again now, before steps 5 and 7.
 
 3. Fill `src/environments/environment.prod.ts`: `apiUrl` and `publishableKey`
    from the project's API settings, and `photoBaseUrl` as
@@ -461,9 +461,8 @@ before the branch that turns the backend on is merged:
    curl -s -o /dev/null -w '%{http_code}' "https://static-map-tiles-api.arcgis.com/arcgis/rest/services/static-basemap-tiles-service/v1/arcgis/imagery/static/tile/3/3/3?token=$KEY"
    ```
 
-   It must print `200`. If it does not, stop: the imagery style assumption failed
-   and the provider decision goes back to the maintainer. Then store the key; it
-   is never committed:
+   It must print `200`; a failing check means the key or the imagery provider
+   needs revisiting before going on. Then store the key; it is never committed:
 
    ```sql
    insert into public.admin_settings (key, value) values ('esri_api_key', '<key>');
@@ -471,11 +470,12 @@ before the branch that turns the backend on is merged:
 
 8. `npm run sync:supabase -- --hosted`, then
    `npm run snapshot:supabase -- --hosted`.
-9. Merge to `main` only after the on-device checks pass against the hosted
-   backend. Before the merge, the phone reaches the branch through a
-   local-network or tunnel origin added to the redirect allow-list for the test
-   and removed afterwards. A custom domain later means updating the site URL and
-   the redirect allow-list.
+
+To test a branch on a phone against the hosted sign-in, add the phone-reachable
+origin (a local-network address or a tunnel) to the redirect allow-list for the
+test, and remove it afterwards.
+
+A custom domain means updating the site URL and the redirect allow-list.
 
 ## Design system
 
