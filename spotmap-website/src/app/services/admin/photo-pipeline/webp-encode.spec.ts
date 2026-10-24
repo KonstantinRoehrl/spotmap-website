@@ -41,6 +41,8 @@ describe('webp-encode', () => {
 
   describe('encodeWithWasm', () => {
     it('loads the jSquash WASM from the served jsquash/ assets and produces a RIFF/WEBP blob', async () => {
+      // The 250-entry resource-timing buffer is already full of the test bundle's chunk files.
+      performance.clearResourceTimings();
       const blob = await encodeWithWasm(sampleImage(), 72);
 
       expect(blob.type).toBe('image/webp');

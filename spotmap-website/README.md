@@ -12,8 +12,17 @@ dark, glowing terminal shell so a slow map never flashes white.
 - **Angular Material 22** — a custom M3 "green terminal" theme (`src/theme.scss`) via `--mat-sys-*` system tokens.
 - **Tailwind CSS v4** — CSS-first `@theme` design tokens in `src/styles.css`.
 - **IBM Plex Mono** — self-hosted (`src/fonts/`, emitted hashed under `media/`); the whole UI is one monospace character grid.
-- **Karma + Jasmine** — unit tests.
+- **Karma + Jasmine** — unit tests, run through `@angular/build:karma`, which bundles the specs with esbuild.
 - **TypeScript 6**, **Zone.js** (change detection is OnPush, Zone retained).
+
+### Dependency overrides
+
+`package.json` pins `vite` to `8.3.5` under `overrides`. `@angular/build` 22.2 requires exactly
+`vite` 8.3.0, which has known dev-server security advisories, and the override replaces that copy so
+`npm audit` stays clean. Vite only runs the local dev server; it is not part of the deployed site.
+**Remove the override once `@angular/build`'s own `vite` dependency is 8.3.3 or later** — check with
+`npm view @angular/build@<version> dependencies.vite` when upgrading Angular. The pin is exact, so it
+never moves on its own, and Dependabot will not retire it for you.
 
 ## Getting started
 
