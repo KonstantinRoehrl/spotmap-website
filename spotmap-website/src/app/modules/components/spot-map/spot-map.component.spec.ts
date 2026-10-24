@@ -4,32 +4,25 @@ import {
   provideHttpClientTesting,
   TestRequest,
 } from '@angular/common/http/testing';
-import { ApplicationRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CityEnum } from '../../../models/enums/map-enum';
 import type { MapLoadEvent } from '../../../models/map/map-load-event';
+import { SpotListCollection } from '../../../models/spots/spot';
 import type { ElevationTiles } from './elevation';
-import {
-  ELEVATION_LOADER,
-  MAP_FACTORY,
-  POPUP_FACTORY,
-} from './map-factory.token';
-import { POPUP_MAX_HEIGHT_VAR } from './popup-fit';
+import { ELEVATION_LOADER, MAP_FACTORY } from './map-factory.token';
 import { LOCK_ON_AT_REST_FILTER } from './spot-layers';
 import { SpotMapComponent } from './spot-map.component';
 import { BASEMAP_SOURCE_ID } from './terminal-map-style';
 import {
   addAttributionControl,
   buildAttributionControl,
-  CameraMove,
   COLLECTION,
   FakeMap,
-  FakePopup,
   holdAnimationFrames,
   LOCK_ON_AT_REST,
+  onlySpot,
   requestReducedMotion,
   setWidth,
-  stubResizeObserver,
   tapOn,
 } from './testing/fake-map';
 
@@ -82,7 +75,6 @@ function loadMapLibreAttributionRules(): HTMLStyleElement {
 describe('SpotMapComponent', () => {
   let fixture: ComponentFixture<SpotMapComponent>;
   let fake: FakeMap;
-  let popups: FakePopup[];
   let httpMock: HttpTestingController;
   let getContext: jasmine.Spy;
   let loseContext: jasmine.Spy;
@@ -95,7 +87,6 @@ describe('SpotMapComponent', () => {
     elevation = null;
     loadElevation = () => Promise.resolve(elevation);
     fake = new FakeMap();
-    popups = [];
     // Headless Chrome hands out no WebGL context, so the component's support probe is faked
     // here; the unsupported spec below drives the same spy to null.
     loseContext = jasmine.createSpy('loseContext');
@@ -118,14 +109,6 @@ describe('SpotMapComponent', () => {
         provideHttpClientTesting(),
         { provide: MAP_FACTORY, useValue: mapFactory },
         {
-          provide: POPUP_FACTORY,
-          useValue: (options: FakePopup['options']) => {
-            const popup = new FakePopup(options, () => fixture.nativeElement);
-            popups.push(popup);
-            return Promise.resolve(popup);
-          },
-        },
-        {
           provide: ELEVATION_LOADER,
           useValue: (demMaxzoom: number) => loadElevation(demMaxzoom),
         },
@@ -137,32 +120,30 @@ describe('SpotMapComponent', () => {
   async function create({
     city = CityEnum.Vienna,
     collection = COLLECTION,
-  }: { city?: CityEnum; collection?: object } = {}) {
+    selectedId = null,
+  }: {
+    city?: CityEnum;
+    collection?: object;
+    selectedId?: string | null;
+  } = {}) {
     fixture = TestBed.createComponent(SpotMapComponent);
-    // A laid-out host, so the popup's fit box and the popup itself have real sizes to measure.
+    // A laid-out host, so the canvas host has a real size.
     fixture.nativeElement.style.cssText =
       'display:block;width:1000px;height:600px;position:relative';
-    // The Karma frame is smaller than this host and earlier specs can leave content above it, so
-    // the visual viewport is pinned around the host: the fit box is then the host inset by its
-    // margin, whatever frame the suite runs in.
-    spyOnProperty(window, 'visualViewport').and.callFake(() => {
-      const host = (
-        fixture.nativeElement as HTMLElement
-      ).getBoundingClientRect();
-      return {
-        offsetLeft: host.left,
-        offsetTop: host.top,
-        width: host.width,
-        height: host.height,
-      } as VisualViewport;
-    });
     fixture.componentRef.setInput('city', city);
     fixture.componentRef.setInput('retryToken', 0);
+    fixture.componentRef.setInput('selectedId', selectedId);
     fixture.detectChanges();
     httpMock.expectOne(`spots/${city}.geojson`).flush(collection);
     await fixture.whenStable();
     fixture.detectChanges();
     return fixture.componentInstance;
+  }
+
+  /** Puts `id` in the URL's place, the way the page binds `selectedId`. */
+  function select(id: string | null) {
+    fixture.componentRef.setInput('selectedId', id);
+    fixture.detectChanges();
   }
 
   /** Re-arms the renderer the way the container's RETRY does, on a fresh map. */
@@ -189,22 +170,6 @@ describe('SpotMapComponent', () => {
 
   async function tap(id: string) {
     fake.emit('click', tapOn(id), 'spots-hit');
-    await fixture.whenStable();
-  }
-
-  /** The pans the component asked the map for, in order. */
-  function pansRequested(): CameraMove[] {
-    return fake.cameraMoves.filter((move) => move.method === 'panBy');
-  }
-
-  /** Lets every animation on the popup's container finish, and the component act on that. */
-  async function settleAnimations(popup: FakePopup | undefined) {
-    const element = popup?.getElement();
-    await Promise.all(
-      (element?.getAnimations() ?? []).map((animation) =>
-        animation.finished.catch(() => undefined),
-      ),
-    );
     await fixture.whenStable();
   }
 
@@ -347,117 +312,6 @@ describe('SpotMapComponent', () => {
     );
     fake.emit('load');
     expect(attribution.classList).toContain('maplibregl-compact-show');
-  });
-
-  describe('the attribution control along the bottom of the map', () => {
-    /** Runs the animation frame the resize asked the re-fit for. */
-    function runRefitFrame() {
-      const frames = window.requestAnimationFrame as jasmine.Spy;
-      (frames.calls.mostRecent().args[0] as FrameRequestCallback)(0);
-    }
-
-    /**
-     * Stands the control in at the map's bottom-right corner, `height` tall: the open bar on a
-     * desktop map, or the info button on a phone. Its box is real, so the component measures it.
-     */
-    function placeAttribution(height: number): HTMLElement {
-      const attribution = addAttributionControl(
-        fixture.nativeElement.querySelector('.spot-map__canvas'),
-        1000,
-      );
-      setAttributionHeight(attribution, height);
-      return attribution;
-    }
-
-    function setAttributionHeight(attribution: HTMLElement, height: number) {
-      attribution.style.cssText = `display:block;position:absolute;right:0;bottom:0;width:200px;height:${height}px`;
-    }
-
-    /** The height cap the popup was fitted to: the visible map less its margins and the tip. */
-    function popupMaxHeight(): number {
-      return parseFloat(
-        popups[0]?.getElement().style.getPropertyValue(POPUP_MAX_HEIGHT_VAR) ??
-          '',
-      );
-    }
-
-    it('fits the popup to the whole frame when the control is not there', async () => {
-      requestReducedMotion(false);
-      await create();
-      fake.emit('load');
-      await tap('a');
-      // 600 px frame, less a 16 px margin each side and the 10 px tip.
-      expect(popupMaxHeight()).toBe(558);
-    });
-
-    it('keeps the popup above the control, which takes its strip out of the visible map', async () => {
-      requestReducedMotion(false);
-      await create();
-      placeAttribution(78);
-      fake.emit('load');
-      await tap('a');
-      // The 78 px strip comes off the bottom: 558 - 78.
-      expect(popupMaxHeight()).toBe(480);
-    });
-
-    it('pans a pin near the bottom up until its popup and tip clear the control', async () => {
-      requestReducedMotion(false);
-      await create();
-      placeAttribution(78);
-      fake.emit('load');
-      fake.projected = { x: 500, y: 540 };
-      await tap('a');
-      // The pin sits 34 px below the fit box's bottom edge at 506 (600 - 78 - 16).
-      expect(pansRequested().length).toBe(1);
-      expect(pansRequested()[0]?.options.offset).toEqual([0, 34]);
-    });
-
-    it('reserves only the info button on a phone map, where the control is collapsed', async () => {
-      requestReducedMotion(false);
-      await create();
-      placeAttribution(29);
-      fake.emit('load');
-      await tap('a');
-      expect(popupMaxHeight()).toBe(558 - 29);
-    });
-
-    it('re-fits the popup when the control changes size, then pans it clear of the bar', async () => {
-      requestReducedMotion(false);
-      holdAnimationFrames();
-      const observers = stubResizeObserver();
-      await create();
-      const attribution = placeAttribution(29);
-      fake.emit('load');
-      fake.projected = { x: 500, y: 540 };
-      await tap('a');
-      expect(pansRequested())
-        .withContext('the collapsed button leaves room for the popup')
-        .toEqual([]);
-      const watcher = observers.find((observer) =>
-        observer.observed.includes(attribution),
-      );
-      expect(watcher).withContext('the control is watched').toBeDefined();
-
-      // The observer reports once when it starts watching; only a later report is a change.
-      watcher?.report();
-      setAttributionHeight(attribution, 78);
-      watcher?.report();
-      runRefitFrame();
-      expect(pansRequested().length).toBe(1);
-      expect(pansRequested()[0]?.options.offset).toEqual([0, 34]);
-    });
-
-    it('stops watching the control when the component is destroyed', async () => {
-      const observers = stubResizeObserver();
-      await create();
-      const attribution = placeAttribution(29);
-      fake.emit('load');
-      const watcher = observers.find((observer) =>
-        observer.observed.includes(attribution),
-      );
-      fixture.destroy();
-      expect(watcher?.disconnect).toHaveBeenCalled();
-    });
   });
 
   for (const corner of ['bottom-right', 'bottom-left'] as const) {
@@ -893,22 +747,7 @@ describe('SpotMapComponent', () => {
     });
   });
 
-  describe('a resize while the visitor holds the map', () => {
-    it('forgets a finger left on the map of an earlier build', async () => {
-      requestReducedMotion(false);
-      holdAnimationFrames();
-      await create();
-      fake.emit('load');
-      fake.grab();
-      await retry(1);
-      fake.emit('load');
-      fake.projected = { x: 20, y: 500 };
-      await tap('a');
-      expect(pansRequested().length)
-        .withContext('nothing holds the rebuilt map, so the popup is panned in')
-        .toBe(1);
-    });
-
+  describe('the visitor’s hold on the map', () => {
     it('stops listening for pointers once the component is destroyed', async () => {
       await create();
       const removed = spyOn(window, 'removeEventListener').and.callThrough();
@@ -926,115 +765,6 @@ describe('SpotMapComponent', () => {
     });
   });
 
-  it('never fits or reveals a popup that was waiting for the camera when the map is torn down', async () => {
-    requestReducedMotion(false);
-    await create();
-    fake.emit('load');
-    fake.projected = { x: 20, y: 500 };
-    await tap('a');
-    await tap('b');
-    const waiting = popups[1];
-    fixture.destroy();
-    fake.emit('moveend');
-    expect(waiting?.removed).toBe(true);
-    expect(waiting?.getElement().getAnimations().length).toBe(0);
-    expect(pansRequested().length)
-      .withContext('no pan after the teardown')
-      .toBe(1);
-    expect(TestBed.inject(ApplicationRef).viewCount).toBe(0);
-  });
-
-  it('opens the tapped pin’s popup through the map’s pin click handler', async () => {
-    await create();
-    fake.emit('load');
-    await tap('a');
-    expect(popups.length).toBe(1);
-    expect(popups[0]?.addedTo === fake)
-      .withContext('the popup went on the live map')
-      .toBe(true);
-    expect(fake.featureStates['a']?.['selected']).toBe(true);
-  });
-
-  it('closes on a map click that misses every pin, not on one that hits a pin', async () => {
-    await create();
-    fake.emit('load');
-    await tap('a');
-    fake.renderedPins = [{}];
-    fake.emit('click', { point: { x: 1, y: 1 } });
-    expect(fake.featureStates['a']?.['selected'])
-      .withContext("a click on a pin is that pin's to handle")
-      .toBe(true);
-    fake.renderedPins = [];
-    fake.emit('click', { point: { x: 1, y: 1 } });
-    expect(fake.featureStates['a']?.['selected']).toBeUndefined();
-    await settleAnimations(popups[0]);
-    expect(popups[0]?.removed).toBe(true);
-  });
-
-  it('closes a popup still waiting for the camera on a map click that misses every pin, never fitting or revealing it', async () => {
-    await create();
-    fake.emit('load');
-    // The camera is mid-move, so the tapped pin's popup waits hidden for it to settle.
-    fake.startMove();
-    await tap('a');
-    expect(popups[0]?.isPending())
-      .withContext('waiting for the camera')
-      .toBe(true);
-    fake.renderedPins = [];
-    fake.emit('click', { point: { x: 1, y: 1 } });
-    expect(fake.featureStates['a']?.['selected'])
-      .withContext('the click closed the waiting popup')
-      .toBeUndefined();
-    await fixture.whenStable();
-    expect(popups[0]?.removed).toBe(true);
-    fake.emit('moveend');
-    expect(popups[0]?.getElement().getAnimations().length)
-      .withContext('never revealed')
-      .toBe(0);
-    expect(popups[0]?.getElement().style.getPropertyValue(POPUP_MAX_HEIGHT_VAR))
-      .withContext('never fitted')
-      .toBe('');
-    expect(pansRequested()).toEqual([]);
-  });
-
-  it('removes every popup at once on teardown, a failure or a city switch', async () => {
-    await create();
-    fake.emit('load');
-    await tap('a');
-    popups[0]?.content
-      ?.querySelector<HTMLElement>('.spot-popup__close')
-      ?.click();
-    await tap('b');
-    expect(popups[0]?.removed).withContext('a is still closing').toBe(false);
-    fake = new FakeMap();
-    fixture.componentRef.setInput('retryToken', 1);
-    fixture.detectChanges();
-    expect(popups.map((popup) => popup.removed)).toEqual([true, true]);
-    httpMock.expectOne('spots/vienna.geojson').flush(COLLECTION);
-    await fixture.whenStable();
-  });
-
-  it('re-fits once per frame however many resizes arrive', async () => {
-    holdAnimationFrames();
-    await create();
-    fake.emit('load');
-    const frames = window.requestAnimationFrame as jasmine.Spy;
-    frames.calls.reset();
-    fake.emit('resize');
-    fake.emit('resize');
-    fake.emit('resize');
-    expect(frames).toHaveBeenCalledTimes(1);
-  });
-
-  it('destroys the popup and its view on destroy', async () => {
-    await create();
-    fake.emit('load');
-    await tap('a');
-    fixture.destroy();
-    expect(popups[0]?.removed).toBe(true);
-    expect(TestBed.inject(ApplicationRef).viewCount).toBe(0);
-  });
-
   it('marks the pins as pointer targets while the cursor is over one', async () => {
     await create();
     fake.emit('load');
@@ -1042,6 +772,127 @@ describe('SpotMapComponent', () => {
     expect(fake.canvas.style.cursor).toBe('pointer');
     fake.emit('mouseleave', undefined, 'spots-hit');
     expect(fake.canvas.style.cursor).toBe('');
+  });
+
+  describe('the selection', () => {
+    it('reports a pin tap as a spotClick and selects nothing by itself', async () => {
+      const c = await create();
+      fake.emit('load');
+      const clicks: string[] = [];
+      c.spotClick.subscribe((id) => clicks.push(id));
+      await tap('a');
+      expect(clicks).toEqual(['a']);
+      expect(fake.featureStates['a']).toBeUndefined();
+    });
+
+    it('selects the pin selectedId names, with the lock-on pulse', async () => {
+      requestReducedMotion(false);
+      holdAnimationFrames();
+      await create();
+      fake.emit('load');
+      select('a');
+      expect(fake.featureStates['a']?.['selected']).toBe(true);
+      expect(fake.lastLockOnFilter()).toEqual(onlySpot('a'));
+    });
+
+    it('moves the selection when selectedId changes, and clears it on null', async () => {
+      requestReducedMotion(false);
+      holdAnimationFrames();
+      await create();
+      fake.emit('load');
+      select('a');
+      select('b');
+      expect(fake.featureStates['a']?.['selected']).toBeUndefined();
+      expect(fake.featureStates['b']?.['selected']).toBe(true);
+      select(null);
+      expect(fake.featureStates['b']?.['selected']).toBeUndefined();
+      expect(fake.lastLockOnFilter()).toBe(LOCK_ON_AT_REST_FILTER);
+    });
+
+    it('waits for the pins before it selects, then shows a selection the map was built with without the pulse', async () => {
+      requestReducedMotion(false);
+      holdAnimationFrames();
+      await create({ selectedId: 'b' });
+      expect(fake.featureStates['b'])
+        .withContext('no spot source before load')
+        .toBeUndefined();
+      fake.emit('load');
+      expect(fake.featureStates['b']?.['selected']).toBe(true);
+      expect(fake.filterCalls.filter((call) => call.layer === 'spots-lock-on'))
+        .withContext('a shared link or a rebuild is no tap: no lock-on')
+        .toEqual([]);
+    });
+
+    it('reports a map click that misses every pin as emptyClick, and not one on a pin', async () => {
+      const c = await create();
+      fake.emit('load');
+      const empty = jasmine.createSpy('emptyClick');
+      c.emptyClick.subscribe(empty);
+      fake.renderedPins = [{}];
+      fake.emit('click', { point: { x: 1, y: 1 } });
+      expect(empty).withContext('a click on a pin').not.toHaveBeenCalled();
+      fake.renderedPins = [];
+      fake.emit('click', { point: { x: 1, y: 1 } });
+      expect(empty).toHaveBeenCalledTimes(1);
+    });
+
+    it('reports the loaded spots in the list shape before the map paints, and feeds the pins that shape', async () => {
+      fixture = TestBed.createComponent(SpotMapComponent);
+      const loaded: SpotListCollection[] = [];
+      fixture.componentInstance.spotsLoaded.subscribe((c) => loaded.push(c));
+      fixture.componentRef.setInput('city', CityEnum.Vienna);
+      fixture.componentRef.setInput('retryToken', 0);
+      fixture.detectChanges();
+      httpMock.expectOne('spots/vienna.geojson').flush(COLLECTION);
+      await fixture.whenStable();
+      const expected: SpotListCollection = {
+        type: 'FeatureCollection',
+        features: [
+          {
+            type: 'Feature',
+            geometry: { type: 'Point', coordinates: [16.37, 48.2] },
+            properties: {
+              id: 'a',
+              name: 'Alpha Bank',
+              status: 'active',
+              cover: 'spots/vienna/a-1.webp',
+              photoCount: 1,
+            },
+          },
+          {
+            type: 'Feature',
+            geometry: { type: 'Point', coordinates: [16.4, 48.22] },
+            properties: {
+              id: 'b',
+              name: 'Beta Ledge',
+              status: 'demolished',
+              cover: 'spots/vienna/b-1.webp',
+              photoCount: 1,
+            },
+          },
+        ],
+      };
+      expect(loaded).toEqual([expected]);
+      fake.emit('load');
+      expect((fake.sources['spots'] as { data: unknown }).data).toEqual(
+        expected,
+      );
+    });
+
+    it('reports only the spots of the build a city switch left standing', async () => {
+      fixture = TestBed.createComponent(SpotMapComponent);
+      const loaded: SpotListCollection[] = [];
+      fixture.componentInstance.spotsLoaded.subscribe((c) => loaded.push(c));
+      fixture.componentRef.setInput('city', CityEnum.Vienna);
+      fixture.componentRef.setInput('retryToken', 0);
+      fixture.detectChanges();
+      httpMock.expectOne('spots/vienna.geojson');
+      fixture.componentRef.setInput('city', CityEnum.Graz);
+      fixture.detectChanges();
+      httpMock.expectOne('spots/graz.geojson').flush(COLLECTION);
+      await fixture.whenStable();
+      expect(loaded.length).toBe(1);
+    });
   });
 
   it('builds and paints a flat map when elevation is unavailable', async () => {
@@ -1218,7 +1069,7 @@ describe('SpotMapComponent', () => {
     const cancelFrame = holdAnimationFrames();
     await create();
     fake.emit('load');
-    await tap('a');
+    select('a');
     fixture.destroy();
     expect(cancelFrame).toHaveBeenCalled();
     expect(fake.paintCallsAfterRemoval)

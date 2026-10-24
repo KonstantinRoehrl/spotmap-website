@@ -6,10 +6,12 @@ import {
   effect,
   inject,
   input,
+  output,
   signal,
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { CityEnum } from '../../../models/enums/map-enum';
+import { SpotListCollection } from '../../../models/spots/spot';
 import { PointerBloomDirective } from '../../directives/pointer-bloom.directive';
 import { MapLoaderComponent } from '../map-loader/map-loader.component';
 import { SpotMapComponent } from '../spot-map/spot-map.component';
@@ -47,6 +49,16 @@ function cityName(city: string): string {
 export class MapContainerComponent {
   /** The city whose map is shown; the instance is reused when it changes. */
   city = input.required<CityEnum>();
+
+  /** The spot the URL has open, handed to the map; see `SpotMapComponent.selectedId`. */
+  selectedId = input<string | null>(null);
+
+  /** The map's spots in the list shape, re-emitted from `SpotMapComponent.spotsLoaded`. */
+  spotsLoaded = output<SpotListCollection>();
+  /** A pin tap, re-emitted from `SpotMapComponent.spotClick`. */
+  spotClick = output<string>();
+  /** A tap on empty map, re-emitted from `SpotMapComponent.emptyClick`. */
+  emptyClick = output<void>();
 
   /** Bumped on each retry so the active renderer re-attempts from scratch. */
   protected readonly retryToken = signal(0);

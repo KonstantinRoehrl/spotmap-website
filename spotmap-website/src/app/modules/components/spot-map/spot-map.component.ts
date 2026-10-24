@@ -1,13 +1,9 @@
 import {
-  ApplicationRef,
   ChangeDetectionStrategy,
   Component,
-  ComponentRef,
-  createComponent,
   DestroyRef,
   effect,
   ElementRef,
-  EnvironmentInjector,
   inject,
   input,
   output,
@@ -21,26 +17,20 @@ import type {
 } from 'maplibre-gl';
 import { filter, lastValueFrom, Subject, takeUntil, tap } from 'rxjs';
 import { CityEnum } from '../../../models/enums/map-enum';
-import { SpotCollection, SpotFeature } from '../../../models/spots/spot';
+import { SpotListCollection } from '../../../models/spots/spot';
 import {
-  SpotsLoaded,
-  SpotsLoadEvent,
+  SpotListLoaded,
+  SpotListLoadEvent,
   SpotsService,
 } from '../../../services/spots.service';
-import { SpotPopupComponent } from '../spot-popup/spot-popup.component';
 import { demMaxzoomFor, type ElevationTiles } from './elevation';
 import type { MapFailureReason } from '../../../models/map/map-failure-reason';
 import type { MapLoadEvent } from '../../../models/map/map-load-event';
 import { framingBounds } from './fit-bounds';
-import {
-  ELEVATION_LOADER,
-  MAP_FACTORY,
-  POPUP_FACTORY,
-} from './map-factory.token';
+import { ELEVATION_LOADER, MAP_FACTORY } from './map-factory.token';
 import { type PointerHold, trackPointerHold } from './pointer-hold';
-import { type Box, fitBoxWithin, POPUP_FIT_MARGIN_PX } from './popup-fit';
 import { SPOT_HIT_LAYER_ID, SPOT_LAYERS, SPOT_SOURCE_ID } from './spot-layers';
-import { SpotPopupController } from './spot-popup-controller';
+import { SpotSelection } from './spot-selection';
 import {
   BASEMAP_SOURCE_ID,
   buildElevationAdditions,
@@ -93,8 +83,9 @@ function namesAnUnusableSource(
 }
 
 /**
- * Draws a city's spots on a MapLibre map and builds each map's {@link SpotPopupController}, which
- * owns the tapped spot's popup. The container owns the loading and failure chrome.
+ * Draws a city's spots on a MapLibre map, reports the loaded spots, pin taps and taps on empty
+ * map, and shows the selection its `selectedId` input names — the URL's, which is the selection's
+ * one source (spec §7). The container owns the loading and failure chrome.
  *
  * MapLibre internals named in this file were read in maplibre-gl 6.15.0.
  */
@@ -112,6 +103,12 @@ export class SpotMapComponent {
   /** Bumped by the container on RETRY; any change rebuilds the map from scratch. */
   retryToken = input.required<number>();
 
+  /**
+   * The spot the URL has open, or `null`. Shown as the selected pin once the pins are drawn; a
+   * change never rebuilds the map.
+   */
+  selectedId = input<string | null>(null);
+
   /** The pins are on the painted map — the end of DRAW. */
   ready = output<void>();
   /** The map can never paint this build; the container shows its failure chrome for the reason. */
@@ -121,15 +118,24 @@ export class SpotMapComponent {
    * completion is `ready`.
    */
   loadEvent = output<MapLoadEvent>();
+  /**
+   * The current build's spots in the list shape, as soon as they arrive and before the map
+   * paints; never from a build a city switch, a retry or destruction has replaced.
+   */
+  spotsLoaded = output<SpotListCollection>();
+  /**
+   * A pin was tapped: its spot id. Selecting is the page's call — it navigates, and the URL comes
+   * back as `selectedId` — so a tap alone selects nothing.
+   */
+  spotClick = output<string>();
+  /** A tap on the map that hit no pin, which closes an open spot. */
+  emptyClick = output<void>();
 
   private readonly canvasHost =
     viewChild.required<ElementRef<HTMLDivElement>>('canvasHost');
   private readonly spots = inject(SpotsService);
   private readonly mapFactory = inject(MAP_FACTORY);
-  private readonly popupFactory = inject(POPUP_FACTORY);
   private readonly loadElevation = inject(ELEVATION_LOADER);
-  private readonly environment = inject(EnvironmentInjector);
-  private readonly applicationRef = inject(ApplicationRef);
 
   private map?: MapLibreMap;
 
@@ -148,10 +154,8 @@ export class SpotMapComponent {
 
   /** The visitor's hold on the current map; set while a map is attached. */
   private pointerHold?: PointerHold;
-  /** The popup controller of the current build; set while a map is attached. */
-  private popups?: SpotPopupController;
-  /** Disconnects the observer on the attribution control; set while a painted map is attached. */
-  private stopWatchingAttribution?: () => void;
+  /** The selected pin of the current build; set once its pins are drawn. */
+  private selection?: SpotSelection;
 
   /**
    * Bumped by every teardown. A build whose await resolves against a stale generation lost its
@@ -176,11 +180,17 @@ export class SpotMapComponent {
         void this.build(city);
       });
     });
+
+    // Before the pins are drawn there is nothing to select; `load` shows what the input says then.
+    effect(() => {
+      const id = this.selectedId();
+      untracked(() => this.selection?.show(id, { pulse: true }));
+    });
   }
 
   /**
-   * Builds the map for `city`: fetches its spots, constructs a map already framed on them, then
-   * attaches it and wires its listeners. Every await re-checks the generation, so a build that
+   * Builds the map for `city`: fetches its spots, reports them, constructs a map already framed
+   * on them, then attaches it and wires its listeners. Every await re-checks the generation, so a build that
    * lost its race to a teardown drops its result instead of attaching it.
    */
   private async build(city: CityEnum): Promise<void> {
@@ -202,12 +212,12 @@ export class SpotMapComponent {
     const demMaxzoom = demMaxzoomFor(city);
     void this.loadElevation(demMaxzoom);
 
-    let collection: SpotCollection;
+    let collection: SpotListCollection;
     try {
       const loaded = await lastValueFrom(
-        this.spots.loadSpots(city).pipe(
+        this.spots.loadSpotList(city).pipe(
           tap((event) => this.reportSpots(event, generation)),
-          filter((event): event is SpotsLoaded => event.type === 'done'),
+          filter((event): event is SpotListLoaded => event.type === 'done'),
           // A city switch or retry has no use for this request any more: ending it frees the
           // connection and the live query's deadline timer instead of leaving them to run out.
           takeUntil(this.superseded),
@@ -229,6 +239,7 @@ export class SpotMapComponent {
       this.fail('unreachable', generation);
       return;
     }
+    this.spotsLoaded.emit(collection);
 
     // The map is built already framed on the city: MapLibre applies `bounds` in its constructor
     // with no animation (`fitBounds` at `duration: 0`), so its first paint is the framed city and
@@ -272,39 +283,25 @@ export class SpotMapComponent {
       map.remove();
       return;
     }
-    const popups = this.attachMap(map, generation);
+    this.attachMap(map, generation);
     this.wireLoadTelemetry(
       map,
       collection,
       generation,
       sourcesAwaitingMetadata,
       demMaxzoom,
-      popups,
     );
-    this.wireInteractions(map, collection, generation, popups);
+    this.wireInteractions(map, generation);
   }
 
   /**
-   * Takes on the map a build has just been handed: tracks the visitor's hold on it, builds its
-   * popup controller before any listener that could reach it, reports the renderer ready and locks
-   * the map flat and north-up. Both locks are synchronous and land before the first frame, so they
-   * may run ahead of the listeners.
+   * Takes on the map a build has just been handed: tracks the visitor's hold on it, reports the
+   * renderer ready and locks the map flat and north-up. Both locks are synchronous and land
+   * before the first frame, so they may run ahead of the listeners.
    */
-  private attachMap(map: MapLibreMap, generation: number): SpotPopupController {
+  private attachMap(map: MapLibreMap, generation: number): void {
     this.map = map;
-    const hold = trackPointerHold(map);
-    this.pointerHold = hold;
-    // Built before any listener that can reach it is registered.
-    const popups = new SpotPopupController({
-      map,
-      popupFactory: this.popupFactory,
-      createContent: (spot, onCloseRequested) =>
-        this.createContent(spot, onCloseRequested),
-      isCurrent: () => generation === this.generation,
-      fitBox: () => this.fitBox(),
-      isHeld: () => hold.isHeld(),
-    });
-    this.popups = popups;
+    this.pointerHold = trackPointerHold(map);
     this.reportLoad({ kind: 'renderer-ready' }, generation);
 
     // Rotation and pitch are off: the map stays flat and north-up whatever the gesture. Four
@@ -320,21 +317,20 @@ export class SpotMapComponent {
     map.touchZoomRotate.disableRotation();
     map.touchPitch.disable();
     map.keyboard.disableRotation();
-    return popups;
   }
 
   /**
    * Reports every MapLibre milestone of this build up to the paint, fails the build when an error
-   * names a source the map cannot paint without, and on `load` draws the pins, emits `ready` once
-   * they are on screen, collapses and watches the attribution, and adds the relief.
+   * names a source the map cannot paint without, and on `load` draws the pins, shows the URL's
+   * selection, emits `ready` once the pins are on screen, collapses the attribution and adds the
+   * relief.
    */
   private wireLoadTelemetry(
     map: MapLibreMap,
-    collection: SpotCollection,
+    collection: SpotListCollection,
     generation: number,
     sourcesAwaitingMetadata: Set<string>,
     demMaxzoom: number,
-    popups: SpotPopupController,
   ): void {
     // A style passed as an object is loaded a frame after construction (`Style.loadJSON` waits a
     // frame before `_load`), so this listener still hears it.
@@ -409,6 +405,11 @@ export class SpotMapComponent {
       this.outcome = 'painted';
       this.reportLoad({ kind: 'painted' }, generation);
       this.drawSpots(map, collection);
+      // Feature state needs the spot source, so the selection starts here. One already in the URL
+      // — a shared link opened cold, or a rebuild — is no tap, so it shows without the pulse.
+      const selection = new SpotSelection(map);
+      selection.show(this.selectedId(), { pulse: false });
+      this.selection = selection;
       // The pins are drawn on the first frame rendered once their source has loaded. MapLibre's
       // `idle` would also wait for every DEM tile, and relief must never hold the reveal.
       const pinsDrawn = () => {
@@ -425,7 +426,6 @@ export class SpotMapComponent {
       map.on('render', pinsDrawn);
       this.mapIsNarrow = this.isNarrow();
       this.collapseAttributionOnNarrowMap(this.mapIsNarrow);
-      this.watchAttributionSize(popups);
       // Only now: `load` waits on every visible source's tiles, so terrain in the opening style
       // would hold the pins back behind the slowest DEM tile.
       // A missing terrain library resolves `null` — the loader never rejects — and leaves the map
@@ -435,15 +435,10 @@ export class SpotMapComponent {
   }
 
   /**
-   * Wires the visitor-facing listeners: the narrowing and popup re-fit on resize, opening a popup
-   * on a pin, closing it on a click that misses every pin, and the pointer cursor over a pin.
+   * Wires the visitor-facing listeners: the attribution collapse when the map narrows, a pin tap
+   * and a tap on empty map reported to the page, and the pointer cursor over a pin.
    */
-  private wireInteractions(
-    map: MapLibreMap,
-    collection: SpotCollection,
-    generation: number,
-    popups: SpotPopupController,
-  ): void {
+  private wireInteractions(map: MapLibreMap, generation: number): void {
     // A phone turned from landscape to portrait narrows a map that opened wide, and MapLibre
     // only re-collapses its compact attribution on a drag, so the narrowing is caught here.
     map.on('resize', () => {
@@ -453,27 +448,29 @@ export class SpotMapComponent {
       const narrow = this.isNarrow();
       this.collapseAttributionOnNarrowMap(narrow && !this.mapIsNarrow);
       this.mapIsNarrow = narrow;
-      popups.scheduleRefit();
     });
 
+    // The rendered feature carries the spot id MapLibre promoted from its properties.
     map.on('click', SPOT_HIT_LAYER_ID, (event: MapLayerMouseEvent) => {
-      popups.openFor(collection, event);
+      const id = event.features?.[0]?.id;
+      if (generation === this.generation && id !== undefined) {
+        this.spotClick.emit(String(id));
+      }
     });
 
-    // MapLibre's own close-on-click is off because it removes the popup at once; this closes it
-    // with the animation instead.
+    // MapLibre fires the map's own click for a pin tap too, so only a click with no pin under it
+    // is a tap on empty map.
     map.on('click', (event: MapMouseEvent) => {
-      if (generation !== this.generation || !popups.hasOpenPopup()) {
+      if (generation !== this.generation) {
         return;
       }
-      // A pin's own click handler is taking this one: switching, not closing.
       if (
         map.queryRenderedFeatures(event.point, { layers: [SPOT_HIT_LAYER_ID] })
           .length > 0
       ) {
         return;
       }
-      popups.close();
+      this.emptyClick.emit();
     });
 
     // A pointer over a pin should say it can be tapped; the hit layer is the 22 px thumb target.
@@ -486,95 +483,6 @@ export class SpotMapComponent {
   }
 
   /**
-   * Builds the popup's component for `spot`, attached and rendered, calling `onCloseRequested`
-   * when its own close button is pressed. It is the one piece of the popup that needs this
-   * component's injectors, so the controller is handed it rather than building its content itself.
-   */
-  private createContent(
-    spot: SpotFeature,
-    onCloseRequested: () => void,
-  ): ComponentRef<SpotPopupComponent> {
-    const ref = createComponent(SpotPopupComponent, {
-      environmentInjector: this.environment,
-    });
-    ref.setInput('spot', spot);
-    // The popup draws its own close button; the subscription ends with the component.
-    ref.instance.closeRequested.subscribe(onCloseRequested);
-    // Built outside any template, so its view has to be attached by hand: without that nothing
-    // would ever re-render the gallery's photo after an arrow is pressed.
-    this.applicationRef.attachView(ref.hostView);
-    ref.changeDetectorRef.detectChanges();
-    return ref;
-  }
-
-  /**
-   * The box a popup must fit in, in canvas-host pixels: the map frame intersected with the visual
-   * viewport, so a frame scrolled partly off screen or under a phone's on-screen keyboard counts
-   * only its visible part, less the strip along the bottom the attribution control occupies.
-   */
-  private fitBox(): Box {
-    const visual = window.visualViewport;
-    const viewport: Box = visual
-      ? {
-          left: visual.offsetLeft,
-          top: visual.offsetTop,
-          right: visual.offsetLeft + visual.width,
-          bottom: visual.offsetTop + visual.height,
-        }
-      : { left: 0, top: 0, right: innerWidth, bottom: innerHeight };
-    const host = this.canvasHost().nativeElement.getBoundingClientRect();
-    return fitBoxWithin(
-      host,
-      viewport,
-      POPUP_FIT_MARGIN_PX,
-      this.attributionStripHeight(host),
-    );
-  }
-
-  /**
-   * How much of the map's bottom edge the attribution control covers, measured as it is laid out
-   * now: the open credits bar on a wide map, the info button on a narrow one, nothing when the
-   * control is absent or hidden. It is a licence condition and stays where it is, so popups are
-   * fitted around it instead.
-   */
-  private attributionStripHeight(host: DOMRect): number {
-    const attribution = this.attributionControl()?.getBoundingClientRect();
-    if (!attribution || attribution.width === 0 || attribution.height === 0) {
-      return 0;
-    }
-    return Math.max(0, host.bottom - attribution.top);
-  }
-
-  /** MapLibre's attribution control inside the canvas host, if it is there. */
-  private attributionControl(): HTMLElement | null {
-    return this.canvasHost().nativeElement.querySelector<HTMLElement>(
-      '.maplibregl-ctrl-attrib',
-    );
-  }
-
-  /**
-   * Re-fits `popups`' open popup whenever the attribution control changes size - expanded, collapsed, or
-   * collapsed again by a narrowing - since its strip is part of the fit. The observer reports once
-   * as it starts watching, which is no change and is skipped.
-   */
-  private watchAttributionSize(popups: SpotPopupController): void {
-    const attribution = this.attributionControl();
-    if (!attribution) {
-      return;
-    }
-    let started = false;
-    const observer = new ResizeObserver(() => {
-      if (!started) {
-        started = true;
-        return;
-      }
-      popups.scheduleRefit();
-    });
-    observer.observe(attribution);
-    this.stopWatchingAttribution = () => observer.disconnect();
-  }
-
-  /**
    * Gives up on this build: the container puts its failure chrome up, so the map is released
    * rather than left holding a WebGL context behind it. A build that already lost its race, or
    * one that has already painted or failed, reports nothing.
@@ -584,15 +492,15 @@ export class SpotMapComponent {
       return;
     }
     this.outcome = 'failed';
-    this.popups?.removeAllNow();
-    this.popups = undefined;
+    this.selection?.dispose();
+    this.selection = undefined;
     this.map?.remove();
     this.map = undefined;
     this.failed.emit(reason);
   }
 
-  /** Adds the spot source and its pins. */
-  private drawSpots(map: MapLibreMap, collection: SpotCollection): void {
+  /** Adds the spot source, in the list shape, and its pins. */
+  private drawSpots(map: MapLibreMap, collection: SpotListCollection): void {
     map.addSource(SPOT_SOURCE_ID, {
       type: 'geojson',
       data: collection,
@@ -605,7 +513,7 @@ export class SpotMapComponent {
   }
 
   /** Reports one spot-load milestone as the matching load event. */
-  private reportSpots(event: SpotsLoadEvent, generation: number): void {
+  private reportSpots(event: SpotListLoadEvent, generation: number): void {
     const kinds = {
       sent: 'spots-sent',
       headers: 'spots-headers',
@@ -699,12 +607,11 @@ export class SpotMapComponent {
     this.generation += 1;
     this.superseded.next();
     this.outcome = 'pending';
-    this.popups?.removeAllNow();
-    this.popups = undefined;
+    // Before the map goes: a running pulse puts its ring to rest on the live style.
+    this.selection?.dispose();
+    this.selection = undefined;
     this.pointerHold?.stop();
     this.pointerHold = undefined;
-    this.stopWatchingAttribution?.();
-    this.stopWatchingAttribution = undefined;
     this.map?.remove();
     this.map = undefined;
   }

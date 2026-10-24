@@ -1,7 +1,7 @@
 import { BASEMAP_SOURCE_ID } from '../terminal-map-style';
 
 /*
- * Stand-ins for MapLibre's map and popup, and the small page fakes the spot-map specs share. Spec
+ * Stand-ins for MapLibre's map and the small page fakes the spot-map specs share. Spec
  * files import this; no app code does, so the production build never compiles it.
  *
  * MapLibre internals named in this file were read in maplibre-gl 6.15.0.
@@ -31,7 +31,7 @@ export class FakeMap {
   readonly canvas = document.createElement('canvas');
   /**
    * MapLibre's canvas container, which its handlers listen on and which holds the canvas but not
-   * the popups or controls (`getCanvasContainer`). Attached to the page so a pointer released away
+   * the controls (`getCanvasContainer`). Attached to the page so a pointer released away
    * from the map still bubbles to the window; `remove()` takes it off.
    */
   readonly canvasContainer = document.createElement('div');
@@ -132,8 +132,6 @@ export class FakeMap {
   projected = { x: 500, y: 300 };
   /** What `queryRenderedFeatures()` finds under a map click: a pin, or nothing. */
   renderedPins: unknown[] = [];
-  /** Makes every pan finish at zero duration, the way any path MapLibre runs instantly would. */
-  jumps = false;
 
   constructor() {
     this.canvasContainer.append(this.canvas);
@@ -147,13 +145,6 @@ export class FakeMap {
   getCanvasContainer() {
     return this.canvasContainer;
   }
-  /**
-   * Whether the camera is mid-move: a `panBy` ease or a gesture's move began, and no `moveend`
-   * has ended it yet. Every `moveend` the fake emits ends it, as MapLibre clears `_moving` before
-   * it fires the event (`Camera._afterEase`).
-   */
-  private panning = false;
-
   /** Whether a finger or button is down on the map, so a pan handler is active. */
   private fingerDown = false;
 
@@ -162,9 +153,7 @@ export class FakeMap {
 
   /**
    * Only the pan handler turning active, as a finger or button goes down: the instant before
-   * MapLibre's manager stops the camera's ease. {@link grab} is this plus that stop; on its own it
-   * is the state a re-fit meets if it runs between the two. The pointer goes down on the canvas
-   * container too, which is what the component tracks independently of the handlers.
+   * MapLibre's manager stops the camera's ease. The pointer goes down on the canvas container too, which is what the component tracks independently of the handlers.
    */
   touchDown() {
     this.fingerDown = true;
@@ -193,20 +182,6 @@ export class FakeMap {
   }
 
   /**
-   * The visitor putting a finger or button down on the map, without moving it yet. MapLibre's
-   * manager sees an active handler and stops the camera's ease (`HandlerManager.handleEvent`),
-   * which fires that ease's `moveend` synchronously: with `isMoving()` already false
-   * (`Camera._afterEase`), the pan handler already active, and the drag's own `movestart` still
-   * to come. The camera starts moving under the finger only afterwards, once the pointer travels.
-   */
-  grab() {
-    this.touchDown();
-    if (this.panning) {
-      this.emit('moveend');
-    }
-  }
-
-  /**
    * The visitor turning the wheel, or pinching a trackpad, on the map. `ScrollZoomHandler._start`
    * sets `_zooming` before the manager stops the camera's ease (`HandlerManager.handleEvent`), so
    * the stopped ease's `moveend` fires with the scroll-zoom handler active and `isMoving()`
@@ -214,20 +189,12 @@ export class FakeMap {
    */
   wheel() {
     this.wheelZooming = true;
-    if (this.panning) {
-      this.emit('moveend');
-    }
   }
 
   /** The wheel zoom running out: the handler goes inactive and the zoom's own `moveend` fires. */
   endWheel() {
     this.wheelZooming = false;
     this.emit('moveend');
-  }
-
-  /** The grabbed map starting to travel under the finger: a drag's camera move begins. */
-  drag() {
-    this.panning = true;
   }
 
   /** The finger or button coming up on the map: the pan handler resets and the drag's move ends. */
@@ -253,47 +220,9 @@ export class FakeMap {
     this.firePointer('pointercancel', this.canvasContainer);
   }
 
-  /**
-   * A move the component did not start — a drag, a fling's inertia, a wheel zoom — begins and runs
-   * until the spec emits `moveend`.
-   */
-  startMove() {
-    this.panning = true;
-  }
-
-  /**
-   * Recorded like every other camera move, with the offset folded into its options. A pan that
-   * starts while another is still running stops it first, and MapLibre fires the stopped ease's
-   * `moveend` synchronously from inside the new `panBy` (`easeTo` → `_stop` → `_afterEase`).
-   * MapLibre also zeroes the duration of an ease that is not `essential` when the visitor asks for
-   * reduced motion (`Camera.easeTo`), and a zero-duration ease finishes, firing its own `moveend`,
-   * before `panBy` returns (`Camera._ease`).
-   */
-  panBy(offset: [number, number], options: CameraMove['options']) {
-    if (this.panning) {
-      this.emit('moveend');
-    }
-    // `easeTo` stops the gestures too (`Camera._stop(false)` → `_stopHandlers`): a pan the
-    // component starts under a visitor's finger takes the drag away from them.
-    this.fingerDown = false;
-    this.wheelZooming = false;
-    this.cameraMoves.push({ method: 'panBy', options: { ...options, offset } });
-    this.panning = true;
-    const reducedMotion = window.matchMedia(
-      '(prefers-reduced-motion: reduce)',
-    ).matches;
-    if (
-      this.jumps ||
-      options.duration === 0 ||
-      (!options.essential && reducedMotion)
-    ) {
-      this.emit('moveend');
-    }
-    return this;
-  }
   /** Whether the camera is mid-move, as MapLibre's `isMoving()` reports it. */
   isMoving() {
-    return this.panning || this.wheelZooming;
+    return this.wheelZooming;
   }
   queryRenderedFeatures() {
     return this.renderedPins;
@@ -325,9 +254,6 @@ export class FakeMap {
     return this;
   }
   emit(event: string, payload?: unknown, layer?: string) {
-    if (event === 'moveend') {
-      this.panning = false;
-    }
     for (const fn of this.handlers.get(this.key(event, layer)) ?? []) {
       fn(payload);
     }
@@ -569,85 +495,6 @@ export class FakeMap {
   }
 }
 
-/**
- * Records everything the component asks of a popup, without being one. Its container is built in
- * `addTo` the way MapLibre builds one — the class names, a `.maplibregl-popup-content` box holding
- * the content, the width cap — and laid out inside the host it is given, so the component can
- * measure it.
- */
-export class FakePopup {
-  lngLat?: [number, number];
-  content?: HTMLElement;
-  addedTo?: unknown;
-  removed = false;
-  /** Every width cap the component set after creating the popup. */
-  readonly maxWidths: string[] = [];
-  private container?: HTMLElement;
-
-  constructor(
-    readonly options: {
-      anchor: string;
-      closeButton: boolean;
-      closeOnClick: boolean;
-      maxWidth: string;
-      className: string;
-    },
-    private readonly host: () => HTMLElement,
-  ) {}
-
-  setLngLat(lngLat: [number, number]) {
-    this.lngLat = lngLat;
-    return this;
-  }
-  getLngLat() {
-    return this.lngLat;
-  }
-  setDOMContent(node: HTMLElement) {
-    this.content = node;
-    return this;
-  }
-  setMaxWidth(value: string) {
-    this.maxWidths.push(value);
-    if (this.container) {
-      this.container.style.maxWidth = value;
-    }
-    return this;
-  }
-  addTo(map: unknown) {
-    this.addedTo = map;
-    const container = document.createElement('div');
-    container.className = `maplibregl-popup maplibregl-popup-anchor-${this.options.anchor} ${this.options.className}`;
-    container.style.maxWidth = this.options.maxWidth;
-    const content = document.createElement('div');
-    content.className = 'maplibregl-popup-content';
-    if (this.content) {
-      content.append(this.content);
-    }
-    container.append(content);
-    this.host().append(container);
-    this.container = container;
-    return this;
-  }
-  getElement(): HTMLElement {
-    if (!this.container) {
-      throw new Error(
-        'getElement() before addTo(): MapLibre has no container yet',
-      );
-    }
-    return this.container;
-  }
-  /** Whether the container still waits, hidden, for the component to reveal it. */
-  isPending() {
-    return this.getElement().classList.contains('spot-popup-frame--pending');
-  }
-  /** MapLibre takes the container out of the page synchronously. */
-  remove() {
-    this.removed = true;
-    this.container?.remove();
-    return this;
-  }
-}
-
 /** Two spots, one active and one demolished, each with one photo: the feed most specs load. */
 export const COLLECTION = {
   type: 'FeatureCollection',
@@ -721,35 +568,6 @@ export function tapOn(id: string) {
   return { features: [{ id, properties: { id } }] };
 }
 
-/**
- * Replaces `ResizeObserver` with one a spec reports through by hand, recording what each
- * observer watches and whether it was disconnected.
- */
-export function stubResizeObserver() {
-  const created: {
-    observed: Element[];
-    disconnect: jasmine.Spy;
-    report: () => void;
-  }[] = [];
-  spyOn(window, 'ResizeObserver').and.callFake(function (
-    callback: ResizeObserverCallback,
-  ) {
-    const observed: Element[] = [];
-    const observer = {
-      observe: (element: Element) => observed.push(element),
-      unobserve: () => {},
-      disconnect: jasmine.createSpy('disconnect'),
-    };
-    created.push({
-      observed,
-      disconnect: observer.disconnect,
-      report: () => callback([], observer as unknown as ResizeObserver),
-    });
-    return observer;
-  } as never);
-  return created;
-}
-
 /** Gives the element a layout width, which jsdom-free Karma would otherwise measure for real. */
 export function setWidth(host: HTMLElement, width: number): void {
   Object.defineProperty(host, 'offsetWidth', {
@@ -798,9 +616,4 @@ export function addAttributionControl(
   const container = buildAttributionControl(corner);
   host.append(container);
   return container.querySelector<HTMLElement>('.maplibregl-ctrl-attrib')!;
-}
-
-/** Lets every promise chain and zero-delay task already queued run to its end. */
-export function flushPending(): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve));
 }

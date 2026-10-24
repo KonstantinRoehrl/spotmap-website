@@ -32,23 +32,6 @@ export const LIVE_SPOTS_TIMEOUT_MS = 5000;
  */
 export const SPOT_INDEX_URL = 'spots/index.json';
 
-/** The last event of a spot load: the collection, and whether it came live or from the snapshot. */
-export interface SpotsLoaded {
-  readonly type: 'done';
-  readonly collection: SpotCollection;
-  readonly source: 'live' | 'snapshot';
-}
-
-/**
- * One real milestone of a spot load, for the loader's progress: a request went out, its response
- * headers arrived, the live query gave up for the snapshot, or the spots are in.
- */
-export type SpotsLoadEvent =
-  | { readonly type: 'sent' }
-  | { readonly type: 'headers' }
-  | { readonly type: 'fallback' }
-  | SpotsLoaded;
-
 /** The last event of a list load: the city's spots in the list shape, and where they came from. */
 export interface SpotListLoaded {
   readonly type: 'done';
@@ -56,7 +39,10 @@ export interface SpotListLoaded {
   readonly source: 'live' | 'snapshot';
 }
 
-/** One real milestone of a list load: the same milestones as {@link SpotsLoadEvent}. */
+/**
+ * One real milestone of a list load, for the loader's progress: a request went out, its response
+ * headers arrived, the live query gave up for the snapshot, or the spots are in.
+ */
 export type SpotListLoadEvent =
   | { readonly type: 'sent' }
   | { readonly type: 'headers' }
@@ -76,7 +62,7 @@ export type SpotDetailResult =
     }
   | { readonly type: 'not-found' };
 
-/** One milestone of either collection load, whatever shape the collection has. */
+/** One milestone of a collection load, live or from the snapshot, whatever shape it carries. */
 type CollectionLoadEvent<C> =
   | { readonly type: 'sent' }
   | { readonly type: 'headers' }
@@ -88,9 +74,8 @@ type CollectionLoadEvent<C> =
     };
 
 /**
- * Loads a city's spots and single spots. A city's spots come live from a Supabase query —
- * `city_spots()` in the full shape, `city_spot_list()` in the list shape — when a backend is
- * configured, otherwise, or when the live request fails, takes longer than
+ * Loads a city's spots and single spots. A city's spots come live from the Supabase query
+ * `city_spot_list()`, in the list shape, when a backend is configured, otherwise, or when the live request fails, takes longer than
  * {@link LIVE_SPOTS_TIMEOUT_MS} in total, or answers with no spots, from the bundled
  * `spots/<city>.geojson` snapshot (the full shape, cut down for the list). Every city has spots, so
  * an empty live answer means an unseeded or out-of-date backend, not an empty city. A snapshot
@@ -104,20 +89,8 @@ export class SpotsService {
   private readonly backend = inject(SPOTMAP_BACKEND);
 
   /**
-   * The city's spot load as milestones ending in one {@link SpotsLoaded}; see the class comment for
-   * the fallback rules.
-   */
-  loadSpots(city: CityEnum): Observable<SpotsLoadEvent> {
-    return this.loadCollection<SpotCollection>(
-      city,
-      'city_spots',
-      this.snapshotEvents(city),
-    );
-  }
-
-  /**
-   * The city's spots in the list shape, as milestones ending in one {@link SpotListLoaded}; the
-   * same fallback rules as {@link loadSpots}, the snapshot mapped through `toListCollection()`.
+   * The city's spots in the list shape, as milestones ending in one {@link SpotListLoaded}; see the
+   * class comment for the fallback rules. The snapshot is mapped through `toListCollection()`.
    */
   loadSpotList(city: CityEnum): Observable<SpotListLoadEvent> {
     return this.loadCollection<SpotListCollection>(
@@ -172,12 +145,12 @@ export class SpotsService {
   }
 
   /**
-   * A city's collection load through `rpc`, falling back to `snapshot` — the pipeline
-   * {@link loadSpots} and {@link loadSpotList} share; see the class comment for the rules.
+   * A city's collection load through `rpc`, falling back to `snapshot` — the pipeline behind
+   * {@link loadSpotList}; see the class comment for the rules.
    */
   private loadCollection<C extends { readonly features?: readonly unknown[] }>(
     city: CityEnum,
-    rpc: 'city_spots' | 'city_spot_list',
+    rpc: 'city_spot_list',
     snapshot: Observable<CollectionLoadEvent<C>>,
   ): Observable<CollectionLoadEvent<C>> {
     if (!this.backend.apiUrl) {

@@ -10,6 +10,10 @@
     (loadEvent)="onLoadEvent($event)"
     (ready)="onRendererReady()"
     (failed)="onRendererFailed($event)"
+    [selectedId]="selectedId()"
+    (spotsLoaded)="spotsLoaded.emit($event)"
+    (spotClick)="spotClick.emit($event)"
+    (emptyClick)="emptyClick.emit()"
   ></app-spot-map>
 
   <!-- Outside every @if and empty at first, so the region exists before the first announcement. -->

@@ -1,19 +1,10 @@
 import { createElevationLoader, type ElevationLoader } from './elevation';
-import type { MapFactory, PopupFactory } from './map-factory.token';
+import type { MapFactory } from './map-factory.token';
 
 /** Loads maplibre-gl on first use, keeping it out of the initial route chunk. */
 export const createMapLibreMap: MapFactory = async (options) => {
   const { Map } = await import('maplibre-gl');
   return new Map(options);
-};
-
-/**
- * Builds the frame of a tapped spot's popup, loading maplibre-gl on first use like
- * {@link createMapLibreMap}, so the popup costs the initial route chunk nothing either.
- */
-export const createMapLibrePopup: PopupFactory = async (options) => {
-  const { Popup } = await import('maplibre-gl');
-  return new Popup(options);
 };
 
 /**
@@ -26,7 +17,7 @@ const ELEVATION_TIMEOUT_MS = 4000;
 
 /**
  * The page's elevation loader: imports maplibre-contour and maplibre-gl on first use and registers
- * the terrain protocols once per DEM zoom. The one place, beside the map factories, that imports the libraries
+ * the terrain protocols once per DEM zoom. The one place, beside the map factory, that imports the libraries
  * for real.
  */
 export const loadElevation: ElevationLoader = createElevationLoader(

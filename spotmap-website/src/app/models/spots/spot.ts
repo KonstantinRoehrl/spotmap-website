@@ -28,7 +28,7 @@ export interface SpotSource {
  * The served attributes of one spot pin — what the live `city_spots()` query returns and
  * the bundled `public/spots/<city>.geojson` snapshot (exported from it by `npm run snapshot:supabase`) carries:
  * its stable id, display name, `SpotStatus`, notes and photo keys. Carried on
- * `SpotFeature.properties` and rendered by `SpotPopupComponent`. This is the full shape; the pins and
+ * `SpotFeature.properties`; the list and detail shapes are derived from it by `spot-shapes.ts` when the snapshot stands in. This is the full shape; the pins and
  * the list read the lighter {@link SpotListProperties}, and an opened spot the {@link SpotDetail}.
  */
 export interface SpotProperties {
@@ -47,8 +47,7 @@ export interface SpotProperties {
 
 /**
  * A single spot as a GeoJSON `Point` Feature (one KML placemark from the original Google My
- * Maps export). Consumed directly by `SpotPopupComponent`, and, as a member of a
- * `SpotCollection`, drawn onto the map by `SpotMapComponent`.
+ * Maps export). A member of a `SpotCollection`; `spot-shapes.ts` derives a spot's list and detail shapes from it.
  */
 export interface SpotFeature {
   type: 'Feature';
@@ -59,9 +58,9 @@ export interface SpotFeature {
 /**
  * The GeoJSON `FeatureCollection` of a city's spots: the live `city_spots()` answer, or the
  * bundled `spots/{city}.geojson` snapshot exported from the database by
- * `npm run snapshot:supabase` — the same shape either way. The collection
- * `SpotsService.loadSpots()` ends with; `SpotMapComponent` feeds it straight into MapLibre as the pins
- * source.
+ * `npm run snapshot:supabase` — the same shape either way.
+ * `SpotsService` derives the list shape the map draws from it whenever the snapshot stands in for
+ * the live functions.
  */
 export interface SpotCollection {
   type: 'FeatureCollection';
