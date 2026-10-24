@@ -173,6 +173,11 @@ export class SpotMapComponent {
     });
   }
 
+  /**
+   * Builds the map for `city`: fetches its spots, constructs a map already framed on them, then
+   * attaches it and wires its listeners. Every await re-checks the generation, so a build that
+   * lost its race to a teardown drops its result instead of attaching it.
+   */
   private async build(city: CityEnum): Promise<void> {
     const generation = this.generation;
 
@@ -262,6 +267,25 @@ export class SpotMapComponent {
       map.remove();
       return;
     }
+    const popups = this.attachMap(map, generation);
+    this.wireLoadTelemetry(
+      map,
+      collection,
+      generation,
+      sourcesAwaitingMetadata,
+      demMaxzoom,
+      popups,
+    );
+    this.wireInteractions(map, collection, generation, popups);
+  }
+
+  /**
+   * Takes on the map a build has just been handed: tracks the visitor's hold on it, builds its
+   * popup controller before any listener that could reach it, reports the renderer ready and locks
+   * the map flat and north-up. Both locks are synchronous and land before the first frame, so they
+   * may run ahead of the listeners.
+   */
+  private attachMap(map: MapLibreMap, generation: number): SpotPopupController {
     this.map = map;
     const hold = trackPointerHold(map);
     this.pointerHold = hold;
@@ -278,12 +302,6 @@ export class SpotMapComponent {
     this.popups = popups;
     this.reportLoad({ kind: 'renderer-ready' }, generation);
 
-    // A style passed as an object is loaded a frame after construction
-    // (maplibre-gl-dev.mjs:14802-14809), so this listener still hears it.
-    map.on('style.load', () => {
-      this.reportLoad({ kind: 'style-loaded' }, generation);
-    });
-
     // Rotation and pitch are off: the map stays flat and north-up whatever the gesture. Four
     // handlers can move those two degrees of freedom and each needs its own switch — MapLibre
     // wires them separately (maplibre-gl-dev.mjs:22512-22561) and skips only the ones reporting
@@ -296,6 +314,27 @@ export class SpotMapComponent {
     map.touchZoomRotate.disableRotation();
     map.touchPitch.disable();
     map.keyboard.disableRotation();
+    return popups;
+  }
+
+  /**
+   * Reports every MapLibre milestone of this build up to the paint, fails the build when an error
+   * names a source the map cannot paint without, and on `load` draws the pins, emits `ready` once
+   * they are on screen, collapses and watches the attribution, and adds the relief.
+   */
+  private wireLoadTelemetry(
+    map: MapLibreMap,
+    collection: SpotCollection,
+    generation: number,
+    sourcesAwaitingMetadata: Set<string>,
+    demMaxzoom: number,
+    popups: SpotPopupController,
+  ): void {
+    // A style passed as an object is loaded a frame after construction
+    // (maplibre-gl-dev.mjs:14802-14809), so this listener still hears it.
+    map.on('style.load', () => {
+      this.reportLoad({ kind: 'style-loaded' }, generation);
+    });
 
     // Basemap tiles only, and only until the paint: relief tiles must never hold the reveal. A
     // tile request fires `sourcedataloading` with its tile only on a cache miss, a loaded tile
@@ -388,7 +427,18 @@ export class SpotMapComponent {
       // flat.
       void this.addElevation(map, this.loadElevation(demMaxzoom), generation);
     });
+  }
 
+  /**
+   * Wires the visitor-facing listeners: the narrowing and popup re-fit on resize, opening a popup
+   * on a pin, closing it on a click that misses every pin, and the pointer cursor over a pin.
+   */
+  private wireInteractions(
+    map: MapLibreMap,
+    collection: SpotCollection,
+    generation: number,
+    popups: SpotPopupController,
+  ): void {
     // A phone turned from landscape to portrait narrows a map that opened wide, and MapLibre
     // only re-collapses its compact attribution on a drag, so the narrowing is caught here.
     map.on('resize', () => {
