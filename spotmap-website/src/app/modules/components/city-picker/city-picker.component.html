@@ -1,0 +1,29 @@
+<mat-form-field
+  appearance="outline"
+  class="select-none w-full phosphor-bloom"
+  appPointerBloom
+>
+  <mat-label>City</mat-label>
+  <mat-select
+    [value]="selected()"
+    (selectionChange)="citySelected.emit($event.value)"
+  >
+    <mat-select-trigger>
+      {{ selected().city + ' · ' + selected().countryCode }}
+    </mat-select-trigger>
+
+    @for (entry of groups | keyvalue: byCountryName; track entry.key) {
+      <mat-optgroup [label]="entry.value[0].country | uppercase">
+        @for (city of entry.value; track city.city) {
+          <mat-option
+            class="phosphor-bloom phosphor-bloom--inset"
+            appPointerBloom
+            [value]="city"
+          >
+            {{ city.city }}
+          </mat-option>
+        }
+      </mat-optgroup>
+    }
+  </mat-select>
+</mat-form-field>

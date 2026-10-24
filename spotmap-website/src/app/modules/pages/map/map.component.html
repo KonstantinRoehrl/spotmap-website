@@ -31,40 +31,12 @@
       </app-ascii-animation-text>
     </div>
 
-    <!-- Dropdown - full width on mobile, 4 cols on desktop -->
+    <!-- City picker - full width on mobile, 4 cols on desktop -->
     <div class="w-full md:w-4/12 px-0 md:px-2">
-      <mat-form-field
-        appearance="outline"
-        class="select-none w-full phosphor-bloom"
-        appPointerBloom
-      >
-        <mat-label>City</mat-label>
-        <mat-select
-          [value]="selectedCity()"
-          (selectionChange)="selectCity($event.value)"
-        >
-          <mat-select-trigger>
-            {{ selectedCity().city + ' · ' + selectedCity().countryCode }}
-          </mat-select-trigger>
-
-          @for (
-            entry of citiesGroupedByCountry() | keyvalue: byCountryName;
-            track entry.key
-          ) {
-            <mat-optgroup [label]="entry.value[0].country | uppercase">
-              @for (city of entry.value; track city.city) {
-                <mat-option
-                  class="phosphor-bloom phosphor-bloom--inset"
-                  appPointerBloom
-                  [value]="city"
-                >
-                  {{ city.city }}
-                </mat-option>
-              }
-            </mat-optgroup>
-          }
-        </mat-select>
-      </mat-form-field>
+      <app-city-picker
+        [selected]="selectedCity()"
+        (citySelected)="selectCity($event)"
+      />
     </div>
   </div>
 
