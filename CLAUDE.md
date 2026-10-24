@@ -19,10 +19,17 @@ never committed.
   `graphify-out/`.
 
 Notes:
-- **Scope is locked** by `.graphifyignore`: the graph covers the Angular app plus the
-  real docs (`DESIGN.md`, `PRODUCT.md`, `README.md`, `docs/`, `public/icon*.png`) and
-  excludes process scaffolding (`.superpowers/`, `.claude/`, `.impeccable/`). Keep that
-  exclusion — don't re-add scaffolding when regenerating.
+- **Scope is locked** by `.graphifyignore`: the graph covers the Angular app, its
+  committed spot datasets, and the real docs (`DESIGN.md`, `PRODUCT.md`, `README.md`,
+  the tracked notes under `docs/devcycle/maintenance-findings/`, `public/icon*.png`).
+  It excludes process scaffolding (`.superpowers/`, `.claude/`, `.impeccable/`,
+  `.devcycle/`), planning artifacts (`docs/superpowers/`), local audits
+  (`docs/audits/`), per-session on-device notes, the bundled snapshots
+  (`spotmap-website/public/spots/`) and the local spot photos
+  (`spotmap-website/data/thumbs/` and the city folders under
+  `spotmap-website/data/spots/`). The photos need their own entry because git
+  ignores them only through the app's nested `.gitignore`, which graphify does not
+  read. Keep these exclusions when regenerating.
 - graphify runs under a **dedicated conda env**; `graphify` is not on the base PATH.
   The interpreter path is recorded in `graphify-out/.graphify_python` (git-ignored,
   machine-specific) — activate that env or use the recorded interpreter.
