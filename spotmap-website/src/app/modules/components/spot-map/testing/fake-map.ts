@@ -7,13 +7,16 @@ import { BASEMAP_SOURCE_ID } from '../terminal-map-style';
  * MapLibre internals named in this file were read in maplibre-gl 6.15.0.
  */
 
-/** One camera move the component asked for, trimmed to the option that decides its motion. */
+/** One camera move the component asked for, trimmed to the options the specs assert about. */
 export interface CameraMove {
   method: string;
   options: {
     duration?: number;
     essential?: boolean;
     offset?: [number, number];
+    center?: [number, number];
+    zoom?: number;
+    easing?: (t: number) => number;
   };
 }
 
@@ -119,17 +122,21 @@ export class FakeMap {
   readonly loadedSources = new Set<string>();
   /**
    * Every camera move *the component* asked for, with the option bag it asked with, so the
-   * reduced-motion spec can assert about all of them rather than about the one call site that
-   * exists today. Moves MapLibre starts by itself — the keyboard ease, drag-pan inertia — never
-   * reach this fake, so nothing here can speak for them. `easeTo` and `flyTo` are recorded
-   * although the component calls neither today: MapLibre animates both unless the caller passes
-   * `duration: 0`, so an unguarded one added later is exactly the regression that spec catches.
+   * reduced-motion and keep-in-view specs can assert about all of them. Moves MapLibre starts by
+   * itself — the keyboard ease, drag-pan inertia — never reach this fake, so nothing here can
+   * speak for them. `fitBounds` and `flyTo` are recorded although the component calls neither:
+   * MapLibre animates both unless the caller passes `duration: 0`, so an unguarded one added
+   * later is exactly the regression those specs catch.
    */
   readonly cameraMoves: CameraMove[] = [];
   /** The style the component handed the factory. */
   style?: { sources: Record<string, unknown> };
   /** Where `project()` puts every spot on screen; a spec moves it to place the tapped pin. */
   projected = { x: 500, y: 300 };
+  /** Where the camera is centred, as `getCenter()` reports it; an `easeTo` with a centre moves it. */
+  center = { lng: 16.385, lat: 48.21 };
+  /** The camera's zoom, as `getZoom()` reports it; an `easeTo` with a zoom moves it. */
+  zoom = 13;
   /** What `queryRenderedFeatures()` finds under a map click: a pin, or nothing. */
   renderedPins: unknown[] = [];
 
@@ -140,6 +147,20 @@ export class FakeMap {
 
   project() {
     return this.projected;
+  }
+
+  getCenter() {
+    return this.center;
+  }
+  getZoom() {
+    return this.zoom;
+  }
+  /**
+   * A screen point back to a coordinate on a plain linear scale — a thousandth of a degree per
+   * pixel, latitude falling down the screen from 50° — enough to check the bounds arithmetic.
+   */
+  unproject([x, y]: [number, number]) {
+    return { lng: x / 1000, lat: 50 - y / 1000 };
   }
 
   getCanvasContainer() {
@@ -288,6 +309,12 @@ export class FakeMap {
   }
   easeTo(options: CameraMove['options']) {
     this.cameraMoves.push({ method: 'easeTo', options });
+    if (options.center) {
+      this.center = { lng: options.center[0], lat: options.center[1] };
+    }
+    if (options.zoom !== undefined) {
+      this.zoom = options.zoom;
+    }
   }
   flyTo(options: CameraMove['options']) {
     this.cameraMoves.push({ method: 'flyTo', options });

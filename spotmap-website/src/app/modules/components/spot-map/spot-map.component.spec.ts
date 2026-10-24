@@ -6,8 +6,16 @@ import {
 } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CityEnum } from '../../../models/enums/map-enum';
+import {
+  type AttributionCorner,
+  type MapFocus,
+  type MapInsets,
+  NO_INSETS,
+  type SelectionFraming,
+} from '../../../models/map/map-camera';
 import type { MapLoadEvent } from '../../../models/map/map-load-event';
 import { SpotListCollection } from '../../../models/spots/spot';
+import type { ViewBounds } from '../../../models/spots/spots-in-view';
 import type { ElevationTiles } from './elevation';
 import { ELEVATION_LOADER, MAP_FACTORY } from './map-factory.token';
 import { LOCK_ON_AT_REST_FILTER } from './spot-layers';
@@ -121,10 +129,18 @@ describe('SpotMapComponent', () => {
     city = CityEnum.Vienna,
     collection = COLLECTION,
     selectedId = null,
+    insets = NO_INSETS,
+    framing = 'reveal' as SelectionFraming,
+    openOn = null as MapFocus | null,
+    attributionCorner = 'bottom-right' as AttributionCorner,
   }: {
     city?: CityEnum;
     collection?: object;
     selectedId?: string | null;
+    insets?: MapInsets;
+    framing?: SelectionFraming;
+    openOn?: MapFocus | null;
+    attributionCorner?: AttributionCorner;
   } = {}) {
     fixture = TestBed.createComponent(SpotMapComponent);
     // A laid-out host, so the canvas host has a real size.
@@ -133,6 +149,10 @@ describe('SpotMapComponent', () => {
     fixture.componentRef.setInput('city', city);
     fixture.componentRef.setInput('retryToken', 0);
     fixture.componentRef.setInput('selectedId', selectedId);
+    fixture.componentRef.setInput('coveredInsets', insets);
+    fixture.componentRef.setInput('selectionFraming', framing);
+    fixture.componentRef.setInput('openOn', openOn);
+    fixture.componentRef.setInput('attributionCorner', attributionCorner);
     fixture.detectChanges();
     httpMock.expectOne(`spots/${city}.geojson`).flush(collection);
     await fixture.whenStable();
@@ -166,6 +186,21 @@ describe('SpotMapComponent', () => {
     });
     loadElevation = () => pending;
     return resolve;
+  }
+
+  /** Holds every animation frame the component asks for until the spec runs them. */
+  function captureFrames(): () => void {
+    const pending: FrameRequestCallback[] = [];
+    spyOn(window, 'requestAnimationFrame').and.callFake((callback) => {
+      pending.push(callback);
+      return pending.length;
+    });
+    spyOn(window, 'cancelAnimationFrame');
+    return () => {
+      for (const callback of pending.splice(0)) {
+        callback(performance.now());
+      }
+    };
   }
 
   async function tap(id: string) {
@@ -1185,6 +1220,186 @@ describe('SpotMapComponent', () => {
       await retry(1);
       old.drawPins();
       expect(ready).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('the camera and the visible bounds', () => {
+    /** The 1000 × 600 host's bottom 510 px, covered by a phone's sheet at detail height. */
+    const SHEET_INSETS = { top: 0, right: 0, bottom: 510, left: 0 };
+    const eases = () =>
+      fake.cameraMoves.filter((move) => move.method === 'easeTo');
+
+    it('reports the uncovered bounds when the map paints', async () => {
+      const c = await create({
+        insets: { top: 0, right: 0, bottom: 200, left: 0 },
+      });
+      const bounds: ViewBounds[] = [];
+      c.boundsChange.subscribe((b) => bounds.push(b));
+      fake.emit('load');
+      expect(bounds.length).toBe(1);
+      expect(bounds[0]).toEqual(
+        jasmine.objectContaining({ west: 0, north: 50, east: 1 }),
+      );
+      expect(bounds[0]?.south).toBeCloseTo(49.6, 9);
+    });
+
+    it('reports the bounds at most once a frame while the map moves', async () => {
+      const runFrames = captureFrames();
+      const c = await create();
+      fake.emit('load');
+      const bounds: ViewBounds[] = [];
+      c.boundsChange.subscribe((b) => bounds.push(b));
+      fake.emit('move');
+      fake.emit('move');
+      fake.emit('move');
+      runFrames();
+      expect(bounds.length).toBe(1);
+    });
+
+    it('reports new bounds when the covered strip changes', async () => {
+      const runFrames = captureFrames();
+      const c = await create();
+      fake.emit('load');
+      const bounds: ViewBounds[] = [];
+      c.boundsChange.subscribe((b) => bounds.push(b));
+      fixture.componentRef.setInput('coveredInsets', {
+        top: 0,
+        right: 0,
+        bottom: 300,
+        left: 0,
+      });
+      fixture.detectChanges();
+      runFrames();
+      expect(bounds.at(-1)?.south).toBeCloseTo(49.7, 9);
+    });
+
+    it('reports nothing from a build a retry replaced', async () => {
+      const runFrames = captureFrames();
+      const c = await create();
+      fake.emit('load');
+      const old = fake;
+      const bounds: ViewBounds[] = [];
+      c.boundsChange.subscribe((b) => bounds.push(b));
+      await retry(1);
+      old.emit('move');
+      runFrames();
+      expect(bounds).toEqual([]);
+    });
+
+    it('cancels a pending bounds frame on teardown', async () => {
+      captureFrames();
+      await create();
+      fake.emit('load');
+      fake.emit('move');
+      fixture.destroy();
+      expect(window.cancelAnimationFrame).toHaveBeenCalled();
+    });
+
+    it('centres a pin opened on a phone in the strip above the sheet', async () => {
+      requestReducedMotion(false);
+      holdAnimationFrames();
+      await create({ insets: SHEET_INSETS, framing: 'centre' });
+      fake.emit('load');
+      select('a');
+      expect(eases().at(-1)?.options).toEqual(
+        jasmine.objectContaining({
+          center: [16.37, 48.2],
+          offset: [0, -255],
+          duration: 330,
+        }),
+      );
+    });
+
+    it('moves a wide map only for a pin off screen', async () => {
+      requestReducedMotion(false);
+      holdAnimationFrames();
+      await create();
+      fake.emit('load');
+      fake.projected = { x: 500, y: 300 };
+      select('a');
+      expect(eases()).withContext('the pin was in view').toEqual([]);
+      fake.projected = { x: 20, y: 300 };
+      select('b');
+      expect(eases().length).toBe(1);
+    });
+
+    it('eases back to the view an open started from when the spot closes', async () => {
+      requestReducedMotion(false);
+      holdAnimationFrames();
+      await create({ insets: SHEET_INSETS, framing: 'centre' });
+      fake.emit('load');
+      fake.center = { lng: 16.5, lat: 48.3 };
+      fake.zoom = 12;
+      select('a');
+      select('b');
+      select(null);
+      expect(eases().at(-1)?.options).toEqual(
+        jasmine.objectContaining({ center: [16.5, 48.3], zoom: 12 }),
+      );
+    });
+
+    it('does not re-centre on a change detection that leaves the frame as it was', async () => {
+      requestReducedMotion(false);
+      holdAnimationFrames();
+      await create({ insets: SHEET_INSETS, framing: 'centre' });
+      fake.emit('load');
+      select('a');
+      const count = eases().length;
+      fixture.componentRef.setInput('coveredInsets', { ...SHEET_INSETS });
+      fixture.detectChanges();
+      expect(eases().length).toBe(count);
+    });
+
+    it('builds a cold-opened map on the spot, jumps the pin into the strip and saves no view', async () => {
+      requestReducedMotion(false);
+      holdAnimationFrames();
+      await create({
+        selectedId: 'a',
+        openOn: { center: [16.37, 48.2], zoom: 16 },
+        insets: SHEET_INSETS,
+        framing: 'centre',
+      });
+      const options = mapFactory.calls.mostRecent().args[0];
+      expect(options).toEqual(
+        jasmine.objectContaining({ center: [16.37, 48.2], zoom: 16 }),
+      );
+      expect(options.bounds).toBeUndefined();
+      expect(options.fitBoundsOptions).toBeUndefined();
+      fake.emit('load');
+      expect(eases()).toEqual([
+        jasmine.objectContaining({
+          method: 'easeTo',
+          options: jasmine.objectContaining({ offset: [0, -255], duration: 0 }),
+        }),
+      ]);
+      select(null);
+      expect(eases().length).withContext('nothing to go back to').toBe(1);
+    });
+
+    it('never eases a map the visitor holds', async () => {
+      requestReducedMotion(false);
+      holdAnimationFrames();
+      await create({ insets: SHEET_INSETS, framing: 'centre' });
+      fake.emit('load');
+      fake.touchDown();
+      select('a');
+      expect(eases()).toEqual([]);
+    });
+
+    it('moves the attribution to the top-right corner on the sheet layout', async () => {
+      await create({ attributionCorner: 'top-right' });
+      const host = fixture.nativeElement as HTMLElement;
+      expect(host.classList).toContain('spot-map--attribution-top');
+      const container = buildAttributionControl('bottom-right');
+      host.querySelector('.spot-map__canvas')!.append(container);
+      const corner = container.querySelector<HTMLElement>(
+        '.maplibregl-ctrl-bottom-right',
+      )!;
+      expect(getComputedStyle(corner).top).toBe('0px');
+      expect(getComputedStyle(corner).bottom).toBe('auto');
+      fixture.componentRef.setInput('attributionCorner', 'bottom-right');
+      fixture.detectChanges();
+      expect(host.classList).not.toContain('spot-map--attribution-top');
     });
   });
 });

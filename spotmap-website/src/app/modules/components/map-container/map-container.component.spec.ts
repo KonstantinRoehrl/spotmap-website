@@ -10,6 +10,7 @@ import { By } from '@angular/platform-browser';
 
 import { CityEnum } from '../../../models/enums/map-enum';
 import { SpotListCollection } from '../../../models/spots/spot';
+import type { ViewBounds } from '../../../models/spots/spots-in-view';
 import { ELEVATION_LOADER, MAP_FACTORY } from '../spot-map/map-factory.token';
 import { MapLoaderComponent } from '../map-loader/map-loader.component';
 import { SpotMapComponent } from '../spot-map/spot-map.component';
@@ -145,6 +146,29 @@ describe('MapContainerComponent', () => {
   it('renders the maplibre map for vienna', () => {
     const fixture = create(true, CityEnum.Vienna);
     expect(fixture.nativeElement.querySelector('app-spot-map')).toBeTruthy();
+    fixture.destroy();
+  });
+
+  it('hands the camera inputs to the map and re-emits its bounds', () => {
+    const fixture = create(true);
+    const insets = { top: 0, right: 0, bottom: 300, left: 0 };
+    const focus = { center: [16.37, 48.2] as [number, number], zoom: 16 };
+    fixture.componentRef.setInput('coveredInsets', insets);
+    fixture.componentRef.setInput('selectionFraming', 'centre');
+    fixture.componentRef.setInput('openOn', focus);
+    fixture.componentRef.setInput('attributionCorner', 'top-right');
+    fixture.detectChanges();
+    const map = fixture.debugElement.query(By.directive(SpotMapComponent))
+      .componentInstance as SpotMapComponent;
+    expect(map.coveredInsets()).toBe(insets);
+    expect(map.selectionFraming()).toBe('centre');
+    expect(map.openOn()).toBe(focus);
+    expect(map.attributionCorner()).toBe('top-right');
+    const bounds: ViewBounds[] = [];
+    fixture.componentInstance.boundsChange.subscribe((b) => bounds.push(b));
+    const box = { west: 1, south: 2, east: 3, north: 4 };
+    map.boundsChange.emit(box);
+    expect(bounds).toEqual([box]);
     fixture.destroy();
   });
 

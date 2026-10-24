@@ -11,7 +11,15 @@ import {
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { CityEnum } from '../../../models/enums/map-enum';
+import {
+  NO_INSETS,
+  type AttributionCorner,
+  type MapFocus,
+  type MapInsets,
+  type SelectionFraming,
+} from '../../../models/map/map-camera';
 import { SpotListCollection } from '../../../models/spots/spot';
+import type { ViewBounds } from '../../../models/spots/spots-in-view';
 import { PointerBloomDirective } from '../../directives/pointer-bloom.directive';
 import { MapLoaderComponent } from '../map-loader/map-loader.component';
 import { SpotMapComponent } from '../spot-map/spot-map.component';
@@ -52,6 +60,14 @@ export class MapContainerComponent {
 
   /** The spot the URL has open, handed to the map; see `SpotMapComponent.selectedId`. */
   selectedId = input<string | null>(null);
+  /** The strips the page's UI covers, handed to the map; see `SpotMapComponent.coveredInsets`. */
+  coveredInsets = input<MapInsets>(NO_INSETS);
+  /** How the map keeps the selected pin in view; see `SpotMapComponent.selectionFraming`. */
+  selectionFraming = input<SelectionFraming>('reveal');
+  /** Where the next build opens; see `SpotMapComponent.openOn`. */
+  openOn = input<MapFocus | null>(null);
+  /** The attribution's corner; see `SpotMapComponent.attributionCorner`. */
+  attributionCorner = input<AttributionCorner>('bottom-right');
 
   /** The map's spots in the list shape, re-emitted from `SpotMapComponent.spotsLoaded`. */
   spotsLoaded = output<SpotListCollection>();
@@ -59,6 +75,8 @@ export class MapContainerComponent {
   spotClick = output<string>();
   /** A tap on empty map, re-emitted from `SpotMapComponent.emptyClick`. */
   emptyClick = output<void>();
+  /** The uncovered part of the map's bounds, re-emitted from `SpotMapComponent.boundsChange`. */
+  boundsChange = output<ViewBounds>();
 
   /** Bumped on each retry so the active renderer re-attempts from scratch. */
   protected readonly retryToken = signal(0);

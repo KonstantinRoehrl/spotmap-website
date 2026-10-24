@@ -18,17 +18,32 @@ import type {
 import { filter, lastValueFrom, Subject, takeUntil, tap } from 'rxjs';
 import { CityEnum } from '../../../models/enums/map-enum';
 import { SpotListCollection } from '../../../models/spots/spot';
+import type { ViewBounds } from '../../../models/spots/spots-in-view';
 import {
   SpotListLoaded,
   SpotListLoadEvent,
   SpotsService,
 } from '../../../services/spots.service';
 import { demMaxzoomFor, type ElevationTiles } from './elevation';
+import {
+  NO_INSETS,
+  type AttributionCorner,
+  type MapFocus,
+  type MapInsets,
+  type SelectionFraming,
+} from '../../../models/map/map-camera';
 import type { MapFailureReason } from '../../../models/map/map-failure-reason';
 import type { MapLoadEvent } from '../../../models/map/map-load-event';
 import { framingBounds } from './fit-bounds';
 import { ELEVATION_LOADER, MAP_FACTORY } from './map-factory.token';
 import { type PointerHold, trackPointerHold } from './pointer-hold';
+import {
+  boundsOfRect,
+  type CameraFrame,
+  sameFrame,
+  SelectionCamera,
+  uncoveredRect,
+} from './selection-camera';
 import { SPOT_HIT_LAYER_ID, SPOT_LAYERS, SPOT_SOURCE_ID } from './spot-layers';
 import { SpotSelection } from './spot-selection';
 import {
@@ -95,6 +110,9 @@ function namesAnUnusableSource(
   templateUrl: './spot-map.component.html',
   styleUrl: './spot-map.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '[class.spot-map--attribution-top]': "attributionCorner() === 'top-right'",
+  },
 })
 export class SpotMapComponent {
   /** The city whose spots are drawn; any change rebuilds the map on that city. */
@@ -108,6 +126,23 @@ export class SpotMapComponent {
    * change never rebuilds the map.
    */
   selectedId = input<string | null>(null);
+  /**
+   * How much of the map's edges the page's own UI covers, in px — a phone's sheet along the
+   * bottom. The visible bounds and the selected pin's framing leave those strips out.
+   */
+  coveredInsets = input<MapInsets>(NO_INSETS);
+  /** How the selected pin is kept in view: centred above the sheet, or revealed only when hidden. */
+  selectionFraming = input<SelectionFraming>('reveal');
+  /**
+   * Where the next build opens instead of the city's framing — a cold `/spot/<id>` link's spot.
+   * Read once per build, as the build starts; a later change waits for the next city switch.
+   */
+  openOn = input<MapFocus | null>(null);
+  /**
+   * The corner the attribution sits in. `top-right` on the sheet layout, which covers the bottom
+   * edge: the credit is a licence condition and must stay visible.
+   */
+  attributionCorner = input<AttributionCorner>('bottom-right');
 
   /** The pins are on the painted map — the end of DRAW. */
   ready = output<void>();
@@ -130,6 +165,11 @@ export class SpotMapComponent {
   spotClick = output<string>();
   /** A tap on the map that hit no pin, which closes an open spot. */
   emptyClick = output<void>();
+  /**
+   * The bounds of the uncovered part of the map, on paint, on every move (at most once a frame)
+   * and whenever the covered strips change; never from a build that has been replaced.
+   */
+  boundsChange = output<ViewBounds>();
 
   private readonly canvasHost =
     viewChild.required<ElementRef<HTMLDivElement>>('canvasHost');
@@ -156,6 +196,17 @@ export class SpotMapComponent {
   private pointerHold?: PointerHold;
   /** The selected pin of the current build; set once its pins are drawn. */
   private selection?: SpotSelection;
+  /** Keeps the current build's selected pin in view; set once its pins are drawn. */
+  private camera?: SelectionCamera;
+  /** The current build's spots, for a selected id's coordinates; set once its pins are drawn. */
+  private collection?: SpotListCollection;
+  /**
+   * The frame the selection was last kept in view in. A change detection that hands over an equal
+   * but new `coveredInsets` object must not re-centre a map the visitor has panned since.
+   */
+  private framedFor?: CameraFrame;
+  /** The animation frame the next bounds report waits on. */
+  private boundsFrame?: number;
 
   /**
    * Bumped by every teardown. A build whose await resolves against a stale generation lost its
@@ -181,20 +232,28 @@ export class SpotMapComponent {
       });
     });
 
-    // Before the pins are drawn there is nothing to select; `load` shows what the input says then.
+    // The URL owns the selection and the page the covered strips. Before the pins are drawn
+    // there is nothing to select or frame; `load` applies whatever the inputs say then.
     effect(() => {
-      const id = this.selectedId();
-      untracked(() => this.selection?.show(id, { pulse: true }));
+      this.selectedId();
+      this.coveredInsets();
+      this.selectionFraming();
+      untracked(() => {
+        this.followSelection();
+        this.scheduleBounds();
+      });
     });
   }
 
   /**
    * Builds the map for `city`: fetches its spots, reports them, constructs a map already framed
-   * on them, then attaches it and wires its listeners. Every await re-checks the generation, so a build that
+   * on them — or on the spot a cold link opened — then attaches it and wires its listeners. Every await re-checks the generation, so a build that
    * lost its race to a teardown drops its result instead of attaching it.
    */
   private async build(city: CityEnum): Promise<void> {
     const generation = this.generation;
+    // Read now, while it belongs to the city this build is for.
+    const focus = this.openOn();
 
     // Probed before anything is fetched: a browser without WebGL can never draw this map,
     // and the container withholds RETRY for `unsupported`.
@@ -243,10 +302,19 @@ export class SpotMapComponent {
 
     // The map is built already framed on the city: MapLibre applies `bounds` in its constructor
     // with no animation (`fitBounds` at `duration: 0`), so its first paint is the framed city and
-    // no opening camera move follows it.
-    const bounds = framingBounds(
-      collection.features.map((feature) => feature.geometry.coordinates),
-    );
+    // no opening camera move follows it. A cold link opens on its spot instead, and MapLibre
+    // applies `center` and `zoom` in its constructor the same way.
+    const camera = focus
+      ? { center: focus.center, zoom: focus.zoom }
+      : {
+          bounds:
+            framingBounds(
+              collection.features.map(
+                (feature) => feature.geometry.coordinates,
+              ),
+            ) ?? undefined,
+          fitBoundsOptions: { padding: FIT_PADDING_PX, maxZoom: FIT_MAX_ZOOM },
+        };
 
     const style = buildTerminalStyle();
     // The basemap owes the map its metadata — the TileJSON — before anything can be drawn from
@@ -259,8 +327,7 @@ export class SpotMapComponent {
       map = await this.mapFactory({
         container: this.canvasHost().nativeElement,
         style,
-        bounds: bounds ?? undefined,
-        fitBoundsOptions: { padding: FIT_PADDING_PX, maxZoom: FIT_MAX_ZOOM },
+        ...camera,
         // Attribution is a licence condition of the OSM-derived tiles, never optional.
         attributionControl: { compact: true },
       });
@@ -406,10 +473,23 @@ export class SpotMapComponent {
       this.reportLoad({ kind: 'painted' }, generation);
       this.drawSpots(map, collection);
       // Feature state needs the spot source, so the selection starts here. One already in the URL
-      // — a shared link opened cold, or a rebuild — is no tap, so it shows without the pulse.
-      const selection = new SpotSelection(map);
-      selection.show(this.selectedId(), { pulse: false });
-      this.selection = selection;
+      // — a shared link opened cold, or a rebuild — is no tap: it shows without the pulse, and the
+      // camera only jumps it into a phone's strip, saving no view to go back to.
+      this.collection = collection;
+      this.selection = new SpotSelection(map);
+      this.camera = new SelectionCamera(
+        map,
+        () => this.pointerHold?.isHeld() ?? false,
+      );
+      const id = this.selectedId();
+      this.selection.show(id, { pulse: false });
+      const frame = this.cameraFrame();
+      this.framedFor = frame;
+      const pin = id === null ? null : this.coordinatesOf(id);
+      if (pin) {
+        this.camera.place(pin, frame);
+      }
+      this.emitBounds();
       // The pins are drawn on the first frame rendered once their source has loaded. MapLibre's
       // `idle` would also wait for every DEM tile, and relief must never hold the reveal.
       const pinsDrawn = () => {
@@ -448,6 +528,13 @@ export class SpotMapComponent {
       const narrow = this.isNarrow();
       this.collapseAttributionOnNarrowMap(narrow && !this.mapIsNarrow);
       this.mapIsNarrow = narrow;
+      this.scheduleBounds();
+    });
+
+    map.on('move', () => {
+      if (generation === this.generation) {
+        this.scheduleBounds();
+      }
     });
 
     // The rendered feature carries the spot id MapLibre promoted from its properties.
@@ -483,6 +570,100 @@ export class SpotMapComponent {
   }
 
   /**
+   * Shows the URL's selection and keeps it in view: a spot opened from none saves the view to
+   * return to, a switch or a changed frame keeps the new pin visible, and a close eases back.
+   * Nothing happens before the pins are drawn.
+   */
+  private followSelection(): void {
+    const { selection, camera } = this;
+    if (!selection || !camera) {
+      return;
+    }
+    const id = this.selectedId();
+    const previous = selection.selectedId;
+    const frame = this.cameraFrame();
+    const reframed =
+      this.framedFor === undefined || !sameFrame(this.framedFor, frame);
+    this.framedFor = frame;
+    selection.show(id, { pulse: true });
+    if (id === null) {
+      if (previous !== null) {
+        camera.restore();
+      }
+      return;
+    }
+    const pin = this.coordinatesOf(id);
+    if (!pin) {
+      return;
+    }
+    if (previous === null) {
+      camera.open(pin, frame);
+    } else if (previous !== id || reframed) {
+      camera.keepInView(pin, frame);
+    }
+  }
+
+  /** The canvas host's size with the page's covered strips and framing, as the camera reads it. */
+  private cameraFrame(): CameraFrame {
+    const host = this.canvasHost().nativeElement;
+    return {
+      width: host.clientWidth,
+      height: host.clientHeight,
+      insets: this.coveredInsets(),
+      framing: this.selectionFraming(),
+    };
+  }
+
+  /** Where the current build draws the spot `id`, or `null` for a spot it does not hold. */
+  private coordinatesOf(id: string): [number, number] | null {
+    return (
+      this.collection?.features.find((feature) => feature.properties.id === id)
+        ?.geometry.coordinates ?? null
+    );
+  }
+
+  /** Reports the bounds on the next animation frame, once however many moves ask for it. */
+  private scheduleBounds(): void {
+    if (
+      this.boundsFrame !== undefined ||
+      !this.map ||
+      this.outcome !== 'painted'
+    ) {
+      return;
+    }
+    this.boundsFrame = requestAnimationFrame(() => {
+      this.boundsFrame = undefined;
+      this.emitBounds();
+    });
+  }
+
+  /** Reports the uncovered part of the painted map's bounds. */
+  private emitBounds(): void {
+    const map = this.map;
+    if (!map || this.outcome !== 'painted') {
+      return;
+    }
+    const { width, height, insets } = this.cameraFrame();
+    this.boundsChange.emit(
+      boundsOfRect(map, uncoveredRect(width, height, insets)),
+    );
+  }
+
+  /**
+   * Forgets the current build's camera, spots and frame and cancels its pending bounds report, so
+   * nothing from a released map reaches the build that replaces it.
+   */
+  private releaseCamera(): void {
+    this.camera = undefined;
+    this.collection = undefined;
+    this.framedFor = undefined;
+    if (this.boundsFrame !== undefined) {
+      cancelAnimationFrame(this.boundsFrame);
+      this.boundsFrame = undefined;
+    }
+  }
+
+  /**
    * Gives up on this build: the container puts its failure chrome up, so the map is released
    * rather than left holding a WebGL context behind it. A build that already lost its race, or
    * one that has already painted or failed, reports nothing.
@@ -494,6 +675,7 @@ export class SpotMapComponent {
     this.outcome = 'failed';
     this.selection?.dispose();
     this.selection = undefined;
+    this.releaseCamera();
     this.map?.remove();
     this.map = undefined;
     this.failed.emit(reason);
@@ -612,6 +794,7 @@ export class SpotMapComponent {
     this.selection = undefined;
     this.pointerHold?.stop();
     this.pointerHold = undefined;
+    this.releaseCamera();
     this.map?.remove();
     this.map = undefined;
   }
