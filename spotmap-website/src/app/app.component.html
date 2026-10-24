@@ -29,7 +29,7 @@
       <app-nav-bar
         [links]="[
           { name: 'Home', url: '/home', icon: '⌂' },
-          { name: 'Map', url: '/map', icon: '⌖' },
+          { name: 'Map', url: '/map', icon: '⌖', activeAlsoUnder: '/spot/' },
           { name: 'About', url: '/about', icon: 'ⓘ' },
         ]"
         class="nav-bar"
@@ -40,6 +40,7 @@
     <div
       class="content-container flex-auto px-6"
       [class.content-container--admin]="onAdminRoute()"
+      [class.content-container--map]="onMapPage()"
     >
       <router-outlet></router-outlet>
     </div>

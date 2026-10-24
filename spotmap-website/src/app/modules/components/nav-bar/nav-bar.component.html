@@ -5,8 +5,7 @@
         <a
           class="phosphor-bloom"
           [routerLink]="link.url"
-          routerLinkActive="active"
-          [routerLinkActiveOptions]="{ exact: true }"
+          [class.active]="isActive(link)"
           appGlitchText
           appPointerBloom
         >

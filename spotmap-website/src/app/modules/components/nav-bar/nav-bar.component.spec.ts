@@ -20,7 +20,7 @@ class StubPageComponent {}
 class HostComponent {
   links: NavBarLink[] = [
     { name: 'Home', url: '/home', icon: '⌂' },
-    { name: 'Map', url: '/map', icon: '⌖' },
+    { name: 'Map', url: '/map', icon: '⌖', activeAlsoUnder: '/spot/' },
     { name: 'About', url: '/about', icon: 'ⓘ' },
   ];
 }
@@ -37,6 +37,7 @@ describe('NavBarComponent', () => {
           { path: 'home', component: StubPageComponent },
           { path: 'map', component: StubPageComponent },
           { path: 'about', component: StubPageComponent },
+          { path: 'spot/:id', component: StubPageComponent },
         ]),
       ],
     }).compileComponents();
@@ -78,6 +79,31 @@ describe('NavBarComponent', () => {
 
     fixture.ngZone!.run(() => router.navigate(['/home']));
     tick();
+    fixture.detectChanges();
+    expect(activeLabels()).toEqual(['Home']);
+  }));
+
+  it('lights the Map link on a spot link too, and no other link', fakeAsync(() => {
+    fixture.detectChanges();
+    fixture.ngZone!.run(() => router.navigateByUrl('/spot/hbf-curb-99f6e5'));
+    tick();
+    fixture.detectChanges();
+    // Home and About carry no activeAlsoUnder, so they stay exact.
+    expect(activeLabels()).toEqual(['Map']);
+  }));
+
+  it('ignores the query string and fragment when lighting a link', fakeAsync(() => {
+    fixture.detectChanges();
+    fixture.ngZone!.run(() => router.navigateByUrl('/about?from=nav#team'));
+    tick();
+    fixture.detectChanges();
+    expect(activeLabels()).toEqual(['About']);
+  }));
+
+  it('lights the link for the route the app opened on, before any navigation of its own', fakeAsync(() => {
+    fixture.ngZone!.run(() => router.navigateByUrl('/home'));
+    tick();
+    // The nav is created only now, after the navigation has ended.
     fixture.detectChanges();
     expect(activeLabels()).toEqual(['Home']);
   }));
