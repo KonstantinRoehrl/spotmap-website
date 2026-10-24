@@ -38,3 +38,17 @@ updates:
         update-types:
           - minor
           - patch
+    # A major of the test framework or of TypeScript is a deliberate upgrade made by hand, not a
+    # drive-by PR, so each holds at its current major; minors and patches still arrive through the
+    # group above. TypeScript is also capped by Angular's compiler-cli peer range (>=6.0 <6.1 at
+    # Angular 22.2), so it moves together with Angular.
+    ignore:
+      - dependency-name: jasmine-core
+        update-types:
+          - version-update:semver-major
+      - dependency-name: "@types/jasmine"
+        update-types:
+          - version-update:semver-major
+      - dependency-name: typescript
+        update-types:
+          - version-update:semver-major

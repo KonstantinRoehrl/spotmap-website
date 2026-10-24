@@ -528,7 +528,9 @@ Every pull request into `dev` or `main` runs `.github/workflows/ci.yml`:
 
 Dependabot opens weekly update PRs for the GitHub Actions (repo root) and the
 npm dependencies (`spotmap-website/`); minor and patch updates arrive grouped in
-one PR per ecosystem, majors one PR each.
+one PR per ecosystem, majors one PR each. `jasmine-core`, `@types/jasmine` and
+`typescript` are held at their current major (an `ignore:` rule in
+`.github/dependabot.yml`): moving one is a deliberate upgrade, made by hand.
 
 ## Deployment
 
