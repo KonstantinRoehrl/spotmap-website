@@ -1,3 +1,4 @@
+import { Component, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { SpotPhotoGalleryComponent } from './spot-photo-gallery.component';
 
@@ -110,8 +111,8 @@ describe('SpotPhotoGalleryComponent', () => {
   it('keeps the placeholder text clear of the arrows', () => {
     create(['a.webp', 'b.webp']);
     const el: HTMLElement = fixture.nativeElement;
-    // The arrows' worst case: a 320 px phone, less the 16 px fit margins (288 px popup), less the
-    // popup's 8 px padding and 1 px border on each side.
+    // The arrows' worst case: the narrowest gallery the detail draws, a 320 px phone's sheet less
+    // its side padding.
     el.style.display = 'block';
     el.style.width = '270px';
     failCurrentImage();
@@ -288,22 +289,21 @@ describe('SpotPhotoGalleryComponent', () => {
     expect(fixture.nativeElement.querySelector('.gallery__loading')).toBeNull();
   });
 
-  it('takes its height from the popup fit', () => {
+  it('stays 4:3 at the width its host gives it', () => {
     create(['a.webp', 'b.webp']);
     const el: HTMLElement = fixture.nativeElement;
-    el.style.display = 'block';
-    el.style.width = '302px';
-    el.style.setProperty('--spot-popup-gallery-height', '120px');
+    el.style.width = '320px';
     const gallery: HTMLElement = el.querySelector('.gallery')!;
-    expect(gallery.offsetHeight).toBe(120);
+    expect(gallery.offsetWidth).toBe(320);
+    expect(gallery.offsetHeight).toBe(240);
   });
 
-  it('claims the popup width itself, so a broken photo does not shrink the popup', () => {
+  it('keeps its whole width when a photo breaks, so the panel never collapses', () => {
     create(['a.webp', 'b.webp']);
+    const el: HTMLElement = fixture.nativeElement;
+    el.style.width = '320px';
     failCurrentImage();
-    const gallery = fixture.nativeElement.querySelector('.gallery');
-    expect(getComputedStyle(gallery).maxWidth).toBe('100%');
-    expect(getComputedStyle(gallery).width).not.toBe('auto');
+    expect(el.querySelector<HTMLElement>('.gallery')!.offsetWidth).toBe(320);
   });
 
   it('fails only the photo that broke', () => {
@@ -355,5 +355,65 @@ describe('SpotPhotoGalleryComponent', () => {
       painted('text-shadow', 'var(--glow-text-standard)'),
     );
     expect(getComputedStyle(dim).textShadow).toBe('none');
+  });
+});
+
+/** A page binding the gallery's slide two-way, the way the spot detail's strip does. */
+@Component({
+  imports: [SpotPhotoGalleryComponent],
+  template: `<app-spot-photo-gallery
+    [photos]="photos()"
+    spotName="Hbf Curb"
+    [(index)]="index"
+  />`,
+})
+class TwoWayHostComponent {
+  readonly photos = signal(['a.webp', 'b.webp', 'c.webp']);
+  readonly index = signal(0);
+}
+
+describe('SpotPhotoGalleryComponent bound two-way', () => {
+  let fixture: ComponentFixture<TwoWayHostComponent>;
+
+  beforeEach(async () => {
+    fixture = TestBed.createComponent(TwoWayHostComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+  });
+
+  async function settle(): Promise<void> {
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+  }
+
+  const counter = () =>
+    (
+      fixture.nativeElement.querySelector('.gallery__counter')?.textContent ??
+      ''
+    ).trim();
+
+  it('shows the slide its host sets', async () => {
+    fixture.componentInstance.index.set(2);
+    await settle();
+    expect(counter()).toBe('[3/3]');
+    expect(fixture.nativeElement.querySelector('img').getAttribute('src')).toBe(
+      'c.webp',
+    );
+  });
+
+  it('reports an arrow press back to its host', async () => {
+    fixture.nativeElement.querySelector('.gallery__nav--next').click();
+    await settle();
+    expect(fixture.componentInstance.index()).toBe(1);
+  });
+
+  it('moves an index past a shorter photo list onto its last photo', async () => {
+    fixture.componentInstance.index.set(2);
+    await settle();
+    fixture.componentInstance.photos.set(['a.webp', 'b.webp']);
+    await settle();
+    expect(counter()).toBe('[2/2]');
+    expect(fixture.componentInstance.index()).toBe(1);
   });
 });

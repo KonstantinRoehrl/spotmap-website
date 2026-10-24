@@ -3,9 +3,12 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
   ElementRef,
   input,
+  model,
   signal,
+  untracked,
   viewChild,
 } from '@angular/core';
 import { PointerBloomDirective } from '../../directives/pointer-bloom.directive';
@@ -16,12 +19,13 @@ const SWIPE_THRESHOLD_PX = 40;
 
 /**
  * A spot's photos as one 4:3 slide at a time, with arrows, an `[n/N]` counter and swipe on
- * touch. `photos` are image URLs (the popup builds them from photo keys). While a slide's photo
- * loads, the slide shows a small block of ASCII rain, and the photo crossfades in once it has
- * loaded; a photo already in the browser's cache shows at once, whichever slide it is. A photo
- * that fails to load — the photo host paused, or the object gone — shows an in-style placeholder
- * in its slide; the others and the navigation keep working. The panel is 4:3 unless the popup
- * fits it to a height through `--spot-popup-gallery-height`.
+ * touch. `photos` are image URLs (the spot detail builds them from photo keys). The slide is
+ * two-way bindable as `[(index)]`, so the detail's photo strip drives the gallery and follows its
+ * arrows. While a slide's photo loads, the slide shows a small block of ASCII rain, and the photo
+ * crossfades in once it has loaded; a photo already in the browser's cache shows at once, whichever
+ * slide it is. A photo that fails to load — the photo host paused, or the object gone — shows an
+ * in-style placeholder in its slide; the others and the navigation keep working. The panel is 4:3
+ * at the whole width its host gives it.
  */
 @Component({
   selector: 'app-spot-photo-gallery',
@@ -36,15 +40,28 @@ export class SpotPhotoGalleryComponent {
   /** The spot's name, for the images' alt text. */
   spotName = input.required<string>();
 
-  protected readonly index = signal(0);
+  /**
+   * The slide on screen, two-way bindable. Held inside the photo list: when a shorter list
+   * arrives, an index past its end moves onto the last photo, and the binding hears it.
+   */
+  readonly index = model(0);
+  /** How many photos the gallery has. */
   protected readonly count = computed(() => this.photos().length);
-  protected readonly current = computed(() => this.photos()[this.index()]);
-  protected readonly hasMany = computed(() => this.count() > 1);
-  protected readonly counter = computed(
-    () => `[${this.index() + 1}/${this.count()}]`,
+  /** {@link index} held inside the photo list; every slide-dependent value reads this. */
+  private readonly slide = computed(() =>
+    Math.min(Math.max(this.index(), 0), Math.max(this.count() - 1, 0)),
   );
+  /** The URL of the photo on screen. */
+  protected readonly current = computed(() => this.photos()[this.slide()]);
+  /** Whether there is more than one photo, so the arrows, counter and swipe apply. */
+  protected readonly hasMany = computed(() => this.count() > 1);
+  /** The `[n/N]` counter text. */
+  protected readonly counter = computed(
+    () => `[${this.slide() + 1}/${this.count()}]`,
+  );
+  /** The alt text of the photo on screen. */
   protected readonly altText = computed(
-    () => `${this.spotName()}, photo ${this.index() + 1} of ${this.count()}`,
+    () => `${this.spotName()}, photo ${this.slide() + 1} of ${this.count()}`,
   );
 
   /** The URLs whose image failed to load; their slides show the placeholder. */
@@ -85,6 +102,15 @@ export class SpotPhotoGalleryComponent {
   private touchStartX: number | null = null;
 
   constructor() {
+    // An index the photo list no longer reaches is written back as the slide actually shown, so
+    // a two-way binding never holds a photo that is not there.
+    effect(() => {
+      const slide = this.slide();
+      if (slide !== untracked(this.index)) {
+        this.index.set(slide);
+      }
+    });
+
     // A cached image may have finished before the `(load)` listener could hear it, so after each
     // render the element itself is asked whether it is already complete.
     afterRenderEffect(() => {
@@ -106,12 +132,12 @@ export class SpotPhotoGalleryComponent {
 
   /** Shows the next photo, wrapping to the first. */
   next(): void {
-    this.index.update((i) => (i + 1) % this.count());
+    this.index.set((this.slide() + 1) % this.count());
   }
 
   /** Shows the previous photo, wrapping to the last. */
   previous(): void {
-    this.index.update((i) => (i - 1 + this.count()) % this.count());
+    this.index.set((this.slide() - 1 + this.count()) % this.count());
   }
 
   /**

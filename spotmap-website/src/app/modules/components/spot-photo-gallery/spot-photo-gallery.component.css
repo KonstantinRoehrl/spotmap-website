@@ -1,3 +1,8 @@
+/* A block, so the panel's 100% width is its host's. */
+:host {
+  display: block;
+}
+
 .gallery {
   position: relative;
   background: var(--color-surface);
@@ -5,16 +10,11 @@
   border-radius: var(--radius-sm);
   overflow: hidden;
   aspect-ratio: 4 / 3;
-  /* Border-box, so the fitted height the map sets is the panel's whole height, border included,
-     and a full-width panel does not overflow the popup by its border. */
+  /* Border-box, so the 4:3 box is the panel's whole size, border included. */
   box-sizing: border-box;
-  /* The map fits the popup by setting this; unset, the 4:3 aspect ratio decides. */
-  height: var(--spot-popup-gallery-height, auto);
-  /* `width: 100vw` claims the popup's whole max width (so a broken photo cannot collapse it to
-     its text); `max-width: 100%` then holds it to the popup, however narrow the map makes it. */
-  width: 100vw;
-  max-width: 100%;
-  transition: height var(--dur-fast) ease-out;
+  /* The whole width the host gives it, whether or not the photo has loaded, so a broken photo
+     never collapses the panel to its placeholder text. */
+  width: 100%;
 }
 
 .gallery__photo {
@@ -100,7 +100,7 @@
 }
 
 /* A photo that did not load gets the map's own failure voice instead of the browser's
-   broken-image glyph, inside the same 4:3 panel so the popup does not jump. The side padding
+   broken-image glyph, inside the same 4:3 panel so the panel does not jump. The side padding
    keeps the text clear of the prev/next arrows (44px wide, 4px from the edge). */
 .gallery__placeholder {
   box-sizing: border-box;
