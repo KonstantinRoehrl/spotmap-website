@@ -36,17 +36,41 @@ npm run build     # production build → dist/
 npm test          # unit tests (Karma/Jasmine, headless-capable)
 ```
 
+### Scripts
+
+| Command                            | What it does                                                                                                                                                                      |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run watch`                    | development build that rebuilds on every change                                                                                                                                   |
+| `npm run format`                   | rewrites `src/` (`.ts`, `.html`, `.css`, `.scss`) with Prettier                                                                                                                   |
+| `npm run format:check`             | the same files, check only — a required CI check                                                                                                                                  |
+| `npm run build:pages`              | what CI and the deploy run: `npm run test:tools`, the production build into `../dist/spotmap-website` with the `/spotmap-website/` base href, then the three dist verifiers below |
+| `npm run test:tools`               | the Node test suite for `tools/` (`tools/**/*.test.mjs`)                                                                                                                          |
+| `npm run verify:map-worker-assets` | dist guard: MapLibre's web-worker module is in the browser output, so the map's worker request does not 404                                                                       |
+| `npm run verify:css-asset-urls`    | dist guard: no root-absolute `url()` in the emitted CSS (it would 404 under the deploy prefix), and every relative one resolves to an emitted file                                |
+| `npm run verify:initial-bundle`    | dist guard: no library only the maintainer tool needs ships in the initial bundle                                                                                                 |
+| `npm run verify:dev-map-worker`    | manual check: starts `ng serve` on port 4271 (or the port given after `--`) and confirms the dev server serves the map worker                                                     |
+
+`npm run extract:spots`, the `db:*` scripts and `sync:supabase` / `snapshot:supabase`
+are covered in their own sections below.
+
 ## Project structure
 
 ```
 src/
   app/
     modules/
-      components/   # nav-bar, map-container, map-loader, ascii-rain, ascii-animation-text
+      components/   # nav-bar, map-container, map-loader, spot-map, spot-popup,
+                    # spot-photo-gallery, ascii-rain, ascii-animation-text
+      components/admin/  # satellite-picker (the maintainer tool's satellite pin picker)
       pages/        # home, map, about (routed)
       pages/admin/  # the maintainer tool: shell, sign-in, create-or-attach, spot list, spot edit (lazy)
-      directives/   # glitch-text (per-character scramble)
-    models/enums/   # city / country / config data (SUPPORTED_CITIES)
+      directives/   # glitch-text (per-character scramble),
+                    # pointer-bloom (centres the shared hover bloom on the pointer)
+    models/         # admin/, enums/ (city / country / config data, SUPPORTED_CITIES), spots/
+    services/       # spots.service.ts (live spots with snapshot fallback),
+                    # spotmap-backend.ts (the backend the app talks to);
+                    # admin/ (the maintainer tool's sign-in, data access, imagery and photo pipeline)
+    utils/          # admin-path, prefers-reduced-motion
     app.routes.ts   # home · map · about · admin (lazy) · '' → map · ** → home
   environments/     # the backend each build talks to (environment.prod.ts in production)
   styles.css        # Tailwind + @theme design tokens (OKLCH colors, glow, motion, radius)
@@ -397,10 +421,8 @@ the bucket lacks (one it already holds is skipped) → insert in one `sync_inser
 transaction. A re-run with unchanged data inserts nothing.
 Exit codes: 0 done, 1 a step failed (named), 2 bad arguments or environment
 (including `--db-only` against a hosted project, whose rows would point at photos
-never uploaded). CI's
-database job runs the pgTAP tests, seeds the empty database from `data/spots`
-(`--db-only`), then runs the sync again with `--expect-no-inserts`, on every pull
-request.
+never uploaded). CI's database job runs it this way on every pull request (see
+[Branches and CI](#branches-and-ci)).
 
 ### Snapshots
 
@@ -483,6 +505,30 @@ The visual North Star and its rules — two-phosphor palette (green voice + ambe
 for care/selection), the No-White rule, glow-as-depth (no drop-shadows),
 monospace everything, and soft 4/6/8 px corners — live in `PRODUCT.md` and
 `DESIGN.md` at the repository root.
+
+## Branches and CI
+
+`dev` is the integration branch: work lands on a topic branch, opens a pull
+request into `dev`, and `dev` reaches `main` by pull request (`main` is
+production, see [Deployment](#deployment)).
+
+Every pull request into `dev` or `main` runs `.github/workflows/ci.yml`:
+
+- **format** — `npm run format:check` (Prettier).
+- **build** — `npm run build:pages`: the `tools/` tests, the production build
+  and the dist verifiers, so the artifact `main` would deploy is checked first.
+- **test** — the Karma unit tests in headless Chrome
+  (`npm test -- --no-watch --no-progress --browsers=ChromeHeadless`).
+- **database** — on a local Supabase stack: the migrations (`npm run db:start`)
+  and pgTAP tests (`npm run db:test`), the sync seeding the empty database from
+  `data/spots` (`npm run sync:supabase -- --db-only`), then the same sync again
+  with `--db-only --expect-no-inserts`, which fails if the committed datasets and
+  the database disagree.
+- **secrets** — a gitleaks scan of the whole git history.
+
+Dependabot opens weekly update PRs for the GitHub Actions (repo root) and the
+npm dependencies (`spotmap-website/`); minor and patch updates arrive grouped in
+one PR per ecosystem, majors one PR each.
 
 ## Deployment
 
