@@ -4,7 +4,10 @@ import {
   provideHttpClientTesting,
   TestRequest,
 } from '@angular/common/http/testing';
+import { provideLocationMocks } from '@angular/common/testing';
+import { createEnvironmentInjector, EnvironmentInjector } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { CityEnum } from '../../../models/enums/map-enum';
 import {
   type AttributionCorner,
@@ -16,6 +19,9 @@ import {
 import type { MapLoadEvent } from '../../../models/map/map-load-event';
 import { SpotListCollection } from '../../../models/spots/spot';
 import type { ViewBounds } from '../../../models/spots/spots-in-view';
+import { FLAG_REACH_PX } from './photo-pins';
+import { SELECTED_PIN_REACH_PX } from './selection-camera';
+import { SpotBrowserStore } from '../../pages/map/spot-browser.store';
 import type { ElevationTiles } from './elevation';
 import { ELEVATION_LOADER, MAP_FACTORY } from './map-factory.token';
 import {
@@ -667,6 +673,83 @@ describe('SpotMapComponent', () => {
     expect(mapFactory).not.toHaveBeenCalled();
   });
 
+  describe('the spot list beside a map that cannot paint', () => {
+    /** Both spots of {@link COLLECTION}, A–Z, as the list shows them. */
+    const ALL_SPOT_IDS = ['a', 'b'];
+
+    let pageInjector: EnvironmentInjector;
+
+    afterEach(() => pageInjector.destroy());
+
+    /**
+     * Wires `component` to a page store the way the map page's template does — `spotsLoaded` into
+     * `setList`, `boundsChange` into `setBounds` — so a spec reads what a visitor's list would show.
+     */
+    function listOf(component: SpotMapComponent): () => string[] | null {
+      pageInjector = createEnvironmentInjector(
+        [provideRouter([]), provideLocationMocks(), SpotBrowserStore],
+        TestBed.inject(EnvironmentInjector),
+      );
+      const store = pageInjector.get(SpotBrowserStore);
+      component.spotsLoaded.subscribe((list) => store.setList(list));
+      component.boundsChange.subscribe((bounds) => store.setBounds(bounds));
+      return () =>
+        store.shownSpots()?.map((spot) => spot.properties.id) ?? null;
+    }
+
+    /** Starts a build the spec has wired to a store, with its spots request unanswered. */
+    function startBuild() {
+      fixture = TestBed.createComponent(SpotMapComponent);
+      fixture.componentRef.setInput('city', CityEnum.Vienna);
+      fixture.componentRef.setInput('retryToken', 0);
+      const shown = listOf(fixture.componentInstance);
+      fixture.detectChanges();
+      return shown;
+    }
+
+    /** Answers the unanswered spots request and lets the build's promise chain settle. */
+    async function answerSpots() {
+      httpMock.expectOne('spots/vienna.geojson').flush(COLLECTION);
+      await fixture.whenStable();
+      await new Promise((resolve) => setTimeout(resolve));
+    }
+
+    it('lists every spot when the browser has no WebGL, as no spot is out of view of a map that is not there', async () => {
+      getContext.and.returnValue(null);
+      const shown = startBuild();
+      await answerSpots();
+      expect(shown()).toEqual(ALL_SPOT_IDS);
+    });
+
+    it('lists every spot when the map is refused after the spots arrived', async () => {
+      spyOn(console, 'error');
+      mapFactory.and.callFake(() => Promise.reject(new Error('no context')));
+      const shown = startBuild();
+      await answerSpots();
+      expect(shown()).toEqual(ALL_SPOT_IDS);
+    });
+
+    it('lists every spot when the basemap dies before the map paints', async () => {
+      const shown = startBuild();
+      await answerSpots();
+      expect(shown()).withContext('no view known yet').toBeNull();
+      fake.failBasemapSource();
+      expect(shown()).toEqual(ALL_SPOT_IDS);
+    });
+
+    it('keeps the list a painted map shows when a late error names a dead source', async () => {
+      const shown = startBuild();
+      await answerSpots();
+      fake.emit('load');
+      const inView = shown();
+      expect(inView)
+        .withContext('the fake map’s view holds no spot')
+        .toEqual([]);
+      fake.failBasemapSource();
+      expect(shown()).toEqual(inView);
+    });
+  });
+
   it('fails as unsupported on a browser whose WebGL stops at version 1', async () => {
     // maplibre-gl v6 asks for one context and one only: `Map._setupPainter()` requests `webgl2`
     // and throws `GPUInitializationError` — "WebGL2 is required to display this map" — the
@@ -911,6 +994,63 @@ describe('SpotMapComponent', () => {
       fake.emit('mousemove', { point: { x: 1, y: 1 } });
       expect(fake.canvas.style.cursor).toBe('pointer');
       expect(hovers).toEqual(['b']);
+    });
+
+    describe('a dot that shows through the transparent stem band of a neighbour’s photo frame', () => {
+      /** Spot `a`'s pin, with its photo frame standing above it. */
+      const FRAMED_PIN = { x: 500, y: 300 };
+      /**
+       * Spot `b`'s dot, 12 px above `a`'s pin: inside the 8 px stem band at the foot of the frame's
+       * icon box, which the photo layer reports as hit although nothing opaque is drawn there.
+       */
+      const DOT_IN_STEM_BAND = { x: 500, y: 288 };
+      /** Spot `b`'s dot behind the frame's body, hidden by it. */
+      const DOT_UNDER_BODY = { x: 500, y: 270 };
+
+      /** Both spots on screen, `a` framed as a photo, and `b`'s dot at `dot`. */
+      async function frameWithDotAt(dot: { x: number; y: number }) {
+        const c = await create();
+        fake.emit('load');
+        fake.projectedAt = ([lng]) => (lng === 16.37 ? FRAMED_PIN : dot);
+        fake.placedPhotos = [{ id: 'a', properties: { id: 'a' } }];
+        // Both thumb targets reach the pointer: they are 22 px circles round each pin.
+        fake.renderedPins = [...tapOn('a').features, ...tapOn('b').features];
+        return c;
+      }
+
+      it('opens the dot’s spot, not the frame’s', async () => {
+        const c = await frameWithDotAt(DOT_IN_STEM_BAND);
+        const clicks: string[] = [];
+        c.spotClick.subscribe((id) => clicks.push(id));
+        fake.emit('click', { point: DOT_IN_STEM_BAND });
+        expect(clicks).toEqual(['b']);
+      });
+
+      it('hovers the dot’s spot, not the frame’s', async () => {
+        requestHoverPointer(true);
+        const c = await frameWithDotAt(DOT_IN_STEM_BAND);
+        const hovers: (string | null)[] = [];
+        c.pinHover.subscribe((id) => hovers.push(id));
+        fake.emit('mousemove', { point: DOT_IN_STEM_BAND });
+        expect(hovers).toEqual(['b']);
+      });
+
+      it('still opens the frame’s spot where its opaque body hides a dot', async () => {
+        const c = await frameWithDotAt(DOT_UNDER_BODY);
+        const clicks: string[] = [];
+        c.spotClick.subscribe((id) => clicks.push(id));
+        fake.emit('click', { point: DOT_UNDER_BODY });
+        expect(clicks).toEqual(['a']);
+      });
+
+      it('opens the frame’s own spot from its own stem band', async () => {
+        const c = await frameWithDotAt(DOT_UNDER_BODY);
+        const clicks: string[] = [];
+        c.spotClick.subscribe((id) => clicks.push(id));
+        // 12 px above `a`'s pin, in the band, with `b`'s dot a long way off.
+        fake.emit('click', { point: { x: 500, y: 288 } });
+        expect(clicks).toEqual(['a']);
+      });
     });
 
     it('asks about the photo pins and the flag as well as the thumb target', async () => {
@@ -1753,8 +1893,15 @@ describe('SpotMapComponent', () => {
       await create({ insets: SHEET_INSETS, framing: 'centre' });
       fake.emit('load');
       select('a');
-      // 255 px up to the strip's middle, less half the 62 px the flag reaches above the pin.
-      expect(eases().at(-1)?.options.offset).toEqual([0, -224]);
+      // The 600 px map's strip above the 510 px sheet is 90 px tall, its middle 255 px up from the
+      // canvas centre. The pin is lowered by half the flag's reach, but only as far as the strip
+      // has room for the pin's ring on each side of its middle.
+      const stripHeight = 600 - SHEET_INSETS.bottom;
+      const lowering = Math.min(
+        FLAG_REACH_PX / 2,
+        stripHeight / 2 - SELECTED_PIN_REACH_PX,
+      );
+      expect(eases().at(-1)?.options.offset).toEqual([0, -255 + lowering]);
     });
 
     it('reserves no room for a flag the spot does not fly', async () => {
@@ -1793,7 +1940,8 @@ describe('SpotMapComponent', () => {
     });
 
     it('slides back inside the map at the left and right edges', async () => {
-      // The 132 px card is 66 px either side of its centre; 8 px stay clear of the edge.
+      // The 132 px card, padding and border included, is 66 px either side of its centre; 8 px
+      // stay clear of the edge.
       await hover(20, 300);
       expect(shift()).toBe('54px');
       fixture.destroy();
@@ -1801,9 +1949,57 @@ describe('SpotMapComponent', () => {
       expect(shift()).toBe('-64px');
     });
 
+    it('clamps by the width the card really has on screen', async () => {
+      await hover(500, 300);
+      const card = tooltipElement()!.querySelector<HTMLElement>(
+        '.spot-map__tooltip-card',
+      )!;
+      expect(card.offsetWidth).toBe(132);
+    });
+
     it('flips below the pin when it would run off the top', async () => {
       await hover(500, 40);
       expect(below()).toBeTrue();
+    });
+
+    describe('a card that flips from above its pin to below it', () => {
+      /** Every tooltip element in the page, a card still fading out among them. */
+      const tooltips = () =>
+        Array.from(
+          (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
+            '.spot-map__tooltip',
+          ),
+        );
+
+      /** Hovers `a` with room above its pin, then pans the pin up to the top edge. */
+      async function panUnderTheTopEdge() {
+        const runFrames = captureFrames();
+        await hover(500, 300);
+        const before = tooltipElement()!;
+        expect(below()).toBeFalse();
+        fake.projected = { x: 500, y: 40 };
+        fake.emit('move');
+        runFrames();
+        fixture.detectChanges();
+        return before;
+      }
+
+      it('is the same card, easing across, under normal motion', async () => {
+        requestReducedMotion(false);
+        const before = await panUnderTheTopEdge();
+        expect(tooltips()).toEqual([before]);
+        expect(below()).toBeTrue();
+      });
+
+      it('is a new card under reduced motion, which cannot slide: the old one fades out and the new one fades in', async () => {
+        requestReducedMotion(true);
+        const before = await panUnderTheTopEdge();
+        const flipped = tooltips().filter((card) =>
+          card.classList.contains('spot-map__tooltip--below'),
+        );
+        expect(flipped.length).toBe(1);
+        expect(flipped[0]).not.toBe(before);
+      });
     });
 
     // The backend is read once per test module, so the plate and the photo card are two specs

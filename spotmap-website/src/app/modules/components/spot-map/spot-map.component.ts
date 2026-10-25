@@ -27,6 +27,7 @@ import {
   SpotsService,
 } from '../../../services/spots.service';
 import { photoUrl, SPOTMAP_BACKEND } from '../../../services/spotmap-backend';
+import { prefersReducedMotion } from '../../../utils/prefers-reduced-motion';
 import { demMaxzoomFor, type ElevationTiles } from './elevation';
 import {
   NO_INSETS,
@@ -39,7 +40,7 @@ import type { MapFailureReason } from '../../../models/map/map-failure-reason';
 import type { MapLoadEvent } from '../../../models/map/map-load-event';
 import { framingBounds } from './fit-bounds';
 import { ELEVATION_LOADER, MAP_FACTORY } from './map-factory.token';
-import { FLAG_REACH_PX, PhotoPins } from './photo-pins';
+import { FLAG_REACH_PX, isOnPinImageBody, PhotoPins } from './photo-pins';
 import { type PointerHold, trackPointerHold } from './pointer-hold';
 import {
   boundsOfRect,
@@ -52,7 +53,9 @@ import {
   PHOTO_PIN_LAYERS,
   PHOTO_PIN_TARGET_LAYER_IDS,
   PIN_TARGET_LAYER_IDS,
+  SPOT_FLAG_LAYER_ID,
   SPOT_LAYERS,
+  SPOT_PHOTO_LAYER_ID,
   SPOT_SOURCE_ID,
 } from './spot-layers';
 import { SpotSelection } from './spot-selection';
@@ -107,7 +110,29 @@ function namesAnUnusableSource(
   );
 }
 
-/** The tooltip card's width, in px: the `.spot-map__tooltip-card` width in the stylesheet. */
+/**
+ * The view reported for a build whose map will never paint: the whole world, which holds every
+ * spot. With no map there is nothing out of view, and the page lists a city's spots only once it
+ * knows a view.
+ */
+const WHOLE_WORLD: ViewBounds = {
+  west: -180,
+  south: -90,
+  east: 180,
+  north: 90,
+};
+
+/** The layers that draw an image over a pin, whose box a pointer can hit without touching the image. */
+const FRAME_LAYER_IDS: readonly (string | undefined)[] = [
+  SPOT_PHOTO_LAYER_ID,
+  SPOT_FLAG_LAYER_ID,
+];
+
+/**
+ * The tooltip card's outer width, in px, padding and border included: the `.spot-map__tooltip-card`
+ * width in the stylesheet, which sets `border-box` itself so the figure holds without the global
+ * reset.
+ */
 const TOOLTIP_WIDTH_PX = 132;
 
 /** The gap, in px, between the pin and its tooltip card: the card's offset in the stylesheet. */
@@ -124,7 +149,13 @@ const TOOLTIP_PLATE_HEIGHT_PX = 60;
 
 /** What the hover tooltip shows, and where: the hovered pin's canvas position. */
 interface SpotTooltip {
-  /** The hovered spot's id: each spot gets its own card, so a move to another pin crossfades. */
+  /**
+   * What identifies the card, for the template to track it by: the hovered spot's id, so a move to
+   * another pin crossfades. Under reduced motion, where a card cannot slide to the other side of its
+   * pin, the side joins it, so a flip fades the old card out and a new one in instead of cutting.
+   */
+  readonly key: string;
+  /** The hovered spot's id. */
   readonly id: string;
   /** The spot's name, the tooltip's text. */
   readonly name: string;
@@ -228,7 +259,9 @@ export class SpotMapComponent {
   emptyClick = output<void>();
   /**
    * The bounds of the uncovered part of the map, on paint, on every move (at most once a frame)
-   * and whenever the covered strips change; never from a build that has been replaced.
+   * and whenever the covered strips change; never from a build that has been replaced. A build
+   * whose map gives up after its spots are out, or can never be drawn, reports the whole world
+   * once instead, so the page lists every spot beside the failure chrome.
    */
   boundsChange = output<ViewBounds>();
   /** The pin under a hovering pointer, or `null` once it leaves; only from pointers that hover. */
@@ -256,6 +289,13 @@ export class SpotMapComponent {
    * `ready` and `failed`. Every teardown resets it, because the next build is a new map.
    */
   private outcome: 'pending' | 'painted' | 'failed' = 'pending';
+
+  /**
+   * Whether the current build has reported its spots. A map that fails after that, or a build that
+   * never gets one, can no longer report a view of its own, so the whole world is reported in its
+   * place. Every teardown resets it, because the next build reports its own spots.
+   */
+  private spotsReported = false;
 
   /** The visitor's hold on the current map; set while a map is attached. */
   private pointerHold?: PointerHold;
@@ -386,7 +426,7 @@ export class SpotMapComponent {
       this.fail('unreachable', generation);
       return;
     }
-    this.spotsLoaded.emit(collection);
+    this.announceSpots(collection);
 
     // The map is built already framed on the city: MapLibre applies `bounds` in its constructor
     // with no animation (`fitBounds` at `duration: 0`), so its first paint is the framed city and
@@ -480,10 +520,22 @@ export class SpotMapComponent {
     try {
       const collection = await this.loadCollection(city, generation);
       if (generation === this.generation) {
-        this.spotsLoaded.emit(collection);
+        this.announceSpots(collection);
       }
     } catch {
       // Nothing more to report: the failure is already out.
+    }
+  }
+
+  /**
+   * Reports the build's spots to the page. A build whose map has already given up reports the
+   * whole world as its view alongside: it never will paint, so no view of its own will follow.
+   */
+  private announceSpots(collection: SpotListCollection): void {
+    this.spotsLoaded.emit(collection);
+    this.spotsReported = true;
+    if (this.outcome === 'failed') {
+      this.boundsChange.emit(WHOLE_WORLD);
     }
   }
 
@@ -688,7 +740,7 @@ export class SpotMapComponent {
         this.emptyClick.emit();
         return;
       }
-      const id = spotIdOf(hits[0]);
+      const id = this.spotUnder(map, event.point, hits);
       if (id !== undefined) {
         this.spotClick.emit(id);
       }
@@ -700,7 +752,8 @@ export class SpotMapComponent {
       if (generation !== this.generation || this.outcome !== 'painted') {
         return;
       }
-      const id = spotIdOf(this.pinsAt(map, event)[0]) ?? null;
+      const id =
+        this.spotUnder(map, event.point, this.pinsAt(map, event)) ?? null;
       map.getCanvas().style.cursor = id === null ? '' : 'pointer';
       if (hasHoverPointer()) {
         this.reportPinHover(id);
@@ -721,6 +774,51 @@ export class SpotMapComponent {
         ...(this.photoPins ? PHOTO_PIN_TARGET_LAYER_IDS : PIN_TARGET_LAYER_IDS),
       ],
     });
+  }
+
+  /**
+   * The spot the pointer at `point` is on, out of the pin `hits` under it (topmost first), or
+   * `undefined` for none. MapLibre answers a photo frame or flag with its whole image box, whose
+   * foot is transparent, so the topmost hit alone would send a pointer on a dot showing through that
+   * foot to the frame's spot. Instead the opaque body of a frame or flag wins, topmost first, and
+   * anywhere else the nearest pin to the pointer does: a dot sits on its own spot's coordinates.
+   */
+  private spotUnder(
+    map: MapLibreMap,
+    point: { x: number; y: number },
+    hits: MapGeoJSONFeature[],
+  ): string | undefined {
+    const pins = hits.flatMap((hit) => {
+      const id = spotIdOf(hit);
+      const coordinates = id === undefined ? null : this.coordinatesOf(id);
+      return id === undefined
+        ? []
+        : [
+            {
+              id,
+              framed: FRAME_LAYER_IDS.includes(hit.layer?.id),
+              at: coordinates ? map.project(coordinates) : null,
+            },
+          ];
+    });
+    const onBody = pins.find(
+      (pin) => pin.framed && pin.at && isOnPinImageBody(pin.at, point),
+    );
+    if (onBody) {
+      return onBody.id;
+    }
+    let nearest = pins[0];
+    let nearestDistance = Infinity;
+    for (const pin of pins) {
+      const distance = pin.at
+        ? Math.hypot(pin.at.x - point.x, pin.at.y - point.y)
+        : Infinity;
+      if (distance < nearestDistance) {
+        nearest = pin;
+        nearestDistance = distance;
+      }
+    }
+    return nearest?.id;
   }
 
   /**
@@ -871,13 +969,18 @@ export class SpotMapComponent {
     const height = photo
       ? TOOLTIP_PHOTO_CARD_HEIGHT_PX
       : TOOLTIP_PLATE_HEIGHT_PX;
+    const below = y - TOOLTIP_PIN_GAP_PX - height < TOOLTIP_EDGE_GAP_PX;
     this.tooltip.set({
+      key:
+        below && prefersReducedMotion()
+          ? `${spot.properties.id}:below`
+          : spot.properties.id,
       id: spot.properties.id,
       name: spot.properties.name,
       photo,
       x,
       y,
-      below: y - TOOLTIP_PIN_GAP_PX - height < TOOLTIP_EDGE_GAP_PX,
+      below,
       shift: centre - x,
     });
   }
@@ -938,6 +1041,11 @@ export class SpotMapComponent {
     this.map?.remove();
     this.map = undefined;
     this.failed.emit(reason);
+    // A list the page already holds waits on a view the failed map can no longer report; the spots
+    // of a build still fetching are given theirs as they arrive (see `announceSpots`).
+    if (this.spotsReported) {
+      this.boundsChange.emit(WHOLE_WORLD);
+    }
   }
 
   /** Adds the spot source, in the list shape, its pins and — with a photo host — the photo pins and flag. */
@@ -1053,6 +1161,7 @@ export class SpotMapComponent {
     this.generation += 1;
     this.superseded.next();
     this.outcome = 'pending';
+    this.spotsReported = false;
     // Before the map goes: a running pulse puts its ring to rest on the live style.
     this.selection?.dispose();
     this.selection = undefined;

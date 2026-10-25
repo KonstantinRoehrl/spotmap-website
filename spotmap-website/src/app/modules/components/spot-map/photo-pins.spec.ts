@@ -2,6 +2,7 @@ import type { Map as MapLibreMap } from 'maplibre-gl';
 import type { SpotListCollection } from '../../../models/spots/spot';
 import {
   drawPinImage,
+  isOnPinImageBody,
   loadCrossOriginPhoto,
   MAX_CONCURRENT_FADES,
   PhotoPins,
@@ -400,5 +401,26 @@ describe('PhotoPins', () => {
     await settle();
     runFrames(2000);
     expect(fake.imageUpdates).toEqual([]);
+  });
+});
+
+describe('isOnPinImageBody', () => {
+  /** A pin on a 1000 px wide map, 300 px down. */
+  const PIN = { x: 500, y: 300 };
+
+  it('holds the framed photo above the stem and the lift', () => {
+    // The image stands 8 px above the pin: a 46 px framed photo over an 8 px stem band.
+    expect(isOnPinImageBody(PIN, { x: 500, y: 260 })).toBeTrue();
+    expect(isOnPinImageBody(PIN, { x: 471, y: 245 })).toBeTrue();
+  });
+
+  it('leaves out the transparent stem band at the foot of the image', () => {
+    expect(isOnPinImageBody(PIN, { x: 500, y: 288 })).toBeFalse();
+    expect(isOnPinImageBody(PIN, { x: 480, y: 292 })).toBeFalse();
+  });
+
+  it('leaves out what lies beside or above the image', () => {
+    expect(isOnPinImageBody(PIN, { x: 531, y: 260 })).toBeFalse();
+    expect(isOnPinImageBody(PIN, { x: 500, y: 230 })).toBeFalse();
   });
 });

@@ -3,7 +3,7 @@
 <!-- Pointer-only, and the list carries the same name for everyone else, so it is hidden from
      assistive technology and never takes a pointer itself. Keyed by spot, so moving to another
      pin fades this card out as the next one rises in. -->
-@for (tip of tooltips(); track tip.id) {
+@for (tip of tooltips(); track tip.key) {
   <div
     class="spot-map__tooltip"
     animate.leave="spot-map__tooltip--leaving"

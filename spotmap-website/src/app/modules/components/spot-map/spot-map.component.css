@@ -103,6 +103,7 @@
   position: absolute;
   top: 0;
   left: 0;
+  box-sizing: border-box;
   width: 132px;
   translate: calc(-50% + var(--tooltip-shift, 0px)) calc(-100% - 16px);
   display: flex;

@@ -47,6 +47,26 @@ export const PIN_PIXEL_RATIO = 2;
 /** How far above its pin the selection flag reaches, in px: the image's lift plus its height. */
 export const FLAG_REACH_PX = PIN_IMAGE_LIFT_PX + PIN_IMAGE_HEIGHT;
 
+/**
+ * Whether `point` lies on the opaque body of the pin image standing on the pin at `pin` — the
+ * framed photo — as opposed to the stem band at the foot of the image, which MapLibre counts as
+ * part of it although the 60 x 8 px around the stem is transparent. A layer query reports the
+ * whole image box as hit, so this is what tells a pointer on the photo from one on a dot showing
+ * through the band. Both are screen points in px; the frame's rounded corners count as body.
+ */
+export function isOnPinImageBody(
+  pin: { x: number; y: number },
+  point: { x: number; y: number },
+): boolean {
+  const bodyBottom = pin.y - PIN_IMAGE_LIFT_PX - STEM_PX;
+  const bodyTop = bodyBottom - (PIN_IMAGE_HEIGHT - STEM_PX);
+  return (
+    Math.abs(point.x - pin.x) <= PIN_IMAGE_WIDTH / 2 &&
+    point.y >= bodyTop &&
+    point.y <= bodyBottom
+  );
+}
+
 /** How many photos fade into their frames at once; the rest wait their turn. */
 export const MAX_CONCURRENT_FADES = 8;
 

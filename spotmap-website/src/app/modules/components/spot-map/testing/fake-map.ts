@@ -133,6 +133,12 @@ export class FakeMap {
   style?: { sources: Record<string, unknown> };
   /** Where `project()` puts every spot on screen; a spec moves it to place the tapped pin. */
   projected = { x: 500, y: 300 };
+  /**
+   * Places spots one by one: when set, `project()` asks it for the coordinates it is given instead
+   * of answering {@link projected}. For specs that need two pins at different screen points.
+   */
+  projectedAt: ((lngLat: [number, number]) => { x: number; y: number }) | null =
+    null;
   /** Where the camera is centred, as `getCenter()` reports it; an `easeTo` with a centre moves it. */
   center = { lng: 16.385, lat: 48.21 };
   /** The camera's zoom, as `getZoom()` reports it; an `easeTo` with a zoom moves it. */
@@ -160,8 +166,8 @@ export class FakeMap {
     document.body.append(this.canvasContainer);
   }
 
-  project() {
-    return this.projected;
+  project(lngLat?: [number, number]) {
+    return (lngLat && this.projectedAt?.(lngLat)) || this.projected;
   }
 
   getCenter() {
@@ -262,7 +268,8 @@ export class FakeMap {
   }
   /**
    * What MapLibre finds rendered, layer by layer in the order asked: the placed photo pins on the
-   * photo layer, `renderedFlags` on the flag layer and `renderedPins` on the thumb-target layer.
+   * photo layer, `renderedFlags` on the flag layer and `renderedPins` on the thumb-target layer,
+   * each feature tagged with the layer it was found on, as MapLibre's are (`layer.id`).
    */
   queryRenderedFeatures(
     geometryOrOptions?: unknown,
@@ -272,11 +279,12 @@ export class FakeMap {
       options?.layers ??
       (geometryOrOptions as { layers?: string[] } | undefined)?.layers;
     return (layers ?? ['spots-hit']).flatMap((layer) =>
-      layer === 'spots-photo'
+      (layer === 'spots-photo'
         ? this.placedPhotos
         : layer === 'spots-flag'
           ? this.renderedFlags
-          : this.renderedPins,
+          : this.renderedPins
+      ).map((feature) => ({ ...(feature as object), layer: { id: layer } })),
     );
   }
   /** A handler that removes itself after its first call, as MapLibre's `once` does. */

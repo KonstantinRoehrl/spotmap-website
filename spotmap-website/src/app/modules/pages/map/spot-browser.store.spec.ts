@@ -189,6 +189,18 @@ describe('SpotBrowserStore', () => {
     expect(store.shownSpots()).toEqual([ALPHA, BETA]);
   });
 
+  it('lists every spot when the map that cannot paint reports the whole world as its view', async () => {
+    // A map that never comes up reports no view of its own, so it stands in for one that holds
+    // everything: the list must show the city rather than wait on a view that will never arrive.
+    await openPage('/map');
+    store.setList(VIENNA_LIST);
+    expect(store.shownSpots()).toBeNull();
+
+    store.setBounds({ west: -180, south: -90, east: 180, north: 90 });
+
+    expect(store.shownSpots()).toEqual([ALPHA, BETA]);
+  });
+
   it('opens a spot from the list by pushing its link, and freezes the list', async () => {
     await openViennaMap();
 
