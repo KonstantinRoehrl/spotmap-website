@@ -9,11 +9,12 @@ import { PointerBloomDirective } from '../../directives/pointer-bloom.directive'
 import { SheetState, sheetHeight } from './spot-sheet-state';
 
 /**
- * The phone layout's bottom sheet over the map: a grab handle, a 44px head row and a
- * scrolling body holding the projected pane. It is presentational. The page keeps the
- * `SheetModel`, feeds `nextSheet()` from the outputs below, and reads the same `sheetHeight()` to
- * tell the map how much of it is covered. Heights change by tapping the head. The handle only
- * marks the sheet as one, and dragging is not offered.
+ * The phone and tablet layout's sheet inside the map frame: a 64 px head (the grab handle in its
+ * top padding, its controls 16 px from every edge) over a scrolling body holding the projected
+ * pane. It is presentational. The page keeps the `SheetModel`, feeds `nextSheet()` from the
+ * outputs below, and reads the same `sheetHeight()` to tell the map how much of it is covered.
+ * Heights change by tapping the head. The handle only marks the sheet as one, and dragging is not
+ * offered.
  */
 @Component({
   selector: 'app-spot-sheet',
@@ -26,7 +27,7 @@ import { SheetState, sheetHeight } from './spot-sheet-state';
 export class SpotSheetComponent {
   /** How far the sheet is open. */
   state = input.required<SheetState>();
-  /** The px free above the sheet's bottom edge, which its list and detail heights are shares of. */
+  /** The height in px of the frame the sheet sits in; the open list and detail take half of it. */
   availableHeight = input.required<number>();
   /** How many spots are in view, or `null` while the city's spots are still loading. */
   count = input<number | null>(null);

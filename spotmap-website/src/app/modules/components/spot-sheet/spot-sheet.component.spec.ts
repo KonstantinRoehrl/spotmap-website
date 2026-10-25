@@ -62,12 +62,12 @@ describe('SpotSheetComponent', () => {
 
   afterEach(() => fixture?.destroy());
 
-  it('takes the height its state asks for', () => {
-    expect(create('peek').style.height).toBe('60px');
+  it('takes the height its state asks for: the head, or half the frame', () => {
+    expect(create('peek').style.height).toBe('64px');
     fixture.destroy();
     expect(create('list').style.height).toBe('400px');
     fixture.destroy();
-    expect(create('detail').style.height).toBe('680px');
+    expect(create('detail').style.height).toBe('400px');
   });
 
   it('eases between heights', () => {
@@ -136,7 +136,7 @@ describe('SpotSheetComponent', () => {
     expect(fixture.componentInstance.events).toEqual(['back', 'close']);
   });
 
-  it('gives every head control the shared bloom and a 44px target', () => {
+  it('gives every head control the shared bloom', () => {
     for (const [state, selectors] of [
       ['peek', ['.spot-sheet__toggle']],
       ['detail', ['.spot-sheet__back', '.spot-sheet__close']],
@@ -150,15 +150,62 @@ describe('SpotSheetComponent', () => {
         expect(control.classList)
           .withContext(selector)
           .toContain('phosphor-bloom--inset');
-        expect(control.getBoundingClientRect().height)
-          .withContext(selector)
-          .toBeGreaterThanOrEqual(44);
       }
       fixture.destroy();
     }
     const close = button(create('detail'), '.spot-sheet__close');
-    expect(close.getBoundingClientRect().width).toBeGreaterThanOrEqual(44);
     expect(close.classList).toContain('phosphor-bloom--plate');
+    expect(
+      button(fixture.nativeElement, '.spot-sheet__back').classList,
+    ).toContain('phosphor-bloom--plate');
+  });
+
+  it('makes the whole 64 px head the toggle’s target, its words 16 px from the sheet’s edges', () => {
+    const sheet = create('peek');
+    const toggle = button(sheet, '.spot-sheet__toggle');
+    const box = toggle.getBoundingClientRect();
+    const frame = sheet.getBoundingClientRect();
+    expect(box.height).toBe(64);
+    expect(box.left).toBe(frame.left);
+    expect(box.right).toBe(frame.right);
+    const [count, hint] = Array.from(toggle.querySelectorAll('span'));
+    expect(count.getBoundingClientRect().left - frame.left).toBe(16);
+    expect(frame.right - hint.getBoundingClientRect().right).toBe(16);
+  });
+
+  it('draws the back and close plates 32 px tall, 16 px in, with a 44 px target', () => {
+    const sheet = create('detail');
+    sheet.scrollIntoView({ block: 'start' });
+    const frame = sheet.getBoundingClientRect();
+    const back = button(sheet, '.spot-sheet__back');
+    const close = button(sheet, '.spot-sheet__close');
+    const backBox = back.getBoundingClientRect();
+    const closeBox = close.getBoundingClientRect();
+
+    expect(backBox.height).toBe(32);
+    expect(closeBox.height).toBe(32);
+    expect(closeBox.width).toBe(32);
+    expect(backBox.top - frame.top).toBe(16);
+    expect(backBox.left - frame.left).toBe(16);
+    expect(frame.right - closeBox.right).toBe(16);
+
+    /** The control the pointer reaches at a point, through any pseudo-element hit area. */
+    const hit = (x: number, y: number) =>
+      document.elementFromPoint(x, y)?.closest('button') ?? null;
+    const middle = (box: DOMRect) => box.left + box.width / 2;
+    for (const [control, box] of [
+      [back, backBox],
+      [close, closeBox],
+    ] as const) {
+      expect(hit(middle(box), box.top - 5))
+        .withContext(`${control.className} above`)
+        .toBe(control);
+      expect(hit(middle(box), box.bottom + 5))
+        .withContext(`${control.className} below`)
+        .toBe(control);
+    }
+    expect(hit(closeBox.left - 5, closeBox.top + 16)).toBe(close);
+    expect(hit(closeBox.right + 5, closeBox.top + 16)).toBe(close);
   });
 
   it('projects its pane and shuts it away at peek', () => {
@@ -187,22 +234,70 @@ describe('SpotSheetComponent', () => {
     }
   });
 
-  it('sits on the surface under a hairline, rounded on top only', () => {
-    const style = getComputedStyle(create('list'));
+  it('sits on the surface in a 1 px line frame, rounded on every corner', () => {
+    const sheet = create('list');
+    const style = getComputedStyle(sheet);
     expect(style.backgroundColor).toBe(
       painted('background-color', 'var(--color-surface)'),
     );
-    expect(style.borderTopColor).toBe(
-      painted('border-top-color', 'var(--color-line)'),
-    );
-    expect(style.borderTopLeftRadius).toBe('8px');
-    expect(style.borderTopRightRadius).toBe('8px');
-    expect(style.borderBottomLeftRadius).toBe('0px');
+    for (const corner of [
+      'borderTopLeftRadius',
+      'borderTopRightRadius',
+      'borderBottomLeftRadius',
+      'borderBottomRightRadius',
+    ] as const) {
+      expect(style[corner]).withContext(corner).toBe('8px');
+    }
     expect(style.position).toBe('absolute');
+    // The frame line is drawn over the content, so it takes none of the 64 px.
+    expect(style.borderTopWidth).toBe('0px');
+    const line = getComputedStyle(sheet, '::after');
+    for (const side of ['Top', 'Right', 'Bottom', 'Left'] as const) {
+      expect(line.getPropertyValue(`border-${side.toLowerCase()}-width`))
+        .withContext(side)
+        .toBe('1px');
+      expect(line.getPropertyValue(`border-${side.toLowerCase()}-color`))
+        .withContext(side)
+        .toBe(painted('border-top-color', 'var(--color-line)'));
+    }
+    expect(line.borderTopLeftRadius).toBe('8px');
+    expect(line.pointerEvents).toBe('none');
   });
 
-  it('marks its grab handle as decoration', () => {
-    const handle = create('peek').querySelector('.spot-sheet__handle')!;
+  it('keeps a decorative grab handle inside the head’s top padding', () => {
+    const sheet = create('peek');
+    const handle = sheet.querySelector('.spot-sheet__handle')!;
     expect(handle.getAttribute('aria-hidden')).toBe('true');
+    const grip = sheet
+      .querySelector('.spot-sheet__grip')!
+      .getBoundingClientRect();
+    const top = sheet.getBoundingClientRect().top;
+    expect(grip.top - top).toBeGreaterThan(0);
+    expect(grip.bottom - top).toBeLessThanOrEqual(16);
+    expect(
+      getComputedStyle(sheet.querySelector('.spot-sheet__handle')!)
+        .pointerEvents,
+    ).toBe('none');
+  });
+
+  it('rules the head off from the pane only while the sheet is open', () => {
+    const rule = (state: SheetState) => {
+      const head = create(state).querySelector('.spot-sheet__head')!;
+      const after = getComputedStyle(head, '::after');
+      const value = {
+        opacity: after.opacity,
+        height: after.height,
+        transition: after.transitionProperty,
+      };
+      fixture.destroy();
+      return value;
+    };
+    expect(rule('peek')).toEqual({
+      opacity: '0',
+      height: '1px',
+      transition: 'opacity',
+    });
+    expect(rule('list').opacity).toBe('1');
+    expect(rule('detail').opacity).toBe('1');
   });
 });

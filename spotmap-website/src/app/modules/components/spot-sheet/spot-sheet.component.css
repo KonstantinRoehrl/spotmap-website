@@ -1,7 +1,8 @@
-/* Pinned to the bottom of the page's positioned map body; the height comes from the host binding
-   and eases on the house curve. Under prefers-reduced-motion the global net drops `height` from
-   the transitioned properties, so the height then changes at once while the head and body still
-   fade. That is the net's rule: movement stops, fades stay. */
+/* Pinned to the bottom of the map frame the page puts it in; the height comes from the host
+   binding and eases on the house curve. Under prefers-reduced-motion the global net drops `height`
+   from the transitioned properties, so the height then changes at once while the head and body
+   still fade. That is the net's rule: movement stops, fades stay. Rounded on every corner like the
+   frame it sits in. */
 :host {
   position: absolute;
   left: 0;
@@ -13,17 +14,63 @@
   box-sizing: border-box;
   overflow: hidden;
   background: var(--color-surface);
-  border-top: 1px solid var(--color-line);
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  border-radius: var(--radius-lg);
   transition: height 330ms var(--ease-out-expo);
 }
 
-/* 15px strip + 1px border + 44px head = SHEET_PEEK_HEIGHT_PX. */
-.spot-sheet__handle {
+/* The 1px line frame, drawn over the content rather than as a border: a border would take 2 px of
+   the 64 px peek and leave the head's bottom padding short, and the pane scrolling under this one
+   never covers the edge. */
+:host::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border: 1px solid var(--color-line);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* The R2 head: 16 px above, below and beside its 32 px controls, so 64 px, the peek height
+   (SHEET_PEEK_HEIGHT_PX). */
+.spot-sheet__head {
+  position: relative;
   flex: none;
-  height: 15px;
+  display: grid;
+  box-sizing: border-box;
+  height: 64px;
+  padding: 16px;
+}
+
+/* The rule between the head and the pane, shown only while the sheet is open. It fades by opacity,
+   which the reduced-motion net keeps. */
+.spot-sheet__head::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: var(--color-line);
+  opacity: 0;
+  transition: opacity var(--dur-fade) ease-out;
+  pointer-events: none;
+}
+
+.spot-sheet__head--open::after {
+  opacity: 1;
+}
+
+/* The grab handle sits in the head's top padding and never takes a tap: the toggle under it does. */
+.spot-sheet__handle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 16px;
   display: grid;
   place-items: center;
+  pointer-events: none;
 }
 
 .spot-sheet__grip {
@@ -33,16 +80,11 @@
   background: var(--color-phosphor-deep);
 }
 
-.spot-sheet__head {
-  flex: none;
-  display: grid;
-  min-height: 44px;
-}
-
 .spot-sheet__head-content {
   grid-area: 1 / 1;
   display: flex;
   align-items: center;
+  min-width: 0;
   transition: opacity var(--dur-fade) ease-out;
 }
 
@@ -59,14 +101,13 @@
 .spot-sheet__head-content--detail {
   justify-content: space-between;
   gap: 8px;
-  padding: 0 8px;
 }
 
 /* Label type (DESIGN.md §3): 13px, 500, 0.08em, uppercase. */
 .spot-sheet__toggle,
 .spot-sheet__back,
 .spot-sheet__close {
-  min-height: 44px;
+  box-sizing: border-box;
   font-family: var(--font-mono);
   font-size: 0.8125rem;
   font-weight: 500;
@@ -75,19 +116,31 @@
   cursor: pointer;
 }
 
+/* The toggle fills the whole head, so the 64 px bar is one target; its padding puts its words on
+   the same 16 px inset as the detail head's plates. */
 .spot-sheet__toggle {
   flex: 1 1 auto;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
-  padding: 0 16px;
+  gap: 8px;
+  height: 64px;
+  margin: -16px;
+  padding: 16px;
   border: none;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-lg);
 }
 
 .spot-sheet__hint {
   color: var(--color-phosphor-dim);
+}
+
+/* Plates drawn 32 px tall (the R2 toolbar's controls); the hit area reaches the 44 px target
+   through ::after, since ::before is the bloom's gradient. The ::after is placed against the
+   plate's padding box, 30 px inside its 1 px border, so it reaches 7 px out to make 44. */
+.spot-sheet__back,
+.spot-sheet__close {
+  height: 32px;
 }
 
 .spot-sheet__back {
@@ -95,8 +148,20 @@
 }
 
 .spot-sheet__close {
-  min-width: 44px;
+  width: 32px;
+  padding: 0;
   font-size: 1rem;
+}
+
+.spot-sheet__back::after,
+.spot-sheet__close::after {
+  content: '';
+  position: absolute;
+  inset: -7px 0;
+}
+
+.spot-sheet__close::after {
+  inset: -7px;
 }
 
 .spot-sheet__body {

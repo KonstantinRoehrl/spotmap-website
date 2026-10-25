@@ -1,6 +1,7 @@
 import {
   INITIAL_SHEET,
   nextSheet,
+  SHEET_OPEN_FRACTION,
   SHEET_PEEK_HEIGHT_PX,
   SheetEvent,
   SheetModel,
@@ -45,20 +46,31 @@ describe('sheet state', () => {
     });
   }
 
-  it('peeks at the handle strip and head alone', () => {
-    expect(SHEET_PEEK_HEIGHT_PX).toBe(60);
-    expect(sheetHeight('peek', 800)).toBe(60);
+  it('peeks at the 64 px head alone', () => {
+    expect(SHEET_PEEK_HEIGHT_PX).toBe(64);
+    expect(sheetHeight('peek', 800)).toBe(64);
   });
 
-  it('takes half the available height for the list and 85% for a detail', () => {
+  it('opens to half the frame for the list and for a detail alike', () => {
+    expect(SHEET_OPEN_FRACTION).toBe(0.5);
     expect(sheetHeight('list', 800)).toBe(400);
-    expect(sheetHeight('detail', 800)).toBe(680);
+    expect(sheetHeight('detail', 800)).toBe(400);
     expect(sheetHeight('list', 701)).toBe(351);
-    expect(sheetHeight('detail', 701)).toBe(596);
+    expect(sheetHeight('detail', 701)).toBe(351);
   });
 
-  it('never drops below the peek height, nor grows past the room there is', () => {
-    expect(sheetHeight('list', 100)).toBe(60);
+  it('never covers more than half a frame that has room for the head', () => {
+    for (const available of [128, 300, 533, 701, 1000]) {
+      for (const state of ['list', 'detail'] as const) {
+        expect(sheetHeight(state, available))
+          .withContext(`${state} in ${available}`)
+          .toBeLessThanOrEqual(Math.round(available / 2));
+      }
+    }
+  });
+
+  it('never drops below the head, nor grows past the room there is', () => {
+    expect(sheetHeight('list', 100)).toBe(64);
     expect(sheetHeight('detail', 50)).toBe(50);
     expect(sheetHeight('peek', 40)).toBe(40);
     expect(sheetHeight('peek', 0)).toBe(0);

@@ -27,14 +27,14 @@ export type SheetEvent =
   | 'map-tap'
   | 'not-found';
 
-/** The peek height: the 15px grab-handle strip, the 1px top border and the 44px head row. */
-export const SHEET_PEEK_HEIGHT_PX = 60;
+/** The peek height: the 64 px head alone (16 px above, below and beside its 32 px controls). */
+export const SHEET_PEEK_HEIGHT_PX = 64;
 
-/** The list's share of the available height. */
-export const SHEET_LIST_FRACTION = 0.5;
-
-/** A detail's share of the available height, leaving a strip of map for the selected pin. */
-export const SHEET_DETAIL_FRACTION = 0.85;
+/**
+ * The open sheet's share of the frame, the same for the list and a detail: it never covers more
+ * than half the map, so the selected pin always has the upper half to sit in.
+ */
+export const SHEET_OPEN_FRACTION = 0.5;
 
 /**
  * The sheet's next state after `event`. Every height is reachable by tapping alone.
@@ -71,19 +71,16 @@ export function nextSheet(model: SheetModel, event: SheetEvent): SheetModel {
 }
 
 /**
- * The sheet's height in px for `state` when `available` px are free above the bottom edge: the
- * peek bar, or a share of the room, rounded to whole pixels. It never drops below the peek bar
- * and never grows past the room there is. The page uses the same figure to tell the map how much
- * of it the sheet covers.
+ * The sheet's height in px for `state` when the frame it sits in is `available` px tall: the
+ * head, or half the frame, rounded to whole pixels. It never drops below the head — so a frame
+ * under twice the head's height is covered by more than half — and never grows past the room
+ * there is. The page uses the same figure to tell the map how much of it the sheet covers.
  */
 export function sheetHeight(state: SheetState, available: number): number {
   const target =
     state === 'peek'
       ? SHEET_PEEK_HEIGHT_PX
-      : Math.round(
-          available *
-            (state === 'list' ? SHEET_LIST_FRACTION : SHEET_DETAIL_FRACTION),
-        );
+      : Math.round(available * SHEET_OPEN_FRACTION);
   return Math.min(
     Math.max(target, SHEET_PEEK_HEIGHT_PX),
     Math.max(available, 0),
