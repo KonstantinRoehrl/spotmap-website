@@ -446,14 +446,19 @@ describe('SpotsService', () => {
       spyOn(console, 'warn');
     });
 
-    /** Loads Vienna's list with the live answer given, flushing the snapshot behind it. */
-    function loadSnapshotList(liveAnswer: 'empty' | 'down'): void {
+    /**
+     * Loads Vienna's list with the live answer given, flushing the snapshot behind it: an empty
+     * list (an unseeded backend), a failed request, or one that ran into the live deadline.
+     */
+    function loadSnapshotList(liveAnswer: 'empty' | 'down' | 'late'): void {
       recordList();
       const live = expectLiveList();
       if (liveAnswer === 'empty') {
         live.flush({ type: 'FeatureCollection', features: [] });
-      } else {
+      } else if (liveAnswer === 'down') {
         live.flush('down', { status: 503, statusText: 'Unavailable' });
+      } else {
+        tick(LIVE_SPOTS_TIMEOUT_MS);
       }
       httpMock.expectOne('spots/vienna.geojson').flush(CITY_SNAPSHOT);
     }
@@ -470,19 +475,41 @@ describe('SpotsService', () => {
       expect(completed()).toBeTrue();
     });
 
-    it('serves a row from the snapshot when the live list failed and the live detail answers null', () => {
+    it('takes a live null as final when the live list failed, even for a row the snapshot list showed', () => {
       loadSnapshotList('down');
       const { results } = recordDetail('h-1');
       expectLiveDetail('h-1').flush(null);
-      httpMock.expectOne(SPOT_INDEX_URL).flush({ 'h-1': 'vienna' });
-      httpMock.expectOne('spots/vienna.geojson').flush(CITY_SNAPSHOT);
-      expect(results).toEqual([
-        { type: 'found', spot: SNAPSHOT_DETAIL, source: 'snapshot' },
-      ]);
+      expect(results).toEqual([{ type: 'not-found' }]);
+      httpMock.expectNone(SPOT_INDEX_URL);
+    });
+
+    it('takes a live null as final when the live list timed out, even for a row the snapshot list showed', fakeAsync(() => {
+      loadSnapshotList('late');
+      const { results } = recordDetail('h-1');
+      expectLiveDetail('h-1').flush(null);
+      expect(results).toEqual([{ type: 'not-found' }]);
+      httpMock.expectNone(SPOT_INDEX_URL);
+    }));
+
+    it('takes a live null as final again once a later list load fell back to the snapshot for a failure', () => {
+      loadSnapshotList('empty');
+      loadSnapshotList('down');
+      const { results } = recordDetail('h-1');
+      expectLiveDetail('h-1').flush(null);
+      expect(results).toEqual([{ type: 'not-found' }]);
+      httpMock.expectNone(SPOT_INDEX_URL);
     });
 
     it('still takes a live null as final for an id the snapshot-derived list did not hold', () => {
       loadSnapshotList('empty');
+      const { results } = recordDetail('deleted');
+      expectLiveDetail('deleted').flush(null);
+      expect(results).toEqual([{ type: 'not-found' }]);
+      httpMock.expectNone(SPOT_INDEX_URL);
+    });
+
+    it('still takes a live null as final for an id absent from a list that fell back after a failure', () => {
+      loadSnapshotList('down');
       const { results } = recordDetail('deleted');
       expectLiveDetail('deleted').flush(null);
       expect(results).toEqual([{ type: 'not-found' }]);

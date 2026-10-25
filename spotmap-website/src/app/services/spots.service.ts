@@ -3,6 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import {
   catchError,
   concat,
+  defer,
   filter,
   map,
   merge,
@@ -53,7 +54,8 @@ export type SpotListLoadEvent =
 /**
  * The answer to one detail load: the spot and where it came from, or `not-found` — an id the live
  * database does not hold (final: never looked up in the snapshot, which can lag a deletion, unless
- * the city's list was itself served from the snapshot) or, with no backend configured, one the
+ * the spot was in a city list shown from the snapshot because the live answer was empty) or, with no
+ * backend configured, one the
  * snapshot does not hold. A snapshot that lacks the id after a failed or late live request is no
  * `not-found`: the spot may exist live, so that load errors instead.
  */
@@ -85,8 +87,11 @@ type CollectionLoadEvent<C> =
  * failure reaches the caller (the map's error state and its RETRY, which asks live first again).
  * One spot comes live from `spot_detail()`, whose "no such spot" is final; only a failed or late
  * live request looks it up in the snapshot, through {@link SPOT_INDEX_URL}. The one exception keeps
- * a list and its rows coherent: a spot listed from the snapshot (the live list was empty or failed)
- * opens from the snapshot too, even when the live detail answers "no such spot".
+ * a list and its rows coherent for an unseeded or out-of-date backend: a spot this service listed
+ * from the snapshot because the live list answered empty opens from the snapshot too, even when
+ * the live detail answers "no such spot". A list that fell back because the live request failed or
+ * ran out of time does not count, so a spot deleted live never reopens from a stale snapshot, and
+ * neither does a spot the service never listed (a cold `/spot/<id>` link).
  */
 @Injectable({ providedIn: 'root' })
 export class SpotsService {
@@ -94,8 +99,9 @@ export class SpotsService {
   private readonly backend = inject(SPOTMAP_BACKEND);
 
   /**
-   * The ids of each city's most recent list that was served from the snapshot. A city whose latest
-   * list came live has no entry, so a later live "no such spot" is final again for its ids.
+   * The ids of each city's most recent list that was served from the snapshot because the live
+   * answer was empty. A city whose latest list came live, or fell back for a failed or late live
+   * request, has no entry, so a later live "no such spot" is final again for its ids.
    */
   private readonly snapshotListedIds = new Map<CityEnum, ReadonlySet<string>>();
 
@@ -104,23 +110,31 @@ export class SpotsService {
    * class comment for the fallback rules. The snapshot is mapped through `toListCollection()`.
    */
   loadSpotList(city: CityEnum): Observable<SpotListLoadEvent> {
-    return this.loadCollection<SpotListCollection>(
-      city,
-      'city_spot_list',
-      this.snapshotEvents(city).pipe(
-        map((event) =>
-          event.type === 'done'
-            ? { ...event, collection: toListCollection(event.collection) }
-            : event,
+    // Deferred so every subscription (a retry resubscribes) starts from a fresh answer flag.
+    return defer(() => {
+      let liveAnsweredEmpty = false;
+      return this.loadCollection<SpotListCollection>(
+        city,
+        'city_spot_list',
+        this.snapshotEvents(city).pipe(
+          map((event) =>
+            event.type === 'done'
+              ? { ...event, collection: toListCollection(event.collection) }
+              : event,
+          ),
         ),
-      ),
-    ).pipe(tap((event) => this.rememberListSource(city, event)));
+        () => (liveAnsweredEmpty = true),
+      ).pipe(
+        tap((event) => this.rememberListSource(city, event, liveAnsweredEmpty)),
+      );
+    });
   }
 
   /**
    * One spot's full record, as a single {@link SpotDetailResult} followed by completion. Live
    * first within {@link LIVE_SPOTS_TIMEOUT_MS}: a live `null` is `not-found` and final, unless the
-   * id was in a list served from the snapshot, which then also serves the detail; a failed or late
+   * id was in a list served from the snapshot for an empty live answer, which then also serves the
+   * detail (a failed or late live list does not count; see the class comment); a failed or late
    * live request falls back to the snapshot. The snapshot path errors when the index or the city's
    * snapshot cannot be fetched, or, after a failed or late live request, does not hold the id (the
    * spot may exist live, and `not-found` is reserved for a spot known to be gone); the detail pane
@@ -177,14 +191,22 @@ export class SpotsService {
   }
 
   /**
-   * Remembers which spots a finished list load put on screen when it came from the snapshot, and
-   * forgets them once the city's list came live, so {@link loadSpotDetail} can open the former.
+   * Remembers which spots a finished list load put on screen when it came from the snapshot because
+   * the live answer was empty, so {@link loadSpotDetail} can open them. Any other finished list
+   * (live, or the snapshot after a failed or late live request) clears the city's entry: the ids
+   * are kept only while the list that showed them is the city's latest.
+   *
+   * @param liveAnsweredEmpty whether the live request answered, but with no spots
    */
-  private rememberListSource(city: CityEnum, event: SpotListLoadEvent): void {
+  private rememberListSource(
+    city: CityEnum,
+    event: SpotListLoadEvent,
+    liveAnsweredEmpty: boolean,
+  ): void {
     if (event.type !== 'done') {
       return;
     }
-    if (event.source === 'snapshot') {
+    if (event.source === 'snapshot' && liveAnsweredEmpty) {
       this.snapshotListedIds.set(
         city,
         new Set(
@@ -196,7 +218,7 @@ export class SpotsService {
     }
   }
 
-  /** Whether a list served from the snapshot showed the spot, in any city. */
+  /** Whether a city list served from the snapshot for an empty live answer showed the spot. */
   private wasListedFromSnapshot(id: string): boolean {
     return [...this.snapshotListedIds.values()].some((ids) => ids.has(id));
   }
@@ -204,11 +226,15 @@ export class SpotsService {
   /**
    * A city's collection load through `rpc`, falling back to `snapshot` — the pipeline behind
    * {@link loadSpotList}; see the class comment for the rules.
+   *
+   * @param onEmptyLiveAnswer called when the fallback happens because the live request answered
+   *   with no spots, as opposed to failing or running out of time
    */
   private loadCollection<C extends { readonly features?: readonly unknown[] }>(
     city: CityEnum,
     rpc: 'city_spot_list',
     snapshot: Observable<CollectionLoadEvent<C>>,
+    onEmptyLiveAnswer: () => void,
   ): Observable<CollectionLoadEvent<C>> {
     if (!this.backend.apiUrl) {
       return snapshot;
@@ -228,7 +254,7 @@ export class SpotsService {
             event.type === 'done' &&
             (event.collection?.features?.length ?? 0) === 0
           ) {
-            throw new Error(`the live database has no spots for ${city}`);
+            throw new EmptyLiveAnswerError(city);
           }
           return event;
         }),
@@ -236,6 +262,9 @@ export class SpotsService {
     return merge(live, liveDeadline('the live spots')).pipe(
       takeWhile((event) => event.type !== 'done', true),
       catchError((reason: unknown) => {
+        if (reason instanceof EmptyLiveAnswerError) {
+          onEmptyLiveAnswer();
+        }
         console.warn(
           `SpotsService: serving the bundled snapshot for ${city}; the live spots failed:`,
           reason,
@@ -297,6 +326,16 @@ export class SpotsService {
   /** The publishable key every live request carries. */
   private apiHeaders(): Record<string, string> {
     return { apikey: this.backend.publishableKey };
+  }
+}
+
+/**
+ * The live list request answered, but with no spots: an unseeded or out-of-date backend. A class of
+ * its own so the fallback can tell it from a failed or late request.
+ */
+class EmptyLiveAnswerError extends Error {
+  constructor(city: CityEnum) {
+    super(`the live database has no spots for ${city}`);
   }
 }
 
