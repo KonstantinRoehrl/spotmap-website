@@ -207,9 +207,25 @@
   opacity: 0;
 }
 
+/* The loading line, the failed line and the full file share one cell, so each crossfades over the
+   one it replaces: the one leaving stays under the one arriving until its fade ends. */
+.spot-detail__state {
+  display: grid;
+}
+
+.spot-detail__state > * {
+  grid-area: 1 / 1;
+  min-width: 0;
+}
+
 /* The full file crossfades in over what the preview showed. */
 .spot-detail__fade-in {
   transition: opacity var(--dur-crossfade) ease-out;
+}
+
+.spot-detail__fade-in--leaving {
+  opacity: 0;
+  pointer-events: none;
 }
 
 @starting-style {

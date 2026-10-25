@@ -34,9 +34,10 @@ let nextHeadingId = 0;
  * `> DIRECTIONS` / `> SHARE SPOT`. While the full file loads it shows what the list already knew
  * — the name and the first photo — in the boxes the full content will take, so nothing jumps
  * when it arrives; a file that cannot be loaded keeps those boxes, says so and offers RETRY, so
- * neither the failure nor the retry moves the name. Without photos or a photo
- * host the detail starts at the name. Opening a spot scrolls its pane to the top and moves focus
- * to its heading.
+ * neither the failure nor the retry moves the name. Loading, failed and loaded crossfade in one
+ * cell instead of cutting. Without photos or a photo host the detail starts at the name. Opening
+ * a spot scrolls its pane to the top and moves focus to its heading, as does a RETRY, which
+ * removes the button that held it.
  */
 @Component({
   selector: 'app-spot-detail',
@@ -165,16 +166,25 @@ export class SpotDetailComponent {
 
     // Focus moves to the heading once per opened spot, and the pane starts at its top. The heading
     // is one element through loading, loaded and failed, so a file arriving later keeps the focus
-    // where it is. Focus must not scroll: the sheet may still be growing, and scrolling the
-    // heading into view would carry the gallery off the top.
+    // where it is. A RETRY is the exception: the failed block that holds the focused button goes
+    // with it, so focus returns to the heading, the one element every state keeps, and the
+    // screen reader reads the name once rather than the changing lines. Focus must not scroll: the
+    // sheet may still be growing, and scrolling the heading into view would carry the gallery off
+    // the top.
     let focusedId: string | null = null;
+    let previousStatus: SpotDetailView['status'] | null = null;
     afterRenderEffect(() => {
-      const id = this.spotId();
+      const { id, status } = this.view();
+      const retried =
+        id === focusedId && previousStatus === 'failed' && status === 'loading';
+      previousStatus = status;
       if (id !== focusedId) {
         focusedId = id;
         this.pane.scrollTop = 0;
-        this.heading().nativeElement.focus({ preventScroll: true });
+      } else if (!retried) {
+        return;
       }
+      this.heading().nativeElement.focus({ preventScroll: true });
     });
 
     // The current strip photo scrolls into the strip's view as the gallery moves, horizontally

@@ -58,12 +58,22 @@
     {{ name() ?? 'Spot loading' }}
   </h2>
 
-  @switch (view().status) {
-    @case ('loading') {
-      <p class="spot-detail__line spot-detail__line--dim">&gt; LOADING FILE…</p>
+  <!-- The loading line, the failed line and the file share one cell, so each crossfades over the
+       last in place instead of cutting. -->
+  <div class="spot-detail__state">
+    @if (view().status === 'loading') {
+      <p
+        class="spot-detail__line spot-detail__line--dim spot-detail__fade-in"
+        animate.leave="spot-detail__fade-in--leaving"
+      >
+        &gt; LOADING FILE…
+      </p>
     }
-    @case ('failed') {
-      <div class="spot-detail__facts spot-detail__fade-in">
+    @if (view().status === 'failed') {
+      <div
+        class="spot-detail__facts spot-detail__fade-in"
+        animate.leave="spot-detail__fade-in--leaving"
+      >
         <p class="spot-detail__line spot-detail__line--lit">
           &gt; SIGNAL LOST // FILE UNREACHABLE
         </p>
@@ -79,7 +89,7 @@
         </div>
       </div>
     }
-    @case ('loaded') {
+    @if (view().status === 'loaded') {
       @if (spot(); as spot) {
         <div class="spot-detail__facts spot-detail__fade-in">
           @if (spot.notes; as notes) {
@@ -129,5 +139,5 @@
         </div>
       }
     }
-  }
+  </div>
 </section>

@@ -44,10 +44,12 @@ export const COMPACT_BANNER_QUERY = '(max-width: 479px)';
 
 /**
  * The longest line the banner shows in the compact top bar. The banner never sets its text below
- * 12 px, where IBM Plex Mono is 7.2 px a glyph, and it is 154 px wide on a 320 px phone, so 21
- * glyphs is what fits there; a longer line would run out of the bar and be clipped.
+ * 12 px, where IBM Plex Mono is 7.2 px a glyph, and on a 320 px phone it is about 137 px wide once
+ * the city select has taken the room its longest label needs, so 19 glyphs is what fits there; 18
+ * keeps a margin and holds the longest city line, `BRATISLAVA SPOTMAP`. A longer line would run
+ * out of the bar and be clipped.
  */
-export const COMPACT_BANNER_MAX_CHARS = 21;
+export const COMPACT_BANNER_MAX_CHARS = 18;
 
 /**
  * What an open spot is made of, on the controls that close it: the detail, the column's back
@@ -191,6 +193,17 @@ export class MapComponent {
       }),
     ).pipe(debounceTime(COUNT_ANNOUNCE_DEBOUNCE_MS)),
     { initialValue: '' },
+  );
+
+  /**
+   * What the notice's polite live region reads: plain words for the not-found notice, nothing
+   * while there is none. The region is the page's, not the list's, so it is in place before the
+   * notice appears.
+   */
+  protected readonly noticeAnnouncement = computed(() =>
+    this.store.notice() === 'not-found'
+      ? 'Spot not found. It is gone from the archive.'
+      : '',
   );
 
   /** The map body under the top bar, measured for the sheet's heights. */

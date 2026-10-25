@@ -1,14 +1,17 @@
-<!-- The live region is in place before the notice, which is inserted into it, so it is announced. -->
-<div class="spot-list__status" role="status" aria-live="polite">
-  @if (notice() === 'not-found') {
-    <p
-      class="spot-list__line spot-list__line--dim spot-list__notice"
-      animate.leave="spot-list__notice--leaving"
-    >
-      &gt; FILE NOT FOUND // GONE FROM THE ARCHIVE
-    </p>
-  }
-</div>
+<!-- Only what the eye reads: the page announces the notice through a live region of its own, which
+     is in place before this list exists (the list can be created with the notice already in it). -->
+@if (notice() === 'not-found') {
+  <div
+    class="spot-list__notice-slot"
+    animate.leave="spot-list__notice-slot--leaving"
+  >
+    <div class="spot-list__notice-clip">
+      <p class="spot-list__line spot-list__line--dim spot-list__notice">
+        &gt; FILE NOT FOUND // GONE FROM THE ARCHIVE
+      </p>
+    </div>
+  </div>
+}
 
 @let rows = spots();
 @if (rows === null) {

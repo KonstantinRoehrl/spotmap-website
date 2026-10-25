@@ -12,14 +12,16 @@
 }
 
 /* Phone and narrow: banner and picker in one slim bar over the map. The picker's Material field is
-   tightened through its own tokens to the 44 px touch target, so the bar keeps to 46 px. */
+   tightened through its own tokens to the 44 px touch target, so the bar keeps to 46 px. The
+   picker takes the room its longest label needs (below) and the banner the rest, so the gaps are
+   8 px: on a 320 px phone the banner then still holds the longest city line. */
 .map-topbar {
   flex: none;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   min-height: 46px;
-  padding: 0 12px;
+  padding: 0 8px;
   box-sizing: border-box;
   background: color-mix(in srgb, var(--color-bg) 95%, transparent);
   border-bottom: 1px solid
@@ -33,9 +35,17 @@
   overflow: hidden;
 }
 
+/* The select shows its chosen city in full, never ellipsised: it is as wide as its longest label,
+   `bratislava · SK`, 15 glyphs. That is the field's 16 px side padding twice, the arrow (about
+   10 px, 12 with a margin) and the glyphs at IBM Plex Mono's 0.6 em advance with the tracking
+   removed, set in the 13 px label size. A longer label in the data means raising the glyph count;
+   the 320 px spec in map.component.spec.ts fails until it is. */
 .map-topbar__picker {
+  --city-label-glyphs: 15;
+  --mat-select-trigger-text-size: 0.8125rem;
+  --mat-select-trigger-text-tracking: 0;
   flex: 0 0 auto;
-  width: min(44%, 13rem);
+  width: calc(2rem + 12px + var(--city-label-glyphs) * 0.6 * 0.8125rem);
   --mat-form-field-container-height: 44px;
   --mat-form-field-container-vertical-padding: 10px;
 }

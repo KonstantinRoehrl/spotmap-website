@@ -18,7 +18,8 @@ import { PointerBloomDirective } from '../../directives/pointer-bloom.directive'
  * middle-click and open-in-new-tab work, but a plain click is handed to the page through
  * {@link SpotListComponent.open}: the page decides whether the URL is pushed or replaced and
  * freezes the list before it navigates. A row is lit like a hovered control while its pin is
- * hovered, and reports its own hover back on a hover-capable pointer.
+ * hovered, and reports its own hover back on a hover-capable pointer. A gone link's notice sits
+ * above the rows and takes its room in and out with a fade, so the rows never jump.
  */
 @Component({
   selector: 'app-spot-list',
@@ -31,7 +32,10 @@ export class SpotListComponent {
   /** The rows, in display order; `null` while the city's spots are still loading. */
   spots = input<readonly SpotListFeature[] | null>(null);
 
-  /** A line shown above the rows: a spot link whose spot is gone from the archive. */
+  /**
+   * A line shown above the rows: a spot link whose spot is gone from the archive. The list only
+   * draws it; the page announces it, through a live region that exists before the notice does.
+   */
   notice = input<'not-found' | null>(null);
 
   /** The spot whose row is lit because its pin is hovered on the map. */

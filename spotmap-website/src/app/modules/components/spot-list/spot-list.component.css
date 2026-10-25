@@ -28,7 +28,6 @@
 }
 
 .spot-list__item--leaving,
-.spot-list__notice--leaving,
 .spot-list__line--leaving {
   opacity: 0;
 }
@@ -40,6 +39,36 @@
   left: 0;
   right: 0;
   pointer-events: none;
+}
+
+/* The not-found notice above the rows takes its height with its fade, in and out, so the rows ease
+   down and back up instead of jumping by the notice's height. The clip is what collapses: a grid
+   track animating between 1fr and 0fr, with the paragraph clipped inside it. Under
+   prefers-reduced-motion the global net animates opacity only, so the height then changes at
+   once while the notice still fades, as the sheet's does. */
+.spot-list__notice-slot {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition:
+    grid-template-rows var(--dur-fast) ease-out,
+    opacity var(--dur-fast) ease-out;
+}
+
+@starting-style {
+  .spot-list__notice-slot {
+    grid-template-rows: 0fr;
+    opacity: 0;
+  }
+}
+
+.spot-list__notice-slot--leaving {
+  grid-template-rows: 0fr;
+  opacity: 0;
+}
+
+.spot-list__notice-clip {
+  min-height: 0;
+  overflow: hidden;
 }
 
 /* A thumb-height row. The list column and the sheet clip their content, so the row wears the

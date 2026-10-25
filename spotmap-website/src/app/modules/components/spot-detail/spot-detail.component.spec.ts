@@ -110,6 +110,8 @@ describe('SpotDetailComponent', () => {
     } = {},
   ): ComponentFixture<SpotDetailComponent> {
     TestBed.configureTestingModule({
+      // The failed and loading lines leave with a real fade; TestBed skips those by default.
+      animationsEnabled: true,
       imports: [SpotDetailComponent],
       providers: [
         { provide: SPOTMAP_BACKEND, useValue: backend },
@@ -461,6 +463,45 @@ describe('SpotDetailComponent', () => {
     expect(find('.spot-detail__name')!.getBoundingClientRect().top).toBe(
       nameTop,
     );
+  });
+
+  it('fades the loading line in over the failed line, in the same cell, instead of cutting', async () => {
+    create(failed());
+    await Promise.all(
+      host()
+        .getAnimations({ subtree: true })
+        .map((animation) => animation.finished),
+    );
+    show(loading());
+
+    // The failed line is still up, fading out under the loading line that fades in.
+    const leaving = find('.spot-detail__fade-in--leaving');
+    expect(text(leaving)).toContain('> SIGNAL LOST // FILE UNREACHABLE');
+
+    const loadingLine = Array.from(
+      host().querySelectorAll<HTMLElement>('.spot-detail__line--dim'),
+    ).find((line) => text(line) === '> LOADING FILE…')!;
+    const style = getComputedStyle(loadingLine);
+    expect(style.transitionProperty).toContain('opacity');
+    // Just inserted: still at the start of its fade-in.
+    expect(parseFloat(style.opacity)).toBeLessThan(0.5);
+    // One grid cell holds whichever lines are up, so a line leaving never pushes the next one down.
+    expect(getComputedStyle(find('.spot-detail__state')!).display).toBe('grid');
+  });
+
+  it('moves focus to the heading when RETRY is pressed, so it is not dropped with the button', async () => {
+    create(failed());
+    await fixture.whenStable();
+    const retry = Array.from(host().querySelectorAll('button')).find(
+      (button) => text(button) === '> RETRY',
+    )!;
+    retry.focus();
+    expect(document.activeElement).toBe(retry);
+
+    show(loading());
+    await fixture.whenStable();
+
+    expect(document.activeElement).toBe(find('h2'));
   });
 
   it('holds the 4:3 box for a cold link whose file cannot be loaded', () => {

@@ -125,6 +125,12 @@
   </div>
 
   <p class="sr-only" role="status" aria-live="polite">{{ announcement() }}</p>
+  <!-- Always in the page, so it exists before the notice it reads out: a live region created
+       holding its text is not announced, and the list that shows the notice can be created together
+       with it (a cold link to a gone spot). The visible notice is the list's. -->
+  <p class="sr-only" role="status" aria-live="polite">
+    {{ noticeAnnouncement() }}
+  </p>
 </div>
 
 <!-- The one pane, list or open spot, rendered into the column or the sheet. -->

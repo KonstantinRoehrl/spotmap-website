@@ -423,6 +423,32 @@ describe('MapComponent', () => {
         });
       }
 
+      it('shows every city’s label in full at 320 px, with no ellipsis on the chosen city', async () => {
+        compact.next(true);
+        const host = create(320);
+        const bar = host.querySelector<HTMLElement>('.map-topbar')!;
+        const picker = host.querySelector<HTMLElement>('.map-topbar__picker')!;
+        const value = host.querySelector<HTMLElement>(
+          '.map-topbar .mat-mdc-select-value',
+        )!;
+
+        for (const entry of Object.values(SUPPORTED_CITIES)) {
+          store.city.set(entry);
+          fixture.detectChanges();
+          await fixture.whenStable();
+          fixture.detectChanges();
+          expect(value.scrollWidth)
+            .withContext(`${entry.city} · ${entry.countryCode}`)
+            .toBeLessThanOrEqual(value.clientWidth);
+        }
+        expect(
+          parseFloat(getComputedStyle(value).fontSize),
+        ).toBeGreaterThanOrEqual(12);
+        expect(picker.getBoundingClientRect().right).toBeLessThanOrEqual(
+          bar.getBoundingClientRect().right,
+        );
+      });
+
       it('fits the banner for the longest city name too', () => {
         compact.next(true);
         const host = create(320);
@@ -642,6 +668,48 @@ describe('MapComponent', () => {
     expect(region.textContent!.trim()).toBe('2 spots in view');
     discardPeriodicTasks();
   }));
+
+  describe('announcing the not-found notice', () => {
+    /** The page's polite live regions, whatever the layout puts them in. */
+    const statusRegions = (host: HTMLElement) =>
+      Array.from(host.querySelectorAll('[role="status"]'));
+
+    for (const [layout, isWide] of [
+      ['a wide screen', true],
+      ['a phone', false],
+    ] as const) {
+      it(`reaches a screen reader on a cold dead link, on ${layout}`, () => {
+        wide.next(isWide);
+        store.selectedId.set('gone');
+        store.detail.set({ status: 'loading', id: 'gone', preview: null });
+        const host = create();
+        // While the lookup runs the pane shows the detail, so there is no list yet.
+        expect(host.querySelector('app-spot-list')).toBeNull();
+        const regionsBefore = statusRegions(host);
+
+        // The store sets the notice and clears the detail in one go; the list appears with it.
+        store.notice.set('not-found');
+        store.selectedId.set(null);
+        store.detail.set(null);
+        fixture.detectChanges();
+
+        const announcing = statusRegions(host).filter((region) =>
+          /not found/i.test(region.textContent ?? ''),
+        );
+        expect(announcing.length).toBe(1);
+        expect(regionsBefore).toContain(announcing[0]);
+        expect(announcing[0].getAttribute('aria-live')).toBe('polite');
+        // The visible notice stays in the list, outside any live region.
+        expect(
+          host.querySelector('app-spot-list .spot-list__notice'),
+        ).not.toBeNull();
+
+        store.notice.set(null);
+        fixture.detectChanges();
+        expect((announcing[0].textContent ?? '').trim()).toBe('');
+      });
+    }
+  });
 
   it('drops the not-found notice on the next pointer or key press anywhere on the page', () => {
     const host = create();

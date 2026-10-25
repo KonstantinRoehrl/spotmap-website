@@ -106,6 +106,8 @@ describe('SpotListComponent', () => {
     } = {},
   ): ComponentFixture<SpotListComponent> {
     TestBed.configureTestingModule({
+      // The notice's leave is a real transition the specs below measure; TestBed skips them by default.
+      animationsEnabled: true,
       imports: [SpotListComponent],
       providers: [
         // The deploy's base href, so the hrefs prove the prefix is applied.
@@ -266,15 +268,68 @@ describe('SpotListComponent', () => {
     ).toBeTruthy();
   });
 
-  it('announces a gone link’s notice through a status region that is there before it', () => {
+  it('leaves announcing a gone link’s notice to the page, which has a live region in place before it', () => {
     create(ROWS);
-    const region = host().querySelector('[role="status"]');
-    expect(region).not.toBeNull();
-    expect(text(region)).toBe('');
-    expect(region!.getAttribute('aria-live')).toBe('polite');
     fixture.componentRef.setInput('notice', 'not-found');
     fixture.detectChanges();
-    expect(text(region)).toBe('> FILE NOT FOUND // GONE FROM THE ARCHIVE');
+    // The list can be created with the notice already in it, which no screen reader announces.
+    expect(host().querySelector('.spot-list__notice')).not.toBeNull();
+    expect(host().querySelector('[role="status"], [aria-live]')).toBeNull();
+  });
+
+  /** Resolves once every transition and animation running inside the list has finished. */
+  async function settled(): Promise<void> {
+    await Promise.all(
+      host()
+        .getAnimations({ subtree: true })
+        .map((animation) => animation.finished),
+    );
+  }
+
+  /** Waits, in real time, for `done` to hold; a leave animation removes its element when it ends. */
+  async function until(done: () => boolean): Promise<void> {
+    for (let waited = 0; !done() && waited < 2000; waited += 20) {
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    }
+  }
+
+  it('eases the rows down as the notice arrives instead of pushing them at once', async () => {
+    create(ROWS);
+    const list = host().querySelector('ul')!;
+    const resting = list.getBoundingClientRect().top;
+
+    fixture.componentRef.setInput('notice', 'not-found');
+    fixture.detectChanges();
+    const justInserted = list.getBoundingClientRect().top;
+    await settled();
+    const settledTop = list.getBoundingClientRect().top;
+
+    expect(settledTop).toBeGreaterThan(resting);
+    expect(justInserted).toBeLessThan(settledTop);
+  });
+
+  it('eases the rows back up as the notice goes, so nothing jumps when it is removed', async () => {
+    create(ROWS, { notice: 'not-found' });
+    await settled();
+    const list = host().querySelector('ul')!;
+    const withNotice = list.getBoundingClientRect().top;
+    const slot = host().querySelector<HTMLElement>('.spot-list__notice-slot')!;
+
+    fixture.componentRef.setInput('notice', null);
+    fixture.detectChanges();
+
+    // The notice stays while its height eases away: the rows have not moved yet, and the slot's
+    // own row track is the thing running, so they move with it rather than at its end.
+    expect(slot.isConnected).toBeTrue();
+    expect(list.getBoundingClientRect().top).toBe(withNotice);
+    const running = slot
+      .getAnimations()
+      .map((animation) => (animation as CSSTransition).transitionProperty);
+    expect(running).toContain('grid-template-rows');
+    expect(running).toContain('opacity');
+
+    await until(() => host().querySelector('.spot-list__notice') === null);
+    expect(list.getBoundingClientRect().top).toBeLessThan(withNotice);
   });
 
   for (const [label, spots] of [
