@@ -1,18 +1,34 @@
-@if (notice() === 'not-found') {
-  <p
-    class="spot-list__line spot-list__line--dim spot-list__notice"
-    animate.leave="spot-list__notice--leaving"
-  >
-    &gt; FILE NOT FOUND // GONE FROM THE ARCHIVE
-  </p>
-}
+<!-- The live region is in place before the notice, which is inserted into it, so it is announced. -->
+<div class="spot-list__status" role="status" aria-live="polite">
+  @if (notice() === 'not-found') {
+    <p
+      class="spot-list__line spot-list__line--dim spot-list__notice"
+      animate.leave="spot-list__notice--leaving"
+    >
+      &gt; FILE NOT FOUND // GONE FROM THE ARCHIVE
+    </p>
+  }
+</div>
 
 @let rows = spots();
 @if (rows === null) {
-  <p class="spot-list__line spot-list__line--dim">&gt; LOADING SPOTS…</p>
+  <p
+    class="spot-list__line spot-list__line--dim"
+    animate.leave="spot-list__line--leaving"
+  >
+    &gt; LOADING SPOTS…
+  </p>
 } @else if (rows.length === 0) {
-  <p class="spot-list__line spot-list__line--lit">&gt; NO SPOTS IN VIEW</p>
-  <p class="spot-list__line spot-list__line--dim">
+  <p
+    class="spot-list__line spot-list__line--lit"
+    animate.leave="spot-list__line--leaving"
+  >
+    &gt; NO SPOTS IN VIEW
+  </p>
+  <p
+    class="spot-list__line spot-list__line--dim"
+    animate.leave="spot-list__line--leaving"
+  >
     pan around or zoom out. the city’s bigger than this.
   </p>
 } @else {

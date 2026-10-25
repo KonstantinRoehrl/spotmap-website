@@ -266,6 +266,41 @@ describe('SpotListComponent', () => {
     ).toBeTruthy();
   });
 
+  it('announces a gone link’s notice through a status region that is there before it', () => {
+    create(ROWS);
+    const region = host().querySelector('[role="status"]');
+    expect(region).not.toBeNull();
+    expect(text(region)).toBe('');
+    expect(region!.getAttribute('aria-live')).toBe('polite');
+    fixture.componentRef.setInput('notice', 'not-found');
+    fixture.detectChanges();
+    expect(text(region)).toBe('> FILE NOT FOUND // GONE FROM THE ARCHIVE');
+  });
+
+  for (const [label, spots] of [
+    ['loading', null],
+    ['empty', []],
+  ] as const) {
+    it(`fades the ${label} lines in and out instead of cutting them`, () => {
+      create(spots);
+      const lines = Array.from(
+        host().querySelectorAll<HTMLElement>('.spot-list__line'),
+      );
+      expect(lines.length).toBeGreaterThan(0);
+      for (const line of lines) {
+        const style = getComputedStyle(line);
+        expect(style.transitionProperty).toContain('opacity');
+        // Just inserted: still at the start of its fade-in.
+        expect(parseFloat(style.opacity)).toBeLessThan(0.5);
+        line.classList.add('spot-list__line--leaving');
+        const leaving = getComputedStyle(line);
+        expect(leaving.opacity).toBe('0');
+        // Out of the flow, so the rows arriving in its place do not wait below it.
+        expect(leaving.position).toBe('absolute');
+      }
+    });
+  }
+
   it('lights the row whose pin is hovered, and only that one', () => {
     create(ROWS, { highlightedId: 'b' });
     expect(

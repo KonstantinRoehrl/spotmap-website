@@ -33,8 +33,10 @@ let nextHeadingId = 0;
  * `© all rights reserved`, the name, the notes verbatim, `> DEMOLISHED` for a lost spot, and
  * `> DIRECTIONS` / `> SHARE SPOT`. While the full file loads it shows what the list already knew
  * — the name and the first photo — in the boxes the full content will take, so nothing jumps
- * when it arrives; a file that cannot be loaded says so and offers RETRY. Without photos or a photo
- * host the detail starts at the name. Opening a spot moves focus to its heading.
+ * when it arrives; a file that cannot be loaded keeps those boxes, says so and offers RETRY, so
+ * neither the failure nor the retry moves the name. Without photos or a photo
+ * host the detail starts at the name. Opening a spot scrolls its pane to the top and moves focus
+ * to its heading.
  */
 @Component({
   selector: 'app-spot-detail',
@@ -68,6 +70,9 @@ export class SpotDetailComponent {
     null,
   );
 
+  /** The component's own element: the pane that scrolls when the detail is taller than its room. */
+  private readonly pane =
+    inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
   /** The spot's heading, which takes focus when a spot opens. */
   private readonly heading =
     viewChild.required<ElementRef<HTMLElement>>('heading');
@@ -115,18 +120,20 @@ export class SpotDetailComponent {
   });
 
   /**
-   * Whether a loading detail holds the gallery's 4:3 box: when the preview counts photos, or, for a
-   * cold link that knows nothing yet, whenever a photo host could serve some.
+   * Whether a detail whose file is not in holds the gallery's 4:3 box, while it loads and after it
+   * failed: when the preview counts photos, or, for a cold link that knows nothing yet, whenever a
+   * photo host could serve some. Dropping the box on failure would move the name up, and back
+   * down on RETRY.
    */
   protected readonly reservesGallery = computed(() => {
     const view = this.view();
-    if (view.status !== 'loading' || !this.photoBaseUrl) {
+    if (view.status === 'loaded' || !this.photoBaseUrl) {
       return false;
     }
     return view.preview ? view.preview.properties.photoCount > 0 : true;
   });
 
-  /** Whether a loading detail also holds the strip's row: the preview counts two or more photos. */
+  /** Whether an unloaded detail also holds the strip's row: the preview counts two or more photos. */
   protected readonly reservesStrip = computed(
     () =>
       this.reservesGallery() &&
@@ -156,19 +163,23 @@ export class SpotDetailComponent {
       });
     });
 
-    // Focus moves to the heading once per opened spot. The heading is one element through
-    // loading, loaded and failed, so a file arriving later keeps the focus where it is.
+    // Focus moves to the heading once per opened spot, and the pane starts at its top. The heading
+    // is one element through loading, loaded and failed, so a file arriving later keeps the focus
+    // where it is. Focus must not scroll: the sheet may still be growing, and scrolling the
+    // heading into view would carry the gallery off the top.
     let focusedId: string | null = null;
     afterRenderEffect(() => {
       const id = this.spotId();
       if (id !== focusedId) {
         focusedId = id;
-        this.heading().nativeElement.focus();
+        this.pane.scrollTop = 0;
+        this.heading().nativeElement.focus({ preventScroll: true });
       }
     });
 
     // The current strip photo scrolls into the strip's view as the gallery moves, horizontally
-    // only, so the pane around it never scrolls.
+    // only, so the pane around it never scrolls. Positions come from bounding rects: `offsetLeft`
+    // measures from the nearest positioned ancestor, which is not the strip.
     let shownIndex = 0;
     afterRenderEffect(() => {
       const index = this.photoIndex();
@@ -179,9 +190,12 @@ export class SpotDetailComponent {
         return;
       }
       shownIndex = index;
+      const offsetInStrip =
+        current.getBoundingClientRect().left -
+        strip.getBoundingClientRect().left +
+        strip.scrollLeft;
       strip.scrollTo({
-        left:
-          current.offsetLeft - (strip.clientWidth - current.offsetWidth) / 2,
+        left: offsetInStrip - (strip.clientWidth - current.offsetWidth) / 2,
         behavior: prefersReducedMotion() ? 'auto' : 'smooth',
       });
     });

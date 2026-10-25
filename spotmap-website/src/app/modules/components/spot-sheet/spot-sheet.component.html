@@ -1,3 +1,12 @@
+<!-- Control names start with the visible words, then say what a tap does. -->
+@let inView = count() === null ? 'In view' : count() + ' in view';
+@let spotsInView =
+  count() === null
+    ? 'Loading spots'
+    : count() === 1
+      ? '1 spot in view'
+      : count() + ' spots in view';
+
 <div class="spot-sheet__handle" aria-hidden="true">
   <span class="spot-sheet__grip"></span>
 </div>
@@ -13,7 +22,7 @@
         type="button"
         class="spot-sheet__back phosphor-bloom phosphor-bloom--inset phosphor-bloom--plate"
         appPointerBloom
-        aria-label="Back to the list"
+        [attr.aria-label]="inView + ', back to the list'"
         (click)="back.emit()"
       >
         {{ backLabel() }}
@@ -37,7 +46,9 @@
         type="button"
         class="spot-sheet__toggle phosphor-bloom phosphor-bloom--inset"
         appPointerBloom
-        [attr.aria-label]="state() === 'peek' ? 'Show list' : 'Show map'"
+        [attr.aria-label]="
+          spotsInView + (state() === 'peek' ? ', show list' : ', show map')
+        "
         (click)="headTap.emit()"
       >
         <span>{{ countLine() }}</span>

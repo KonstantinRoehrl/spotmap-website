@@ -69,23 +69,38 @@
           [selected]="store.city()"
           (citySelected)="store.selectCity($event)"
         />
+        <!-- Both variants share one grid cell, so swapping them is a crossfade, not a cut. -->
         <div class="spot-column__count">
           @if (store.detail()) {
-            <button
-              type="button"
-              class="spot-column__back phosphor-bloom phosphor-bloom--plate"
-              appPointerBloom
-              aria-label="Back to the list"
-              (click)="store.close()"
+            <div
+              class="spot-column__count-content"
+              animate.leave="spot-column__count-content--leaving"
             >
-              {{ backLabel() }}
-            </button>
+              <!-- The name starts with the visible words, then says what a tap does. -->
+              <button
+                type="button"
+                class="spot-column__back phosphor-bloom phosphor-bloom--plate"
+                appPointerBloom
+                [attr.aria-label]="
+                  (count() === null ? 'In view' : count() + ' in view') +
+                  ', back to the list'
+                "
+                (click)="store.close()"
+              >
+                {{ backLabel() }}
+              </button>
+            </div>
           } @else {
-            <!-- Not tabbable: focus lands here when a spot closes and no row can take it. -->
-            <span class="spot-column__count-line" tabindex="-1">{{
-              countLine()
-            }}</span>
-            <span class="spot-column__order" aria-hidden="true">A–Z</span>
+            <div
+              class="spot-column__count-content"
+              animate.leave="spot-column__count-content--leaving"
+            >
+              <!-- Not tabbable: focus lands here when a spot closes and no row can take it. -->
+              <span class="spot-column__count-line" tabindex="-1">{{
+                countLine()
+              }}</span>
+              <span class="spot-column__order" aria-hidden="true">A–Z</span>
+            </div>
           }
         </div>
         <div class="spot-pane">

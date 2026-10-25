@@ -220,11 +220,40 @@ describe('MapComponent', () => {
         '.spot-column__count button',
       )!;
       expect(back.textContent!.trim()).toBe('‹ 2 IN VIEW');
-      expect(back.getAttribute('aria-label')).toBe('Back to the list');
+      // The visible words (the count) lead the name, then what a tap does.
+      expect(back.getAttribute('aria-label')).toBe(
+        '2 in view, back to the list',
+      );
       expect(back.classList).toContain('phosphor-bloom--plate');
       back.click();
       expect(store.close).toHaveBeenCalledTimes(1);
       expect(host.querySelector('app-spot-detail')).not.toBeNull();
+    });
+
+    it('crossfades the count and the back button in one shared cell instead of cutting', () => {
+      store.shownSpots.set([ALPHA, BETA]);
+      const host = create();
+      const count = host.querySelector('.spot-column__count')!;
+      const contentOf = (selector: string) =>
+        count.querySelector(selector)!.closest('.spot-column__count-content');
+
+      // Specs run with animations off, so the fade-out is shown by the class the leave applies.
+      for (const [selector, open] of [
+        ['.spot-column__count-line', false],
+        ['.spot-column__back', true],
+      ] as const) {
+        if (open) {
+          showSpot('a', ALPHA);
+          fixture.detectChanges();
+        }
+        const content = contentOf(selector)!;
+        expect(content).withContext(selector).not.toBeNull();
+        const style = getComputedStyle(content);
+        expect(style.transitionProperty).toBe('opacity');
+        expect([style.gridRowStart, style.gridColumnStart]).toEqual(['1', '1']);
+        content.classList.add('spot-column__count-content--leaving');
+        expect(getComputedStyle(content).opacity).toBe('0');
+      }
     });
 
     it('words the back button without a number while the count is unknown', () => {

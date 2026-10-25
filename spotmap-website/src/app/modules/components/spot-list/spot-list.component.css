@@ -1,4 +1,6 @@
+/* Positioned so a line that is fading out can leave the flow without jumping. */
 :host {
+  position: relative;
   display: block;
 }
 
@@ -11,22 +13,33 @@
   gap: 2px;
 }
 
-/* Rows that enter or leave the view fade; A–Z order keeps the rows that stay where they are. */
+/* Rows and lines that enter or leave the view fade; A–Z order keeps the rows that stay where they
+   are. */
 .spot-list__item,
-.spot-list__notice {
+.spot-list__line {
   transition: opacity var(--dur-fast) ease-out;
 }
 
 @starting-style {
   .spot-list__item,
-  .spot-list__notice {
+  .spot-list__line {
     opacity: 0;
   }
 }
 
 .spot-list__item--leaving,
-.spot-list__notice--leaving {
+.spot-list__notice--leaving,
+.spot-list__line--leaving {
   opacity: 0;
+}
+
+/* The loading and empty lines fade out where they stand while the rows that replace them fade in:
+   out of the flow, so the rows do not start below a line that is about to go. */
+.spot-list__line--leaving {
+  position: absolute;
+  left: 0;
+  right: 0;
+  pointer-events: none;
 }
 
 /* A thumb-height row. The list column and the sheet clip their content, so the row wears the

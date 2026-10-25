@@ -80,7 +80,10 @@ describe('SpotSheetComponent', () => {
     const sheet = create('peek');
     const toggle = button(sheet, '.spot-sheet__toggle');
     expect(toggle.type).toBe('button');
-    expect(toggle.getAttribute('aria-label')).toBe('Show list');
+    // The visible words (the count) lead the name, then what a tap does.
+    expect(toggle.getAttribute('aria-label')).toBe(
+      '9 spots in view, show list',
+    );
     expect(toggle.textContent).toContain('> 9 SPOTS IN VIEW');
     expect(toggle.textContent).toContain('LIST ▲');
     toggle.click();
@@ -89,7 +92,7 @@ describe('SpotSheetComponent', () => {
 
   it('offers to go back to the map from the list', () => {
     const toggle = button(create('list'), '.spot-sheet__toggle');
-    expect(toggle.getAttribute('aria-label')).toBe('Show map');
+    expect(toggle.getAttribute('aria-label')).toBe('9 spots in view, show map');
     expect(toggle.textContent).toContain('MAP ▼');
   });
 
@@ -103,12 +106,28 @@ describe('SpotSheetComponent', () => {
     ).toContain('> LOADING SPOTS…');
   });
 
+  it('names the head controls with their visible words while the count is unknown or one', () => {
+    const toggle = (state: SheetState, count: number | null) =>
+      button(create(state, count), '.spot-sheet__toggle').getAttribute(
+        'aria-label',
+      );
+    expect(toggle('peek', 1)).toBe('1 spot in view, show list');
+    fixture.destroy();
+    expect(toggle('peek', null)).toBe('Loading spots, show list');
+    fixture.destroy();
+    expect(
+      button(create('detail', null), '.spot-sheet__back').getAttribute(
+        'aria-label',
+      ),
+    ).toBe('In view, back to the list');
+  });
+
   it('heads a detail with back to the list and close', () => {
     const sheet = create('detail');
     expect(sheet.querySelector('.spot-sheet__toggle')).toBeNull();
     const back = button(sheet, '.spot-sheet__back');
     const close = button(sheet, '.spot-sheet__close');
-    expect(back.getAttribute('aria-label')).toBe('Back to the list');
+    expect(back.getAttribute('aria-label')).toBe('9 in view, back to the list');
     expect(back.textContent!.trim()).toBe('‹ 9 IN VIEW');
     expect(close.getAttribute('aria-label')).toBe('Close');
     expect(close.textContent!.trim()).toBe('✕');
@@ -152,6 +171,20 @@ describe('SpotSheetComponent', () => {
     expect(
       (list.querySelector('.spot-sheet__body') as HTMLElement).inert,
     ).toBeFalse();
+  });
+
+  it('fades the pane out by opacity alone, so the reduced-motion net keeps the fade', () => {
+    for (const state of ['peek', 'list'] as const) {
+      const body = create(state).querySelector(
+        '.spot-sheet__body',
+      ) as HTMLElement;
+      const style = getComputedStyle(body);
+      // Visibility cannot transition under the net, which would cut the fade; inert hides the
+      // closed pane from reach and from assistive tech instead.
+      expect(style.transitionProperty).withContext(state).toBe('opacity');
+      expect(style.visibility).withContext(state).toBe('visible');
+      fixture.destroy();
+    }
   });
 
   it('sits on the surface under a hairline, rounded on top only', () => {

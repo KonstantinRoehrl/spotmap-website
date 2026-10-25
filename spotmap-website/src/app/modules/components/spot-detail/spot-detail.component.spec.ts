@@ -102,7 +102,12 @@ describe('SpotDetailComponent', () => {
     {
       backend = BACKEND,
       nav = copyingNavigator(writeText),
-    }: { backend?: SpotmapBackend; nav?: ShareNavigator } = {},
+      hostStyle = 'display:block;width:320px',
+    }: {
+      backend?: SpotmapBackend;
+      nav?: ShareNavigator;
+      hostStyle?: string;
+    } = {},
   ): ComponentFixture<SpotDetailComponent> {
     TestBed.configureTestingModule({
       imports: [SpotDetailComponent],
@@ -113,8 +118,7 @@ describe('SpotDetailComponent', () => {
     });
     fixture = TestBed.createComponent(SpotDetailComponent);
     // A definite width, as the list column and the sheet give it.
-    (fixture.nativeElement as HTMLElement).style.cssText =
-      'display:block;width:320px';
+    (fixture.nativeElement as HTMLElement).style.cssText = hostStyle;
     fixture.componentRef.setInput('view', view);
     fixture.detectChanges();
     return fixture;
@@ -299,7 +303,10 @@ describe('SpotDetailComponent', () => {
       expect(action.classList).toContain('phosphor-bloom--plate');
       expect(action.offsetHeight).toBeGreaterThanOrEqual(44);
     }
-    expect(shareButton().getAttribute('aria-label')).toBe('Share Alpha Bank');
+    // The visible words SHARE SPOT lead the name, so voice control and screen readers agree.
+    expect(shareButton().getAttribute('aria-label')).toBe(
+      'Share spot: Alpha Bank',
+    );
   });
 
   it('shares through the native sheet and shows no line for it', async () => {
@@ -427,6 +434,93 @@ describe('SpotDetailComponent', () => {
     expect(retry.classList).toContain('phosphor-bloom--plate');
     retry.click();
     expect(retried).toBe(1);
+  });
+
+  it('keeps the reserved photo boxes and the name in place when the file cannot be loaded', () => {
+    create(loading());
+    const nameTop = find('.spot-detail__name')!.getBoundingClientRect().top;
+    show(failed());
+    expect(find('.spot-detail__reserved')).not.toBeNull();
+    expect(
+      find<HTMLImageElement>('.spot-detail__cover')!.getAttribute('src'),
+    ).toBe('https://photos.test/thumb/vienna/a-1-1.webp');
+    expect(find('.spot-detail__strip-reserved')).not.toBeNull();
+    expect(find('.spot-detail__name')!.getBoundingClientRect().top).toBe(
+      nameTop,
+    );
+  });
+
+  it('keeps the name in place through RETRY, from failed to loading to loaded', () => {
+    create(failed());
+    const nameTop = find('.spot-detail__name')!.getBoundingClientRect().top;
+    show(loading());
+    expect(find('.spot-detail__name')!.getBoundingClientRect().top).toBe(
+      nameTop,
+    );
+    show(loaded());
+    expect(find('.spot-detail__name')!.getBoundingClientRect().top).toBe(
+      nameTop,
+    );
+  });
+
+  it('holds the 4:3 box for a cold link whose file cannot be loaded', () => {
+    create(failed(null));
+    expect(find('.spot-detail__reserved')).not.toBeNull();
+    expect(find('.spot-detail__cover')).toBeNull();
+  });
+
+  it('reserves nothing for a failed file whose preview had no photos', () => {
+    create(failed(preview({ cover: null, photoCount: 0 })));
+    expect(find('.spot-detail__reserved')).toBeNull();
+    expect(find('.spot-detail__rights')).toBeNull();
+  });
+
+  it('centres the current strip photo within the strip, whatever the page offset', async () => {
+    const photos = Array.from({ length: 6 }, (_, i) => `vienna/a-1-${i}.webp`);
+    // A narrow host pushed off the page's left edge: the strip overflows, and an offset measured
+    // from anywhere but the strip itself would come out 40 px too far along.
+    create(loaded(detail({ photos })), {
+      hostStyle: 'display:block;width:120px;margin-left:40px',
+    });
+    const strip = find('.spot-detail__strip')!;
+    const scrollTo = spyOn(strip, 'scrollTo');
+    stripButtons()[2].click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(scrollTo).toHaveBeenCalledTimes(1);
+    const photo = stripButtons()[2];
+    const expected =
+      photo.getBoundingClientRect().left -
+      strip.getBoundingClientRect().left +
+      strip.scrollLeft -
+      (strip.clientWidth - photo.offsetWidth) / 2;
+    expect((scrollTo.calls.mostRecent().args[0] as ScrollToOptions).left).toBe(
+      expected,
+    );
+  });
+
+  it('focuses the heading without scrolling the pane to it', async () => {
+    const focus = spyOn(HTMLElement.prototype, 'focus').and.callThrough();
+    create(loaded());
+    await fixture.whenStable();
+    const heading = find('h2')!;
+    const calls = focus.calls
+      .all()
+      .filter((call) => call.object === heading)
+      .map((call) => call.args[0]);
+    expect(calls).toEqual([{ preventScroll: true }]);
+  });
+
+  it('opens another spot at the top of the pane', async () => {
+    create(loaded(), {
+      hostStyle: 'display:block;width:320px;height:100px;overflow-y:auto',
+    });
+    await fixture.whenStable();
+    host().scrollTop = 120;
+    expect(host().scrollTop).toBeGreaterThan(0);
+    show(loaded(detail({ id: 'b-2', name: 'Beta Ledge' })));
+    await fixture.whenStable();
+    expect(host().scrollTop).toBe(0);
   });
 
   it('moves focus to the heading when a spot opens', async () => {
