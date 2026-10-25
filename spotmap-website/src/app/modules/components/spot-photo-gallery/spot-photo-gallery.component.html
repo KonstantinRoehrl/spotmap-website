@@ -4,51 +4,71 @@
   (touchstart)="onTouchStart($event)"
   (touchend)="onTouchEnd($event)"
 >
-  @if (currentFailed()) {
-    <div
-      class="gallery__placeholder"
-      role="img"
-      [attr.aria-label]="placeholderLabel()"
-    >
-      <span class="gallery__placeholder-line gallery__placeholder-line--lost"
-        >&gt; SIGNAL LOST</span
-      >&ngsp;<span
-        class="gallery__placeholder-line gallery__placeholder-line--dim"
-        >PHOTO UNREACHABLE</span
-      >
+  @if (showsRain()) {
+    <div class="gallery__loading" animate.leave="gallery__loading--leaving">
+      <app-ascii-rain [columns]="8" [rows]="6" />
     </div>
-  } @else {
-    @if (!currentLoaded()) {
-      <div class="gallery__loading" animate.leave="gallery__loading--leaving">
-        <app-ascii-rain [columns]="8" [rows]="6" />
-      </div>
-    }
-    <img
-      #photo
-      class="gallery__photo"
-      [class.gallery__photo--loaded]="thumbLoaded()"
-      [src]="current()"
-      [alt]="altText()"
-      loading="lazy"
-      decoding="async"
-      (load)="onImageLoad($event)"
-      (error)="onImageError($event)"
-    />
   }
 
-  <!-- Over the thumb (or the placeholder) and transparent until it has loaded; the thumb carries
-       the alt text, so this copy is silent. -->
-  @if (showsFull()) {
+  <!-- One block per slide, so a photo stepped to is a new element that fades in from nothing,
+       whether or not it was already loaded. -->
+  @for (slideUrl of [current()]; track slideUrl) {
+    @if (currentFailed()) {
+      <div
+        class="gallery__placeholder"
+        role="img"
+        [attr.aria-label]="placeholderLabel()"
+      >
+        <span class="gallery__placeholder-line gallery__placeholder-line--lost"
+          >&gt; SIGNAL LOST</span
+        >&ngsp;<span
+          class="gallery__placeholder-line gallery__placeholder-line--dim"
+          >PHOTO UNREACHABLE</span
+        >
+      </div>
+    } @else {
+      <img
+        #photo
+        class="gallery__photo"
+        [class.gallery__photo--loaded]="thumbLoaded()"
+        [src]="current()"
+        [alt]="altText()"
+        loading="lazy"
+        decoding="async"
+        (load)="onImageLoad($event)"
+        (error)="onImageError($event)"
+        (transitionend)="onFadeEnd($event)"
+      />
+    }
+
+    <!-- Over the thumb (or the placeholder) and transparent until it has loaded; the thumb carries
+         the alt text, so this copy is silent. -->
+    @if (showsFull()) {
+      <img
+        #full
+        class="gallery__full"
+        [class.gallery__full--loaded]="fullLoaded()"
+        [class.gallery__full--instant]="fullInstant()"
+        [src]="currentFull()"
+        alt=""
+        decoding="async"
+        (load)="onImageLoad($event)"
+        (error)="onImageError($event)"
+        (transitionend)="onFadeEnd($event)"
+      />
+    }
+  }
+
+  <!-- The photo the last step left, beneath the incoming one until that has faded in. Decorative
+       and silent: the incoming photo carries the alt text. Decoded synchronously, since it is
+       already loaded and a late decode would leave a blank frame where the old photo was. -->
+  @if (outgoingUrl(); as outgoing) {
     <img
-      #full
-      class="gallery__full"
-      [class.gallery__full--loaded]="fullLoaded()"
-      [class.gallery__full--instant]="fullInstant()"
-      [src]="currentFull()"
+      class="gallery__outgoing"
+      [src]="outgoing"
       alt=""
-      decoding="async"
-      (load)="onImageLoad($event)"
-      (error)="onImageError($event)"
+      aria-hidden="true"
+      decoding="sync"
     />
   }
 

@@ -205,9 +205,10 @@ describe('SpotPhotoGalleryComponent', () => {
       expect(el.querySelector('.gallery')?.classList).not.toContain(
         'gallery--instant',
       );
-      expect(
-        el.querySelector('.gallery__loading app-ascii-rain'),
-      ).not.toBeNull();
+      expect(el.querySelector('.gallery__loading')).toBeNull();
+      expect(el.querySelector('.gallery__outgoing')?.getAttribute('src')).toBe(
+        'a.webp',
+      );
       expect(el.querySelector('.gallery__photo')?.classList).not.toContain(
         'gallery__photo--loaded',
       );
@@ -220,7 +221,7 @@ describe('SpotPhotoGalleryComponent', () => {
       );
     });
 
-    it('shows the cached slide at once again when swiping back to it', async () => {
+    it('crossfades back to a cached slide instead of cutting to it', async () => {
       const c = create(['a.webp', 'b.webp']);
       await settle();
       c.next();
@@ -229,11 +230,14 @@ describe('SpotPhotoGalleryComponent', () => {
       c.previous();
       await settle();
       const el: HTMLElement = fixture.nativeElement;
-      expect(el.querySelector('.gallery')?.classList).toContain(
+      expect(el.querySelector('.gallery')?.classList).not.toContain(
         'gallery--instant',
       );
       expect(el.querySelector('.gallery__photo')?.classList).toContain(
         'gallery__photo--loaded',
+      );
+      expect(el.querySelector('.gallery__outgoing')?.getAttribute('src')).toBe(
+        'b.webp',
       );
       expect(el.querySelector('.gallery__loading')).toBeNull();
     });
@@ -258,6 +262,210 @@ describe('SpotPhotoGalleryComponent', () => {
     });
   });
 
+  describe('stepping between photos', () => {
+    /** A real one-pixel image, so a photo that is given to the page loads and never errors. */
+    const PIXEL =
+      'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+    const photos = [`${PIXEL}#a`, `${PIXEL}#b`, `${PIXEL}#c`];
+
+    /** Makes every image count as already complete, the way the rail's cached thumbs do. */
+    function cacheEverything() {
+      spyOnProperty(HTMLImageElement.prototype, 'complete').and.returnValue(
+        true,
+      );
+      spyOnProperty(HTMLImageElement.prototype, 'naturalWidth').and.returnValue(
+        640,
+      );
+    }
+
+    /** Renders and runs the after-render check for whatever slide is on screen. */
+    async function settle() {
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+    }
+
+    const el = () => fixture.nativeElement as HTMLElement;
+    const outgoing = () =>
+      el().querySelectorAll<HTMLImageElement>('.gallery__outgoing');
+    const incoming = () =>
+      el().querySelector<HTMLImageElement>('.gallery__photo')!;
+
+    /** The opacity transitions the browser is running on `image`, with their lengths in ms. */
+    function opacityFades(image: HTMLElement): number[] {
+      return image
+        .getAnimations()
+        .filter(
+          (animation): animation is CSSTransition =>
+            animation instanceof CSSTransition &&
+            animation.transitionProperty === 'opacity',
+        )
+        .map((animation) =>
+          Number(animation.effect!.getComputedTiming().duration),
+        );
+    }
+
+    /** Resolves when `image` has finished fading in, or after a second so a missing fade fails. */
+    function fadeEnded(image: HTMLElement): Promise<void> {
+      return new Promise((resolve) => {
+        image.addEventListener('transitionend', () => resolve(), {
+          once: true,
+        });
+        setTimeout(resolve, 1000);
+      });
+    }
+
+    it('keeps the outgoing photo under a cached incoming one while it fades in', async () => {
+      cacheEverything();
+      const c = create(photos);
+      await settle();
+      c.next();
+      await settle();
+      expect(outgoing().length).toBe(1);
+      expect(outgoing()[0]?.getAttribute('src')).toBe(photos[0]);
+      expect(incoming().getAttribute('src')).toBe(photos[1]);
+      expect(el().querySelector('.gallery')?.classList).not.toContain(
+        'gallery--instant',
+      );
+      expect(opacityFades(incoming())).toEqual([300]);
+      expect(getComputedStyle(incoming()).transitionDuration).toBe('0.3s');
+    });
+
+    it('lets the outgoing photo go once the incoming one has faded in', async () => {
+      cacheEverything();
+      const c = create(photos);
+      await settle();
+      c.next();
+      await settle();
+      expect(outgoing().length).toBe(1);
+      await fadeEnded(incoming());
+      fixture.detectChanges();
+      expect(outgoing().length).toBe(0);
+      expect(incoming().getAttribute('src')).toBe(photos[1]);
+    });
+
+    it('does not fade the first photo, even though it is cached', async () => {
+      cacheEverything();
+      create(photos);
+      await settle();
+      expect(el().querySelector('.gallery')?.classList).toContain(
+        'gallery--instant',
+      );
+      expect(incoming().classList).toContain('gallery__photo--loaded');
+      expect(opacityFades(incoming())).toEqual([]);
+      expect(outgoing().length).toBe(0);
+    });
+
+    it('leaves one outgoing layer however fast it is stepped, and none afterwards', async () => {
+      cacheEverything();
+      const c = create(photos);
+      await settle();
+      for (let step = 0; step < 5; step++) {
+        c.next();
+        await settle();
+        expect(outgoing().length).toBe(1);
+        expect(el().querySelectorAll('img').length).toBe(2);
+      }
+      await fadeEnded(incoming());
+      fixture.detectChanges();
+      expect(outgoing().length).toBe(0);
+      expect(el().querySelectorAll('img').length).toBe(1);
+    });
+
+    it('announces only the photo on screen, and keeps the outgoing layer silent', async () => {
+      cacheEverything();
+      const c = create(photos);
+      await settle();
+      c.next();
+      await settle();
+      expect(incoming().getAttribute('alt')).toBe('Hbf Curb, photo 2 of 3');
+      expect(outgoing()[0]?.getAttribute('alt')).toBe('');
+      expect(outgoing()[0]?.getAttribute('aria-hidden')).toBe('true');
+      const named = Array.from(el().querySelectorAll('img')).filter((image) =>
+        image.getAttribute('alt'),
+      );
+      expect(named.length).toBe(1);
+    });
+
+    it('keeps a fade for the step under reduced motion', async () => {
+      cacheEverything();
+      const c = create(photos);
+      await settle();
+      c.next();
+      await settle();
+      // The reduced-motion media query cannot be switched on here, so its rules are read instead:
+      // none may switch the stepped-to photo's transition off.
+      const switchedOff: string[] = [];
+      for (const sheet of Array.from(document.styleSheets)) {
+        for (const rule of Array.from(sheet.cssRules)) {
+          if (
+            rule instanceof CSSMediaRule &&
+            rule.conditionText.includes('prefers-reduced-motion')
+          ) {
+            for (const inner of Array.from(rule.cssRules)) {
+              if (
+                inner instanceof CSSStyleRule &&
+                incoming().matches(inner.selectorText) &&
+                inner.style.getPropertyValue('transition').trim() === 'none'
+              ) {
+                switchedOff.push(inner.selectorText);
+              }
+            }
+          }
+        }
+      }
+      expect(switchedOff).toEqual([]);
+    });
+
+    describe('to a photo that has not loaded', () => {
+      beforeEach(() => {
+        // Only the first photo is cached; the others stay unloaded until the test loads them.
+        spyOnProperty(HTMLImageElement.prototype, 'complete').and.callFake(
+          function (this: HTMLImageElement) {
+            return this.getAttribute('src') === 'a.webp';
+          },
+        );
+        spyOnProperty(HTMLImageElement.prototype, 'naturalWidth').and.callFake(
+          function (this: HTMLImageElement) {
+            return this.getAttribute('src') === 'a.webp' ? 640 : 0;
+          },
+        );
+      });
+
+      it('keeps the outgoing photo until the incoming one has loaded and faded in', async () => {
+        const c = create(['a.webp', 'b.webp']);
+        await settle();
+        c.next();
+        await settle();
+        expect(outgoing().length).toBe(1);
+        expect(incoming().classList).not.toContain('gallery__photo--loaded');
+        incoming().dispatchEvent(new Event('load'));
+        fixture.detectChanges();
+        expect(incoming().classList).toContain('gallery__photo--loaded');
+        expect(outgoing().length).toBe(1);
+        incoming().dispatchEvent(
+          new TransitionEvent('transitionend', {
+            propertyName: 'opacity',
+            bubbles: true,
+          }),
+        );
+        fixture.detectChanges();
+        expect(outgoing().length).toBe(0);
+      });
+
+      it('ends in the placeholder, without the outgoing photo, when the incoming one fails', async () => {
+        const c = create(['a.webp', 'b.webp']);
+        await settle();
+        c.next();
+        await settle();
+        expect(outgoing().length).toBe(1);
+        failCurrentImage();
+        expect(el().querySelector('.gallery__placeholder')).not.toBeNull();
+        expect(outgoing().length).toBe(0);
+      });
+    });
+  });
+
   it('rounds the arrows on the soft radius scale', () => {
     create(['a.webp', 'b.webp']);
     const probe = document.createElement('div');
@@ -274,14 +482,26 @@ describe('SpotPhotoGalleryComponent', () => {
     }
   });
 
-  it('shows the rain again for a slide not yet loaded, never for one that has', () => {
-    const c = create(['a.webp', 'b.webp']);
-    loadCurrentImage();
+  it('shows the rain only where no photo has been on screen to step away from', () => {
+    const c = create(['a.webp', 'b.webp', 'c.webp']);
+    // Stepping away from a slide that never loaded leaves nothing to keep, so the rain stays.
     c.next();
     fixture.detectChanges();
     expect(
       fixture.nativeElement.querySelector('.gallery__loading'),
     ).not.toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('.gallery__outgoing'),
+    ).toBeNull();
+    // Stepping away from a loaded slide keeps that photo on screen while the next one loads.
+    loadCurrentImage();
+    c.next();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.gallery__loading')).toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('.gallery__outgoing'),
+    ).not.toBeNull();
+    // A slide that has loaded never shows the rain again.
     c.previous();
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.gallery__loading')).toBeNull();

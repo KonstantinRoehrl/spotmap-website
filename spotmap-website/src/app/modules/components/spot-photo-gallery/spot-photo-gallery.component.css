@@ -15,6 +15,9 @@
   /* The whole width the host gives it, whether or not the photo has loaded, so a broken photo
      never collapses the panel to its placeholder text. */
   width: 100%;
+  /* Its own stacking context, so the outgoing photo can sit at z-index -1 above the panel's
+     background and below everything else in it. */
+  isolation: isolate;
 }
 
 .gallery__photo {
@@ -47,15 +50,38 @@
   opacity: 1;
 }
 
-/* A photo already in the cache shows at once: fading it in would only delay it. The rain, which
-   renders for one pass before the slide is known to be complete, must not fade out over it. */
+/* A photo stepped to is a new element that starts transparent, so it fades in over the outgoing
+   photo whether or not it was already loaded; the global reduced-motion net shortens that fade to
+   --dur-fade but keeps it. */
+@starting-style {
+  .gallery__photo,
+  .gallery__full {
+    opacity: 0;
+  }
+}
+
+/* The photo the last step left, beneath the incoming one at the same crop until that has faded
+   in. */
+.gallery__outgoing {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* The first photo, when already in the cache, shows at once: fading it in would only delay it.
+   The rain, which renders for one pass before the slide is known to be complete, must not fade
+   out over it. */
 .gallery--instant .gallery__photo,
 .gallery--instant .gallery__loading,
 .gallery__full--instant {
   transition: none;
 }
 
-/* The global reduced-motion net would give these a short fade; a cached photo has nothing to
+/* The global reduced-motion net would give these a short fade; the first photo has nothing to
    fade from, so the net's !important is answered with a more specific one. */
 @media (prefers-reduced-motion: reduce) {
   .gallery--instant .gallery__photo,
