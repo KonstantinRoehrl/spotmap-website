@@ -1,0 +1,124 @@
+/* The rail bleeds through the 16 px inset of the panel it sits in (the detail's padding), so its
+   photos scroll out to the panel's edges; the scroller pads the inset back and snaps to it. */
+:host {
+  display: block;
+  margin-inline: -16px;
+}
+
+/* 112 px frames in the phone's sheet; 132 px in the wide column (WIDE_LAYOUT_QUERY's width). */
+.rail {
+  display: flex;
+  gap: 8px;
+  height: 112px;
+  padding-inline: 16px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 16px;
+  scrollbar-width: none;
+}
+
+.rail::-webkit-scrollbar {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .rail {
+    height: 132px;
+  }
+}
+
+/* One 4:3 frame: the bloom's rest border is the 1 px `line` frame, so hover and focus light it
+   like any other bloom control; the inset bloom keeps the ring inside the clipping rail. */
+.rail__photo {
+  position: relative;
+  flex: none;
+  box-sizing: border-box;
+  height: 100%;
+  aspect-ratio: 4 / 3;
+  padding: 0;
+  border-width: 1px;
+  border-style: solid;
+  --bloom-rest-border: var(--color-line);
+  --bloom-rest-bg: var(--color-surface);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  scroll-snap-align: start;
+  cursor: pointer;
+}
+
+.rail__img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity var(--dur-crossfade) ease-out;
+}
+
+.rail__img--loaded {
+  opacity: 1;
+}
+
+/* A photo already in the cache shows at once: fading it in would only delay it. */
+.rail__photo--instant .rail__img,
+.rail__photo--instant .rail__loading {
+  transition: none;
+}
+
+/* The global reduced-motion net would give these a short fade; a cached photo has nothing to
+   fade from, so the net's !important is answered with a more specific one. */
+@media (prefers-reduced-motion: reduce) {
+  .rail__photo--instant .rail__img,
+  .rail__photo--instant .rail__loading {
+    transition: none !important;
+  }
+}
+
+.rail__loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  transition: opacity var(--dur-crossfade) ease-out;
+}
+
+.rail__loading app-ascii-rain {
+  height: calc(5 * 13px);
+  font-size: 12px;
+  --rain-line: 13px;
+}
+
+.rail__loading--leaving {
+  opacity: 0;
+}
+
+/* The gallery's failure voice, in the frame the photo would have filled. */
+.rail__failed {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-align: center;
+  color: var(--color-phosphor);
+}
+
+/* Only the SIGNAL LOST line takes the Standard tier; the dim line beside it stays unlit. */
+.rail__failed-line--lost {
+  text-shadow: var(--glow-text-standard);
+}
+
+.rail__failed-line--dim {
+  color: var(--color-phosphor-dim);
+  text-shadow: none;
+}
