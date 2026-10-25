@@ -186,8 +186,14 @@ export class SpotShareComponent {
   /** The pending timer that ends {@link feedback}. */
   private feedbackTimer?: ReturnType<typeof setTimeout>;
 
+  /** Whether the control was torn down, after which a copy or share that finishes shows nothing. */
+  private destroyed = false;
+
   constructor() {
-    inject(DestroyRef).onDestroy(() => this.clearFeedback());
+    inject(DestroyRef).onDestroy(() => {
+      this.destroyed = true;
+      this.clearFeedback();
+    });
 
     // Another spot starts with its own label and a closed menu.
     effect(() => {
@@ -281,9 +287,10 @@ export class SpotShareComponent {
   protected async onShareItem(): Promise<void> {
     this.closeMenu(true);
     this.clearFeedback();
+    const spotId = this.spotId();
     const outcome = await shareSpot(this.link(), this.spotName(), this.nav);
     if (outcome === 'copied' || outcome === 'copy-failed') {
-      this.showFeedback(outcome);
+      this.showFeedbackFor(spotId, outcome);
     }
   }
 
@@ -328,7 +335,20 @@ export class SpotShareComponent {
   /** Copies the spot's link and reports the outcome on the trigger. */
   private async copy(): Promise<void> {
     this.clearFeedback();
-    this.showFeedback(await copySpotLink(this.link(), this.nav));
+    const spotId = this.spotId();
+    this.showFeedbackFor(spotId, await copySpotLink(this.link(), this.nav));
+  }
+
+  /**
+   * Shows `outcome` of a copy that was started for `spotId`, unless the control has since been
+   * handed another spot or torn down: the outcome then belongs to a label nobody is looking at
+   * and is dropped, with no announcement and no timer. Every copy and share goes through here.
+   */
+  private showFeedbackFor(spotId: string, outcome: ShareFeedback): void {
+    if (this.destroyed || this.spotId() !== spotId) {
+      return;
+    }
+    this.showFeedback(outcome);
   }
 
   /**

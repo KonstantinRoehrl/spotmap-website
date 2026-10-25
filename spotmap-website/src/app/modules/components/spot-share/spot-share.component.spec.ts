@@ -2,6 +2,7 @@ import {
   ComponentFixture,
   TestBed,
   fakeAsync,
+  flush,
   flushMicrotasks,
   tick,
 } from '@angular/core/testing';
@@ -21,6 +22,21 @@ function withSheet(share: jasmine.Spy, writeText: jasmine.Spy): ShareNavigator {
     canShare: () => true,
     clipboard: { writeText },
   } as unknown as ShareNavigator;
+}
+
+/** A promise a spec settles by hand, to hold a copy or a share sheet pending while the control changes. */
+function pending<T = void>(): {
+  promise: Promise<T>;
+  resolve: (value: T) => void;
+  reject: (reason: unknown) => void;
+} {
+  let resolve!: (value: T) => void;
+  let reject!: (reason: unknown) => void;
+  const promise = new Promise<T>((onResolve, onReject) => {
+    resolve = onResolve;
+    reject = onReject;
+  });
+  return { promise, resolve, reject };
 }
 
 describe('SpotShareComponent', () => {
@@ -168,6 +184,83 @@ describe('SpotShareComponent', () => {
         'Copy link: Beta Ledge',
       );
     });
+  });
+
+  describe('an outcome that arrives late', () => {
+    /** Hands the control another spot and renders it, as the detail does when the visitor moves on. */
+    function showOtherSpot(): void {
+      fixture.componentRef.setInput('spotId', 'b-2');
+      fixture.componentRef.setInput('spotName', 'Beta Ledge');
+      fixture.detectChanges();
+    }
+
+    it('is dropped when a copy finishes after another spot was handed to it', fakeAsync(() => {
+      const copy = pending();
+      writeText.and.returnValue(copy.promise);
+      create();
+      trigger().click();
+      flushMicrotasks();
+      showOtherSpot();
+      copy.resolve();
+      flushMicrotasks();
+      fixture.detectChanges();
+      expect(shownLabel()).toBe('> COPY LINK');
+      expect(status().textContent!.trim()).toBe('');
+      // flush() reports the time it ran on: 0 means no feedback timer was armed.
+      expect(flush()).toBe(0);
+    }));
+
+    it('is dropped when a share sheet fails over to a copy after another spot was handed to it', fakeAsync(() => {
+      const sheet = pending();
+      share.and.returnValue(sheet.promise);
+      create(withSheet(share, writeText));
+      trigger().click();
+      flushMicrotasks();
+      fixture.detectChanges();
+      items()[1].click();
+      flushMicrotasks();
+      showOtherSpot();
+      sheet.reject(new DOMException('blocked', 'NotAllowedError'));
+      flushMicrotasks();
+      fixture.detectChanges();
+      expect(writeText).toHaveBeenCalledTimes(1);
+      expect(shownLabel()).toBe('> SHARE SPOT ▾');
+      expect(status().textContent!.trim()).toBe('');
+      expect(flush()).toBe(0);
+    }));
+
+    it('arms no timer when the control was destroyed while the copy was pending', fakeAsync(() => {
+      const copy = pending();
+      writeText.and.returnValue(copy.promise);
+      create();
+      trigger().click();
+      flushMicrotasks();
+      fixture.destroy();
+      copy.resolve();
+      flushMicrotasks();
+      expect(flush()).toBe(0);
+    }));
+
+    it('still shows for the same spot, and clears after the usual time', fakeAsync(() => {
+      const copy = pending();
+      writeText.and.returnValue(copy.promise);
+      create();
+      trigger().click();
+      flushMicrotasks();
+      tick(500);
+      copy.resolve();
+      flushMicrotasks();
+      fixture.detectChanges();
+      expect(shownLabel()).toBe('> LINK COPIED');
+      expect(status().textContent!.trim()).toBe('Link copied');
+      tick(SHARE_FEEDBACK_MS - 1);
+      fixture.detectChanges();
+      expect(shownLabel()).toBe('> LINK COPIED');
+      tick(1);
+      fixture.detectChanges();
+      expect(shownLabel()).toBe('> COPY LINK');
+      expect(status().textContent!.trim()).toBe('');
+    }));
   });
 
   describe('where there is a share sheet', () => {
