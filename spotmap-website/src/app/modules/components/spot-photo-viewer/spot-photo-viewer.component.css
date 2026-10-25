@@ -173,7 +173,8 @@
 }
 
 /* The others are dimmed; the current one is whole, in a 2px amber frame — amber's one role, the
-   current selection. The frame is an inset outline, so it never moves the row. */
+   current selection. The frame is an inset outline, so it never moves the row; its width, offset
+   and colour ease together with the dimming. */
 .viewer__thumb img {
   display: block;
   width: 100%;
@@ -185,7 +186,9 @@
   opacity: 0.55;
   transition:
     opacity var(--dur-fast) ease-out,
-    outline-color var(--dur-fast) ease-out;
+    outline-color var(--dur-fast) ease-out,
+    outline-width var(--dur-fast) ease-out,
+    outline-offset var(--dur-fast) ease-out;
 }
 
 .viewer__thumb.is-current img {

@@ -324,6 +324,31 @@ describe('SpotPhotoViewer', () => {
     flush();
   }));
 
+  it('eases the strip frame’s width and offset along with its colour', fakeAsync(() => {
+    open();
+    const image = document.querySelector<HTMLImageElement>(
+      'app-spot-photo-viewer .viewer__thumb img',
+    )!;
+    const style = getComputedStyle(image);
+    const properties = style.transitionProperty
+      .split(',')
+      .map((name) => name.trim());
+    expect(properties).toEqual(
+      jasmine.arrayContaining([
+        'opacity',
+        'outline-color',
+        'outline-width',
+        'outline-offset',
+      ]),
+    );
+    // One shared timing, so the frame's width, offset and colour move as one.
+    expect(
+      new Set(style.transitionDuration.split(',').map((time) => time.trim()))
+        .size,
+    ).toBe(1);
+    flush();
+  }));
+
   it('leaves the strip out for a single photo', fakeAsync(() => {
     open({ thumbs: ['t1.webp'], fulls: ['f1.webp'], index: 0 });
     expect(q('.viewer__strip')).toBeNull();
