@@ -1,7 +1,14 @@
 <div class="ascii-container" #asciiContainer>
-  <pre class="ascii-display select-none" [style.font-size.px]="fontSize()">
-     <span class="loading-dots"></span>
-    <span>{{ baseText() }}</span>
-    <span class="loading-dots">{{ dots() }}</span>
+  <pre
+    class="ascii-display select-none"
+    [style.font-size.px]="renderedFontSize()"
+  >
+    @if (dotGutters()) {
+      <span class="loading-dots"></span>
+    }
+    <span class="ascii-line">{{ baseText() }}</span>
+    @if (dotGutters()) {
+      <span class="loading-dots">{{ dots() }}</span>
+    }
   </pre>
 </div>
