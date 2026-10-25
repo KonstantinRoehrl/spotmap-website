@@ -1,5 +1,22 @@
 <div class="map-page" [class.map-page--wide]="wide()">
-  @if (!wide()) {
+  @if (wide()) {
+    <header class="map-header">
+      <app-ascii-animation-text
+        class="map-header__banner"
+        [messages]="bannerMessages()"
+        [fixedFontSize]="headerBannerFontPx"
+        [dotGutters]="false"
+        [waitFrames]="40"
+        [animationSpeed]="45"
+        [loop]="true"
+      />
+      <app-city-picker
+        class="map-header__picker"
+        [selected]="store.city()"
+        (citySelected)="store.selectCity($event)"
+      />
+    </header>
+  } @else {
     <header class="map-topbar">
       <!-- The banner is recreated, not given other lines, when the bar goes compact. -->
       <ng-template #topbarBanner let-lines>
@@ -30,97 +47,98 @@
     </header>
   }
 
-  <div #body class="map-page__body">
-    <!-- Outside every layout @if: crossing 1024 px must never rebuild the map. -->
-    <div class="map-page__map">
-      @if (store.mapCity(); as city) {
-        <app-map-container
-          class="map-page__map-container select-none"
-          [city]="city"
-          [selectedId]="store.selectedId()"
-          [hoveredId]="store.hoveredId()"
-          [openOn]="store.openOn()"
-          [coveredInsets]="coveredInsets()"
-          [attributionCorner]="wide() ? 'bottom-right' : 'top-right'"
-          (spotsLoaded)="store.setList($event)"
-          (boundsChange)="store.setBounds($event)"
-          (spotClick)="store.open($event, 'pin')"
-          (emptyClick)="onEmptyMapTap()"
-          (pinHover)="store.setHovered($event)"
+  <div class="map-page__body">
+    <!-- The window and the map in it sit outside every layout @if: crossing 1024 px must never
+         rebuild the map. -->
+    <div #frame class="map-window" [class.map-window--framed]="wide()">
+      <div class="map-page__map">
+        @if (store.mapCity(); as city) {
+          <app-map-container
+            class="map-page__map-container select-none"
+            [city]="city"
+            [selectedId]="store.selectedId()"
+            [hoveredId]="store.hoveredId()"
+            [openOn]="store.openOn()"
+            [coveredInsets]="coveredInsets()"
+            [attributionCorner]="wide() ? 'bottom-right' : 'top-right'"
+            (spotsLoaded)="store.setList($event)"
+            (boundsChange)="store.setBounds($event)"
+            (spotClick)="store.open($event, 'pin')"
+            (emptyClick)="onEmptyMapTap()"
+            (pinHover)="store.setHovered($event)"
+          />
+        }
+      </div>
+
+      @if (wide()) {
+        <app-split-handle
+          class="map-window__handle"
+          [columnWidth]="columnWidth()"
+          [frameWidth]="frameSize().width"
+          (widthChange)="onColumnWidth($event)"
+          (widthReset)="resetColumnWidth()"
         />
+        <aside
+          class="spot-column"
+          aria-label="Spots"
+          [class.spot-column--easing]="columnEasing()"
+          [style.width.px]="columnWidth()"
+          (transitionend)="onColumnTransitionEnd($event)"
+        >
+          <!-- Both variants share one grid cell, so swapping them is a crossfade, not a cut. -->
+          <div class="spot-column__toolbar">
+            @if (store.detail()) {
+              <div
+                class="spot-column__count-content"
+                animate.leave="spot-column__count-content--leaving"
+              >
+                <!-- The name starts with the visible words, then says what a tap does. -->
+                <button
+                  type="button"
+                  class="spot-column__back phosphor-bloom phosphor-bloom--plate"
+                  appPointerBloom
+                  [attr.aria-label]="
+                    (count() === null ? 'In view' : count() + ' in view') +
+                    ', back to the list'
+                  "
+                  (click)="store.close()"
+                >
+                  {{ backLabel() }}
+                </button>
+              </div>
+            } @else {
+              <div
+                class="spot-column__count-content"
+                animate.leave="spot-column__count-content--leaving"
+              >
+                <!-- Not tabbable: focus lands here when a spot closes and no row can take it. -->
+                <span class="spot-column__count-line" tabindex="-1">{{
+                  countLine()
+                }}</span>
+                <span class="spot-column__order" aria-hidden="true">A–Z</span>
+              </div>
+            }
+          </div>
+          <div class="spot-pane">
+            <ng-container [ngTemplateOutlet]="pane" />
+          </div>
+        </aside>
+      } @else {
+        <app-spot-sheet
+          class="map-page__sheet"
+          [state]="sheet().state"
+          [availableHeight]="frameSize().height"
+          [count]="count()"
+          (headTap)="feedSheet('head')"
+          (back)="onSheetBack()"
+          (close)="onSheetClose()"
+        >
+          <div class="spot-pane">
+            <ng-container [ngTemplateOutlet]="pane" />
+          </div>
+        </app-spot-sheet>
       }
     </div>
-
-    @if (wide()) {
-      <aside class="spot-column" aria-label="Spots">
-        <div class="spot-column__banner">
-          <app-ascii-animation-text
-            class="ascii-animation"
-            [messages]="bannerMessages()"
-            [waitFrames]="40"
-            [animationSpeed]="45"
-            [loop]="true"
-            [centered]="true"
-          />
-        </div>
-        <app-city-picker
-          class="spot-column__picker"
-          [selected]="store.city()"
-          (citySelected)="store.selectCity($event)"
-        />
-        <!-- Both variants share one grid cell, so swapping them is a crossfade, not a cut. -->
-        <div class="spot-column__count">
-          @if (store.detail()) {
-            <div
-              class="spot-column__count-content"
-              animate.leave="spot-column__count-content--leaving"
-            >
-              <!-- The name starts with the visible words, then says what a tap does. -->
-              <button
-                type="button"
-                class="spot-column__back phosphor-bloom phosphor-bloom--plate"
-                appPointerBloom
-                [attr.aria-label]="
-                  (count() === null ? 'In view' : count() + ' in view') +
-                  ', back to the list'
-                "
-                (click)="store.close()"
-              >
-                {{ backLabel() }}
-              </button>
-            </div>
-          } @else {
-            <div
-              class="spot-column__count-content"
-              animate.leave="spot-column__count-content--leaving"
-            >
-              <!-- Not tabbable: focus lands here when a spot closes and no row can take it. -->
-              <span class="spot-column__count-line" tabindex="-1">{{
-                countLine()
-              }}</span>
-              <span class="spot-column__order" aria-hidden="true">A–Z</span>
-            </div>
-          }
-        </div>
-        <div class="spot-pane">
-          <ng-container [ngTemplateOutlet]="pane" />
-        </div>
-      </aside>
-    } @else {
-      <app-spot-sheet
-        class="map-page__sheet"
-        [state]="sheet().state"
-        [availableHeight]="bodyHeight()"
-        [count]="count()"
-        (headTap)="feedSheet('head')"
-        (back)="onSheetBack()"
-        (close)="onSheetClose()"
-      >
-        <div class="spot-pane">
-          <ng-container [ngTemplateOutlet]="pane" />
-        </div>
-      </app-spot-sheet>
-    }
   </div>
 
   <p class="sr-only" role="status" aria-live="polite">{{ announcement() }}</p>
@@ -132,7 +150,8 @@
   </p>
 </div>
 
-<!-- The one pane, list or open spot, rendered into the column or the sheet. -->
+<!-- The one pane, list or open spot, rendered into the column or the sheet. The detail pads
+     itself (its photo rail bleeds through that padding); the list gets the page's 8 px. -->
 <ng-template #pane>
   @if (store.detail(); as view) {
     <app-spot-detail
@@ -143,7 +162,7 @@
     />
   } @else {
     <app-spot-list
-      class="spot-pane__view"
+      class="spot-pane__view spot-pane__view--list"
       animate.leave="spot-pane__view--leaving"
       [spots]="store.shownSpots()"
       [notice]="store.notice()"

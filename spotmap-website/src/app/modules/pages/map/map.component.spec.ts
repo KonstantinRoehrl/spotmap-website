@@ -1,7 +1,7 @@
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { Component, input, signal } from '@angular/core';
+import { Component, input, output, signal } from '@angular/core';
 import {
   ComponentFixture,
   discardPeriodicTasks,
@@ -28,12 +28,20 @@ import { SpotMapComponent } from '../../components/spot-map/spot-map.component';
 import { SpotDetailComponent } from '../../components/spot-detail/spot-detail.component';
 import { SpotListComponent } from '../../components/spot-list/spot-list.component';
 import { SpotSheetComponent } from '../../components/spot-sheet/spot-sheet.component';
+import {
+  COLUMN_SHARE_STORAGE_KEY,
+  columnWidthFor,
+  DEFAULT_COLUMN_WIDTH_PX,
+} from '../../components/split-handle/column-split';
+import { SplitHandleComponent } from '../../components/split-handle/split-handle.component';
 import { sheetHeight } from '../../components/spot-sheet/spot-sheet-state';
 import {
+  COLUMN_RESET_EASE_MS,
   COUNT_ANNOUNCE_DEBOUNCE_MS,
   MapComponent,
   WIDE_LAYOUT_QUERY,
 } from './map.component';
+import { HEADER_BANNER_FONT_PX } from './topbar-banner';
 import { SpotBrowserStore } from './spot-browser.store';
 
 /**
@@ -51,6 +59,9 @@ class StubBannerComponent {
   readonly animationSpeed = input(0);
   readonly loop = input(false);
   readonly centered = input(false);
+  readonly fixedFontSize = input<number | null>(null);
+  readonly dotGutters = input(true);
+  readonly lineStart = output<string>();
 }
 
 function listFeature(id: string, name: string): SpotListFeature {
@@ -162,9 +173,23 @@ describe('MapComponent', () => {
     fixture.detectChanges();
   }
 
-  /** The body's height as the page measured it, which the sheet's covered height derives from. */
-  function bodyHeight(host: HTMLElement): number {
-    return host.querySelector<HTMLElement>('.map-page__body')!.clientHeight;
+  /** The map window's height as the page measured it, which the sheet's heights are shares of. */
+  function frameHeight(host: HTMLElement): number {
+    return host.querySelector<HTMLElement>('.map-window')!.clientHeight;
+  }
+
+  /** The map window's width as the page measured it, which the column's limits derive from. */
+  function frameWidth(host: HTMLElement): number {
+    return host.querySelector<HTMLElement>('.map-window')!.clientWidth;
+  }
+
+  /** Two animation frames: long enough for a ResizeObserver callback to have run. */
+  async function nextFrames(): Promise<void> {
+    for (let i = 0; i < 2; i++) {
+      await new Promise<void>((resolve) =>
+        requestAnimationFrame(() => resolve()),
+      );
+    }
   }
 
   /** Closes the open spot the way the store would: no selection, no detail, and a render. */
@@ -184,25 +209,229 @@ describe('MapComponent', () => {
   }
 
   describe('on a wide screen', () => {
-    it('puts the column beside the map with the picker, the count and the list', () => {
+    /** The page gutter from 1024 px (DESIGN.md spacing `lg`). */
+    const GUTTER = 24;
+
+    beforeEach(() => localStorage.removeItem(COLUMN_SHARE_STORAGE_KEY));
+    afterEach(() => localStorage.removeItem(COLUMN_SHARE_STORAGE_KEY));
+
+    /** The column's laid-out width. */
+    function columnWidth(host: HTMLElement): number {
+      return host
+        .querySelector<HTMLElement>('aside.spot-column')!
+        .getBoundingClientRect().width;
+    }
+
+    /** The split handle between the map and the column. */
+    function handle(): SplitHandleComponent {
+      return fixture.debugElement.query(By.directive(SplitHandleComponent))
+        .componentInstance as SplitHandleComponent;
+    }
+
+    it('puts the banner and the city picker in a header row above the window', () => {
+      const host = create();
+
+      const header = host.querySelector<HTMLElement>('header.map-header');
+      expect(header).not.toBeNull();
+      expect(header?.querySelector('app-city-picker')).not.toBeNull();
+      expect(
+        host.querySelector('aside.spot-column app-city-picker'),
+      ).toBeNull();
+      expect(host.querySelector('.map-topbar')).toBeNull();
+
+      const banner = fixture.debugElement.query(By.css('.map-header__banner'));
+      expect(banner).not.toBeNull();
+      const stub = banner?.componentInstance as StubBannerComponent;
+      expect(stub.fixedFontSize()).toBe(HEADER_BANNER_FONT_PX);
+      expect(stub.dotGutters()).toBeFalse();
+      expect(stub.messages()[0]).toBe('VIENNA SPOTMAP');
+      expect(stub.messages()).toContain('SUPPORTED BY ROLLTROTTEL-VERBAND');
+
+      const bannerBox = (
+        banner?.nativeElement as HTMLElement
+      ).getBoundingClientRect();
+      expect(Math.round(bannerBox.height)).toBe(40);
+      expect(Math.round(bannerBox.top - host.getBoundingClientRect().top)).toBe(
+        GUTTER,
+      );
+      expect(
+        Math.round(bannerBox.left - host.getBoundingClientRect().left),
+      ).toBe(GUTTER);
+    });
+
+    it('sets the header row’s city select 40 px tall', () => {
+      const host = create();
+      const field = host.querySelector<HTMLElement>(
+        '.map-header .mat-mdc-text-field-wrapper',
+      );
+      expect(field).not.toBeNull();
+      expect(Math.round(field!.getBoundingClientRect().height)).toBe(40);
+    });
+
+    it('frames the map, the handle and the column in one window inside the gutter', () => {
+      const host = create();
+
+      const frame = host.querySelector<HTMLElement>('.map-window');
+      expect(frame).not.toBeNull();
+      const style = getComputedStyle(frame!);
+      expect(style.borderTopLeftRadius).toBe('8px');
+      expect(style.borderBottomRightRadius).toBe('8px');
+      expect(style.overflow).toBe('hidden');
+      expect(style.boxShadow).toContain('0px 0px 24px');
+
+      const box = frame!.getBoundingClientRect();
+      const page = host.getBoundingClientRect();
+      expect(Math.round(box.left - page.left)).toBe(GUTTER);
+      expect(Math.round(page.right - box.right)).toBe(GUTTER);
+      expect(Math.round(page.bottom - box.bottom)).toBe(GUTTER);
+
+      const parts = Array.from(frame!.children).map(
+        (child) => child.tagName.toLowerCase() + '.' + child.classList[0],
+      );
+      expect(parts).toEqual([
+        'div.map-page__map',
+        'app-split-handle.map-window__handle',
+        'aside.spot-column',
+      ]);
+      expect(
+        frame!.querySelector('.map-page__map app-map-container'),
+      ).not.toBeNull();
+      expect(host.querySelector('app-spot-sheet')).toBeNull();
+    });
+
+    it('covers none of the framed map and keeps the credits bottom right', () => {
+      create();
+      expect(container().coveredInsets()).toEqual(NO_INSETS);
+      expect(container().attributionCorner()).toBe('bottom-right');
+    });
+
+    it('opens the column at its default width while no share is remembered', () => {
+      const host = create();
+      expect(columnWidth(host)).toBe(DEFAULT_COLUMN_WIDTH_PX);
+      expect(handle().columnWidth()).toBe(DEFAULT_COLUMN_WIDTH_PX);
+      expect(handle().frameWidth()).toBe(frameWidth(host));
+    });
+
+    it('restores the column’s remembered share of the window', () => {
+      localStorage.setItem(COLUMN_SHARE_STORAGE_KEY, '0.4');
+      const host = create();
+      expect(columnWidth(host)).toBe(columnWidthFor(0.4, frameWidth(host)));
+    });
+
+    it('follows the handle and remembers the new width as a share of the window', () => {
+      const host = create();
+      handle().widthChange.emit(500);
+      fixture.detectChanges();
+
+      expect(columnWidth(host)).toBe(500);
+      expect(handle().columnWidth()).toBe(500);
+      expect(
+        Number(localStorage.getItem(COLUMN_SHARE_STORAGE_KEY)),
+      ).toBeCloseTo(500 / frameWidth(host), 6);
+    });
+
+    it('keeps the column’s share when the window is resized', async () => {
+      localStorage.setItem(COLUMN_SHARE_STORAGE_KEY, '0.4');
+      const host = create();
+
+      host.style.width = '1500px';
+      await nextFrames();
+      fixture.detectChanges();
+
+      expect(frameWidth(host)).toBe(1500 - 2 * GUTTER);
+      expect(handle().frameWidth()).toBe(1500 - 2 * GUTTER);
+      expect(columnWidth(host)).toBe(columnWidthFor(0.4, frameWidth(host)));
+    });
+
+    it('eases the column back to its default on the handle’s reset and forgets the share', fakeAsync(() => {
+      localStorage.setItem(COLUMN_SHARE_STORAGE_KEY, '0.4');
+      const host = create();
+      const column = host.querySelector<HTMLElement>('aside.spot-column')!;
+
+      handle().widthReset.emit();
+      fixture.detectChanges();
+
+      expect(localStorage.getItem(COLUMN_SHARE_STORAGE_KEY)).toBeNull();
+      expect(column.classList).toContain('spot-column--easing');
+      expect(getComputedStyle(column).transitionProperty).toBe('width');
+      expect(column.style.width).toBe(`${DEFAULT_COLUMN_WIDTH_PX}px`);
+
+      tick(COLUMN_RESET_EASE_MS + 50);
+      fixture.detectChanges();
+      expect(column.classList).not.toContain('spot-column--easing');
+    }));
+
+    it('resets the column at once under reduced motion', () => {
+      spyOn(window, 'matchMedia').and.callFake(
+        (query: string) =>
+          ({
+            matches: query === '(prefers-reduced-motion: reduce)',
+            media: query,
+          }) as MediaQueryList,
+      );
+      localStorage.setItem(COLUMN_SHARE_STORAGE_KEY, '0.4');
+      const host = create();
+      const column = host.querySelector<HTMLElement>('aside.spot-column')!;
+
+      handle().widthReset.emit();
+      fixture.detectChanges();
+
+      expect(column.classList).not.toContain('spot-column--easing');
+      expect(columnWidth(host)).toBe(DEFAULT_COLUMN_WIDTH_PX);
+    });
+
+    it('holds the count and the list in the column, under a fixed 64 px toolbar', () => {
       store.shownSpots.set([ALPHA, BETA]);
       const host = create();
 
       const column = host.querySelector('aside.spot-column')!;
-      expect(column).not.toBeNull();
-      expect(column.querySelector('app-city-picker')).not.toBeNull();
-      expect(
-        column.querySelector('.spot-column__count')!.textContent,
-      ).toContain('> 2 SPOTS IN VIEW');
-      expect(column.querySelector('app-spot-list')).not.toBeNull();
-      expect(host.querySelector('app-spot-sheet')).toBeNull();
-      expect(host.querySelector('.map-topbar')).toBeNull();
+      const toolbar = column.querySelector<HTMLElement>(
+        '.spot-column__toolbar',
+      );
+      expect(toolbar).not.toBeNull();
+      expect(toolbar!.textContent).toContain('> 2 SPOTS IN VIEW');
+      expect(toolbar!.textContent).toContain('A–Z');
+      expect(column.querySelector('.spot-pane app-spot-list')).not.toBeNull();
+
+      const style = getComputedStyle(toolbar!);
+      expect(toolbar!.getBoundingClientRect().height).toBe(64);
+      expect([
+        style.paddingTop,
+        style.paddingRight,
+        style.paddingBottom,
+        style.paddingLeft,
+      ]).toEqual(['16px', '16px', '16px', '16px']);
+      expect(style.borderBottomWidth).toBe('1px');
+      // The toolbar never scrolls: it sits beside the pane, not inside it.
+      expect(toolbar!.closest('.spot-pane')).toBeNull();
+    });
+
+    it('pads the list 8 px so its rows’ content sits 16 px in from the column edge', () => {
+      store.shownSpots.set([ALPHA]);
+      const host = create();
+
+      const list = host.querySelector<HTMLElement>(
+        'aside.spot-column app-spot-list',
+      )!;
+      expect(list.classList).toContain('spot-pane__view--list');
+      const style = getComputedStyle(list);
+      expect([style.paddingLeft, style.paddingRight]).toEqual(['8px', '8px']);
+    });
+
+    it('lets the detail pad itself: the pane adds no padding round it', () => {
+      showSpot('a', ALPHA);
+      const host = create();
+
+      const detail = host.querySelector<HTMLElement>(
+        'aside.spot-column app-spot-detail',
+      )!;
+      expect(detail.classList).not.toContain('spot-pane__view--list');
     });
 
     it('says one spot in the singular and shows a loading line before the count is known', () => {
       const host = create();
       const count = () =>
-        host.querySelector('.spot-column__count')!.textContent!;
+        host.querySelector('.spot-column__toolbar')!.textContent!;
       expect(count()).toContain('> LOADING SPOTS…');
 
       store.shownSpots.set([ALPHA]);
@@ -210,14 +439,13 @@ describe('MapComponent', () => {
       expect(count()).toContain('> 1 SPOT IN VIEW');
     });
 
-    it('turns the count into a back button while a spot is open', () => {
+    it('turns the count into a 32 px back plate with a 44 px target while a spot is open', () => {
       store.shownSpots.set([ALPHA, BETA]);
-      store.selectedId.set('a');
-      store.detail.set({ status: 'loading', id: 'a', preview: ALPHA });
+      showSpot('a', ALPHA);
       const host = create();
 
       const back = host.querySelector<HTMLButtonElement>(
-        '.spot-column__count button',
+        '.spot-column__toolbar button',
       )!;
       expect(back.textContent!.trim()).toBe('‹ 2 IN VIEW');
       // The visible words (the count) lead the name, then what a tap does.
@@ -225,6 +453,14 @@ describe('MapComponent', () => {
         '2 in view, back to the list',
       );
       expect(back.classList).toContain('phosphor-bloom--plate');
+      expect(back.getBoundingClientRect().height).toBe(32);
+      const hit = getComputedStyle(back, '::after');
+      expect([hit.position, hit.top, hit.bottom]).toEqual([
+        'absolute',
+        '-6px',
+        '-6px',
+      ]);
+
       back.click();
       expect(store.close).toHaveBeenCalledTimes(1);
       expect(host.querySelector('app-spot-detail')).not.toBeNull();
@@ -233,9 +469,9 @@ describe('MapComponent', () => {
     it('crossfades the count and the back button in one shared cell instead of cutting', () => {
       store.shownSpots.set([ALPHA, BETA]);
       const host = create();
-      const count = host.querySelector('.spot-column__count')!;
+      const toolbar = host.querySelector('.spot-column__toolbar')!;
       const contentOf = (selector: string) =>
-        count.querySelector(selector)!.closest('.spot-column__count-content');
+        toolbar.querySelector(selector)!.closest('.spot-column__count-content');
 
       // Specs run with animations off, so the fade-out is shown by the class the leave applies.
       for (const [selector, open] of [
@@ -263,12 +499,6 @@ describe('MapComponent', () => {
       const back = host.querySelector<HTMLButtonElement>('.spot-column__back')!;
       expect(back.textContent!.trim()).toBe('‹ IN VIEW');
     });
-
-    it('covers none of the map beside the column, and keeps the credits bottom right', () => {
-      create();
-      expect(container().coveredInsets()).toEqual(NO_INSETS);
-      expect(container().attributionCorner()).toBe('bottom-right');
-    });
   });
 
   describe('on a phone', () => {
@@ -285,7 +515,7 @@ describe('MapComponent', () => {
       const host = create();
       expect(container().coveredInsets()).toEqual({
         ...NO_INSETS,
-        bottom: sheetHeight('peek', bodyHeight(host)),
+        bottom: sheetHeight('peek', frameHeight(host)),
       });
       expect(container().attributionCorner()).toBe('top-right');
     });
@@ -297,7 +527,7 @@ describe('MapComponent', () => {
 
       expect(sheet().state()).toBe('list');
       expect(container().coveredInsets().bottom).toBe(
-        sheetHeight('list', bodyHeight(host)),
+        sheetHeight('list', frameHeight(host)),
       );
     });
 
@@ -545,9 +775,7 @@ describe('MapComponent', () => {
       store.shownSpots.set([ALPHA, BETA]);
       showSpot('a', ALPHA);
       const host = create();
-      const picker = host.querySelector<HTMLElement>(
-        '.spot-column mat-select',
-      )!;
+      const picker = host.querySelector<HTMLElement>('.map-header mat-select')!;
       picker.focus();
       expect(document.activeElement).toBe(picker);
 

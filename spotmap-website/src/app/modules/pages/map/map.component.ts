@@ -17,9 +17,17 @@ import {
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { debounceTime, map } from 'rxjs';
 import { MapInsets, NO_INSETS } from '../../../models/map/map-camera';
+import { prefersReducedMotion } from '../../../utils/prefers-reduced-motion';
 import { AsciiAnimationTextComponent } from '../../components/ascii-animation-text/ascii-animation-text.component';
 import { CityPickerComponent } from '../../components/city-picker/city-picker.component';
 import { MapContainerComponent } from '../../components/map-container/map-container.component';
+import {
+  clearColumnShare,
+  columnWidthFor,
+  readColumnShare,
+  storeColumnShare,
+} from '../../components/split-handle/column-split';
+import { SplitHandleComponent } from '../../components/split-handle/split-handle.component';
 import { SpotDetailComponent } from '../../components/spot-detail/spot-detail.component';
 import { SpotListComponent } from '../../components/spot-list/spot-list.component';
 import { SpotSheetComponent } from '../../components/spot-sheet/spot-sheet.component';
@@ -32,6 +40,7 @@ import {
 } from '../../components/spot-sheet/spot-sheet-state';
 import { PointerBloomDirective } from '../../directives/pointer-bloom.directive';
 import { SpotBrowserStore } from './spot-browser.store';
+import { HEADER_BANNER_FONT_PX } from './topbar-banner';
 
 /** The width the page switches from the sheet to the map + column layout at. */
 export const WIDE_LAYOUT_QUERY = '(min-width: 1024px)';
@@ -61,6 +70,12 @@ const OPEN_SPOT_CONTROLS =
 /** How long the count must hold still before the live region reads it, so a pan does not chatter. */
 export const COUNT_ANNOUNCE_DEBOUNCE_MS = 800;
 
+/**
+ * How long the column eases back to its default width after a double-click on the split handle:
+ * the sheet's and the camera's 330 ms, so the page's own resizes all move on one beat.
+ */
+export const COLUMN_RESET_EASE_MS = 330;
+
 /** The banner's lines after the city's own; the house voice the map page has always cycled. */
 const BANNER_LINES = [
   'RESPECT THE LOCALS',
@@ -76,14 +91,21 @@ const BANNER_LINES = [
   'CONTINUOUSLY UPDATED',
 ];
 
+/** The map window's size in px, as the page measured it. */
+interface FrameSize {
+  readonly width: number;
+  readonly height: number;
+}
+
 /**
  * The map page, served for `/map` and `/spot/<id>` by one route, so a spot opening, closing or
- * switching never rebuilds the map. From 1024 px the map runs edge to edge beside a column holding
- * the banner, the city picker, the count and the list or the open spot; below that a slim top bar
- * carries the banner and the picker and a bottom sheet (peek / list / detail) holds the same pane
- * over the map. The page owns which layout is on screen and so what the map is told is covered,
- * and where keyboard focus goes when an open spot closes; everything else is the
- * {@link SpotBrowserStore}'s.
+ * switching never rebuilds the map. From 1024 px a header row carries the banner and the city
+ * picker above one framed window: the map, a split handle that resizes it against the spot
+ * column, and the column with its toolbar and the list or the open spot. Below that a slim top
+ * bar carries the banner and the picker and a bottom sheet (peek / list / detail) holds the same
+ * pane over the map. The page owns which layout is on screen and so what the map is told is
+ * covered, how wide the column is, and where keyboard focus goes when an open spot closes;
+ * everything else is the {@link SpotBrowserStore}'s.
  */
 @Component({
   selector: 'app-map',
@@ -93,6 +115,7 @@ const BANNER_LINES = [
     MapContainerComponent,
     NgTemplateOutlet,
     PointerBloomDirective,
+    SplitHandleComponent,
     SpotDetailComponent,
     SpotListComponent,
     SpotSheetComponent,
@@ -142,6 +165,9 @@ export class MapComponent {
     ),
   );
 
+  /** The header row's banner size: set, not fitted, so the row's height never moves. */
+  protected readonly headerBannerFontPx = HEADER_BANNER_FONT_PX;
+
   /** The sheet's height and where it returns to; drives the phone layout only. */
   protected readonly sheet = signal<SheetModel>(
     this.store.selectedId() === null
@@ -149,8 +175,25 @@ export class MapComponent {
       : nextSheet(INITIAL_SHEET, 'opened'),
   );
 
-  /** The map body's height, measured; the sheet's heights are fractions of it. */
-  protected readonly bodyHeight = signal(0);
+  /**
+   * The map window's size, measured: the sheet's heights are shares of its height, and the
+   * column's width and limits come from its width.
+   */
+  protected readonly frameSize = signal<FrameSize>({ width: 0, height: 0 });
+
+  /** The column's remembered share of the window, or `null` while it has its default width. */
+  private readonly columnShare = signal(readColumnShare());
+
+  /**
+   * The column's width in px on a wide screen: its share of the window, or the default, held
+   * inside the handle's limits. The share is what holds when the window is resized.
+   */
+  protected readonly columnWidth = computed(() =>
+    columnWidthFor(this.columnShare(), this.frameSize().width),
+  );
+
+  /** Set while the column eases back to its default width after the handle's reset. */
+  protected readonly columnEasing = signal(false);
 
   /** How many spots the list shows, or null while they are still unknown. */
   protected readonly count = computed(
@@ -172,13 +215,16 @@ export class MapComponent {
     return count === null ? '‹ IN VIEW' : `‹ ${count} IN VIEW`;
   });
 
-  /** The part of the map the UI covers: nothing beside the column, the sheet's height on a phone. */
+  /**
+   * The part of the map the UI covers: nothing in the wide window, where the column sits beside
+   * the map; the sheet's height on a phone.
+   */
   protected readonly coveredInsets = computed<MapInsets>(() =>
     this.wide()
       ? NO_INSETS
       : {
           ...NO_INSETS,
-          bottom: sheetHeight(this.sheet().state, this.bodyHeight()),
+          bottom: sheetHeight(this.sheet().state, this.frameSize().height),
         },
   );
 
@@ -206,8 +252,8 @@ export class MapComponent {
       : '',
   );
 
-  /** The map body under the top bar, measured for the sheet's heights. */
-  private readonly body = viewChild.required<ElementRef<HTMLElement>>('body');
+  /** The map window, measured for the sheet's heights and the column's width. */
+  private readonly frame = viewChild.required<ElementRef<HTMLElement>>('frame');
 
   /**
    * Set while the sheet's own back or close is closing the spot, so the route change that follows
@@ -215,6 +261,12 @@ export class MapComponent {
    * so a close that never reached the route cannot swallow a later one.
    */
   private closingFromSheet = false;
+
+  /**
+   * Ends the column's reset ease when no `transitionend` does: none fires when the column was
+   * already at its default width.
+   */
+  private columnEaseTimer?: ReturnType<typeof setTimeout>;
 
   /** The page's own element, searched for the controls focus moves between. */
   private readonly host =
@@ -225,14 +277,18 @@ export class MapComponent {
 
   constructor() {
     const destroyRef = inject(DestroyRef);
+    destroyRef.onDestroy(() => clearTimeout(this.columnEaseTimer));
 
     afterNextRender(() => {
-      const body = this.body().nativeElement;
-      this.bodyHeight.set(body.clientHeight);
-      const observer = new ResizeObserver(() =>
-        this.bodyHeight.set(body.clientHeight),
-      );
-      observer.observe(body);
+      const frame = this.frame().nativeElement;
+      const measure = () =>
+        this.frameSize.set({
+          width: frame.clientWidth,
+          height: frame.clientHeight,
+        });
+      measure();
+      const observer = new ResizeObserver(measure);
+      observer.observe(frame);
       destroyRef.onDestroy(() => observer.disconnect());
     });
 
@@ -288,6 +344,55 @@ export class MapComponent {
     }
     this.feedSheet('map-tap');
     this.closeSpot();
+  }
+
+  /**
+   * The handle moved: the column takes the new width, remembered as its share of the window so a
+   * later window size keeps the proportion. The handle has already clamped the width.
+   */
+  protected onColumnWidth(width: number): void {
+    const frameWidth = this.frameSize().width;
+    if (frameWidth <= 0) {
+      return;
+    }
+    const share = Math.min(width / frameWidth, 0.5);
+    this.columnShare.set(share);
+    storeColumnShare(share);
+  }
+
+  /**
+   * The handle was double-clicked: the column goes back to its default width and the share is
+   * forgotten. The width eases over {@link COLUMN_RESET_EASE_MS}; under reduced motion it changes at
+   * once (the motion net would drop the width transition anyway, so no class is set there).
+   */
+  protected resetColumnWidth(): void {
+    clearColumnShare();
+    this.stopColumnEase();
+    if (!prefersReducedMotion()) {
+      this.columnEasing.set(true);
+      this.columnEaseTimer = setTimeout(
+        () => this.stopColumnEase(),
+        COLUMN_RESET_EASE_MS + 50,
+      );
+    }
+    this.columnShare.set(null);
+  }
+
+  /** The column's own width transition ended: the reset ease is over. */
+  protected onColumnTransitionEnd(event: TransitionEvent): void {
+    if (
+      event.target === event.currentTarget &&
+      event.propertyName === 'width'
+    ) {
+      this.stopColumnEase();
+    }
+  }
+
+  /** Drops the reset ease and its timer, so a drag after it follows the pointer at once. */
+  private stopColumnEase(): void {
+    clearTimeout(this.columnEaseTimer);
+    this.columnEaseTimer = undefined;
+    this.columnEasing.set(false);
   }
 
   /**
