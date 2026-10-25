@@ -14,7 +14,6 @@ import {
   type MapFocus,
   type MapInsets,
   NO_INSETS,
-  type SelectionFraming,
 } from '../../../models/map/map-camera';
 import type { MapLoadEvent } from '../../../models/map/map-load-event';
 import { SpotListCollection } from '../../../models/spots/spot';
@@ -152,7 +151,6 @@ describe('SpotMapComponent', () => {
     collection = COLLECTION,
     selectedId = null,
     insets = NO_INSETS,
-    framing = 'reveal' as SelectionFraming,
     openOn = null as MapFocus | null,
     attributionCorner = 'bottom-right' as AttributionCorner,
   }: {
@@ -160,7 +158,6 @@ describe('SpotMapComponent', () => {
     collection?: object;
     selectedId?: string | null;
     insets?: MapInsets;
-    framing?: SelectionFraming;
     openOn?: MapFocus | null;
     attributionCorner?: AttributionCorner;
   } = {}) {
@@ -172,7 +169,6 @@ describe('SpotMapComponent', () => {
     fixture.componentRef.setInput('retryToken', 0);
     fixture.componentRef.setInput('selectedId', selectedId);
     fixture.componentRef.setInput('coveredInsets', insets);
-    fixture.componentRef.setInput('selectionFraming', framing);
     fixture.componentRef.setInput('openOn', openOn);
     fixture.componentRef.setInput('attributionCorner', attributionCorner);
     fixture.detectChanges();
@@ -1562,10 +1558,10 @@ describe('SpotMapComponent', () => {
       expect(window.cancelAnimationFrame).toHaveBeenCalled();
     });
 
-    it('centres a pin opened on a phone in the strip above the sheet', async () => {
+    it('eases a pin opened under a phone’s sheet into the strip above it', async () => {
       requestReducedMotion(false);
       holdAnimationFrames();
-      await create({ insets: SHEET_INSETS, framing: 'centre' });
+      await create({ insets: SHEET_INSETS });
       fake.emit('load');
       select('a');
       expect(eases().at(-1)?.options).toEqual(
@@ -1575,6 +1571,22 @@ describe('SpotMapComponent', () => {
           duration: 330,
         }),
       );
+    });
+
+    it('keeps a phone’s map still for a pin already in the strip above the sheet', async () => {
+      requestReducedMotion(false);
+      holdAnimationFrames();
+      // A sheet at half the 600 px map leaves a 300 px strip; the pin sits in its middle.
+      await create({ insets: { top: 0, right: 0, bottom: 300, left: 0 } });
+      fake.emit('load');
+      fake.projected = { x: 500, y: 150 };
+      select('a');
+      expect(eases()).toEqual([]);
+      fake.projected = { x: 500, y: 290 };
+      select('b');
+      expect(eases().length)
+        .withContext('a pin at the sheet’s edge is revealed')
+        .toBe(1);
     });
 
     it('moves a wide map only for a pin off screen', async () => {
@@ -1593,7 +1605,7 @@ describe('SpotMapComponent', () => {
     it('eases back to the view an open started from when the spot closes', async () => {
       requestReducedMotion(false);
       holdAnimationFrames();
-      await create({ insets: SHEET_INSETS, framing: 'centre' });
+      await create({ insets: SHEET_INSETS });
       fake.emit('load');
       fake.center = { lng: 16.5, lat: 48.3 };
       fake.zoom = 12;
@@ -1608,7 +1620,7 @@ describe('SpotMapComponent', () => {
     it('does not re-centre on a change detection that leaves the frame as it was', async () => {
       requestReducedMotion(false);
       holdAnimationFrames();
-      await create({ insets: SHEET_INSETS, framing: 'centre' });
+      await create({ insets: SHEET_INSETS });
       fake.emit('load');
       select('a');
       const count = eases().length;
@@ -1624,7 +1636,6 @@ describe('SpotMapComponent', () => {
         selectedId: 'a',
         openOn: { center: [16.37, 48.2], zoom: 16 },
         insets: SHEET_INSETS,
-        framing: 'centre',
       });
       const options = mapFactory.calls.mostRecent().args[0];
       expect(options).toEqual(
@@ -1646,7 +1657,7 @@ describe('SpotMapComponent', () => {
     it('never eases a map the visitor holds', async () => {
       requestReducedMotion(false);
       holdAnimationFrames();
-      await create({ insets: SHEET_INSETS, framing: 'centre' });
+      await create({ insets: SHEET_INSETS });
       fake.emit('load');
       fake.touchDown();
       select('a');
@@ -1890,7 +1901,7 @@ describe('SpotMapComponent', () => {
     });
 
     it('seats a pin on a phone lower in the strip, to make room for the flag above it', async () => {
-      await create({ insets: SHEET_INSETS, framing: 'centre' });
+      await create({ insets: SHEET_INSETS });
       fake.emit('load');
       select('a');
       // The 600 px map's strip above the 510 px sheet is 90 px tall, its middle 255 px up from the
@@ -1906,7 +1917,7 @@ describe('SpotMapComponent', () => {
 
     it('reserves no room for a flag the spot does not fly', async () => {
       backend = UNCONFIGURED_BACKEND;
-      await create({ insets: SHEET_INSETS, framing: 'centre' });
+      await create({ insets: SHEET_INSETS });
       fake.emit('load');
       select('a');
       expect(eases().at(-1)?.options.offset).toEqual([0, -255]);
@@ -2033,11 +2044,10 @@ describe('SpotMapComponent', () => {
       httpMock.expectNone('spots/vienna.geojson');
     });
 
-    it('keeps the same map when the covered strips, the framing and the opening focus change', async () => {
+    it('keeps the same map when the covered strips and the opening focus change', async () => {
       await create();
       fake.emit('load');
       fixture.componentRef.setInput('coveredInsets', SHEET_INSETS);
-      fixture.componentRef.setInput('selectionFraming', 'centre');
       fixture.componentRef.setInput('openOn', {
         center: [16.4, 48.22],
         zoom: 15,
@@ -2053,7 +2063,6 @@ describe('SpotMapComponent', () => {
         selectedId: 'a',
         openOn: { center: [16.37, 48.2], zoom: 16 },
         insets: SHEET_INSETS,
-        framing: 'centre',
       });
       fake.emit('load');
       select(null);

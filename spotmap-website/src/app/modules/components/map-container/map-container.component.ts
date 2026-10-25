@@ -16,7 +16,6 @@ import {
   type AttributionCorner,
   type MapFocus,
   type MapInsets,
-  type SelectionFraming,
 } from '../../../models/map/map-camera';
 import { SpotListCollection } from '../../../models/spots/spot';
 import type { ViewBounds } from '../../../models/spots/spots-in-view';
@@ -62,8 +61,6 @@ export class MapContainerComponent {
   selectedId = input<string | null>(null);
   /** The strips the page's UI covers, handed to the map; see `SpotMapComponent.coveredInsets`. */
   coveredInsets = input<MapInsets>(NO_INSETS);
-  /** How the map keeps the selected pin in view; see `SpotMapComponent.selectionFraming`. */
-  selectionFraming = input<SelectionFraming>('reveal');
   /** Where the next build opens; see `SpotMapComponent.openOn`. */
   openOn = input<MapFocus | null>(null);
   /** The attribution's corner; see `SpotMapComponent.attributionCorner`. */

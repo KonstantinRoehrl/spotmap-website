@@ -24,13 +24,6 @@ export interface MapFocus {
 }
 
 /**
- * How the map keeps the selected pin in view: `centre` eases it to the middle of the uncovered
- * part on every selection (the phone, where the sheet leaves a strip); `reveal` moves the camera
- * only when the pin is outside the uncovered part (the wide layout).
- */
-export type SelectionFraming = 'centre' | 'reveal';
-
-/**
  * Where the attribution control sits: bottom-right as MapLibre puts it, or top-right on the sheet
  * layout, where the sheet would otherwise cover a licence condition.
  */

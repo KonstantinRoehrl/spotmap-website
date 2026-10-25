@@ -15,20 +15,23 @@ import {
 import { FLAG_REACH_PX } from './photo-pins';
 import { FakeMap, requestReducedMotion } from './testing/fake-map';
 
-/** A 1000 × 600 map whose bottom 510 px a phone's sheet covers. */
+/** A 1000 × 600 map whose bottom 510 px a phone's sheet covers, leaving a 90 px strip. */
 const SHEET: CameraFrame = {
   width: 1000,
   height: 600,
   insets: { top: 0, right: 0, bottom: 510, left: 0 },
-  framing: 'centre',
   headroom: 0,
+};
+/** The same map under a sheet capped at half of it: a 300 px strip above the sheet. */
+const HALF_SHEET: CameraFrame = {
+  ...SHEET,
+  insets: { top: 0, right: 0, bottom: 300, left: 0 },
 };
 /** The same map uncovered, on the wide layout. */
 const WIDE: CameraFrame = {
   width: 1000,
   height: 600,
   insets: NO_INSETS,
-  framing: 'reveal',
   headroom: 0,
 };
 
@@ -81,11 +84,11 @@ describe('the selection camera geometry', () => {
     expect(
       sameFrame(SHEET, { ...SHEET, insets: { ...SHEET.insets } }),
     ).toBeTrue();
-    expect(sameFrame(SHEET, { ...SHEET, framing: 'reveal' })).toBeFalse();
     expect(
       sameFrame(SHEET, { ...SHEET, insets: { ...SHEET.insets, bottom: 300 } }),
     ).toBeFalse();
     expect(sameFrame(SHEET, { ...SHEET, headroom: FLAG_REACH_PX })).toBeFalse();
+    expect(sameFrame(SHEET, { ...SHEET, width: 999 })).toBeFalse();
   });
 
   it('reads the bounds of a rectangle off its two corners', () => {
@@ -122,7 +125,8 @@ describe('SelectionCamera', () => {
   const eases = () =>
     fake.cameraMoves.filter((move) => move.method === 'easeTo');
 
-  it('eases a pin to the middle of a phone’s uncovered strip', () => {
+  it('eases a pin hidden under a phone’s sheet to the middle of the strip above it', () => {
+    // The fake projects every pin to (500, 300): under the 510 px sheet.
     camera.keepInView(pin, SHEET);
     expect(eases().length).toBe(1);
     expect(eases()[0]?.options).toEqual(
@@ -132,6 +136,22 @@ describe('SelectionCamera', () => {
         duration: CAMERA_EASE_MS,
         essential: true,
       }),
+    );
+  });
+
+  it('leaves a phone’s map alone while the pin is already in the strip above the sheet', () => {
+    fake.projected = { x: 500, y: 150 };
+    camera.keepInView(pin, HALF_SHEET);
+    camera.open([16.4, 48.22], HALF_SHEET);
+    expect(eases()).toEqual([]);
+  });
+
+  it('eases a phone’s map for a pin just under the sheet’s edge', () => {
+    // 270 px down is inside the 300 px strip, but within the 48 px margin of the sheet's edge.
+    fake.projected = { x: 500, y: 270 };
+    camera.keepInView(pin, HALF_SHEET);
+    expect(eases()[0]?.options).toEqual(
+      jasmine.objectContaining({ center: pin, offset: [0, -150] }),
     );
   });
 
@@ -149,9 +169,9 @@ describe('SelectionCamera', () => {
     );
   });
 
-  it('eases a wide map when the selected pin sits where its flag would be clipped', () => {
+  it('eases a map when the selected pin sits where its flag would be clipped', () => {
     const flying = { ...WIDE, headroom: FLAG_REACH_PX };
-    // 50 px down is inside the pin's own 48 px margin, but the flag reaches 62 px above it.
+    // 50 px down is inside the pin's own 48 px margin, but the flag reaches higher than that.
     fake.projected = { x: 500, y: 50 };
     camera.keepInView(pin, flying);
     expect(eases().length).toBe(1);
@@ -159,18 +179,18 @@ describe('SelectionCamera', () => {
     expect(eases().length)
       .withContext('a pin with no flag is fine there')
       .toBe(1);
-    fake.projected = { x: 500, y: 120 };
+    fake.projected = { x: 500, y: FLAG_REACH_PX + 60 };
     camera.keepInView(pin, flying);
     expect(eases().length).withContext('room for the flag').toBe(1);
   });
 
   /**
-   * Where `keepInView` seats the pin, in px below the top of a `strip`-px-tall uncovered strip of
-   * the 600 px map, for a pin whose flag reaches `headroom` px above it.
+   * Where `place` seats the pin, in px below the top of a `strip`-px-tall uncovered strip of the
+   * 600 px map, for a pin whose flag reaches `headroom` px above it.
    */
   const seatInStrip = (strip: number, headroom: number): number => {
     const before = eases().length;
-    camera.keepInView(pin, {
+    camera.place(pin, {
       ...SHEET,
       insets: { top: 0, right: 0, bottom: SHEET.height - strip, left: 0 },
       headroom,
@@ -215,10 +235,11 @@ describe('SelectionCamera', () => {
     }
   });
 
-  it('never eases while the visitor holds the map', () => {
+  it('never moves while the visitor holds the map', () => {
     held = true;
     camera.keepInView(pin, SHEET);
     camera.open(pin, SHEET);
+    camera.place(pin, SHEET);
     camera.restore();
     expect(eases()).toEqual([]);
   });
@@ -234,6 +255,15 @@ describe('SelectionCamera', () => {
     camera.place(pin, SHEET);
     expect(eases()[0]?.options).toEqual(
       jasmine.objectContaining({ offset: [0, -255], duration: 0 }),
+    );
+  });
+
+  it('seats a cold link’s pin in the uncovered middle even though it is already in view', () => {
+    // A cold link builds the map centred on the spot: in view, but not where the visitor looks.
+    fake.projected = { x: 500, y: 150 };
+    camera.place(pin, HALF_SHEET);
+    expect(eases()[0]?.options).toEqual(
+      jasmine.objectContaining({ center: pin, offset: [0, -150], duration: 0 }),
     );
   });
 

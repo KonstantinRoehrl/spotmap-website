@@ -154,14 +154,12 @@ describe('MapContainerComponent', () => {
     const insets = { top: 0, right: 0, bottom: 300, left: 0 };
     const focus = { center: [16.37, 48.2] as [number, number], zoom: 16 };
     fixture.componentRef.setInput('coveredInsets', insets);
-    fixture.componentRef.setInput('selectionFraming', 'centre');
     fixture.componentRef.setInput('openOn', focus);
     fixture.componentRef.setInput('attributionCorner', 'top-right');
     fixture.detectChanges();
     const map = fixture.debugElement.query(By.directive(SpotMapComponent))
       .componentInstance as SpotMapComponent;
     expect(map.coveredInsets()).toBe(insets);
-    expect(map.selectionFraming()).toBe('centre');
     expect(map.openOn()).toBe(focus);
     expect(map.attributionCorner()).toBe('top-right');
     const bounds: ViewBounds[] = [];

@@ -41,7 +41,6 @@
           [hoveredId]="store.hoveredId()"
           [openOn]="store.openOn()"
           [coveredInsets]="coveredInsets()"
-          [selectionFraming]="wide() ? 'reveal' : 'centre'"
           [attributionCorner]="wide() ? 'bottom-right' : 'top-right'"
           (spotsLoaded)="store.setList($event)"
           (boundsChange)="store.setBounds($event)"

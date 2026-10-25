@@ -264,10 +264,9 @@ describe('MapComponent', () => {
       expect(back.textContent!.trim()).toBe('‹ IN VIEW');
     });
 
-    it('lets the map run edge to edge with nothing covered, and reveals a selected pin only when hidden', () => {
+    it('covers none of the map beside the column, and keeps the credits bottom right', () => {
       create();
       expect(container().coveredInsets()).toEqual(NO_INSETS);
-      expect(container().selectionFraming()).toBe('reveal');
       expect(container().attributionCorner()).toBe('bottom-right');
     });
   });
@@ -282,13 +281,12 @@ describe('MapComponent', () => {
       expect(host.querySelector('aside.spot-column')).toBeNull();
     });
 
-    it('keeps the uncovered map in view: covered by the sheet, the selection centred, credits top right', () => {
+    it('tells the map the sheet covers its bottom, and keeps the credits top right', () => {
       const host = create();
       expect(container().coveredInsets()).toEqual({
         ...NO_INSETS,
         bottom: sheetHeight('peek', bodyHeight(host)),
       });
-      expect(container().selectionFraming()).toBe('centre');
       expect(container().attributionCorner()).toBe('top-right');
     });
 

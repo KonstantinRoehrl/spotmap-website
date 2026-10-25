@@ -1,7 +1,4 @@
-import type {
-  MapInsets,
-  SelectionFraming,
-} from '../../../models/map/map-camera';
+import type { MapInsets } from '../../../models/map/map-camera';
 import type { ViewBounds } from '../../../models/spots/spots-in-view';
 import { prefersReducedMotion } from '../../../utils/prefers-reduced-motion';
 import { SELECTED_RING_RADIUS } from './spot-layers';
@@ -22,21 +19,19 @@ export interface ScreenPoint {
 
 /**
  * What the camera keeps a selected pin visible in: the canvas size, the strips the page's own UI
- * covers (a phone's sheet), and how the layout wants the pin framed.
+ * covers (a phone's sheet), and how far the selected pin's flag reaches above it. On every layout
+ * the camera moves only for a pin that is not already in view; a cold link's pin is the one it
+ * always seats.
  */
 export interface CameraFrame {
   readonly width: number;
   readonly height: number;
   readonly insets: MapInsets;
   /**
-   * `centre`: the pin always eases to the middle of the uncovered rectangle (the phone sheet,
-   * which leaves a strip of map). `reveal`: the camera moves only for a pin off screen (wide).
-   */
-  readonly framing: SelectionFraming;
-  /**
    * How far above the pin its flag reaches, in px; 0 for a pin that flies none. The flag counts as
-   * part of the pin: the pair is centred in the rectangle, unless the rectangle is too short for
-   * that, when the pin and its ring win over the flag.
+   * part of the pin: it must be in view too, and when the pin is seated the pair is centred in the
+   * rectangle, unless the rectangle is too short for that, when the pin and its ring win over the
+   * flag.
    */
   readonly headroom: number;
 }
@@ -57,7 +52,7 @@ export const FLAG_EDGE_GAP_PX = 8;
  */
 export const SELECTED_PIN_REACH_PX = SELECTED_RING_RADIUS + FLAG_EDGE_GAP_PX;
 
-/** The camera ease's length — the sheet's own height change, so the two move together. */
+/** The camera ease's length, the sheet's own height change, so a reveal and the sheet move together. */
 export const CAMERA_EASE_MS = 330;
 
 /** Reduced motion shortens the ease, never to a cut: a jump would lose the visitor's place. */
@@ -116,12 +111,11 @@ export function containsPoint(
   );
 }
 
-/** Whether two frames describe the same canvas, cover and framing. */
+/** Whether two frames describe the same canvas, cover and flag reach. */
 export function sameFrame(a: CameraFrame, b: CameraFrame): boolean {
   return (
     a.width === b.width &&
     a.height === b.height &&
-    a.framing === b.framing &&
     a.headroom === b.headroom &&
     a.insets.top === b.insets.top &&
     a.insets.right === b.insets.right &&
@@ -193,19 +187,27 @@ export class SelectionCamera {
   }
 
   /**
-   * Eases the pin into view: always to the uncovered rectangle's middle for `centre` framing, and
-   * only when it sits outside the rectangle (less the margin) for `reveal`.
+   * Eases the pin into the uncovered rectangle's middle, but only when it is not already in view:
+   * outside the rectangle less the margin, or with its flag cut off at the top. A pin the visitor can
+   * already see keeps the camera still, on a phone as on a wide screen.
    */
   keepInView(pin: [number, number], frame: CameraFrame): void {
-    this.frame(pin, frame, this.easeDuration());
+    if (this.isHeld() || this.inView(pin, frame)) {
+      return;
+    }
+    this.seat(pin, frame, this.easeDuration());
   }
 
   /**
-   * Frames the pin a build opened on, without animation: a cold link's map is already centred on
-   * the spot, so this only moves it into a phone's strip. Saves no view: there is none to go back to.
+   * Seats the pin a build opened on in the uncovered rectangle's middle, without animation and
+   * whether or not it is in view: a cold link's map is built centred on the spot, which on a phone is
+   * under the sheet's top or behind it. Saves no view: there is none to go back to.
    */
   place(pin: [number, number], frame: CameraFrame): void {
-    this.frame(pin, frame, 0);
+    if (this.isHeld()) {
+      return;
+    }
+    this.seat(pin, frame, 0);
   }
 
   /** The spot closed: eases back to the saved view, if one was saved and the camera left it. */
@@ -232,32 +234,30 @@ export class SelectionCamera {
     });
   }
 
-  /** Moves the camera so `pin` is framed as `frame` asks, over `duration` ms. */
-  private frame(
-    pin: [number, number],
-    frame: CameraFrame,
-    duration: number,
-  ): void {
-    if (this.isHeld()) {
-      return;
-    }
-    const rect = uncoveredRect(frame.width, frame.height, frame.insets);
-    // The flag reaches above the pin, so the top edge keeps its height clear as well.
+  /**
+   * Whether `pin` is in view: inside the uncovered rectangle by the margin, and far enough below its
+   * top for the flag it flies, which reaches above it, to show whole as well.
+   */
+  private inView(pin: [number, number], frame: CameraFrame): boolean {
     const topMargin = Math.max(
       KEEP_IN_VIEW_MARGIN_PX,
       frame.headroom > 0 ? frame.headroom + FLAG_EDGE_GAP_PX : 0,
     );
-    if (
-      frame.framing === 'reveal' &&
-      containsPoint(
-        rect,
-        this.map.project(pin),
-        KEEP_IN_VIEW_MARGIN_PX,
-        topMargin,
-      )
-    ) {
-      return;
-    }
+    return containsPoint(
+      uncoveredRect(frame.width, frame.height, frame.insets),
+      this.map.project(pin),
+      KEEP_IN_VIEW_MARGIN_PX,
+      topMargin,
+    );
+  }
+
+  /** Moves the camera so `pin` sits at its seat in the uncovered rectangle, over `duration` ms. */
+  private seat(
+    pin: [number, number],
+    frame: CameraFrame,
+    duration: number,
+  ): void {
+    const rect = uncoveredRect(frame.width, frame.height, frame.insets);
     // `essential`, because MapLibre otherwise turns every ease into a jump under reduced motion,
     // and the shortened ease already is the reduced-motion version.
     this.map.easeTo({

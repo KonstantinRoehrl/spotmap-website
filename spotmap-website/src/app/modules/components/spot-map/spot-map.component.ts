@@ -34,7 +34,6 @@ import {
   type AttributionCorner,
   type MapFocus,
   type MapInsets,
-  type SelectionFraming,
 } from '../../../models/map/map-camera';
 import type { MapFailureReason } from '../../../models/map/map-failure-reason';
 import type { MapLoadEvent } from '../../../models/map/map-load-event';
@@ -221,8 +220,6 @@ export class SpotMapComponent {
    * bottom. The visible bounds and the selected pin's framing leave those strips out.
    */
   coveredInsets = input<MapInsets>(NO_INSETS);
-  /** How the selected pin is kept in view: centred above the sheet, or revealed only when hidden. */
-  selectionFraming = input<SelectionFraming>('reveal');
   /**
    * Where the next build opens instead of the city's framing — a cold `/spot/<id>` link's spot.
    * Read once per build, as the build starts; a later change waits for the next city switch.
@@ -362,7 +359,6 @@ export class SpotMapComponent {
     effect(() => {
       this.selectedId();
       this.coveredInsets();
-      this.selectionFraming();
       untracked(() => {
         this.followSelection();
         this.scheduleBounds();
@@ -661,7 +657,7 @@ export class SpotMapComponent {
       this.drawSpots(map, collection);
       // Feature state needs the spot source, so the selection starts here. One already in the URL
       // — a shared link opened cold, or a rebuild — is no tap: it shows without the pulse, and the
-      // camera only jumps it into a phone's strip, saving no view to go back to.
+      // camera jumps it into the middle of the uncovered part, saving no view to go back to.
       this.collection = collection;
       this.selection = new SpotSelection(map, {
         flag: this.photoPins !== undefined,
@@ -855,14 +851,13 @@ export class SpotMapComponent {
     }
   }
 
-  /** The canvas host's size with the page's covered strips and framing, as the camera reads it. */
+  /** The canvas host's size with the page's covered strips and the flag's reach, as the camera reads it. */
   private cameraFrame(): CameraFrame {
     const host = this.canvasHost().nativeElement;
     return {
       width: host.clientWidth,
       height: host.clientHeight,
       insets: this.coveredInsets(),
-      framing: this.selectionFraming(),
       headroom: this.flagReach(),
     };
   }
