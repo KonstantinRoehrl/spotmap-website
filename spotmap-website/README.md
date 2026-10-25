@@ -61,6 +61,7 @@ src/
     modules/
       components/   # nav-bar, map-container, map-loader, spot-map, city-picker,
                     # spot-list, spot-detail, spot-sheet, spot-photo-gallery,
+                    # spot-photo-rail, spot-photo-viewer, spot-share, split-handle,
                     # ascii-rain, ascii-animation-text
       components/admin/  # satellite-picker (the maintainer tool's satellite pin picker)
       pages/        # home, map (also serves /spot/<id>; its SpotBrowserStore), about (routed)
@@ -95,8 +96,9 @@ supabase/           # Supabase CLI project: config.toml, the migrations, pgTAP t
 ## Spot links
 
 Every spot has a link, `/spot/<id>` (the database's stable text id), that opens
-the map with that spot selected and its detail open; the detail's
-`> SHARE SPOT` hands it to the phone's share sheet or copies it. `/map` and
+the map with that spot selected and its detail open; the detail's share menu
+copies it (`> COPY LINK`) or hands it to the device's share sheet
+(`> SHARE VIA…`). `/map` and
 `/spot/<id>` are one page (one route matcher, `matchMapPage`), so opening,
 switching or closing a spot never rebuilds the map. A shared link skips the
 welcome intro, switches to the spot's city and centres the map on it; an
@@ -313,8 +315,9 @@ PostGIS, row-level security and Storage — and falls back to the bundled
 `public/spots/<city>.geojson` when the backend errors, takes longer than 5 s,
 answers with no spots, or is not configured (`SpotsService`). Photos are served
 from the public `spot-photos` bucket as `full/<city>/<file>.webp` (the 1400px
-encode) and `thumb/<city>/<file>.webp` (640px, what the list rows, photo pins and the detail gallery show); with no
-photo host configured, there are no photos anywhere: no gallery, no photo pins, and list rows show a NO PHOTO plate.
+encode, which the photo viewer loads over the thumbnail) and `thumb/<city>/<file>.webp` (640px, what the list rows,
+photo pins, the detail's photo rail and the viewer's strip show); with no photo host configured, there are no photos
+anywhere: no photo rail or viewer, no photo pins, and list rows show a NO PHOTO plate.
 
 Each build's backend is set in `src/environments/`. Production builds
 (`environment.prod.ts`) talk to the hosted EU Supabase project, so the deployed
