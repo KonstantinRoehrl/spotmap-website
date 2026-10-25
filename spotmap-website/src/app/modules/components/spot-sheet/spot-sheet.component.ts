@@ -9,7 +9,7 @@ import { PointerBloomDirective } from '../../directives/pointer-bloom.directive'
 import { SheetState, sheetHeight } from './spot-sheet-state';
 
 /**
- * The phone layout's bottom sheet over the map (spec §4.2): a grab handle, a 44px head row and a
+ * The phone layout's bottom sheet over the map: a grab handle, a 44px head row and a
  * scrolling body holding the projected pane. It is presentational. The page keeps the
  * `SheetModel`, feeds `nextSheet()` from the outputs below, and reads the same `sheetHeight()` to
  * tell the map how much of it is covered. Heights change by tapping the head. The handle only

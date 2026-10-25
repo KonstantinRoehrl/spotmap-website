@@ -92,10 +92,13 @@ describe('MapComponent', () => {
   let store: ReturnType<typeof fakeStore>;
   /** Whether the viewport is at least 1024 px wide, as the breakpoint stub reports it. */
   let wide: BehaviorSubject<boolean>;
+  /** Whether the viewport is a phone's width, as the breakpoint stub reports it for any other query. */
+  let compact: BehaviorSubject<boolean>;
 
   beforeEach(async () => {
     store = fakeStore();
     wide = new BehaviorSubject(true);
+    compact = new BehaviorSubject(false);
     await TestBed.configureTestingModule({
       imports: [MapComponent],
       providers: [
@@ -107,12 +110,12 @@ describe('MapComponent', () => {
           provide: BreakpointObserver,
           useValue: {
             isMatched: (query: string) =>
-              query === WIDE_LAYOUT_QUERY && wide.value,
-            observe: () =>
-              wide.pipe(
+              (query === WIDE_LAYOUT_QUERY ? wide : compact).value,
+            observe: (query: string) =>
+              (query === WIDE_LAYOUT_QUERY ? wide : compact).pipe(
                 map((matches) => ({
                   matches,
-                  breakpoints: { [WIDE_LAYOUT_QUERY]: matches },
+                  breakpoints: { [query]: matches },
                 })),
               ),
           },
@@ -132,10 +135,10 @@ describe('MapComponent', () => {
 
   afterEach(() => fixture?.destroy());
 
-  function create(): HTMLElement {
+  function create(width = 1200): HTMLElement {
     fixture = TestBed.createComponent(MapComponent);
     const host = fixture.nativeElement as HTMLElement;
-    host.style.cssText = 'display:block;width:1200px;height:800px';
+    host.style.cssText = `display:block;width:${width}px;height:800px`;
     fixture.detectChanges();
     // A fixture's detectChanges runs no render hooks; the app tick runs the page's body measuring.
     TestBed.tick();
@@ -162,6 +165,22 @@ describe('MapComponent', () => {
   /** The body's height as the page measured it, which the sheet's covered height derives from. */
   function bodyHeight(host: HTMLElement): number {
     return host.querySelector<HTMLElement>('.map-page__body')!.clientHeight;
+  }
+
+  /** Closes the open spot the way the store would: no selection, no detail, and a render. */
+  function closeSpot(): void {
+    store.selectedId.set(null);
+    store.detail.set(null);
+    fixture.detectChanges();
+    // The render hooks that move focus run on the app tick, not on a fixture's detectChanges.
+    TestBed.tick();
+    fixture.detectChanges();
+  }
+
+  /** Opens `id` as a loading detail, as the store does once the route names it. */
+  function showSpot(id: string, preview: SpotListFeature): void {
+    store.selectedId.set(id);
+    store.detail.set({ status: 'loading', id, preview });
   }
 
   describe('on a wide screen', () => {
@@ -206,6 +225,14 @@ describe('MapComponent', () => {
       back.click();
       expect(store.close).toHaveBeenCalledTimes(1);
       expect(host.querySelector('app-spot-detail')).not.toBeNull();
+    });
+
+    it('words the back button without a number while the count is unknown', () => {
+      showSpot('a', ALPHA);
+      const host = create();
+
+      const back = host.querySelector<HTMLButtonElement>('.spot-column__back')!;
+      expect(back.textContent!.trim()).toBe('‹ IN VIEW');
     });
 
     it('lets the map run edge to edge with nothing covered, and reveals a selected pin only when hidden', () => {
@@ -316,6 +343,164 @@ describe('MapComponent', () => {
       store.notice.set('not-found');
       fixture.detectChanges();
       expect(sheet().state()).toBe('list');
+    });
+
+    it('leaves the sheet and the map alone when a second close arrives before the route has changed', () => {
+      showSpot('a', ALPHA);
+      create();
+
+      sheet().close.emit();
+      sheet().close.emit();
+      fixture.detectChanges();
+
+      expect(store.close).toHaveBeenCalledTimes(2);
+      expect(sheet().state()).toBe('peek');
+    });
+
+    describe('the top bar', () => {
+      /** The phone widths the bar has to work at, from the narrowest to a large phone. */
+      const PHONE_WIDTHS = [320, 360, 390];
+      /** One glyph of the banner's 12 px IBM Plex Mono, the smallest size the banner may be set in. */
+      const BANNER_GLYPH_PX = 12 * 0.6;
+
+      it('makes the city select a 44 px target without growing past the 46 px bar', () => {
+        compact.next(true);
+        const host = create(360);
+
+        const field = host.querySelector<HTMLElement>(
+          '.map-topbar .mat-mdc-text-field-wrapper',
+        )!;
+        expect(field.getBoundingClientRect().height).toBeGreaterThanOrEqual(44);
+        expect(
+          host.querySelector('.map-topbar')!.getBoundingClientRect().height,
+        ).toBeLessThanOrEqual(46);
+      });
+
+      for (const width of PHONE_WIDTHS) {
+        it(`sets every line of the banner so it fits its room at ${width} px`, () => {
+          compact.next(true);
+          const host = create(width);
+
+          const banner = host.querySelector<HTMLElement>(
+            '.map-topbar__banner',
+          )!;
+          const lines = fixture.debugElement
+            .query(By.directive(StubBannerComponent))
+            .componentInstance.messages() as string[];
+          const longest = Math.max(...lines.map((line) => line.length));
+          expect(longest * BANNER_GLYPH_PX).toBeLessThanOrEqual(
+            banner.clientWidth,
+          );
+        });
+      }
+
+      it('fits the banner for the longest city name too', () => {
+        compact.next(true);
+        const host = create(320);
+        const banner = host.querySelector<HTMLElement>('.map-topbar__banner')!;
+        const stub = fixture.debugElement.query(
+          By.directive(StubBannerComponent),
+        ).componentInstance as StubBannerComponent;
+
+        for (const entry of Object.values(SUPPORTED_CITIES)) {
+          store.city.set(entry);
+          fixture.detectChanges();
+          const cityLine = stub.messages()[0];
+          expect(cityLine.length * BANNER_GLYPH_PX).toBeLessThanOrEqual(
+            banner.clientWidth,
+          );
+        }
+      });
+
+      it('keeps the full set of lines on a wider narrow screen, where they fit', () => {
+        compact.next(false);
+        const host = create(600);
+
+        const stub = fixture.debugElement.query(
+          By.directive(StubBannerComponent),
+        ).componentInstance as StubBannerComponent;
+        const banner = host.querySelector<HTMLElement>('.map-topbar__banner')!;
+        expect(stub.messages()).toContain('SUPPORTED BY ROLLTROTTEL-VERBAND');
+        expect(
+          Math.max(...stub.messages().map((line) => line.length)) *
+            BANNER_GLYPH_PX,
+        ).toBeLessThanOrEqual(banner.clientWidth);
+      });
+    });
+  });
+
+  describe('keyboard focus when a spot closes', () => {
+    it('lands on the count line on a wide screen when no row opened the spot', () => {
+      store.shownSpots.set([ALPHA, BETA]);
+      showSpot('a', ALPHA);
+      const host = create();
+      host.querySelector<HTMLButtonElement>('.spot-column__back')!.focus();
+
+      closeSpot();
+
+      expect(document.activeElement).toBe(
+        host.querySelector('.spot-column__count-line'),
+      );
+    });
+
+    it('returns to the row that opened the spot when that row can take it', () => {
+      store.shownSpots.set([ALPHA, BETA]);
+      store.returnFocusTo.set('b');
+      showSpot('b', BETA);
+      const host = create();
+      host.querySelector<HTMLButtonElement>('.spot-column__back')!.focus();
+
+      closeSpot();
+
+      expect(document.activeElement).toBe(
+        host.querySelector('a[data-spot-id="b"]'),
+      );
+    });
+
+    it('lands on the sheet head on a phone when ✕ closes a spot a row opened, as the rows are out of reach at the peek bar', () => {
+      wide.next(false);
+      store.shownSpots.set([ALPHA, BETA]);
+      store.returnFocusTo.set('a');
+      showSpot('a', ALPHA);
+      const host = create();
+      host.querySelector<HTMLButtonElement>('.spot-sheet__close')!.focus();
+
+      sheet().close.emit();
+      closeSpot();
+
+      expect(document.activeElement).toBe(
+        host.querySelector('.spot-sheet__toggle'),
+      );
+    });
+
+    it('lands on the sheet head on a phone when the way back to the list closes a pin-opened spot', () => {
+      wide.next(false);
+      store.shownSpots.set([ALPHA, BETA]);
+      showSpot('a', ALPHA);
+      const host = create();
+      host.querySelector<HTMLButtonElement>('.spot-sheet__back')!.focus();
+
+      sheet().back.emit();
+      closeSpot();
+
+      expect(document.activeElement).toBe(
+        host.querySelector('.spot-sheet__toggle'),
+      );
+    });
+
+    it('leaves focus where the visitor put it when it was not in the spot', () => {
+      store.shownSpots.set([ALPHA, BETA]);
+      showSpot('a', ALPHA);
+      const host = create();
+      const picker = host.querySelector<HTMLElement>(
+        '.spot-column mat-select',
+      )!;
+      picker.focus();
+      expect(document.activeElement).toBe(picker);
+
+      closeSpot();
+
+      expect(document.activeElement).toBe(picker);
     });
   });
 

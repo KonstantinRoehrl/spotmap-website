@@ -37,7 +37,7 @@ export const SHEET_LIST_FRACTION = 0.5;
 export const SHEET_DETAIL_FRACTION = 0.85;
 
 /**
- * The sheet's next state after `event` (spec §4.2). Every height is reachable by tapping alone.
+ * The sheet's next state after `event`. Every height is reachable by tapping alone.
  * An event that does not apply to the current state leaves the model as it is.
  */
 export function nextSheet(model: SheetModel, event: SheetEvent): SheetModel {

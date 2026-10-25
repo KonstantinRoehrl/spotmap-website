@@ -488,6 +488,230 @@ describe('SpotBrowserStore', () => {
     expect(store.hoveredId()).toBeNull();
   });
 
+  describe('a spot the router opens', () => {
+    it('freezes the list too, as when the browser goes Forward to an opened spot', async () => {
+      await openViennaMap();
+
+      await harness.navigateByUrl('/spot/a');
+      store.setBounds(EMPTY_CORNER);
+
+      expect(store.shownSpots()).toEqual([ALPHA, BETA]);
+    });
+
+    it('gives the list back live after Back, then freezes it again on Forward', async () => {
+      await openViennaMap();
+      store.open('a', 'list');
+      await settle();
+      await harness.navigateByUrl('/map');
+      store.setBounds(EMPTY_CORNER);
+      expect(store.shownSpots()).toEqual([]);
+      store.setBounds(ALL_OF_VIENNA);
+
+      await harness.navigateByUrl('/spot/a');
+      store.setBounds(EMPTY_CORNER);
+
+      expect(store.shownSpots()).toEqual([ALPHA, BETA]);
+    });
+
+    it('saves nothing for a link opened cold: the list follows the view, and Back shows the current one', async () => {
+      await openPage('/spot/a');
+      store.setList(VIENNA_LIST);
+      store.setBounds(ALL_OF_VIENNA);
+      expect(store.shownSpots()).toEqual([ALPHA, BETA]);
+      store.setBounds(EMPTY_CORNER);
+      expect(store.shownSpots()).toEqual([]);
+
+      await harness.navigateByUrl('/map');
+
+      expect(store.shownSpots()).toEqual([]);
+    });
+
+    it('names no row to return focus to', async () => {
+      await openViennaMap();
+      store.open('a', 'list');
+      await settle();
+      await harness.navigateByUrl('/map');
+
+      await harness.navigateByUrl('/spot/a');
+
+      expect(store.returnFocusTo()).toBeNull();
+    });
+  });
+
+  describe('the row focus returns to', () => {
+    it('stays on the row that opened the spot after it closes', async () => {
+      await openViennaMap();
+      store.open('a', 'list');
+      await settle();
+
+      await harness.navigateByUrl('/map');
+
+      expect(store.returnFocusTo()).toBe('a');
+    });
+
+    it('is dropped when a pin switches to another spot', async () => {
+      await openViennaMap();
+      store.open('a', 'list');
+      await settle();
+
+      store.open('b', 'pin');
+      await settle();
+
+      expect(store.returnFocusTo()).toBeNull();
+    });
+  });
+
+  describe('closing', () => {
+    it('goes back in history once however often it is asked before the route has changed', async () => {
+      await openViennaMap();
+      store.open('a', 'list');
+      await settle();
+      const back = spyOn(location, 'back');
+
+      store.close();
+      store.close();
+
+      expect(back).toHaveBeenCalledTimes(1);
+    });
+
+    it('can close the next spot once the route has reached /map', async () => {
+      await openViennaMap();
+      store.open('a', 'list');
+      await settle();
+      const back = spyOn(location, 'back');
+      store.close();
+      await harness.navigateByUrl('/map');
+
+      store.open('b', 'list');
+      await settle();
+      store.close();
+
+      expect(back).toHaveBeenCalledTimes(2);
+    });
+
+    it('replaces a cold link with /map once however often it is asked', async () => {
+      await openPage('/spot/a');
+      const navigate = spyOn(router, 'navigate').and.callThrough();
+
+      store.close();
+      store.close();
+      await settle();
+
+      expect(navigate).toHaveBeenCalledTimes(1);
+      expect(router.url).toBe('/map');
+    });
+  });
+
+  describe('the hovered spot', () => {
+    it('is dropped when a spot opens', async () => {
+      await openViennaMap();
+      store.setHovered('b');
+
+      store.open('a', 'list');
+      await settle();
+
+      expect(store.hoveredId()).toBeNull();
+    });
+
+    it('is dropped when the spot closes', async () => {
+      await openViennaMap();
+      store.open('a', 'list');
+      await settle();
+      store.setHovered('b');
+
+      await harness.navigateByUrl('/map');
+
+      expect(store.hoveredId()).toBeNull();
+    });
+
+    it('is dropped when the city changes', async () => {
+      await openViennaMap();
+      store.setHovered('a');
+
+      store.selectCity(SUPPORTED_CITIES[CityEnum.Graz]);
+
+      expect(store.hoveredId()).toBeNull();
+    });
+
+    it('is dropped when its spot leaves the list, and kept while it stays', async () => {
+      await openViennaMap();
+      store.setHovered('a');
+
+      store.setBounds({ west: 16, south: 48, east: 17, north: 48.5 });
+      expect(store.hoveredId()).toBe('a');
+
+      store.setBounds(EMPTY_CORNER);
+      expect(store.hoveredId()).toBeNull();
+    });
+  });
+
+  describe('while the map moves', () => {
+    it('keeps the very same list when a pan changes nothing in it', async () => {
+      await openViennaMap();
+      const before = store.shownSpots();
+
+      store.setBounds({ west: 15.9, south: 47.9, east: 17.1, north: 49.1 });
+
+      expect(store.shownSpots()).toBe(before);
+    });
+
+    it('gives a new list when the spots in view change', async () => {
+      await openViennaMap();
+      const before = store.shownSpots();
+
+      store.setBounds({ west: 16.38, south: 48.1, east: 17, north: 49 });
+
+      expect(store.shownSpots()).toEqual([BETA]);
+      expect(store.shownSpots()).not.toBe(before);
+    });
+  });
+
+  describe('the preview of a spot opened from a pin', () => {
+    it('comes from the loaded city when the spot is outside the view and the frozen list', async () => {
+      await openViennaMap();
+      store.setBounds(EMPTY_CORNER);
+
+      store.open('a', 'pin');
+      await settle();
+
+      expect(store.shownSpots()).toEqual([]);
+      expect(store.detail()).toEqual({
+        status: 'loading',
+        id: 'a',
+        preview: ALPHA,
+      });
+    });
+
+    it('is still found for the next spot switched to', async () => {
+      await openViennaMap();
+      store.setBounds(EMPTY_CORNER);
+      store.open('a', 'pin');
+      await settle();
+
+      store.open('b', 'pin');
+      await settle();
+
+      expect(store.detail()).toEqual({
+        status: 'loading',
+        id: 'b',
+        preview: BETA,
+      });
+    });
+
+    it('is empty before the city has loaded', async () => {
+      await openPage('/map');
+
+      store.open('a', 'pin');
+      await settle();
+
+      expect(store.detail()).toEqual({
+        status: 'loading',
+        id: 'a',
+        preview: null,
+      });
+    });
+  });
+
   it('puts the title back when the page goes while a spot is open', async () => {
     await openViennaMap();
     store.open('a', 'list');

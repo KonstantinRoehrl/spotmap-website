@@ -1,13 +1,27 @@
 <div class="map-page" [class.map-page--wide]="wide()">
   @if (!wide()) {
     <header class="map-topbar">
-      <app-ascii-animation-text
-        class="map-topbar__banner"
-        [messages]="bannerMessages()"
-        [waitFrames]="40"
-        [animationSpeed]="45"
-        [loop]="true"
-      />
+      <!-- The banner is recreated, not given other lines, when the bar goes compact. -->
+      <ng-template #topbarBanner let-lines>
+        <app-ascii-animation-text
+          class="map-topbar__banner"
+          [messages]="lines"
+          [waitFrames]="40"
+          [animationSpeed]="45"
+          [loop]="true"
+        />
+      </ng-template>
+      @if (compact()) {
+        <ng-container
+          [ngTemplateOutlet]="topbarBanner"
+          [ngTemplateOutletContext]="{ $implicit: compactBannerMessages() }"
+        />
+      } @else {
+        <ng-container
+          [ngTemplateOutlet]="topbarBanner"
+          [ngTemplateOutletContext]="{ $implicit: bannerMessages() }"
+        />
+      }
       <app-city-picker
         class="map-topbar__picker"
         [selected]="store.city()"
@@ -67,7 +81,10 @@
               {{ backLabel() }}
             </button>
           } @else {
-            <span class="spot-column__count-line">{{ countLine() }}</span>
+            <!-- Not tabbable: focus lands here when a spot closes and no row can take it. -->
+            <span class="spot-column__count-line" tabindex="-1">{{
+              countLine()
+            }}</span>
             <span class="spot-column__order" aria-hidden="true">A–Z</span>
           }
         </div>

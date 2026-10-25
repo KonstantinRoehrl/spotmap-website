@@ -18,7 +18,7 @@ describe('sheet state', () => {
     expect(INITIAL_SHEET).toEqual(at('peek', 'peek'));
   });
 
-  // [from, event, to]: every rule of spec §4.2, tapping only.
+  // [from, event, to]: every rule of the sheet, tapping only.
   const table: [SheetModel, SheetEvent, SheetModel][] = [
     [at('peek', 'peek'), 'head', at('list', 'list')],
     [at('list', 'list'), 'head', at('peek', 'peek')],

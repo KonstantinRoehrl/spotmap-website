@@ -9,6 +9,7 @@ import {
   effect,
   ElementRef,
   inject,
+  Injector,
   signal,
   untracked,
   viewChild,
@@ -32,8 +33,28 @@ import {
 import { PointerBloomDirective } from '../../directives/pointer-bloom.directive';
 import { SpotBrowserStore } from './spot-browser.store';
 
-/** The width the page switches from the sheet to the map + column layout at (spec §3). */
+/** The width the page switches from the sheet to the map + column layout at. */
 export const WIDE_LAYOUT_QUERY = '(min-width: 1024px)';
+
+/**
+ * The widths where the phone top bar leaves the banner too little room for its longer lines; it
+ * then shows only the lines of {@link COMPACT_BANNER_MAX_CHARS} glyphs or fewer.
+ */
+export const COMPACT_BANNER_QUERY = '(max-width: 479px)';
+
+/**
+ * The longest line the banner shows in the compact top bar. The banner never sets its text below
+ * 12 px, where IBM Plex Mono is 7.2 px a glyph, and it is 154 px wide on a 320 px phone, so 21
+ * glyphs is what fits there; a longer line would run out of the bar and be clipped.
+ */
+export const COMPACT_BANNER_MAX_CHARS = 21;
+
+/**
+ * What an open spot is made of, on the controls that close it: the detail, the column's back
+ * button and the sheet's detail head. Focus inside any of them is about to be removed with them.
+ */
+const OPEN_SPOT_CONTROLS =
+  'app-spot-detail, .spot-column__back, .spot-sheet__head-content--detail';
 
 /** How long the count must hold still before the live region reads it, so a pan does not chatter. */
 export const COUNT_ANNOUNCE_DEBOUNCE_MS = 800;
@@ -58,8 +79,9 @@ const BANNER_LINES = [
  * switching never rebuilds the map. From 1024 px the map runs edge to edge beside a column holding
  * the banner, the city picker, the count and the list or the open spot; below that a slim top bar
  * carries the banner and the picker and a bottom sheet (peek / list / detail) holds the same pane
- * over the map. The page owns which layout is on screen and so what the map is told is covered;
- * everything else is the {@link SpotBrowserStore}'s.
+ * over the map. The page owns which layout is on screen and so what the map is told is covered,
+ * and where keyboard focus goes when an open spot closes; everything else is the
+ * {@link SpotBrowserStore}'s.
  */
 @Component({
   selector: 'app-map',
@@ -97,11 +119,26 @@ export class MapComponent {
     { initialValue: this.breakpoints.isMatched(WIDE_LAYOUT_QUERY) },
   );
 
+  /** Whether the viewport is a narrow phone's, where the top bar's banner is {@link compactBannerMessages}. */
+  protected readonly compact = toSignal(
+    this.breakpoints
+      .observe(COMPACT_BANNER_QUERY)
+      .pipe(map((state) => state.matches)),
+    { initialValue: this.breakpoints.isMatched(COMPACT_BANNER_QUERY) },
+  );
+
   /** The banner's lines: the city's own name first, then the house voice. */
   protected readonly bannerMessages = computed(() => [
     `${this.store.city().city.toUpperCase()} SPOTMAP`,
     ...BANNER_LINES,
   ]);
+
+  /** The banner's lines that fit the compact top bar ({@link COMPACT_BANNER_MAX_CHARS} glyphs). */
+  protected readonly compactBannerMessages = computed(() =>
+    this.bannerMessages().filter(
+      (line) => line.length <= COMPACT_BANNER_MAX_CHARS,
+    ),
+  );
 
   /** The sheet's height and where it returns to; drives the phone layout only. */
   protected readonly sheet = signal<SheetModel>(
@@ -127,10 +164,11 @@ export class MapComponent {
     return `> ${count} ${count === 1 ? 'SPOT' : 'SPOTS'} IN VIEW`;
   });
 
-  /** The column's back button in detail mode: the frozen list's count. */
-  protected readonly backLabel = computed(
-    () => `‹ ${this.count() ?? 0} IN VIEW`,
-  );
+  /** The column's back button in detail mode: the frozen list's count, once it is known. */
+  protected readonly backLabel = computed(() => {
+    const count = this.count();
+    return count === null ? '‹ IN VIEW' : `‹ ${count} IN VIEW`;
+  });
 
   /** The part of the map the UI covers: nothing beside the column, the sheet's height on a phone. */
   protected readonly coveredInsets = computed<MapInsets>(() =>
@@ -160,9 +198,17 @@ export class MapComponent {
 
   /**
    * Set while the sheet's own back or close is closing the spot, so the route change that follows
-   * does not also move the sheet back to its resting height.
+   * does not also move the sheet back to its resting height. Cleared when a spot is open again,
+   * so a close that never reached the route cannot swallow a later one.
    */
   private closingFromSheet = false;
+
+  /** The page's own element, searched for the controls focus moves between. */
+  private readonly host =
+    inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
+
+  /** Lets the render hook that moves focus be registered from inside an effect. */
+  private readonly injector = inject(Injector);
 
   constructor() {
     const destroyRef = inject(DestroyRef);
@@ -181,9 +227,13 @@ export class MapComponent {
     effect(() => {
       const id = this.store.selectedId();
       untracked(() => {
+        if (id !== null) {
+          this.closingFromSheet = false;
+        }
         if (previousId === null && id !== null) {
           this.feedSheet('opened');
         } else if (previousId !== null && id === null) {
+          this.restoreFocusAfterClose();
           if (this.closingFromSheet) {
             this.closingFromSheet = false;
           } else {
@@ -225,6 +275,41 @@ export class MapComponent {
     }
     this.feedSheet('map-tap');
     this.closeSpot();
+  }
+
+  /**
+   * Keeps keyboard focus from being dropped when the open spot closes. Focus inside the spot's own
+   * controls (or already lost) is about to go with them; once the list has rendered it is left on
+   * the row that opened the spot if the list put it there, and otherwise moved to a visible head
+   * of the list: the column's count line, or the sheet's head. A phone's rows are out of reach
+   * while the sheet is at its peek bar, so a ✕ always ends on the sheet's head. Focus the visitor
+   * had put anywhere else is left alone.
+   */
+  private restoreFocusAfterClose(): void {
+    const active = this.host.ownerDocument.activeElement;
+    if (
+      active !== null &&
+      active !== this.host.ownerDocument.body &&
+      !active.closest(OPEN_SPOT_CONTROLS)
+    ) {
+      return;
+    }
+    // The `read` phase runs after the list's own effect has tried to focus the opener's row.
+    afterNextRender(
+      {
+        read: () => {
+          if (this.host.ownerDocument.activeElement?.closest('a.spot-row')) {
+            return;
+          }
+          this.host
+            .querySelector<HTMLElement>(
+              this.wide() ? '.spot-column__count-line' : '.spot-sheet__toggle',
+            )
+            ?.focus();
+        },
+      },
+      { injector: this.injector },
+    );
   }
 
   /** Closes the open spot on the sheet's behalf. */

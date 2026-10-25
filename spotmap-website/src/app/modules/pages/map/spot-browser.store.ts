@@ -1,5 +1,11 @@
 import { Location } from '@angular/common';
-import { DestroyRef, inject, Injectable, signal } from '@angular/core';
+import {
+  computed,
+  DestroyRef,
+  inject,
+  Injectable,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { Title } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -54,10 +60,12 @@ interface DetailAnswer {
  *
  * The open spot comes from the URL and nowhere else (`/spot/<id>`): a pin or a row asks
  * {@link open}, which navigates, and the store reacts to the route like the map, the list and the
- * title do. Opening from `/map` pushes a history entry and freezes the list as it was; switching to
- * another spot replaces the entry; {@link close} goes back to the entry it pushed, or replaces a
- * link that was opened cold with `/map`. A cold link holds the map back (`mapCity` null) until the
- * spot's detail names its city, so the remembered city is never built only to be replaced.
+ * title do. Opening from `/map` pushes a history entry; the list is frozen as it was whenever the
+ * route moves from `/map` to a spot — by a click or by the browser's Forward — and set free when it
+ * returns. Switching to another spot replaces the entry; {@link close} goes back to the entry it
+ * pushed, or replaces a link that was opened cold with `/map`. A cold link holds the map back
+ * (`mapCity` null) until the spot's detail names its city, so the remembered city is never built
+ * only to be replaced.
  */
 @Injectable()
 export class SpotBrowserStore {
@@ -100,17 +108,20 @@ export class SpotBrowserStore {
    */
   readonly openOn = this.openOnState.asReadonly();
 
-  /** The spots in the current view, A–Z; null until both the list and the view are known. */
-  private readonly liveSpots = signal<readonly SpotListFeature[] | null>(null);
-  /** The list as it was when a spot was opened from the page; null when nothing is frozen. */
+  /**
+   * The spots in the current view, A–Z; null until both the list and the view are known. Equal
+   * answers are one value ({@link sameSpots}), so a pan that changes nothing in the view notifies
+   * nobody, though the map reports its bounds on every frame it moves.
+   */
+  private readonly liveSpots = signal<readonly SpotListFeature[] | null>(null, {
+    equal: sameSpots,
+  });
+  /** The list as it was when a spot opened from `/map`; null when nothing is frozen. */
   private readonly frozenSpots = signal<readonly SpotListFeature[] | null>(
     null,
   );
-  private readonly shownSpotsState = signal<readonly SpotListFeature[] | null>(
-    null,
-  );
-  /** What the list shows: frozen while a spot opened from the page is open, live otherwise. */
-  readonly shownSpots = this.shownSpotsState.asReadonly();
+  /** What the list shows: frozen while a spot opened from `/map` is open, live otherwise. */
+  readonly shownSpots = computed(() => this.frozenSpots() ?? this.liveSpots());
 
   private readonly detailState = signal<SpotDetailView | null>(null);
   /** The open spot's detail as it loads; null while no spot is open. */
@@ -121,15 +132,27 @@ export class SpotBrowserStore {
   readonly notice = this.noticeState.asReadonly();
 
   private readonly hoveredIdState = signal<string | null>(null);
-  /** The spot under the pointer, on its pin or its row; both light it. */
+  /**
+   * The spot under the pointer, on its pin or its row; both light it. Dropped whenever what is
+   * under the pointer may have gone: a spot opening or closing, a city change, a list without it.
+   */
   readonly hoveredId = this.hoveredIdState.asReadonly();
 
   private readonly returnFocusState = signal<string | null>(null);
-  /** The row that opened the current or last detail, for focus to return to; null after a pin. */
+  /**
+   * The row that opened the current or last detail, for focus to return to; null when no row did:
+   * a pin, a link, the browser's Forward.
+   */
   readonly returnFocusTo = this.returnFocusState.asReadonly();
 
   /** The loaded city's in-view answer; null until its list has arrived. */
   private inView: SpotsInView | null = null;
+  /**
+   * All of the loaded city's spots in the list shape, in view or not; empty until the list has
+   * arrived. A spot's preview is read from here, not asked of {@link inView}, which may answer
+   * later (Phase 11).
+   */
+  private loadedSpots: readonly SpotListFeature[] = [];
   /** The map's visible bounds; null until it has reported them. */
   private bounds: ViewBounds | null = null;
   /** Asks the in-view source again, for the current list and bounds. */
@@ -146,6 +169,16 @@ export class SpotBrowserStore {
    * back to it instead of adding a `/map` entry on top.
    */
   private pushedOverMap = false;
+  /**
+   * Set from the first {@link close} until the route changes: closing goes back in history, which
+   * is not instant, and a second tap in the meantime would go back once more, out of the page.
+   */
+  private closing = false;
+  /**
+   * The id a row asked {@link open} for, until the route reaches it: only that opening returns
+   * focus to a row; one by a pin, a link or the browser's Forward does not.
+   */
+  private openedFromRow: string | null = null;
 
   constructor() {
     inject(DestroyRef).onDestroy(() => this.title.setTitle(this.pageTitle));
@@ -161,7 +194,7 @@ export class SpotBrowserStore {
       )
       .subscribe((spots) => {
         this.liveSpots.set(spots);
-        this.refreshShownSpots();
+        this.dropHoverOutside(spots);
       });
 
     this.detailLoads
@@ -201,6 +234,7 @@ export class SpotBrowserStore {
 
   /** The map's list of the city's spots, as it arrived for the current build. */
   setList(collection: SpotListCollection): void {
+    this.loadedSpots = collection.features;
     this.inView = new LoadedSpotsInView(collection);
     this.viewQueries.next();
   }
@@ -212,34 +246,39 @@ export class SpotBrowserStore {
   }
 
   /**
-   * Opens a spot from a row (`list`) or a pin (`pin`). From `/map` this pushes `/spot/<id>` and
-   * freezes the list as it is; with a spot already open it replaces the entry, so Back returns to
-   * the list rather than walking through every spot.
+   * Opens a spot from a row (`list`) or a pin (`pin`). From `/map` this pushes `/spot/<id>`; with a
+   * spot already open it replaces the entry, so Back returns to the list rather than walking
+   * through every spot.
    */
   open(id: string, origin: 'list' | 'pin'): void {
     this.noticeState.set(null);
     const current = this.selectedId();
-    if (current === null) {
-      this.frozenSpots.set(this.liveSpots());
-      this.returnFocusState.set(origin === 'list' ? id : null);
-      void this.router.navigate(['/spot', id]);
-    } else if (current !== id) {
-      void this.router.navigate(['/spot', id], { replaceUrl: true });
+    if (current === id) {
+      return;
     }
+    this.openedFromRow = origin === 'list' ? id : null;
+    void this.router.navigate(
+      ['/spot', id],
+      current === null ? undefined : { replaceUrl: true },
+    );
   }
 
   /**
    * Closes the open spot: back to the entry this page pushed it over, or — for a link opened cold,
-   * whose previous entry is another site — by replacing it with `/map`.
+   * whose previous entry is another site — by replacing it with `/map`. Asking again before the
+   * route has changed does nothing.
    */
   close(): void {
-    if (this.selectedId() === null) {
+    if (this.selectedId() === null || this.closing) {
       return;
     }
+    this.closing = true;
     if (this.pushedOverMap) {
       this.location.back();
     } else {
-      void this.router.navigate(['/map'], { replaceUrl: true });
+      void this.router
+        .navigate(['/map'], { replaceUrl: true })
+        .finally(() => (this.closing = false));
     }
   }
 
@@ -261,23 +300,32 @@ export class SpotBrowserStore {
     this.noticeState.set(null);
   }
 
-  /** Reacts to the route: a closed detail, a newly opened spot, or a switch to another. */
+  /**
+   * Reacts to the route, however it got there — a click, the browser's Back or Forward, a link: a
+   * closed detail, a newly opened spot, or a switch to another.
+   */
   private onRouteId(id: string | null): void {
     const previous = this.previousId;
     const first = this.firstRouteValue;
+    const openedFromRow = this.openedFromRow;
     this.previousId = id;
     this.firstRouteValue = false;
+    this.openedFromRow = null;
+    this.closing = false;
+    this.hoveredIdState.set(null);
     if (id === null) {
       this.pushedOverMap = false;
       this.frozenSpots.set(null);
       this.detailLoads.next(null);
       this.setDetail(null);
-      this.refreshShownSpots();
       return;
     }
     if (previous === null) {
       this.pushedOverMap = !first;
+      // A cold link has no list yet, so there is nothing to keep: its list follows the view.
+      this.frozenSpots.set(this.liveSpots());
     }
+    this.returnFocusState.set(openedFromRow === id ? id : null);
     this.startDetail(id);
   }
 
@@ -349,44 +397,30 @@ export class SpotBrowserStore {
     storeCity(city.city);
     this.openOnState.set(focus);
     this.inView = null;
+    this.loadedSpots = [];
     this.bounds = null;
     this.frozenSpots.set(null);
+    this.hoveredIdState.set(null);
     this.viewQueries.next();
   }
 
-  /** The loaded list's feature for `id`, if the current city's list holds it. */
+  /** The loaded city's feature for `id`, whether or not it is in view or in the list shown. */
   private inViewFeature(id: string): SpotListFeature | null {
-    const shown = this.frozenSpots() ?? this.liveSpots();
+    const isSpot = (feature: SpotListFeature) => feature.properties.id === id;
     return (
-      shown?.find((feature) => feature.properties.id === id) ??
-      this.loadedFeature(id)
+      this.shownSpots()?.find(isSpot) ?? this.loadedSpots.find(isSpot) ?? null
     );
   }
 
-  /** The feature for `id` in the whole loaded list, in view or not. */
-  private loadedFeature(id: string): SpotListFeature | null {
-    if (this.inView === null) {
-      return null;
+  /** Forgets the hovered spot unless it is among `spots`, the list the view now holds. */
+  private dropHoverOutside(spots: readonly SpotListFeature[] | null): void {
+    const hovered = this.hoveredIdState();
+    if (
+      hovered !== null &&
+      !spots?.some((feature) => feature.properties.id === hovered)
+    ) {
+      this.hoveredIdState.set(null);
     }
-    const everywhere: ViewBounds = {
-      west: -180,
-      south: -90,
-      east: 180,
-      north: 90,
-    };
-    let found: SpotListFeature | null = null;
-    this.inView
-      .spotsIn(everywhere)
-      .subscribe((spots) => {
-        found = spots.find((feature) => feature.properties.id === id) ?? null;
-      })
-      .unsubscribe();
-    return found;
-  }
-
-  /** Recomputes what the list shows: the frozen list while one is held, the live one otherwise. */
-  private refreshShownSpots(): void {
-    this.shownSpotsState.set(this.frozenSpots() ?? this.liveSpots());
   }
 
   /** Sets the detail and the document title that follows its name. */
@@ -404,6 +438,23 @@ export class SpotBrowserStore {
         : `${name.toUpperCase()}${DOCUMENT_TITLE_SUFFIX}`,
     );
   }
+}
+
+/**
+ * Whether two answers of the in-view source are the same list: the same spots in the same order.
+ * By identity of each spot, which {@link LoadedSpotsInView} keeps from one answer to the next.
+ */
+function sameSpots(
+  a: readonly SpotListFeature[] | null,
+  b: readonly SpotListFeature[] | null,
+): boolean {
+  return (
+    a === b ||
+    (a !== null &&
+      b !== null &&
+      a.length === b.length &&
+      a.every((spot, index) => spot === b[index]))
+  );
 }
 
 /**
