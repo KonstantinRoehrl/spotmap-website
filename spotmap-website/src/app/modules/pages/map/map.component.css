@@ -1,4 +1,5 @@
-/* The page fills the shell's content area, which drops its padding on the map page. */
+/* The page fills the shell's content area, which drops its side padding on the map page and keeps
+   only the phone's 60 px for the bottom nav (app.component.css). */
 :host {
   display: block;
   height: 100%;
@@ -18,8 +19,8 @@
   --map-page-gutter: 24px;
 }
 
-/* Wide: the banner and the city select in one row under the top nav, inside the gutter. The
-   row has no bottom padding: the body's top gutter is the space between it and the window. */
+/* From 769 px: the banner and the city select in one row under the top nav, inside the gutter.
+   The row has no bottom padding: the body's top gutter is the space between it and the window. */
 .map-header {
   flex: none;
   display: flex;
@@ -36,11 +37,12 @@
   overflow: hidden;
 }
 
-/* The banner's container centres its line; the header row reads from the left, without the dot
-   gutters (`[dotGutters]="false"`). The component is ViewEncapsulation.None, but this page's own
-   rules are scoped and would never match the container's unscoped markup, so ::ng-deep is the
-   only way to reach it. */
-.map-header__banner ::ng-deep .ascii-container {
+/* The banner's container centres its line; both bars read from the left, without the dot gutters
+   (`[dotGutters]="false"`). The component is ViewEncapsulation.None, but this page's own rules
+   are scoped and would never match the container's unscoped markup, so ::ng-deep is the only way
+   to reach it. */
+.map-header__banner ::ng-deep .ascii-container,
+.map-topbar__banner ::ng-deep .ascii-container {
   justify-content: flex-start;
 }
 
@@ -59,69 +61,80 @@
   width: calc(2rem + 12px + var(--city-label-glyphs) * 0.6 * 0.8125rem);
 }
 
-/* Phone and narrow: banner and picker in one slim bar over the map. The picker's Material field is
-   tightened through its own tokens to the 44 px touch target, so the bar keeps to 46 px. The
-   picker takes the room its longest label needs (below) and the banner the rest, so the gaps are
-   8 px: on a 320 px phone the banner then still holds the longest city line. */
+/* Phone (T3): the banner and the city select in one row, 16 px round it, the top below the
+   safe-area inset. Its bottom padding is the gutter above the window. */
 .map-topbar {
   flex: none;
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 46px;
-  padding: 0 8px;
-  box-sizing: border-box;
-  background: color-mix(in srgb, var(--color-bg) 95%, transparent);
-  border-bottom: 1px solid
-    color-mix(in srgb, var(--color-phosphor) 30%, transparent);
+  padding: calc(16px + env(safe-area-inset-top)) 16px 16px;
 }
 
+/* As wide as the line it is playing (the page sets the width from the banner's own line start)
+   and easing to the next line's width. It may shrink below that, so the picker's minimum always
+   wins; the page already keeps the width inside the room the picker leaves. The reduced-motion
+   net drops the width ease: the slot then changes at once while the line still types in. */
 .map-topbar__banner {
-  flex: 1 1 auto;
+  display: block;
+  flex: 0 1 auto;
   min-width: 0;
   height: 40px;
   overflow: hidden;
+  transition: width 330ms var(--ease-out-expo);
 }
 
-/* The select shows its chosen city in full, never ellipsised: it is as wide as its longest label,
-   `bratislava · SK`, 15 glyphs. That is the field's 16 px side padding twice, the arrow (about
-   10 px, 12 with a margin) and the glyphs at IBM Plex Mono's 0.6 em advance with the tracking
-   removed, set in the 13 px label size. A longer label in the data means raising the glyph count;
-   the 320 px spec in map.component.spec.ts fails until it is. */
+/* The rest of the row, never narrower than its label needs (the page sets that minimum, which
+   counts 12 px of side padding and a 12 px arrow area, so the field is given exactly those). 40 px
+   tall through Material's own field tokens, at the header picker's 7 px padding; the floating CITY
+   label sits in the bar's 16 px top padding. */
 .map-topbar__picker {
-  --city-label-glyphs: 15;
   --mat-select-trigger-text-size: 0.8125rem;
   --mat-select-trigger-text-tracking: 0;
-  flex: 0 0 auto;
-  width: calc(2rem + 12px + var(--city-label-glyphs) * 0.6 * 0.8125rem);
-  --mat-form-field-container-height: 44px;
-  --mat-form-field-container-vertical-padding: 10px;
+  --mat-form-field-container-height: 40px;
+  --mat-form-field-container-vertical-padding: 7px;
+  flex: 1 1 0;
 }
 
+.map-topbar__picker
+  ::ng-deep
+  .mat-mdc-text-field-wrapper.mdc-text-field--outlined {
+  padding-inline: 12px;
+}
+
+/* The arrow's area is exactly the 12 px pickerMinWidth() counts (Material's 10 px arrow, right
+   aligned), so the field's real minimum is the one the page keeps it at. */
+.map-topbar__picker ::ng-deep .mat-mdc-select-arrow-wrapper {
+  box-sizing: border-box;
+  width: 12px;
+  flex: none;
+  justify-content: flex-end;
+}
+
+/* The window fills the rest of the page inside the gutter, the bottom edge included. */
 .map-page__body {
   position: relative;
   display: flex;
   flex: 1 1 auto;
   min-height: 0;
-}
-
-/* Wide: the window fills the rest of the page inside the gutter, the bottom edge included. */
-.map-page--wide .map-page__body {
+  box-sizing: border-box;
   padding: var(--map-page-gutter);
 }
 
+/* Phone: the top bar's own 16 px bottom padding is the gutter above the window. */
+.map-page--phone .map-page__body {
+  padding-top: 0;
+}
+
+/* The map frame (DESIGN.md "Map Canvas"), at every width: an 8 px radius, the surface backing
+   and the 24 px edge glow. It clips the map, the handle, the column and the sheet to its
+   corners; its own halo is outside the clip. */
 .map-window {
   position: relative;
   display: flex;
   flex: 1 1 auto;
   min-width: 0;
   min-height: 0;
-}
-
-/* The map frame (DESIGN.md "Map Canvas"): an 8 px radius, the surface backing and the 24 px edge
-   glow. It clips the map, the handle and the column to its corners; its own halo is outside the
-   clip. */
-.map-window--framed {
   overflow: hidden;
   border-radius: var(--radius-lg);
   background: var(--color-surface);
@@ -238,7 +251,7 @@
   inset: -6px 0;
 }
 
-/* Phone: the sheet floats over the map's bottom edge. */
+/* Under 1024 px: the sheet inside the window, on its left, right and bottom edges, over the map. */
 .map-page__sheet {
   position: absolute;
   left: 0;

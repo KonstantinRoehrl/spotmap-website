@@ -15,6 +15,7 @@ import { BehaviorSubject, map } from 'rxjs';
 import { CityEnum } from '../../../models/enums/map-enum';
 import { MapFocus, NO_INSETS } from '../../../models/map/map-camera';
 import { SUPPORTED_CITIES } from '../../../models/map/supported-cities';
+import type { MapItem } from '../../../models/enums/interfaces/map-item-interface';
 import type { SpotListFeature } from '../../../models/spots/spot';
 import type { SpotDetailView } from '../../../models/spots/spot-detail-view';
 import { AsciiAnimationTextComponent } from '../../components/ascii-animation-text/ascii-animation-text.component';
@@ -39,9 +40,17 @@ import {
   COLUMN_RESET_EASE_MS,
   COUNT_ANNOUNCE_DEBOUNCE_MS,
   MapComponent,
+  PHONE_LAYOUT_QUERY,
   WIDE_LAYOUT_QUERY,
 } from './map.component';
-import { HEADER_BANNER_FONT_PX } from './topbar-banner';
+import {
+  bannerSlotWidth,
+  HEADER_BANNER_FONT_PX,
+  pickerMinWidth,
+  RESTING_BANNER_LINE,
+  TOPBAR_BANNER_FONT_PX,
+  TOPBAR_GAP_PX,
+} from './topbar-banner';
 import { SpotBrowserStore } from './spot-browser.store';
 
 /**
@@ -103,13 +112,24 @@ describe('MapComponent', () => {
   let store: ReturnType<typeof fakeStore>;
   /** Whether the viewport is at least 1024 px wide, as the breakpoint stub reports it. */
   let wide: BehaviorSubject<boolean>;
-  /** Whether the viewport is a phone's width, as the breakpoint stub reports it for any other query. */
-  let compact: BehaviorSubject<boolean>;
+  /** Whether the viewport is at most 768 px wide (the phone top bar), as the breakpoint stub reports it. */
+  let phone: BehaviorSubject<boolean>;
+
+  /** The stub's answer for `query`: the wide or the phone breakpoint; nothing else is asked. */
+  function subjectFor(query: string): BehaviorSubject<boolean> {
+    if (query === WIDE_LAYOUT_QUERY) {
+      return wide;
+    }
+    if (query === PHONE_LAYOUT_QUERY) {
+      return phone;
+    }
+    throw new Error(`unexpected breakpoint query ${query}`);
+  }
 
   beforeEach(async () => {
     store = fakeStore();
     wide = new BehaviorSubject(true);
-    compact = new BehaviorSubject(false);
+    phone = new BehaviorSubject(false);
     await TestBed.configureTestingModule({
       imports: [MapComponent],
       providers: [
@@ -120,10 +140,9 @@ describe('MapComponent', () => {
         {
           provide: BreakpointObserver,
           useValue: {
-            isMatched: (query: string) =>
-              (query === WIDE_LAYOUT_QUERY ? wide : compact).value,
+            isMatched: (query: string) => subjectFor(query).value,
             observe: (query: string) =>
-              (query === WIDE_LAYOUT_QUERY ? wide : compact).pipe(
+              subjectFor(query).pipe(
                 map((matches) => ({
                   matches,
                   breakpoints: { [query]: matches },
@@ -502,7 +521,60 @@ describe('MapComponent', () => {
   });
 
   describe('on a phone', () => {
-    beforeEach(() => wide.next(false));
+    beforeEach(() => {
+      wide.next(false);
+      phone.next(true);
+    });
+
+    /** The gutter round the framed map below 1024 px (DESIGN.md spacing `md`). */
+    const GUTTER = 16;
+
+    it('frames the map below the top bar and 16 px in from the sides and the bottom, with the sheet inside it', () => {
+      const host = create(390);
+
+      const frame = host.querySelector<HTMLElement>('.map-window')!;
+      const style = getComputedStyle(frame);
+      expect(style.borderTopLeftRadius).toBe('8px');
+      expect(style.overflow).toBe('hidden');
+      expect(style.boxShadow).toContain('0px 0px 24px');
+
+      const box = frame.getBoundingClientRect();
+      const page = host.getBoundingClientRect();
+      const bar = host.querySelector<HTMLElement>('.map-topbar')!;
+      // The bar's own 16 px bottom padding is the gutter above the window.
+      expect(getComputedStyle(bar).paddingBottom).toBe('16px');
+      expect(Math.round(box.top - bar.getBoundingClientRect().bottom)).toBe(0);
+      expect(Math.round(box.left - page.left)).toBe(GUTTER);
+      expect(Math.round(page.right - box.right)).toBe(GUTTER);
+      expect(Math.round(page.bottom - box.bottom)).toBe(GUTTER);
+
+      const sheetHost = host.querySelector<HTMLElement>('app-spot-sheet')!;
+      expect(frame.contains(sheetHost)).toBeTrue();
+      const sheetBox = sheetHost.getBoundingClientRect();
+      expect(Math.round(sheetBox.left)).toBe(Math.round(box.left));
+      expect(Math.round(sheetBox.right)).toBe(Math.round(box.right));
+      expect(Math.round(sheetBox.bottom)).toBe(Math.round(box.bottom));
+    });
+
+    it('caps the open sheet at half the framed map, list and detail alike', () => {
+      const host = create(390);
+      const half = Math.round(frameHeight(host) * 0.5);
+      expect(sheet().availableHeight()).toBe(frameHeight(host));
+
+      sheet().headTap.emit();
+      fixture.detectChanges();
+      expect(sheet().state()).toBe('list');
+      expect(container().coveredInsets().bottom).toBe(half);
+
+      showSpot('a', ALPHA);
+      fixture.detectChanges();
+      expect(sheet().state()).toBe('detail');
+      expect(container().coveredInsets().bottom).toBe(half);
+      // The sheet eases its height (330 ms); settle it to read where it comes to rest.
+      const sheetHost = host.querySelector<HTMLElement>('app-spot-sheet')!;
+      sheetHost.getAnimations().forEach((animation) => animation.finish());
+      expect(Math.round(sheetHost.getBoundingClientRect().height)).toBe(half);
+    });
 
     it('puts a slim top bar over the map and the sheet under it', () => {
       const host = create();
@@ -615,45 +687,133 @@ describe('MapComponent', () => {
     });
 
     describe('the top bar', () => {
+      /** The bar's padding on every side (DESIGN.md spacing `md`), the safe-area inset aside. */
+      const BAR_PADDING = 16;
       /** The phone widths the bar has to work at, from the narrowest to a large phone. */
       const PHONE_WIDTHS = [320, 360, 390];
-      /** One glyph of the banner's 12 px IBM Plex Mono, the smallest size the banner may be set in. */
-      const BANNER_GLYPH_PX = 12 * 0.6;
 
-      it('makes the city select a 44 px target without growing past the 46 px bar', () => {
-        compact.next(true);
-        const host = create(360);
+      /** The label the closed select shows for `entry`. */
+      const labelOf = (entry: MapItem) =>
+        `${entry.city} · ${entry.countryCode}`;
+
+      /** The banner in the top bar. */
+      function topbarBanner(): StubBannerComponent {
+        return fixture.debugElement.query(By.css('.map-topbar__banner'))
+          .componentInstance as StubBannerComponent;
+      }
+
+      /** The bar's width inside its padding: what the banner and the picker share. */
+      function barContentWidth(host: HTMLElement): number {
+        return (
+          host.querySelector<HTMLElement>('.map-topbar')!.clientWidth -
+          2 * BAR_PADDING
+        );
+      }
+
+      /** Creates the page at a phone width, once the bar's first measurement has landed. */
+      async function createPhone(width: number): Promise<HTMLElement> {
+        const host = create(width);
+        await nextFrames();
+        fixture.detectChanges();
+        return host;
+      }
+
+      it('pads the bar 16 px on every side and sets the city select 40 px tall', async () => {
+        const host = await createPhone(360);
+        const bar = host.querySelector<HTMLElement>('.map-topbar')!;
+        const style = getComputedStyle(bar);
+        expect([
+          style.paddingTop,
+          style.paddingRight,
+          style.paddingBottom,
+          style.paddingLeft,
+        ]).toEqual(['16px', '16px', '16px', '16px']);
 
         const field = host.querySelector<HTMLElement>(
           '.map-topbar .mat-mdc-text-field-wrapper',
         )!;
-        expect(field.getBoundingClientRect().height).toBeGreaterThanOrEqual(44);
-        expect(
-          host.querySelector('.map-topbar')!.getBoundingClientRect().height,
-        ).toBeLessThanOrEqual(46);
+        expect(Math.round(field.getBoundingClientRect().height)).toBe(40);
+        expect(host.querySelector('.map-header')).toBeNull();
+      });
+
+      it('starts the banner on its resting line, set in the bar’s small size', async () => {
+        await createPhone(360);
+        expect(topbarBanner().messages()[0]).toBe(RESTING_BANNER_LINE);
+        expect(topbarBanner().fixedFontSize()).toBe(TOPBAR_BANNER_FONT_PX);
+        expect(topbarBanner().dotGutters()).toBeFalse();
       });
 
       for (const width of PHONE_WIDTHS) {
-        it(`sets every line of the banner so it fits its room at ${width} px`, () => {
-          compact.next(true);
-          const host = create(width);
+        it(`offers only the banner lines that fit beside the picker at ${width} px`, async () => {
+          store.city.set(SUPPORTED_CITIES[CityEnum.Bratislava]);
+          const host = await createPhone(width);
+          const room =
+            barContentWidth(host) -
+            TOPBAR_GAP_PX -
+            pickerMinWidth(labelOf(SUPPORTED_CITIES[CityEnum.Bratislava]));
 
-          const banner = host.querySelector<HTMLElement>(
-            '.map-topbar__banner',
-          )!;
-          const lines = fixture.debugElement
-            .query(By.directive(StubBannerComponent))
-            .componentInstance.messages() as string[];
-          const longest = Math.max(...lines.map((line) => line.length));
-          expect(longest * BANNER_GLYPH_PX).toBeLessThanOrEqual(
-            banner.clientWidth,
-          );
+          const lines = topbarBanner().messages();
+          expect(lines.length).toBeGreaterThan(0);
+          for (const line of lines) {
+            expect(bannerSlotWidth(line, TOPBAR_BANNER_FONT_PX))
+              .withContext(line)
+              .toBeLessThanOrEqual(room);
+          }
         });
       }
 
+      it('skips the long house lines at 320 px and offers them on a large phone', async () => {
+        store.city.set(SUPPORTED_CITIES[CityEnum.Bratislava]);
+        await createPhone(320);
+        expect(topbarBanner().messages()).not.toContain(
+          'SUPPORTED BY ROLLTROTTEL-VERBAND',
+        );
+
+        fixture.destroy();
+        await createPhone(768);
+        expect(topbarBanner().messages()).toContain(
+          'SUPPORTED BY ROLLTROTTEL-VERBAND',
+        );
+      });
+
+      it('widens the banner’s slot to the line about to play and gives the picker the rest, easing', async () => {
+        const host = await createPhone(390);
+        const banner = host.querySelector<HTMLElement>('.map-topbar__banner')!;
+        const picker = host.querySelector<HTMLElement>('.map-topbar__picker')!;
+        expect(banner.style.width).toBe(
+          `${bannerSlotWidth(RESTING_BANNER_LINE, TOPBAR_BANNER_FONT_PX)}px`,
+        );
+
+        topbarBanner().lineStart.emit('RESPECT THE LOCALS');
+        fixture.detectChanges();
+
+        expect(banner.style.width).toBe(
+          `${bannerSlotWidth('RESPECT THE LOCALS', TOPBAR_BANNER_FONT_PX)}px`,
+        );
+        expect(getComputedStyle(banner).transitionProperty).toContain('width');
+        expect(picker.style.minWidth).toBe(
+          `${pickerMinWidth(labelOf(SUPPORTED_CITIES[CityEnum.Vienna]))}px`,
+        );
+        expect(getComputedStyle(picker).flexGrow).toBe('1');
+      });
+
+      it('never squeezes the picker below its label, whatever line plays', async () => {
+        store.city.set(SUPPORTED_CITIES[CityEnum.Bratislava]);
+        const host = await createPhone(320);
+        const banner = host.querySelector<HTMLElement>('.map-topbar__banner')!;
+
+        topbarBanner().lineStart.emit('SUPPORTED BY ROLLTROTTEL-VERBAND');
+        fixture.detectChanges();
+
+        expect(
+          parseFloat(banner.style.width) +
+            TOPBAR_GAP_PX +
+            pickerMinWidth(labelOf(SUPPORTED_CITIES[CityEnum.Bratislava])),
+        ).toBeLessThanOrEqual(barContentWidth(host));
+      });
+
       it('shows every city’s label in full at 320 px, with no ellipsis on the chosen city', async () => {
-        compact.next(true);
-        const host = create(320);
+        const host = await createPhone(320);
         const bar = host.querySelector<HTMLElement>('.map-topbar')!;
         const picker = host.querySelector<HTMLElement>('.map-topbar__picker')!;
         const value = host.querySelector<HTMLElement>(
@@ -664,51 +824,72 @@ describe('MapComponent', () => {
           store.city.set(entry);
           fixture.detectChanges();
           await fixture.whenStable();
+          await nextFrames();
           fixture.detectChanges();
           expect(value.scrollWidth)
-            .withContext(`${entry.city} · ${entry.countryCode}`)
+            .withContext(labelOf(entry))
             .toBeLessThanOrEqual(value.clientWidth);
+          expect(picker.getBoundingClientRect().width)
+            .withContext(labelOf(entry))
+            .toBeGreaterThanOrEqual(pickerMinWidth(labelOf(entry)) - 0.5);
+          expect(picker.getBoundingClientRect().right)
+            .withContext(labelOf(entry))
+            .toBeLessThanOrEqual(
+              bar.getBoundingClientRect().right - BAR_PADDING + 0.5,
+            );
         }
         expect(
           parseFloat(getComputedStyle(value).fontSize),
         ).toBeGreaterThanOrEqual(12);
-        expect(picker.getBoundingClientRect().right).toBeLessThanOrEqual(
-          bar.getBoundingClientRect().right,
-        );
       });
+    });
+  });
 
-      it('fits the banner for the longest city name too', () => {
-        compact.next(true);
-        const host = create(320);
-        const banner = host.querySelector<HTMLElement>('.map-topbar__banner')!;
-        const stub = fixture.debugElement.query(
-          By.directive(StubBannerComponent),
-        ).componentInstance as StubBannerComponent;
+  describe('on a tablet', () => {
+    /** The gutter round the header row and the framed map below 1024 px. */
+    const GUTTER = 16;
 
-        for (const entry of Object.values(SUPPORTED_CITIES)) {
-          store.city.set(entry);
-          fixture.detectChanges();
-          const cityLine = stub.messages()[0];
-          expect(cityLine.length * BANNER_GLYPH_PX).toBeLessThanOrEqual(
-            banner.clientWidth,
-          );
-        }
+    beforeEach(() => {
+      wide.next(false);
+      phone.next(false);
+    });
+
+    it('puts the wide header row over the framed map and the sheet, inside a 16 px gutter', () => {
+      const host = create(900);
+      expect(host.querySelector('.map-topbar')).toBeNull();
+      expect(host.querySelector('aside.spot-column')).toBeNull();
+
+      const banner = fixture.debugElement.query(By.css('.map-header__banner'));
+      expect(banner).not.toBeNull();
+      const stub = banner.componentInstance as StubBannerComponent;
+      expect(stub.fixedFontSize()).toBe(HEADER_BANNER_FONT_PX);
+      expect(stub.dotGutters()).toBeFalse();
+      expect(stub.messages()[0]).toBe('VIENNA SPOTMAP');
+      expect(host.querySelector('.map-header app-city-picker')).not.toBeNull();
+
+      const page = host.getBoundingClientRect();
+      const bannerBox = (
+        banner.nativeElement as HTMLElement
+      ).getBoundingClientRect();
+      expect(Math.round(bannerBox.top - page.top)).toBe(GUTTER);
+      expect(Math.round(bannerBox.left - page.left)).toBe(GUTTER);
+
+      const frame = host.querySelector<HTMLElement>('.map-window')!;
+      const box = frame.getBoundingClientRect();
+      expect(getComputedStyle(frame).borderTopLeftRadius).toBe('8px');
+      expect(Math.round(box.left - page.left)).toBe(GUTTER);
+      expect(Math.round(page.right - box.right)).toBe(GUTTER);
+      expect(Math.round(page.bottom - box.bottom)).toBe(GUTTER);
+      expect(frame.querySelector('app-spot-sheet')).not.toBeNull();
+    });
+
+    it('covers the framed map by the sheet and keeps the credits top right', () => {
+      const host = create(900);
+      expect(container().coveredInsets()).toEqual({
+        ...NO_INSETS,
+        bottom: sheetHeight('peek', frameHeight(host)),
       });
-
-      it('keeps the full set of lines on a wider narrow screen, where they fit', () => {
-        compact.next(false);
-        const host = create(600);
-
-        const stub = fixture.debugElement.query(
-          By.directive(StubBannerComponent),
-        ).componentInstance as StubBannerComponent;
-        const banner = host.querySelector<HTMLElement>('.map-topbar__banner')!;
-        expect(stub.messages()).toContain('SUPPORTED BY ROLLTROTTEL-VERBAND');
-        expect(
-          Math.max(...stub.messages().map((line) => line.length)) *
-            BANNER_GLYPH_PX,
-        ).toBeLessThanOrEqual(banner.clientWidth);
-      });
+      expect(container().attributionCorner()).toBe('top-right');
     });
   });
 

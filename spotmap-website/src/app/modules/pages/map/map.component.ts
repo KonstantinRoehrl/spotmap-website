@@ -40,25 +40,24 @@ import {
 } from '../../components/spot-sheet/spot-sheet-state';
 import { PointerBloomDirective } from '../../directives/pointer-bloom.directive';
 import { SpotBrowserStore } from './spot-browser.store';
-import { HEADER_BANNER_FONT_PX } from './topbar-banner';
+import {
+  bannerSlotWidth,
+  fittingBannerLines,
+  HEADER_BANNER_FONT_PX,
+  pickerMinWidth,
+  RESTING_BANNER_LINE,
+  TOPBAR_BANNER_FONT_PX,
+  TOPBAR_GAP_PX,
+} from './topbar-banner';
 
 /** The width the page switches from the sheet to the map + column layout at. */
 export const WIDE_LAYOUT_QUERY = '(min-width: 1024px)';
 
 /**
- * The widths where the phone top bar leaves the banner too little room for its longer lines; it
- * then shows only the lines of {@link COMPACT_BANNER_MAX_CHARS} glyphs or fewer.
+ * The widths that get the phone top bar instead of the header row: the bottom navigation's own
+ * breakpoint, below which the nav leaves the top of the screen to the page.
  */
-export const COMPACT_BANNER_QUERY = '(max-width: 479px)';
-
-/**
- * The longest line the banner shows in the compact top bar. The banner never sets its text below
- * 12 px, where IBM Plex Mono is 7.2 px a glyph, and on a 320 px phone it is about 137 px wide once
- * the city select has taken the room its longest label needs, so 19 glyphs is what fits there; 18
- * keeps a margin and holds the longest city line, `BRATISLAVA SPOTMAP`. A longer line would run
- * out of the bar and be clipped.
- */
-export const COMPACT_BANNER_MAX_CHARS = 18;
+export const PHONE_LAYOUT_QUERY = '(max-width: 768px)';
 
 /**
  * What an open spot is made of, on the controls that close it: the detail, the column's back
@@ -99,13 +98,16 @@ interface FrameSize {
 
 /**
  * The map page, served for `/map` and `/spot/<id>` by one route, so a spot opening, closing or
- * switching never rebuilds the map. From 1024 px a header row carries the banner and the city
- * picker above one framed window: the map, a split handle that resizes it against the spot
- * column, and the column with its toolbar and the list or the open spot. Below that a slim top
- * bar carries the banner and the picker and a bottom sheet (peek / list / detail) holds the same
- * pane over the map. The page owns which layout is on screen and so what the map is told is
- * covered, how wide the column is, and where keyboard focus goes when an open spot closes;
- * everything else is the {@link SpotBrowserStore}'s.
+ * switching never rebuilds the map. The map always sits in one framed window inside the page's
+ * gutter. From 1024 px a header row carries the banner and the city picker above it, and the
+ * window holds the map, a split handle that resizes it against the spot column, and the column
+ * with its toolbar and the list or the open spot. From 769 to 1023 px the same header row sits
+ * over a window whose bottom sheet (peek / list / detail, never more than half of it) holds that
+ * pane. On a phone a top bar carries the banner and the picker instead, the banner's slot widening
+ * to whatever line it plays while the picker gives up room down to its label's width. The page
+ * owns which layout is on screen and so what the map is told is covered, how wide the column is,
+ * and where keyboard focus goes when an open spot closes; everything else is the
+ * {@link SpotBrowserStore}'s.
  */
 @Component({
   selector: 'app-map',
@@ -133,7 +135,7 @@ export class MapComponent {
   /** The page's state: city, selection, list, detail, notice. */
   protected readonly store = inject(SpotBrowserStore);
 
-  /** Watches the viewport width for the 1024 px switch between the sheet and the column. */
+  /** Watches the viewport width for the 1024 px and 768 px layout switches. */
   private readonly breakpoints = inject(BreakpointObserver);
 
   /** Whether the viewport is at least 1024 px wide: the column layout; else the sheet. */
@@ -144,12 +146,12 @@ export class MapComponent {
     { initialValue: this.breakpoints.isMatched(WIDE_LAYOUT_QUERY) },
   );
 
-  /** Whether the viewport is a narrow phone's, where the top bar's banner is {@link compactBannerMessages}. */
-  protected readonly compact = toSignal(
+  /** Whether the viewport is a phone's, at most 768 px: the top bar instead of the header row. */
+  protected readonly phone = toSignal(
     this.breakpoints
-      .observe(COMPACT_BANNER_QUERY)
+      .observe(PHONE_LAYOUT_QUERY)
       .pipe(map((state) => state.matches)),
-    { initialValue: this.breakpoints.isMatched(COMPACT_BANNER_QUERY) },
+    { initialValue: this.breakpoints.isMatched(PHONE_LAYOUT_QUERY) },
   );
 
   /** The banner's lines: the city's own name first, then the house voice. */
@@ -158,17 +160,59 @@ export class MapComponent {
     ...BANNER_LINES,
   ]);
 
-  /** The banner's lines that fit the compact top bar ({@link COMPACT_BANNER_MAX_CHARS} glyphs). */
-  protected readonly compactBannerMessages = computed(() =>
-    this.bannerMessages().filter(
-      (line) => line.length <= COMPACT_BANNER_MAX_CHARS,
-    ),
-  );
-
   /** The header row's banner size: set, not fitted, so the row's height never moves. */
   protected readonly headerBannerFontPx = HEADER_BANNER_FONT_PX;
 
-  /** The sheet's height and where it returns to; drives the phone layout only. */
+  /** The top bar's banner size: the Display tier's small size. */
+  protected readonly topbarBannerFontPx = TOPBAR_BANNER_FONT_PX;
+
+  /** The top bar's width inside its padding, measured; 0 until it has been. */
+  private readonly topbarWidth = signal(0);
+
+  /** The line the top bar's banner is playing, or about to: what its slot is as wide as. */
+  private readonly topbarLine = signal(RESTING_BANNER_LINE);
+
+  /** The city as the closed picker shows it, `<city> · <country code>`. */
+  private readonly pickerLabel = computed(() => {
+    const city = this.store.city();
+    return `${city.city} · ${city.countryCode}`;
+  });
+
+  /** The narrowest the top bar's picker may get: its label unclipped, the arrow and its padding. */
+  protected readonly pickerMinWidth = computed(() =>
+    pickerMinWidth(this.pickerLabel()),
+  );
+
+  /**
+   * The top bar banner's lines: the resting `SPOTMAP` first, then the city's line and the house
+   * voice, less every line that could not fit beside the picker's minimum at the bar's width.
+   * Before the bar is measured, and should nothing fit, the resting line alone.
+   */
+  protected readonly topbarMessages = computed(() => {
+    const width = this.topbarWidth();
+    const lines =
+      width > 0
+        ? fittingBannerLines(
+            [RESTING_BANNER_LINE, ...this.bannerMessages()],
+            width,
+            this.pickerLabel(),
+          )
+        : [];
+    return lines.length > 0 ? lines : [RESTING_BANNER_LINE];
+  });
+
+  /**
+   * The top bar banner's slot: as wide as the line it is playing, never so wide that the picker
+   * would have to narrow past its label.
+   */
+  protected readonly topbarSlotWidth = computed(() =>
+    Math.min(
+      bannerSlotWidth(this.topbarLine(), TOPBAR_BANNER_FONT_PX),
+      Math.max(this.topbarWidth() - TOPBAR_GAP_PX - this.pickerMinWidth(), 0),
+    ),
+  );
+
+  /** The sheet's height and where it returns to; drives the layouts under 1024 px only. */
   protected readonly sheet = signal<SheetModel>(
     this.store.selectedId() === null
       ? INITIAL_SHEET
@@ -217,7 +261,7 @@ export class MapComponent {
 
   /**
    * The part of the map the UI covers: nothing in the wide window, where the column sits beside
-   * the map; the sheet's height on a phone.
+   * the map; the sheet's height, a share of the window, below 1024 px.
    */
   protected readonly coveredInsets = computed<MapInsets>(() =>
     this.wide()
@@ -254,6 +298,9 @@ export class MapComponent {
 
   /** The map window, measured for the sheet's heights and the column's width. */
   private readonly frame = viewChild.required<ElementRef<HTMLElement>>('frame');
+
+  /** The phone top bar, measured for the room its banner and picker share; absent elsewhere. */
+  private readonly topbar = viewChild<ElementRef<HTMLElement>>('topbar');
 
   /**
    * Set while the sheet's own back or close is closing the spot, so the route change that follows
@@ -292,6 +339,23 @@ export class MapComponent {
       destroyRef.onDestroy(() => observer.disconnect());
     });
 
+    // The bar comes and goes with the phone breakpoint, so the one observer follows whichever bar
+    // is on screen. Its content box is the room inside the bar's padding.
+    const topbarObserver = new ResizeObserver((entries) => {
+      const width = entries[entries.length - 1]?.contentRect.width;
+      if (width !== undefined) {
+        this.topbarWidth.set(width);
+      }
+    });
+    destroyRef.onDestroy(() => topbarObserver.disconnect());
+    effect(() => {
+      const bar = this.topbar()?.nativeElement;
+      topbarObserver.disconnect();
+      if (bar) {
+        topbarObserver.observe(bar);
+      }
+    });
+
     let previousId = this.store.selectedId();
     effect(() => {
       const id = this.store.selectedId();
@@ -323,6 +387,11 @@ export class MapComponent {
   /** Moves the sheet by one event of its state machine. */
   protected feedSheet(event: SheetEvent): void {
     this.sheet.update((model) => nextSheet(model, event));
+  }
+
+  /** The top bar's banner is about to type `line`: its slot widens or narrows to it. */
+  protected onTopbarLine(line: string): void {
+    this.topbarLine.set(line);
   }
 
   /** The sheet's `‹ … IN VIEW`: back to the list, closing the spot. */

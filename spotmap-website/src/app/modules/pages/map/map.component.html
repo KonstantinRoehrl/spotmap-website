@@ -1,5 +1,33 @@
-<div class="map-page" [class.map-page--wide]="wide()">
-  @if (wide()) {
+<div
+  class="map-page"
+  [class.map-page--wide]="wide()"
+  [class.map-page--phone]="phone()"
+>
+  @if (phone()) {
+    <header #topbar class="map-topbar">
+      <!-- Keyed by its lines: a new set recreates the banner, whose typewriter keeps an index into
+           them, instead of handing a running one a shorter list. -->
+      @for (lines of [topbarMessages()]; track lines.join('|')) {
+        <app-ascii-animation-text
+          class="map-topbar__banner"
+          [style.width.px]="topbarSlotWidth()"
+          [messages]="lines"
+          [fixedFontSize]="topbarBannerFontPx"
+          [dotGutters]="false"
+          [waitFrames]="40"
+          [animationSpeed]="45"
+          [loop]="true"
+          (lineStart)="onTopbarLine($event)"
+        />
+      }
+      <app-city-picker
+        class="map-topbar__picker"
+        [style.min-width.px]="pickerMinWidth()"
+        [selected]="store.city()"
+        (citySelected)="store.selectCity($event)"
+      />
+    </header>
+  } @else {
     <header class="map-header">
       <app-ascii-animation-text
         class="map-header__banner"
@@ -16,41 +44,12 @@
         (citySelected)="store.selectCity($event)"
       />
     </header>
-  } @else {
-    <header class="map-topbar">
-      <!-- The banner is recreated, not given other lines, when the bar goes compact. -->
-      <ng-template #topbarBanner let-lines>
-        <app-ascii-animation-text
-          class="map-topbar__banner"
-          [messages]="lines"
-          [waitFrames]="40"
-          [animationSpeed]="45"
-          [loop]="true"
-        />
-      </ng-template>
-      @if (compact()) {
-        <ng-container
-          [ngTemplateOutlet]="topbarBanner"
-          [ngTemplateOutletContext]="{ $implicit: compactBannerMessages() }"
-        />
-      } @else {
-        <ng-container
-          [ngTemplateOutlet]="topbarBanner"
-          [ngTemplateOutletContext]="{ $implicit: bannerMessages() }"
-        />
-      }
-      <app-city-picker
-        class="map-topbar__picker"
-        [selected]="store.city()"
-        (citySelected)="store.selectCity($event)"
-      />
-    </header>
   }
 
   <div class="map-page__body">
-    <!-- The window and the map in it sit outside every layout @if: crossing 1024 px must never
+    <!-- The window and the map in it sit outside every layout @if: crossing a breakpoint must never
          rebuild the map. -->
-    <div #frame class="map-window" [class.map-window--framed]="wide()">
+    <div #frame class="map-window">
       <div class="map-page__map">
         @if (store.mapCity(); as city) {
           <app-map-container
