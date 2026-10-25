@@ -1,4 +1,10 @@
-import { ShareNavigator, shareSpot, spotLink } from './share-spot';
+import {
+  copySpotLink,
+  hasShareSheet,
+  ShareNavigator,
+  shareSpot,
+  spotLink,
+} from './share-spot';
 
 /** The parts of `navigator` a share uses, each present only when given. */
 function fakeNavigator(parts: {
@@ -98,5 +104,56 @@ describe('shareSpot', () => {
     expect(await shareSpot(LINK, 'Alpha Bank', fakeNavigator({}))).toBe(
       'copy-failed',
     );
+  });
+});
+
+describe('hasShareSheet', () => {
+  const data: ShareData = { url: LINK, title: 'Alpha Bank' };
+
+  it('is true where the browser shares and has no canShare to ask', () => {
+    const share = jasmine.createSpy('share').and.resolveTo();
+    expect(hasShareSheet(fakeNavigator({ share }), data)).toBeTrue();
+  });
+
+  it('is true where canShare accepts the link', () => {
+    const share = jasmine.createSpy('share').and.resolveTo();
+    const canShare = jasmine.createSpy('canShare').and.returnValue(true);
+    expect(hasShareSheet(fakeNavigator({ share, canShare }), data)).toBeTrue();
+    expect(canShare).toHaveBeenCalledOnceWith(data);
+  });
+
+  it('is false where canShare refuses the link', () => {
+    const share = jasmine.createSpy('share').and.resolveTo();
+    expect(
+      hasShareSheet(fakeNavigator({ share, canShare: () => false }), data),
+    ).toBeFalse();
+  });
+
+  it('is false where there is no share sheet at all', () => {
+    const writeText = jasmine.createSpy('writeText').and.resolveTo();
+    expect(hasShareSheet(fakeNavigator({ writeText }), data)).toBeFalse();
+  });
+});
+
+describe('copySpotLink', () => {
+  it('writes the link to the clipboard', async () => {
+    const writeText = jasmine.createSpy('writeText').and.resolveTo();
+    expect(await copySpotLink(LINK, fakeNavigator({ writeText }))).toBe(
+      'copied',
+    );
+    expect(writeText).toHaveBeenCalledOnceWith(LINK);
+  });
+
+  it('reports a refused write', async () => {
+    const writeText = jasmine
+      .createSpy('writeText')
+      .and.rejectWith(new DOMException('denied', 'NotAllowedError'));
+    expect(await copySpotLink(LINK, fakeNavigator({ writeText }))).toBe(
+      'copy-failed',
+    );
+  });
+
+  it('reports a failed copy where there is no clipboard', async () => {
+    expect(await copySpotLink(LINK, fakeNavigator({}))).toBe('copy-failed');
   });
 });

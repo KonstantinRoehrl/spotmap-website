@@ -33,6 +33,42 @@ export function spotLink(
 }
 
 /**
+ * Whether `nav` offers a share sheet for `data`: `share` exists and `canShare`, where the browser
+ * has it, accepts the data. Where it does not, the spot's share control copies the link instead.
+ *
+ * @param nav the navigator to ask
+ * @param data what would be shared: the spot's link and name
+ */
+export function hasShareSheet(nav: ShareNavigator, data: ShareData): boolean {
+  return (
+    typeof nav.share === 'function' &&
+    (typeof nav.canShare !== 'function' || nav.canShare(data))
+  );
+}
+
+/**
+ * Copies `link` to the clipboard. A browser without a clipboard, or one that refuses the write,
+ * reports `copy-failed`; nothing is thrown.
+ *
+ * @param link the absolute link, from {@link spotLink}
+ * @param nav the navigator whose clipboard to write
+ */
+export async function copySpotLink(
+  link: string,
+  nav: ShareNavigator,
+): Promise<'copied' | 'copy-failed'> {
+  try {
+    if (!nav.clipboard?.writeText) {
+      return 'copy-failed';
+    }
+    await nav.clipboard.writeText(link);
+    return 'copied';
+  } catch {
+    return 'copy-failed';
+  }
+}
+
+/**
  * Shares a spot's link: through the native share sheet where the browser offers one for it,
  * otherwise by copying the link. A dismissed sheet (`AbortError`) is the visitor's choice and
  * copies nothing; a sheet that fails any other way falls back to the copy.
@@ -47,10 +83,7 @@ export async function shareSpot(
   nav: ShareNavigator = navigator,
 ): Promise<ShareOutcome> {
   const data: ShareData = { url: link, title };
-  const canShare =
-    typeof nav.share === 'function' &&
-    (typeof nav.canShare !== 'function' || nav.canShare(data));
-  if (canShare) {
+  if (hasShareSheet(nav, data)) {
     try {
       await nav.share(data);
       return 'shared';
@@ -60,13 +93,5 @@ export async function shareSpot(
       }
     }
   }
-  try {
-    if (!nav.clipboard?.writeText) {
-      return 'copy-failed';
-    }
-    await nav.clipboard.writeText(link);
-    return 'copied';
-  } catch {
-    return 'copy-failed';
-  }
+  return copySpotLink(link, nav);
 }
