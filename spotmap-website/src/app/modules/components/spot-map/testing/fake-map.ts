@@ -145,8 +145,6 @@ export class FakeMap {
   zoom = 13;
   /** What `queryRenderedFeatures()` finds on the thumb-target layer under the pointer: a pin, or nothing. */
   renderedPins: unknown[] = [];
-  /** What `queryRenderedFeatures()` finds on the flag layer under the pointer. */
-  renderedFlags: unknown[] = [];
   /** Every image the component added or updated, by id, as the map holds it now. */
   readonly images = new Map<
     string,
@@ -268,8 +266,8 @@ export class FakeMap {
   }
   /**
    * What MapLibre finds rendered, layer by layer in the order asked: the placed photo pins on the
-   * photo layer, `renderedFlags` on the flag layer and `renderedPins` on the thumb-target layer,
-   * each feature tagged with the layer it was found on, as MapLibre's are (`layer.id`).
+   * photo layer and `renderedPins` on the thumb-target layer, each feature tagged with the layer it
+   * was found on, as MapLibre's are (`layer.id`).
    */
   queryRenderedFeatures(
     geometryOrOptions?: unknown,
@@ -279,12 +277,9 @@ export class FakeMap {
       options?.layers ??
       (geometryOrOptions as { layers?: string[] } | undefined)?.layers;
     return (layers ?? ['spots-hit']).flatMap((layer) =>
-      (layer === 'spots-photo'
-        ? this.placedPhotos
-        : layer === 'spots-flag'
-          ? this.renderedFlags
-          : this.renderedPins
-      ).map((feature) => ({ ...(feature as object), layer: { id: layer } })),
+      (layer === 'spots-photo' ? this.placedPhotos : this.renderedPins).map(
+        (feature) => ({ ...(feature as object), layer: { id: layer } }),
+      ),
     );
   }
   /** A handler that removes itself after its first call, as MapLibre's `once` does. */

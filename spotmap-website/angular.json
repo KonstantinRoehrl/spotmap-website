@@ -60,10 +60,12 @@
                   "maximumWarning": "500kB",
                   "maximumError": "1MB"
                 },
+                // The error ceiling leaves room for the spot map's DOM selection flag, which
+                // lives in its component stylesheet.
                 {
                   "type": "anyComponentStyle",
                   "maximumWarning": "3kB",
-                  "maximumError": "4kB"
+                  "maximumError": "10kB"
                 },
                 // The two lazy chunks the map's first view pulls, each sized to the build that
                 // was measured when the ceiling was set — maplibre-gl 1.07 MB, map-component

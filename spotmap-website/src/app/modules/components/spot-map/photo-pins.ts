@@ -6,7 +6,6 @@ import type {
 import { photoUrl } from '../../../services/spotmap-backend';
 import { TERMINAL_PALETTE } from './map-palette';
 import {
-  FLAG_IMAGE_PREFIX,
   PHOTO_PIN_IMAGE_PREFIX,
   PIN_IMAGE_LIFT_PX,
   SPOT_PHOTO_LAYER_ID,
@@ -21,12 +20,9 @@ const PHOTO_HEIGHT = 42;
 const PIN_FRAME_PX = 1;
 
 /**
- * The flag's frame, in CSS px. Every image is sized for it and a photo pin's frame sits inset by
- * the difference, so a flag lands exactly over the photo pin it stands in for.
+ * The stem from the frame down to the pin, in CSS px. `PHOTO_PIN_COLLISION_PADDING` keeps all but
+ * 2 px of it out of the pin's collision box, and `isOnPinImageBody` out of its hit area.
  */
-const FLAG_FRAME_PX = 2;
-
-/** The stem from the frame down to the pin, in CSS px. */
 const STEM_PX = 8;
 
 /** The frame's corner radius: R1's 4 px. */
@@ -35,22 +31,47 @@ const FRAME_RADIUS_PX = 4;
 /** How far a demolished spot's photo is dimmed, so the "gone" state still reads. */
 const DEMOLISHED_PHOTO_ALPHA = 0.55;
 
-/** Every pin image's width in CSS px: the photo inside the flag's frame. */
-export const PIN_IMAGE_WIDTH = PHOTO_WIDTH + 2 * FLAG_FRAME_PX;
+/** Every pin image's width in CSS px: the photo in its frame. */
+export const PIN_IMAGE_WIDTH = PHOTO_WIDTH + 2 * PIN_FRAME_PX;
 
 /** Every pin image's height in CSS px: the framed photo and its stem. */
-export const PIN_IMAGE_HEIGHT = PHOTO_HEIGHT + 2 * FLAG_FRAME_PX + STEM_PX;
+export const PIN_IMAGE_HEIGHT = PHOTO_HEIGHT + 2 * PIN_FRAME_PX + STEM_PX;
 
 /** Device pixels per CSS px the images are drawn at, so they stay sharp on a phone. */
 export const PIN_PIXEL_RATIO = 2;
 
-/** How far above its pin the selection flag reaches, in px: the image's lift plus its height. */
-export const FLAG_REACH_PX = PIN_IMAGE_LIFT_PX + PIN_IMAGE_HEIGHT;
+/**
+ * The raised flag's photo width, in CSS px: about one and a half times the photo pin's (spec
+ * §7.2). The flag's stylesheet (`spot-map.component.css`) mirrors every raised size below.
+ */
+export const RAISED_PHOTO_WIDTH = 84;
+
+/** The raised flag's photo height, in CSS px: three quarters of its width. */
+export const RAISED_PHOTO_HEIGHT = 63;
+
+/** The raised flag's amber frame, in CSS px. */
+export const RAISED_FRAME_PX = 2;
+
+/** The raised flag's stem, from the pin image's lift up to the frame, in CSS px. */
+export const RAISED_STEM_PX = 24;
+
+/** The raised flag's framed photo, width in CSS px. */
+export const RAISED_FRAME_WIDTH = RAISED_PHOTO_WIDTH + 2 * RAISED_FRAME_PX;
+
+/** The raised flag's framed photo, height in CSS px. */
+export const RAISED_FRAME_HEIGHT = RAISED_PHOTO_HEIGHT + 2 * RAISED_FRAME_PX;
+
+/**
+ * How far above its pin the raised flag reaches, in px: the lift, its stem and its framed photo.
+ * The camera keeps this much clear above a selected pin.
+ */
+export const FLAG_REACH_PX =
+  PIN_IMAGE_LIFT_PX + RAISED_STEM_PX + RAISED_FRAME_HEIGHT;
 
 /**
  * Whether `point` lies on the opaque body of the pin image standing on the pin at `pin` — the
  * framed photo — as opposed to the stem band at the foot of the image, which MapLibre counts as
- * part of it although the 60 x 8 px around the stem is transparent. A layer query reports the
+ * part of it although the 58 x 8 px around the stem is transparent. A layer query reports the
  * whole image box as hit, so this is what tells a pointer on the photo from one on a dot showing
  * through the band. Both are screen points in px; the frame's rounded corners count as body.
  */
@@ -67,14 +88,33 @@ export function isOnPinImageBody(
   );
 }
 
+/**
+ * Whether `point` lies on the raised flag's framed photo over the pin at `pin`. The flag is drawn
+ * over the map, not on it, so it hides whatever MapLibre would find under it, and a point on it is
+ * the selected spot's. Its thin stem is left out, as the photo pin's is. Both are screen points in
+ * px.
+ */
+export function isOnRaisedFlag(
+  pin: { x: number; y: number },
+  point: { x: number; y: number },
+): boolean {
+  const bottom = pin.y - PIN_IMAGE_LIFT_PX - RAISED_STEM_PX;
+  const top = bottom - RAISED_FRAME_HEIGHT;
+  return (
+    Math.abs(point.x - pin.x) <= RAISED_FRAME_WIDTH / 2 &&
+    point.y >= top &&
+    point.y <= bottom
+  );
+}
+
 /** How many photos fade into their frames at once; the rest wait their turn. */
 export const MAX_CONCURRENT_FADES = 8;
 
 /** How long a fetched photo takes to fade into its placeholder frame. */
 export const PHOTO_FADE_MS = 200;
 
-/** How a pin image is framed: a standing spot, a demolished one, or the selection's flag. */
-export type PinStyle = 'active' | 'demolished' | 'flag';
+/** How a pin image is framed: a standing spot or a demolished one. */
+export type PinStyle = 'active' | 'demolished';
 
 /** What a pin image can draw its photo from. */
 export type PinPhoto = HTMLImageElement | HTMLCanvasElement | ImageBitmap;
@@ -142,9 +182,9 @@ function photoTile(photo: PinPhoto): HTMLCanvasElement {
 
 /**
  * Draws one pin image: the photo (or, before it arrives, the `surface` fill) cover-cropped into a
- * 4 px-rounded frame on a stem — `phosphor-deep` for a standing spot, `phosphor-dim` with the photo
- * dimmed for a demolished one, a 2 px `amber` frame for the flag. `photoAlpha` fades the photo in.
- * Every call draws on one shared canvas, so the result is a copy that is the caller's to keep.
+ * 4 px-rounded 1 px frame on a stem, `phosphor-deep` for a standing spot, and `phosphor-dim` with
+ * the photo dimmed for a demolished one. `photoAlpha` fades the photo in. Every call draws on one
+ * shared canvas, so the result is a copy that is the caller's to keep.
  */
 export function drawPinImage(
   photo: PinPhoto | null,
@@ -155,39 +195,24 @@ export function drawPinImage(
   context.setTransform(PIN_PIXEL_RATIO, 0, 0, PIN_PIXEL_RATIO, 0, 0);
   context.clearRect(0, 0, PIN_IMAGE_WIDTH, PIN_IMAGE_HEIGHT);
 
-  const frameWidth = style === 'flag' ? FLAG_FRAME_PX : PIN_FRAME_PX;
-  const inset = FLAG_FRAME_PX - frameWidth;
-  const frame = {
-    x: inset,
-    y: inset,
-    width: PIN_IMAGE_WIDTH - 2 * inset,
-    height: PHOTO_HEIGHT + 2 * FLAG_FRAME_PX - 2 * inset,
-  };
+  const frameHeight = PHOTO_HEIGHT + 2 * PIN_FRAME_PX;
   context.fillStyle =
-    style === 'flag'
-      ? TERMINAL_PALETTE.amber
-      : style === 'demolished'
-        ? TERMINAL_PALETTE.phosphorDim
-        : TERMINAL_PALETTE.phosphorDeep;
+    style === 'demolished'
+      ? TERMINAL_PALETTE.phosphorDim
+      : TERMINAL_PALETTE.phosphorDeep;
   context.fillRect(
-    PIN_IMAGE_WIDTH / 2 - frameWidth / 2,
-    frame.y + frame.height,
-    frameWidth,
-    PIN_IMAGE_HEIGHT - frame.y - frame.height,
+    PIN_IMAGE_WIDTH / 2 - PIN_FRAME_PX / 2,
+    frameHeight,
+    PIN_FRAME_PX,
+    STEM_PX,
   );
   context.beginPath();
-  context.roundRect(
-    frame.x,
-    frame.y,
-    frame.width,
-    frame.height,
-    FRAME_RADIUS_PX,
-  );
+  context.roundRect(0, 0, PIN_IMAGE_WIDTH, frameHeight, FRAME_RADIUS_PX);
   context.fill();
 
   const box = {
-    x: frame.x + frameWidth,
-    y: frame.y + frameWidth,
+    x: PIN_FRAME_PX,
+    y: PIN_FRAME_PX,
     width: PHOTO_WIDTH,
     height: PHOTO_HEIGHT,
   };
@@ -197,7 +222,7 @@ export function drawPinImage(
     box.y,
     box.width,
     box.height,
-    FRAME_RADIUS_PX - frameWidth,
+    FRAME_RADIUS_PX - PIN_FRAME_PX,
   );
   context.fillStyle = TERMINAL_PALETTE.surface;
   context.fill();
@@ -284,15 +309,14 @@ interface Fade {
 }
 
 /**
- * The images of one build's photo pins and flag. MapLibre asks for a pin's image when it lays out
- * its tile; the answer is a framed placeholder of the final size at once, so layout and collision
- * never wait on the network. Only the photo pins MapLibre actually placed have their photo fetched
- * — once the map has rendered and gone quiet, and after each `moveend` and `idle` — and each fades
- * into its frame by a few same-size updates, a handful at a time, all driven by one animation
- * frame. A photo is fetched once per cover and kept as a small cropped tile, so the flag of a
- * spot whose photo pin already shows its photo is drawn complete, with nothing fetched. A photo
- * that fails keeps its placeholder and is not asked for again. Built only when a photo host is
- * configured.
+ * The images of one build's photo pins. MapLibre asks for a pin's image when it lays out its tile;
+ * the answer is a framed placeholder of the final size at once, so layout and collision never wait
+ * on the network. Only the photo pins MapLibre actually placed have their photo fetched — once the
+ * map has rendered and gone quiet, and after each `moveend` and `idle` — and each fades into its
+ * frame by a few same-size updates, a handful at a time, all driven by one animation frame. A
+ * photo is fetched once per cover and kept as a small cropped tile. A photo that fails keeps its
+ * placeholder and is not asked for again. The selection flag is not drawn here: it is
+ * `SelectionFlag`'s, over the map. Built only when a photo host is configured.
  */
 export class PhotoPins {
   /** The build's spots, by id. */
@@ -305,7 +329,7 @@ export class PhotoPins {
   private readonly failed = new Set<string>();
   /** The cropped photos fetched so far, by cover. */
   private readonly tiles = new Map<string, HTMLCanvasElement>();
-  /** The fetches in flight, by cover, so two images of one cover share a request. */
+  /** The fetches in flight, by cover, so a cover asked for again while loading shares the request. */
   private readonly loading = new Map<string, Promise<HTMLCanvasElement>>();
   /** The fades running, at most {@link MAX_CONCURRENT_FADES}. */
   private readonly fading: Fade[] = [];
@@ -369,51 +393,32 @@ export class PhotoPins {
     this.waiting.length = 0;
   }
 
-  /**
-   * Adds the image MapLibre needs: a flag whose photo is already known is drawn complete; any
-   * other gets a shared placeholder, and the flag's photo is fetched straight away.
-   */
+  /** Adds the image MapLibre needs: the shared placeholder of its style, until its photo arrives. */
   private resolve(imageId: string): void {
     const pin = this.pinFor(imageId);
     if (!pin || this.map.hasImage(imageId)) {
       return;
     }
-    const tile = this.tiles.get(pin.spot.properties.cover ?? '');
-    if (pin.style === 'flag' && tile) {
-      this.withPhoto.add(imageId);
-      this.map.addImage(imageId, drawPinImage(tile, pin.style), {
-        pixelRatio: PIN_PIXEL_RATIO,
-      });
-      return;
-    }
     this.map.addImage(imageId, placeholderImage(pin.style), {
       pixelRatio: PIN_PIXEL_RATIO,
     });
-    if (pin.style === 'flag') {
-      this.fetch(imageId, pin);
-    }
   }
 
-  /** The spot and style an image id stands for, or `null` for an image this does not draw. */
+  /** The spot and style a photo pin's image id stands for, or `null` for an image this does not draw. */
   private pinFor(
     imageId: string,
   ): { spot: SpotListFeature; style: PinStyle } | null {
-    const flag = imageId.startsWith(FLAG_IMAGE_PREFIX);
-    if (!flag && !imageId.startsWith(PHOTO_PIN_IMAGE_PREFIX)) {
+    if (!imageId.startsWith(PHOTO_PIN_IMAGE_PREFIX)) {
       return null;
     }
-    const spot = this.spots.get(
-      imageId.slice((flag ? FLAG_IMAGE_PREFIX : PHOTO_PIN_IMAGE_PREFIX).length),
-    );
+    const spot = this.spots.get(imageId.slice(PHOTO_PIN_IMAGE_PREFIX.length));
     if (!spot?.properties.cover) {
       return null;
     }
-    const style = flag
-      ? 'flag'
-      : spot.properties.status === 'demolished'
-        ? 'demolished'
-        : 'active';
-    return { spot, style };
+    return {
+      spot,
+      style: spot.properties.status === 'demolished' ? 'demolished' : 'active',
+    };
   }
 
   /** Fetches the photos of the photo pins MapLibre placed on screen. */

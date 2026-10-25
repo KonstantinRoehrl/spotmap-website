@@ -77,6 +77,326 @@
   margin: 10px 10px 0 0;
 }
 
+/* The selection flag (selection-flag.ts): an anchor at the selected pin's canvas point, moved with
+   the map like the tooltip, and never a pointer target, so a drag that starts on it still pans the
+   map; the component hit-tests its raised photo itself. Its sizes mirror photo-pins.ts: down, it is
+   exactly the photo pin it stands in for (a 56 × 42 photo in a 1px frame on an 8px stem, lifted 8px
+   off the pin); raised, an 84 × 63 photo in a 2px amber frame on a 24px amber stem. Amber is the
+   selection's colour, its one role on the map. */
+.spot-map__flag {
+  --flag-rest-color: var(--color-phosphor-deep);
+  --flag-rest-photo-opacity: 1;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  pointer-events: none;
+  transition: opacity var(--dur-fade) ease-out;
+}
+
+/* A demolished spot's photo pin has a dim frame and a dimmed photo, so its flag starts from both. */
+.spot-map__flag--demolished {
+  --flag-rest-color: var(--color-phosphor-dim);
+  --flag-rest-photo-opacity: 0.55;
+}
+
+/* Once its photo pin has faded back in under it, the copy fades out. */
+.spot-map__flag[data-phase='leaving'] {
+  opacity: 0;
+}
+
+/* Both layers hang from the anchor: a box of no size whose bottom edge is the pin's point. */
+.spot-map__flag-raise,
+.spot-map__flag-pin {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+}
+
+.spot-map__flag-frame,
+.spot-map__flag-pin-frame {
+  position: absolute;
+  box-sizing: border-box;
+  overflow: hidden;
+  border-style: solid;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+}
+
+.spot-map__flag-stem,
+.spot-map__flag-pin-stem {
+  position: absolute;
+  bottom: 8px;
+}
+
+.spot-map__flag img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Raised: the flag's own shape, and where every rise ends. */
+.spot-map__flag-frame {
+  bottom: 32px;
+  left: -44px;
+  width: 88px;
+  height: 67px;
+  border-width: 2px;
+  border-color: var(--color-amber);
+}
+
+.spot-map__flag-stem {
+  left: -1px;
+  width: 2px;
+  height: 24px;
+  background: var(--color-amber);
+}
+
+/* Down on its photo pin: the pin image exactly. Drawn only under reduced motion. */
+.spot-map__flag-pin {
+  display: none;
+}
+
+.spot-map__flag-pin-frame {
+  bottom: 16px;
+  left: -29px;
+  width: 58px;
+  height: 44px;
+  border-width: 1px;
+  border-color: var(--flag-rest-color);
+}
+
+.spot-map__flag-pin-frame img {
+  opacity: var(--flag-rest-photo-opacity);
+}
+
+.spot-map__flag-pin-stem {
+  left: -0.5px;
+  width: 1px;
+  height: 8px;
+  background: var(--flag-rest-color);
+}
+
+/* With motion the one raised shape travels between the pin (or the dot) and the top, over 420ms
+   (FLAG_MOTION_MS) on the house curve. A rise waits paused on the pin's shape while the map takes
+   the photo pin away; a fall ends on the pin's shape and holds it while the pin fades back in.
+   Keyframe animations rather than transitions, so a flag drawn mid-way starts from its own first
+   frame. */
+.spot-map__flag:not(.spot-map__flag--reduced):is(
+    [data-phase='held'],
+    [data-phase='rising']
+  )
+  .spot-map__flag-frame {
+  animation: spot-flag-frame-from-pin 420ms var(--ease-out-expo) both;
+}
+
+.spot-map__flag:not(.spot-map__flag--reduced):is(
+    [data-phase='held'],
+    [data-phase='rising']
+  )
+  .spot-map__flag-stem {
+  animation: spot-flag-stem-from-pin 420ms var(--ease-out-expo) both;
+}
+
+.spot-map__flag:not(.spot-map__flag--reduced):is(
+    [data-phase='held'],
+    [data-phase='rising']
+  )
+  .spot-map__flag-frame
+  img {
+  animation: spot-flag-photo-from-pin 420ms var(--ease-out-expo) both;
+}
+
+.spot-map__flag:not(.spot-map__flag--reduced):is(
+    [data-phase='falling'],
+    [data-phase='leaving']
+  )
+  .spot-map__flag-frame {
+  animation: spot-flag-frame-to-pin 420ms var(--ease-out-expo) both;
+}
+
+.spot-map__flag:not(.spot-map__flag--reduced):is(
+    [data-phase='falling'],
+    [data-phase='leaving']
+  )
+  .spot-map__flag-stem {
+  animation: spot-flag-stem-to-pin 420ms var(--ease-out-expo) both;
+}
+
+.spot-map__flag:not(.spot-map__flag--reduced):is(
+    [data-phase='falling'],
+    [data-phase='leaving']
+  )
+  .spot-map__flag-frame
+  img {
+  animation: spot-flag-photo-to-pin 420ms var(--ease-out-expo) both;
+}
+
+/* A spot showing only a dot: the flag unfolds out of the dot, and folds back into it. */
+.spot-map__flag--from-dot:not(.spot-map__flag--reduced):is(
+    [data-phase='held'],
+    [data-phase='rising']
+  )
+  .spot-map__flag-frame {
+  animation-name: spot-flag-frame-from-dot;
+}
+
+.spot-map__flag--from-dot:not(.spot-map__flag--reduced):is(
+    [data-phase='held'],
+    [data-phase='rising']
+  )
+  .spot-map__flag-stem {
+  animation-name: spot-flag-stem-from-dot;
+}
+
+.spot-map__flag--from-dot:not(.spot-map__flag--reduced):is(
+    [data-phase='falling'],
+    [data-phase='leaving']
+  )
+  .spot-map__flag-frame {
+  animation-name: spot-flag-frame-to-dot;
+}
+
+.spot-map__flag--from-dot:not(.spot-map__flag--reduced):is(
+    [data-phase='falling'],
+    [data-phase='leaving']
+  )
+  .spot-map__flag-stem {
+  animation-name: spot-flag-stem-to-dot;
+}
+
+/* As specific as the rules above and after them: their `animation` shorthand resets the play state
+   to running. */
+.spot-map__flag:not(.spot-map__flag--reduced)[data-phase='held']
+  .spot-map__flag-frame,
+.spot-map__flag:not(.spot-map__flag--reduced)[data-phase='held']
+  .spot-map__flag-stem,
+.spot-map__flag:not(.spot-map__flag--reduced)[data-phase='held']
+  .spot-map__flag-frame
+  img {
+  animation-play-state: paused;
+}
+
+/* Reduced motion: no travel. The raised shape and a still copy of the photo pin crossfade over
+   --dur-fade; a flag out of a dot has no pin to fade from and just fades in. The global net keeps
+   these opacity transitions and would cut any size animation, so none runs here. */
+.spot-map__flag--reduced:not(.spot-map__flag--from-dot) .spot-map__flag-pin {
+  display: block;
+}
+
+.spot-map__flag--reduced .spot-map__flag-raise,
+.spot-map__flag--reduced .spot-map__flag-pin {
+  transition: opacity var(--dur-fade) ease-out;
+}
+
+.spot-map__flag--reduced .spot-map__flag-raise,
+.spot-map__flag--reduced:is([data-phase='rising'], [data-phase='raised'])
+  .spot-map__flag-pin {
+  opacity: 0;
+}
+
+.spot-map__flag--reduced:is([data-phase='rising'], [data-phase='raised'])
+  .spot-map__flag-raise {
+  opacity: 1;
+}
+
+@starting-style {
+  .spot-map__flag--reduced .spot-map__flag-raise {
+    opacity: 0;
+  }
+
+  .spot-map__flag--reduced .spot-map__flag-pin {
+    opacity: 1;
+  }
+}
+
+@keyframes spot-flag-frame-from-pin {
+  from {
+    bottom: 16px;
+    left: -29px;
+    width: 58px;
+    height: 44px;
+    border-width: 1px;
+    border-color: var(--flag-rest-color);
+  }
+}
+
+@keyframes spot-flag-frame-to-pin {
+  to {
+    bottom: 16px;
+    left: -29px;
+    width: 58px;
+    height: 44px;
+    border-width: 1px;
+    border-color: var(--flag-rest-color);
+  }
+}
+
+@keyframes spot-flag-frame-from-dot {
+  from {
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 0;
+    border-width: 0;
+    opacity: 0;
+  }
+}
+
+@keyframes spot-flag-frame-to-dot {
+  to {
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 0;
+    border-width: 0;
+    opacity: 0;
+  }
+}
+
+@keyframes spot-flag-stem-from-pin {
+  from {
+    left: -0.5px;
+    width: 1px;
+    height: 8px;
+    background-color: var(--flag-rest-color);
+  }
+}
+
+@keyframes spot-flag-stem-to-pin {
+  to {
+    left: -0.5px;
+    width: 1px;
+    height: 8px;
+    background-color: var(--flag-rest-color);
+  }
+}
+
+@keyframes spot-flag-stem-from-dot {
+  from {
+    height: 0;
+  }
+}
+
+@keyframes spot-flag-stem-to-dot {
+  to {
+    height: 0;
+  }
+}
+
+@keyframes spot-flag-photo-from-pin {
+  from {
+    opacity: var(--flag-rest-photo-opacity);
+  }
+}
+
+@keyframes spot-flag-photo-to-pin {
+  to {
+    opacity: var(--flag-rest-photo-opacity);
+  }
+}
+
 /* The hover tooltip: an anchor at the pin's canvas point, and above it the card. Never a pointer
    target, so it cannot steal the hover from the pin under it. */
 .spot-map__tooltip {

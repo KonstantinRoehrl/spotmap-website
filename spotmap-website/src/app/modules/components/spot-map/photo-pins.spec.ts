@@ -2,7 +2,9 @@ import type { Map as MapLibreMap } from 'maplibre-gl';
 import type { SpotListCollection } from '../../../models/spots/spot';
 import {
   drawPinImage,
+  FLAG_REACH_PX,
   isOnPinImageBody,
+  isOnRaisedFlag,
   loadCrossOriginPhoto,
   MAX_CONCURRENT_FADES,
   PhotoPins,
@@ -10,7 +12,11 @@ import {
   PIN_IMAGE_WIDTH,
   PIN_PIXEL_RATIO,
   type PinPhoto,
+  RAISED_FRAME_HEIGHT,
+  RAISED_FRAME_WIDTH,
+  RAISED_STEM_PX,
 } from './photo-pins';
+import { PIN_IMAGE_LIFT_PX } from './spot-layers';
 import { FakeMap } from './testing/fake-map';
 
 const PHOTO_HOST = 'https://photos.test';
@@ -88,21 +94,20 @@ function pixel(image: ImageData, x: number, y: number): number[] {
 }
 
 describe('drawPinImage', () => {
-  it('draws every pin image at one size, twice the CSS pixels', () => {
-    for (const style of ['active', 'demolished', 'flag'] as const) {
+  it('draws every pin image at one size, twice the CSS pixels: the framed photo and its stem', () => {
+    expect(PIN_IMAGE_WIDTH).toBe(56 + 2);
+    expect(PIN_IMAGE_HEIGHT).toBe(42 + 2 + 8);
+    for (const style of ['active', 'demolished'] as const) {
       const image = drawPinImage(null, style);
       expect(image.width).toBe(PIN_IMAGE_WIDTH * PIN_PIXEL_RATIO);
       expect(image.height).toBe(PIN_IMAGE_HEIGHT * PIN_PIXEL_RATIO);
     }
   });
 
-  it('frames a photo pin in deep phosphor and the flag in amber', () => {
-    // CSS (1.5, 23): inside the photo pin's 1 px frame; CSS (0.5, 23): inside the flag's 2 px one.
-    expect(pixel(drawPinImage(null, 'active'), 3, 46)).toEqual([0, 90, 0, 255]);
-    expect(pixel(drawPinImage(null, 'flag'), 1, 46)).toEqual([
-      255, 176, 0, 255,
-    ]);
-    expect(pixel(drawPinImage(null, 'demolished'), 3, 46)).toEqual([
+  it('frames a standing spot’s photo pin in deep phosphor and a demolished one’s in dim phosphor', () => {
+    // CSS (0.5, 23): inside the 1 px frame, which now starts at the image's edge.
+    expect(pixel(drawPinImage(null, 'active'), 1, 46)).toEqual([0, 90, 0, 255]);
+    expect(pixel(drawPinImage(null, 'demolished'), 1, 46)).toEqual([
       0, 184, 0, 255,
     ]);
   });
@@ -208,8 +213,8 @@ describe('PhotoPins', () => {
   it('answers a missing photo pin image with a placeholder at once, fetching nothing', () => {
     resolveImage('spot-photo:a');
     const image = fake.images.get('spot-photo:a');
-    expect(image?.width).toBe(120);
-    expect(image?.height).toBe(108);
+    expect(image?.width).toBe(PIN_IMAGE_WIDTH * PIN_PIXEL_RATIO);
+    expect(image?.height).toBe(PIN_IMAGE_HEIGHT * PIN_PIXEL_RATIO);
     expect(fake.imageOptions.get('spot-photo:a')).toEqual({ pixelRatio: 2 });
     expect(loads).toEqual([]);
   });
@@ -246,7 +251,9 @@ describe('PhotoPins', () => {
       'spot-photo:a',
       'spot-photo:a',
     ]);
-    expect(fake.images.get('spot-photo:a')?.width).toBe(120);
+    expect(fake.images.get('spot-photo:a')?.width).toBe(
+      PIN_IMAGE_WIDTH * PIN_PIXEL_RATIO,
+    );
     expect(frames).withContext('the fade is over').toEqual([]);
   });
 
@@ -260,14 +267,6 @@ describe('PhotoPins', () => {
     expect(loads.length).toBe(1);
     expect(fake.imageUpdates).toEqual([]);
     expect(fake.hasImage('spot-photo:a')).toBeTrue();
-  });
-
-  it('fetches the flag’s photo at once', () => {
-    resolveImage('spot-flag:a');
-    expect(fake.hasImage('spot-flag:a')).toBeTrue();
-    expect(loads.map((load) => load.url)).toEqual([
-      `${PHOTO_HOST}/thumb/vienna/a.webp`,
-    ]);
   });
 
   describe('fetching placed photos', () => {
@@ -344,8 +343,12 @@ describe('PhotoPins', () => {
       );
       pins.install();
       for (let i = 0; i < 20; i++) {
-        resolveImage(`spot-flag:s${i}`);
+        resolveImage(`spot-photo:s${i}`);
       }
+      fake.placedPhotos = many.features.map((feature) => ({
+        properties: { id: feature.properties.id },
+      }));
+      fake.emit('idle');
       for (const load of loads) {
         load.resolve(greenPhoto());
       }
@@ -366,32 +369,17 @@ describe('PhotoPins', () => {
     });
   });
 
-  it('draws the flag from the photo its photo pin already shows, without a second fetch', async () => {
-    resolveImage('spot-photo:a');
-    fake.placedPhotos = [{ properties: { id: 'a' } }];
-    fake.emit('idle');
-    loads[0]!.resolve(greenPhoto());
-    await settle();
-    runFrames(1000);
-    runFrames(1100);
-    runFrames(1200);
-    resolveImage('spot-flag:a');
-    expect(loads.length).withContext('no second fetch').toBe(1);
-    expect(
-      pixel(fake.images.get('spot-flag:a') as unknown as ImageData, 60, 46),
-    )
-      .withContext('the photo is there from the first frame')
-      .toEqual([0, 255, 0, 255]);
-  });
-
   it('lets go of its listeners, frames and pending fetches on dispose', async () => {
     resolveImage('spot-photo:a');
-    resolveImage('spot-flag:b');
-    fake.placedPhotos = [{ properties: { id: 'a' } }];
+    resolveImage('spot-photo:d');
+    fake.placedPhotos = [
+      { properties: { id: 'a' } },
+      { properties: { id: 'd' } },
+    ];
     fake.emit('idle');
     loads[0]!.resolve(greenPhoto());
     await settle();
-    // loads[0] is the flag's photo, fetched at once and now fading; loads[1] is a's, still pending.
+    // loads[0] is a's photo, now fading; loads[1] is d's, still pending.
     pins.dispose();
     expect(loads.every((load) => load.signal.aborted)).toBeTrue();
     expect(window.cancelAnimationFrame).toHaveBeenCalled();
@@ -409,7 +397,7 @@ describe('isOnPinImageBody', () => {
   const PIN = { x: 500, y: 300 };
 
   it('holds the framed photo above the stem and the lift', () => {
-    // The image stands 8 px above the pin: a 46 px framed photo over an 8 px stem band.
+    // The image stands 8 px above the pin: a 44 px framed photo over an 8 px stem band.
     expect(isOnPinImageBody(PIN, { x: 500, y: 260 })).toBeTrue();
     expect(isOnPinImageBody(PIN, { x: 471, y: 245 })).toBeTrue();
   });
@@ -422,5 +410,37 @@ describe('isOnPinImageBody', () => {
   it('leaves out what lies beside or above the image', () => {
     expect(isOnPinImageBody(PIN, { x: 531, y: 260 })).toBeFalse();
     expect(isOnPinImageBody(PIN, { x: 500, y: 230 })).toBeFalse();
+  });
+});
+
+describe('the raised flag', () => {
+  /** A pin on a 1000 px wide map, 300 px down. */
+  const PIN = { x: 500, y: 300 };
+
+  it('is about one and a half times the photo pin, in a 2 px frame', () => {
+    expect(RAISED_FRAME_WIDTH).toBe(84 + 4);
+    expect(RAISED_FRAME_HEIGHT).toBe(63 + 4);
+    expect(RAISED_FRAME_WIDTH / PIN_IMAGE_WIDTH).toBeCloseTo(1.5, 1);
+  });
+
+  it('reaches the lift, its stem and its framed photo above the pin', () => {
+    expect(FLAG_REACH_PX).toBe(
+      PIN_IMAGE_LIFT_PX + RAISED_STEM_PX + RAISED_FRAME_HEIGHT,
+    );
+    expect(FLAG_REACH_PX).toBe(99);
+  });
+
+  it('takes a point anywhere on its framed photo', () => {
+    // The frame spans x 456–544 and y 201–268: 8 + 24 px up to its foot, 67 px tall.
+    expect(isOnRaisedFlag(PIN, { x: 500, y: 240 })).toBeTrue();
+    expect(isOnRaisedFlag(PIN, { x: 456, y: 201 })).toBeTrue();
+    expect(isOnRaisedFlag(PIN, { x: 544, y: 268 })).toBeTrue();
+  });
+
+  it('leaves out its thin stem, the pin, and what lies beside or above it', () => {
+    expect(isOnRaisedFlag(PIN, { x: 500, y: 280 })).toBeFalse();
+    expect(isOnRaisedFlag(PIN, { x: 500, y: 300 })).toBeFalse();
+    expect(isOnRaisedFlag(PIN, { x: 545, y: 240 })).toBeFalse();
+    expect(isOnRaisedFlag(PIN, { x: 500, y: 200 })).toBeFalse();
   });
 });

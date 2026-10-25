@@ -7,6 +7,7 @@ import {
   ElementRef,
   inject,
   input,
+  NgZone,
   output,
   signal,
   untracked,
@@ -39,7 +40,12 @@ import type { MapFailureReason } from '../../../models/map/map-failure-reason';
 import type { MapLoadEvent } from '../../../models/map/map-load-event';
 import { framingBounds } from './fit-bounds';
 import { ELEVATION_LOADER, MAP_FACTORY } from './map-factory.token';
-import { FLAG_REACH_PX, isOnPinImageBody, PhotoPins } from './photo-pins';
+import {
+  FLAG_REACH_PX,
+  isOnPinImageBody,
+  isOnRaisedFlag,
+  PhotoPins,
+} from './photo-pins';
 import { type PointerHold, trackPointerHold } from './pointer-hold';
 import {
   boundsOfRect,
@@ -48,11 +54,11 @@ import {
   SelectionCamera,
   uncoveredRect,
 } from './selection-camera';
+import { type FlagView, SelectionFlag } from './selection-flag';
 import {
   PHOTO_PIN_LAYERS,
   PHOTO_PIN_TARGET_LAYER_IDS,
   PIN_TARGET_LAYER_IDS,
-  SPOT_FLAG_LAYER_ID,
   SPOT_FOOTPRINT_IMAGE_ID,
   SPOT_FOOTPRINT_LAYER,
   SPOT_LAYERS,
@@ -124,12 +130,6 @@ const WHOLE_WORLD: ViewBounds = {
   north: 90,
 };
 
-/** The layers that draw an image over a pin, whose box a pointer can hit without touching the image. */
-const FRAME_LAYER_IDS: readonly (string | undefined)[] = [
-  SPOT_PHOTO_LAYER_ID,
-  SPOT_FLAG_LAYER_ID,
-];
-
 /**
  * The tooltip card's outer width, in px, padding and border included: the `.spot-map__tooltip-card`
  * width in the stylesheet, which sets `border-box` itself so the figure holds without the global
@@ -191,8 +191,9 @@ function hasHoverPointer(): boolean {
  * Draws a city's spots on a MapLibre map, reports the loaded spots, pin taps and taps on empty
  * map, and shows the selection its `selectedId` input names — the URL's, which is the selection's
  * one source. The container owns the loading and failure chrome. With a photo host it
- * frames each spot's first photo on its pin where there is room, and flies the selected one's as
- * an amber flag; a hovered pin lights and shows a tooltip.
+ * frames each spot's first photo on its pin where there is room, and raises the selected one's out
+ * of its pin as an amber flag drawn over the map ({@link SelectionFlag}); a hovered pin lights and
+ * shows a tooltip.
  *
  * MapLibre internals named in this file were read in maplibre-gl 6.15.0.
  */
@@ -274,6 +275,8 @@ export class SpotMapComponent {
   private readonly loadElevation = inject(ELEVATION_LOADER);
   /** Where the photos come from; with no photo host there are no photo pins or tooltip photos. */
   private readonly backend = inject(SPOTMAP_BACKEND);
+  /** Runs the selection flag's timers outside the zone, so a landing flag never holds `whenStable`. */
+  private readonly zone = inject(NgZone);
 
   private map?: MapLibreMap;
 
@@ -310,10 +313,14 @@ export class SpotMapComponent {
    * but new `coveredInsets` object must not re-centre a map the visitor has panned since.
    */
   private framedFor?: CameraFrame;
-  /** The animation frame the next bounds report and tooltip position wait on. */
+  /** The animation frame the next bounds report and the tooltip's and flag's positions wait on. */
   private boundsFrame?: number;
   /** The current build's photo pin images; set once its pins are drawn, with a photo host only. */
   private photoPins?: PhotoPins;
+  /** The current build's selection flag; set once its pins are drawn, with a photo host only. */
+  private selectionFlag?: SelectionFlag;
+  /** The flags drawn over the map: the selected spot's, and one still falling back into its pin. */
+  protected readonly flags = signal<readonly FlagView[]>([]);
   /** The pin whose `hovered` feature state is set on the current map. */
   private hoveredOnMap: string | null = null;
   /** The pin last reported under the pointer, so a pointer moving over one pin reports it once. */
@@ -662,15 +669,22 @@ export class SpotMapComponent {
       // — a shared link opened cold, or a rebuild — is no tap: it shows without the pulse, and the
       // camera jumps it into the middle of the uncovered part, saving no view to go back to.
       this.collection = collection;
-      this.selection = new SpotSelection(map, {
-        flag: this.photoPins !== undefined,
-      });
+      this.selection = new SpotSelection(map);
+      if (this.photoPins) {
+        // Its signal write still schedules the render from outside the zone.
+        this.selectionFlag = new SelectionFlag(
+          map,
+          (views) => this.flags.set(views),
+          (run, ms) => this.zone.runOutsideAngular(() => setTimeout(run, ms)),
+        );
+      }
       this.camera = new SelectionCamera(
         map,
         () => this.pointerHold?.isHeld() ?? false,
       );
       const id = this.selectedId();
-      this.selection.show(id, { pulse: false, hasCover: this.hasCover(id) });
+      this.selection.show(id, { pulse: false });
+      this.showFlag(id, false);
       const frame = this.cameraFrame();
       this.framedFor = frame;
       const pin = id === null ? null : this.coordinatesOf(id);
@@ -706,7 +720,7 @@ export class SpotMapComponent {
 
   /**
    * Wires the visitor-facing listeners: the attribution collapse when the map narrows, a pin tap
-   * and a tap on empty map reported to the page, and the pointer cursor and hover over a pin, a photo frame or the flag.
+   * and a tap on empty map reported to the page, and the pointer cursor and hover over a pin, a photo frame or the raised flag.
    */
   private wireInteractions(map: MapLibreMap, generation: number): void {
     // A phone turned from landscape to portrait narrows a map that opened wide, and MapLibre
@@ -728,10 +742,16 @@ export class SpotMapComponent {
     });
 
     // One feature query serves the tap, the cursor and the hover: it asks about every layer a
-    // pointer can hit, so the photo frames and the flag take them as the dot does, and a tap on
-    // any of them is never mistaken for a tap on empty map.
+    // pointer can hit, so the photo frames take them as the dot does, and a tap on any of them is
+    // never mistaken for a tap on empty map. The raised flag stands over the map and hides what
+    // lies under it, so a point on it is the selected spot's before anything is asked.
     map.on('click', (event: MapMouseEvent) => {
       if (generation !== this.generation || this.outcome !== 'painted') {
+        return;
+      }
+      const flagged = this.flagUnder(map, event.point);
+      if (flagged !== null) {
+        this.spotClick.emit(flagged);
         return;
       }
       const hits = this.pinsAt(map, event);
@@ -752,7 +772,9 @@ export class SpotMapComponent {
         return;
       }
       const id =
-        this.spotUnder(map, event.point, this.pinsAt(map, event)) ?? null;
+        this.flagUnder(map, event.point) ??
+        this.spotUnder(map, event.point, this.pinsAt(map, event)) ??
+        null;
       map.getCanvas().style.cursor = id === null ? '' : 'pointer';
       if (hasHoverPointer()) {
         this.reportPinHover(id);
@@ -766,7 +788,7 @@ export class SpotMapComponent {
     });
   }
 
-  /** The pin features under the pointer, topmost first: dots, and photo frames and the flag if drawn. */
+  /** The pin features under the pointer, topmost first: dots, and photo frames if drawn. */
   private pinsAt(map: MapLibreMap, event: MapMouseEvent): MapGeoJSONFeature[] {
     return map.queryRenderedFeatures(event.point, {
       layers: [
@@ -777,9 +799,9 @@ export class SpotMapComponent {
 
   /**
    * The spot the pointer at `point` is on, out of the pin `hits` under it (topmost first), or
-   * `undefined` for none. MapLibre answers a photo frame or flag with its whole image box, whose
+   * `undefined` for none. MapLibre answers a photo frame with its whole image box, whose
    * foot is transparent, so the topmost hit alone would send a pointer on a dot showing through that
-   * foot to the frame's spot. Instead the opaque body of a frame or flag wins, topmost first, and
+   * foot to the frame's spot. Instead the opaque body of a frame wins, topmost first, and
    * anywhere else the nearest pin to the pointer does: a dot sits on its own spot's coordinates.
    */
   private spotUnder(
@@ -795,7 +817,7 @@ export class SpotMapComponent {
         : [
             {
               id,
-              framed: FRAME_LAYER_IDS.includes(hit.layer?.id),
+              framed: hit.layer?.id === SPOT_PHOTO_LAYER_ID,
               at: coordinates ? map.project(coordinates) : null,
             },
           ];
@@ -836,7 +858,8 @@ export class SpotMapComponent {
     const reframed =
       this.framedFor === undefined || !sameFrame(this.framedFor, frame);
     this.framedFor = frame;
-    selection.show(id, { pulse: true, hasCover: this.hasCover(id) });
+    selection.show(id, { pulse: true });
+    this.showFlag(id, true);
     if (id === null) {
       if (previous !== null) {
         camera.restore();
@@ -872,6 +895,56 @@ export class SpotMapComponent {
       : 0;
   }
 
+  /**
+   * Flies the selected spot's photo as the flag, or lowers it: `animate` for a selection the
+   * visitor made, not for one a build opened with. A spot without a photo flies none, and a map
+   * without a photo host has no flag at all.
+   */
+  private showFlag(id: string | null, animate: boolean): void {
+    const flag = this.selectionFlag;
+    const base = this.backend.photoBaseUrl;
+    if (!flag) {
+      return;
+    }
+    const spot =
+      id === null
+        ? undefined
+        : this.collection?.features.find(
+            (feature) => feature.properties.id === id,
+          );
+    const cover = spot?.properties.cover;
+    flag.show(
+      spot && cover && base
+        ? {
+            id: spot.properties.id,
+            photo: photoUrl(base, cover, 'thumb'),
+            demolished: spot.properties.status === 'demolished',
+            coordinates: spot.geometry.coordinates,
+          }
+        : null,
+      { animate, reduced: prefersReducedMotion() },
+    );
+  }
+
+  /**
+   * The selected spot when `point` is on its raised flag's photo, else `null`. The flag stands over
+   * the map, so whatever MapLibre finds under it, neighbouring dots and photo pins included, is
+   * hidden by it.
+   */
+  private flagUnder(
+    map: MapLibreMap,
+    point: { x: number; y: number },
+  ): string | null {
+    const raised = this.flags().find(
+      (flag) => flag.phase === 'rising' || flag.phase === 'raised',
+    );
+    const coordinates = raised ? this.coordinatesOf(raised.id) : null;
+    return raised &&
+      coordinates &&
+      isOnRaisedFlag(map.project(coordinates), point)
+      ? raised.id
+      : null;
+  }
   /** Where the current build draws the spot `id`, or `null` for a spot it does not hold. */
   private coordinatesOf(id: string): [number, number] | null {
     return (
@@ -880,7 +953,7 @@ export class SpotMapComponent {
     );
   }
 
-  /** Reports the bounds on the next animation frame, once however many moves ask for it. */
+  /** Reports the bounds, and moves the tooltip and the flag, on the next animation frame, once however many moves ask for it. */
   private scheduleBounds(): void {
     if (
       this.boundsFrame !== undefined ||
@@ -893,6 +966,7 @@ export class SpotMapComponent {
       this.boundsFrame = undefined;
       this.emitBounds();
       this.updateTooltip();
+      this.selectionFlag?.reposition();
     });
   }
 
@@ -1011,11 +1085,15 @@ export class SpotMapComponent {
 
   /**
    * Lets go of the current build's photo pins — their listeners, frames and pending fetches — and
-   * forgets its hover and tooltip. Called before the map is removed.
+   * its selection flag — its timers and render listener — and forgets its hover, tooltip and
+   * flags. Called before the map is removed.
    */
   private releaseHover(): void {
     this.photoPins?.dispose();
     this.photoPins = undefined;
+    this.selectionFlag?.dispose();
+    this.selectionFlag = undefined;
+    this.flags.set([]);
     this.hoveredOnMap = null;
     // The removed map never fires `mouseleave`, so the page is told the hover is gone here.
     this.reportPinHover(null);
@@ -1047,7 +1125,7 @@ export class SpotMapComponent {
   }
 
   /**
-   * Adds the spot source, in the list shape, its pins, with a photo host the photo pins and flag,
+   * Adds the spot source, in the list shape, its pins, with a photo host the photo pins,
    * and the dot footprints last. On top, the footprints are placed first, so every photo pin and
    * basemap label placed after them keeps off the dots. They go on every map: without a photo host
    * they still keep the labels clear.

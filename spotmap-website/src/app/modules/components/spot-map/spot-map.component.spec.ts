@@ -18,7 +18,15 @@ import {
 import type { MapLoadEvent } from '../../../models/map/map-load-event';
 import { SpotListCollection } from '../../../models/spots/spot';
 import type { ViewBounds } from '../../../models/spots/spots-in-view';
-import { FLAG_REACH_PX } from './photo-pins';
+import {
+  FLAG_REACH_PX,
+  PIN_IMAGE_HEIGHT,
+  PIN_IMAGE_WIDTH,
+  RAISED_FRAME_HEIGHT,
+  RAISED_FRAME_WIDTH,
+  RAISED_STEM_PX,
+} from './photo-pins';
+import { FLAG_FADE_MS, FLAG_MOTION_MS, SYMBOL_FADE_MS } from './selection-flag';
 import { SELECTED_PIN_REACH_PX } from './selection-camera';
 import { SpotBrowserStore } from '../../pages/map/spot-browser.store';
 import type { ElevationTiles } from './elevation';
@@ -29,11 +37,10 @@ import {
   UNCONFIGURED_BACKEND,
 } from '../../../services/spotmap-backend';
 import {
-  FLAG_AT_REST_FILTER,
-  flagFilter,
   HAS_COVER,
   LOCK_ON_AT_REST_FILTER,
   photoPinFilter,
+  PIN_IMAGE_LIFT_PX,
 } from './spot-layers';
 import { SpotMapComponent } from './spot-map.component';
 import { BASEMAP_SOURCE_ID } from './terminal-map-style';
@@ -996,7 +1003,7 @@ describe('SpotMapComponent', () => {
     expect(fake.canvas.style.cursor).toBe('');
   });
 
-  describe('pins drawn as photos and the flag', () => {
+  describe('pins drawn as photos', () => {
     beforeEach(() => {
       backend = {
         ...UNCONFIGURED_BACKEND,
@@ -1015,16 +1022,6 @@ describe('SpotMapComponent', () => {
       fake.emit('click', { point: { x: 1, y: 1 } });
       expect(clicks).toEqual(['b']);
       expect(empty).not.toHaveBeenCalled();
-    });
-
-    it('takes a tap on the flag as a tap on its spot', async () => {
-      const c = await create({ selectedId: 'a' });
-      fake.emit('load');
-      const clicks: string[] = [];
-      c.spotClick.subscribe((id) => clicks.push(id));
-      fake.renderedFlags = [tapOn('a').features[0]];
-      fake.emit('click', { point: { x: 1, y: 1 } });
-      expect(clicks).toEqual(['a']);
     });
 
     it('gives the pointer cursor and the hover over a photo', async () => {
@@ -1096,17 +1093,13 @@ describe('SpotMapComponent', () => {
       });
     });
 
-    it('asks about the photo pins and the flag as well as the thumb target', async () => {
+    it('asks about the photo pins as well as the thumb target', async () => {
       await create();
       fake.emit('load');
       const query = spyOn(fake, 'queryRenderedFeatures').and.callThrough();
       fake.emit('click', { point: { x: 1, y: 1 } });
       expect(queriedLayers(query)).toEqual(
-        jasmine.arrayWithExactContents([
-          'spots-hit',
-          'spots-photo',
-          'spots-flag',
-        ]),
+        jasmine.arrayWithExactContents(['spots-hit', 'spots-photo']),
       );
     });
   });
@@ -1728,26 +1721,24 @@ describe('SpotMapComponent', () => {
     });
   });
 
-  describe('photo pins, the flag and hover', () => {
+  describe('photo pins and hover', () => {
     const PHOTO_HOST = 'https://photos.test';
     const withPhotoHost = () => {
       backend = { ...UNCONFIGURED_BACKEND, photoBaseUrl: PHOTO_HOST };
     };
-    const filtersOn = (layer: string) =>
-      fake.filterCalls.filter((c) => c.layer === layer);
     const tooltip = () =>
       (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>(
         '.spot-map__tooltip',
       );
 
-    it('adds no photo pins, flag or image resolver without a photo host', async () => {
+    it('adds no photo pins or image resolver without a photo host', async () => {
       await create();
       fake.emit('load');
       expect(fake.layers.map((l) => l.id)).not.toContain('spots-photo');
       expect(fake.missingImageResolver).toBeNull();
     });
 
-    it('adds the photo pins and the flag above the pins and under the dot footprints with a photo host, the resolver first', async () => {
+    it('adds the photo pins above the pins and under the dot footprints with a photo host, the resolver first', async () => {
       withPhotoHost();
       await create();
       spyOn(fake, 'addSource').and.callFake((id: string, source: unknown) => {
@@ -1757,50 +1748,10 @@ describe('SpotMapComponent', () => {
         fake.sources[id] = source;
       });
       fake.emit('load');
-      expect(fake.layers.map((l) => l.id).slice(-3)).toEqual([
+      expect(fake.layers.map((l) => l.id).slice(-2)).toEqual([
         'spots-photo',
-        'spots-flag',
         'spots-footprint',
       ]);
-    });
-
-    it('flies the flag over a selected spot with a photo and lowers it on close', async () => {
-      withPhotoHost();
-      await create();
-      fake.emit('load');
-      select('a');
-      expect(filtersOn('spots-flag').at(-1)?.filter).toEqual(flagFilter('a'));
-      expect(filtersOn('spots-photo').at(-1)?.filter).toEqual(
-        photoPinFilter('a'),
-      );
-      select(null);
-      expect(filtersOn('spots-flag').at(-1)?.filter).toBe(FLAG_AT_REST_FILTER);
-      expect(filtersOn('spots-photo').at(-1)?.filter).toEqual(HAS_COVER);
-    });
-
-    it('keeps the flag down for a selected spot with no photo', async () => {
-      withPhotoHost();
-      await create({
-        collection: {
-          type: 'FeatureCollection',
-          features: [
-            {
-              type: 'Feature',
-              geometry: { type: 'Point', coordinates: [16.37, 48.2] },
-              properties: {
-                id: 'a',
-                name: 'Alpha Bank',
-                status: 'active',
-                notes: null,
-                photos: [],
-              },
-            },
-          ],
-        },
-      });
-      fake.emit('load');
-      select('a');
-      expect(filtersOn('spots-flag').at(-1)?.filter).toBe(FLAG_AT_REST_FILTER);
     });
 
     it('lights the pin hoveredId names and moves the light with it', async () => {
@@ -1924,6 +1875,227 @@ describe('SpotMapComponent', () => {
       fake.emit('load');
       fixture.destroy();
       expect(fake.handlers.get('idle')).toEqual([]);
+    });
+  });
+
+  describe('the selection flag', () => {
+    const PHOTO_HOST = 'https://photos.test';
+    const flags = () =>
+      Array.from(
+        (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
+          '.spot-map__flag',
+        ),
+      );
+    const photoFilters = () =>
+      fake.filterCalls.filter((c) => c.layer === 'spots-photo');
+    /** The flag's travelling frame: the one that rises and falls. */
+    const frameOf = (flag: HTMLElement) =>
+      flag.querySelector<HTMLElement>(
+        '.spot-map__flag-raise .spot-map__flag-frame',
+      )!;
+    /** How far above the pin's point the frame's foot stands, in px. */
+    const footAbovePin = (flag: HTMLElement) =>
+      flag.getBoundingClientRect().top -
+      frameOf(flag).getBoundingClientRect().bottom;
+    /** A map built on spot `a`: a cold `/spot/a` link. */
+    const COLD_A = {
+      selectedId: 'a',
+      openOn: { center: [16.37, 48.2] as [number, number], zoom: 16 },
+    };
+
+    beforeEach(() => {
+      backend = { ...UNCONFIGURED_BACKEND, photoBaseUrl: PHOTO_HOST };
+      requestReducedMotion(false);
+    });
+
+    afterEach(() => jasmine.clock().uninstall());
+
+    /** A painted map with `a`'s photo pin placed on screen or not, the clock in the spec's hand. */
+    async function paint(placed: boolean) {
+      await create();
+      fake.emit('load');
+      fake.placedPhotos = placed ? [{ id: 'a', properties: { id: 'a' } }] : [];
+      jasmine.clock().install();
+    }
+
+    it('stands the flag exactly on the photo pin it replaces until the map has taken the pin away, then rises', async () => {
+      await paint(true);
+      select('a');
+      const [flag] = flags();
+      expect(flag?.dataset['phase']).toBe('held');
+      expect(photoFilters().at(-1)?.filter).toEqual(photoPinFilter(['a']));
+      const frame = frameOf(flag!).getBoundingClientRect();
+      // The photo pin's frame: the pin image less its 8 px stem, on the stem and the 8 px lift.
+      expect([frame.width, frame.height]).toEqual([
+        PIN_IMAGE_WIDTH,
+        PIN_IMAGE_HEIGHT - 8,
+      ]);
+      expect(footAbovePin(flag!)).toBe(PIN_IMAGE_LIFT_PX + 8);
+      fake.placedPhotos = [];
+      fake.emit('render');
+      fixture.detectChanges();
+      expect(flag?.dataset['phase']).toBe('rising');
+      expect(getComputedStyle(frameOf(flag!)).animationName).toMatch(
+        /spot-flag-frame-from-pin$/,
+      );
+      expect(getComputedStyle(frameOf(flag!)).animationPlayState).toBe(
+        'running',
+      );
+    });
+
+    it('opens a map built on a spot with its flag already raised, full size, in amber, over its photo', async () => {
+      await create(COLD_A);
+      fake.emit('load');
+      fixture.detectChanges();
+      const [flag] = flags();
+      expect(flag?.dataset['phase']).toBe('raised');
+      const frame = frameOf(flag!);
+      const rect = frame.getBoundingClientRect();
+      expect([rect.width, rect.height]).toEqual([
+        RAISED_FRAME_WIDTH,
+        RAISED_FRAME_HEIGHT,
+      ]);
+      expect(footAbovePin(flag!)).toBe(PIN_IMAGE_LIFT_PX + RAISED_STEM_PX);
+      const amber = document.createElement('span');
+      amber.style.color = 'var(--color-amber)';
+      document.body.append(amber);
+      expect(getComputedStyle(frame).borderTopColor).toBe(
+        getComputedStyle(amber).color,
+      );
+      amber.remove();
+      const photo = frame.querySelector('img')!;
+      expect(photo.getAttribute('src')).toBe(
+        `${PHOTO_HOST}/thumb/spots/vienna/a-1.webp`,
+      );
+      expect(photo.getAttribute('crossorigin')).toBe('anonymous');
+      expect(photoFilters().at(-1)?.filter).toEqual(photoPinFilter(['a']));
+    });
+
+    it('unfolds the flag out of the dot of a spot whose photo pin was not placed', async () => {
+      await paint(false);
+      select('a');
+      const [flag] = flags();
+      expect(flag?.dataset['phase']).toBe('rising');
+      expect(flag?.classList).toContain('spot-map__flag--from-dot');
+      expect(getComputedStyle(frameOf(flag!)).animationName).toMatch(
+        /spot-flag-frame-from-dot$/,
+      );
+    });
+
+    it('lowers the flag back into its pin and gives the pin back only once it has landed', async () => {
+      await paint(true);
+      select('a');
+      fake.placedPhotos = [];
+      fake.emit('render');
+      select(null);
+      const [flag] = flags();
+      expect(flag?.dataset['phase']).toBe('falling');
+      expect(getComputedStyle(frameOf(flag!)).animationName).toMatch(
+        /spot-flag-frame-to-pin$/,
+      );
+      expect(photoFilters().at(-1)?.filter).toEqual(photoPinFilter(['a']));
+      jasmine.clock().tick(FLAG_MOTION_MS);
+      expect(photoFilters().at(-1)?.filter).toEqual(HAS_COVER);
+      jasmine.clock().tick(SYMBOL_FADE_MS);
+      fixture.detectChanges();
+      expect(flag?.dataset['phase']).toBe('leaving');
+      expect(getComputedStyle(flag!).transitionProperty).toContain('opacity');
+      jasmine.clock().tick(FLAG_FADE_MS);
+      fixture.detectChanges();
+      expect(flags()).toEqual([]);
+    });
+
+    it('crossfades the flag in place of travelling under reduced motion', async () => {
+      requestReducedMotion(true);
+      await paint(true);
+      select('a');
+      fake.placedPhotos = [];
+      fake.emit('render');
+      fixture.detectChanges();
+      const [flag] = flags();
+      expect(flag?.classList).toContain('spot-map__flag--reduced');
+      expect(getComputedStyle(frameOf(flag!)).animationName).toBe('none');
+      const still = flag!.querySelector<HTMLElement>('.spot-map__flag-pin')!;
+      const raised = flag!.querySelector<HTMLElement>('.spot-map__flag-raise')!;
+      expect(getComputedStyle(still).display)
+        .withContext('a still copy of the pin to fade from')
+        .not.toBe('none');
+      expect(getComputedStyle(still).transitionProperty).toContain('opacity');
+      expect(getComputedStyle(raised).transitionProperty).toContain('opacity');
+    });
+
+    it('takes a tap or a hover on the raised flag as its spot, whatever lies under it', async () => {
+      requestHoverPointer(true);
+      const c = await create(COLD_A);
+      fake.emit('load');
+      fixture.detectChanges();
+      // `a` stands at (500, 300); `b`'s dot hides 60 px above it, under the raised photo.
+      fake.projectedAt = ([lng]) =>
+        lng === 16.37 ? { x: 500, y: 300 } : { x: 500, y: 240 };
+      fake.renderedPins = tapOn('b').features;
+      const clicks: string[] = [];
+      const hovers: (string | null)[] = [];
+      const empty = jasmine.createSpy('emptyClick');
+      c.spotClick.subscribe((id) => clicks.push(id));
+      c.pinHover.subscribe((id) => hovers.push(id));
+      c.emptyClick.subscribe(empty);
+      fake.emit('click', { point: { x: 500, y: 240 } });
+      fake.emit('mousemove', { point: { x: 500, y: 240 } });
+      expect(clicks).toEqual(['a']);
+      expect(hovers).toEqual(['a']);
+      fake.renderedPins = [];
+      fake.emit('click', { point: { x: 520, y: 220 } });
+      expect(empty)
+        .withContext('a tap on the flag is no tap on empty map')
+        .not.toHaveBeenCalled();
+      expect(getComputedStyle(flags()[0]!).pointerEvents)
+        .withContext('a drag that starts on the flag still pans the map')
+        .toBe('none');
+    });
+
+    it('moves the flag with the map, once a frame', async () => {
+      const runFrames = captureFrames();
+      await create(COLD_A);
+      fake.emit('load');
+      fake.projected = { x: 100, y: 200 };
+      fake.emit('move');
+      runFrames();
+      fixture.detectChanges();
+      expect(flags()[0]?.style.transform).toBe('translate(100px, 200px)');
+    });
+
+    it('flies no flag for a spot without a photo, and leaves the photo pins alone', async () => {
+      await create({
+        collection: {
+          type: 'FeatureCollection',
+          features: [
+            {
+              type: 'Feature',
+              geometry: { type: 'Point', coordinates: [16.37, 48.2] },
+              properties: {
+                id: 'a',
+                name: 'Alpha Bank',
+                status: 'active',
+                notes: null,
+                photos: [],
+              },
+            },
+          ],
+        },
+      });
+      fake.emit('load');
+      select('a');
+      expect(flags()).toEqual([]);
+      expect(photoFilters()).toEqual([]);
+    });
+
+    it('sets nothing on a removed map when a fall would have landed after teardown', async () => {
+      await paint(false);
+      select('a');
+      select(null);
+      fixture.destroy();
+      jasmine.clock().tick(FLAG_MOTION_MS + SYMBOL_FADE_MS + FLAG_FADE_MS);
+      expect(fake.filterCallsAfterRemoval).toEqual([]);
     });
   });
 

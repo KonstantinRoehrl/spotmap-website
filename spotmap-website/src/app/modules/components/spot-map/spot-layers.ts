@@ -36,27 +36,21 @@ export const SPOT_HOVER_LAYER_ID = 'spots-hover';
 /** A spot's first photo, framed on a stem above its pin, wherever there is room for it. */
 export const SPOT_PHOTO_LAYER_ID = 'spots-photo';
 
-/** The selected spot's photo in an amber frame, shown whatever it overlaps. */
-export const SPOT_FLAG_LAYER_ID = 'spots-flag';
-
 /** The layers a pointer can hit, thumb target only: the dot, on a map with no photo host. */
 export const PIN_TARGET_LAYER_IDS: readonly string[] = [SPOT_HIT_LAYER_ID];
 
 /**
- * The layers a pointer can hit on a map with photo pins: the flag and the photo frames reach well
- * above the 22 px thumb target, and a tap on any of them is a tap on its spot.
+ * The layers a pointer can hit on a map with photo pins: the photo frames reach well above the
+ * 22 px thumb target, and a tap on one is a tap on its spot. The raised flag is drawn over the map,
+ * not on it, so the component checks it before asking about these.
  */
 export const PHOTO_PIN_TARGET_LAYER_IDS: readonly string[] = [
-  SPOT_FLAG_LAYER_ID,
   SPOT_PHOTO_LAYER_ID,
   SPOT_HIT_LAYER_ID,
 ];
 
 /** The image id of a spot's photo pin is this prefix and the spot id. */
 export const PHOTO_PIN_IMAGE_PREFIX = 'spot-photo:';
-
-/** The image id of a spot's flag is this prefix and the spot id. */
-export const FLAG_IMAGE_PREFIX = 'spot-flag:';
 
 /**
  * The dot footprints: an invisible, collision-only symbol on every spot, so a resting photo pin is
@@ -106,7 +100,7 @@ export function spotFootprintImage(): {
  * The footprint layer, on every spot. It is always placed and never drawn (`icon-allow-overlap`,
  * opacity 0), yet it still enters the collision index (`icon-ignore-placement: false`). It is added
  * last, on top of every other layer, so MapLibre, which places the top layer first, places it
- * before any photo pin, flag or label: those are then kept off the dots.
+ * before any photo pin or label: those are then kept off the dots.
  */
 export const SPOT_FOOTPRINT_LAYER: SymbolLayerSpecification = {
   id: SPOT_FOOTPRINT_LAYER_ID,
@@ -139,23 +133,20 @@ const HAS_COVER_EXPRESSION: ExpressionSpecification = [
 /** True for a spot with at least one photo: the list shape's `cover` is its first photo's key. */
 export const HAS_COVER: FilterSpecification = HAS_COVER_EXPRESSION;
 
-/** The flag's filter at rest: it matches no spot, so nothing flies until a spot is selected. */
-export const FLAG_AT_REST_FILTER: FilterSpecification = false;
-
-/** The photo pins' filter: every spot with a photo but the selected one, whose flag stands in for it. */
-export function photoPinFilter(selectedId: string | null): FilterSpecification {
-  return selectedId === null
+/**
+ * The photo pins' filter: every spot with a photo but those in `hidden`, the spots a selection flag
+ * stands in for. `SelectionFlag` sets it, and owns when: a pin goes once its flag stands on it and
+ * comes back once its flag has fallen back into it.
+ */
+export function photoPinFilter(hidden: readonly string[]): FilterSpecification {
+  return hidden.length === 0
     ? HAS_COVER
-    : ['all', HAS_COVER_EXPRESSION, ['!=', ['get', 'id'], selectedId]];
+    : [
+        'all',
+        HAS_COVER_EXPRESSION,
+        ['!', ['in', ['get', 'id'], ['literal', [...hidden]]]],
+      ];
 }
-
-/** The flag's filter: the selected spot, or none. */
-export function flagFilter(selectedId: string | null): FilterSpecification {
-  return selectedId === null
-    ? FLAG_AT_REST_FILTER
-    : ['==', ['get', 'id'], selectedId];
-}
-
 /** Where the amber ring sits, in px — and where the lock-on pulse comes to rest. */
 export const SELECTED_RING_RADIUS = 11.5;
 
@@ -327,12 +318,12 @@ export const SPOT_LAYERS: readonly (
 ];
 
 /**
- * The photo pins and the selection flag, added on top of {@link SPOT_LAYERS} only when a photo
- * host is configured, and under {@link SPOT_FOOTPRINT_LAYER}. MapLibre places the top layer first:
- * the dot footprints, then the flag, which always stands and blocks photos from sitting on it, then
+ * The photo pins, added on top of {@link SPOT_LAYERS} only when a photo host is configured, and
+ * under {@link SPOT_FOOTPRINT_LAYER}. MapLibre places the top layer first: the dot footprints, then
  * the photo pins, which claim room before the basemap labels but only where they cover no dot;
  * where two photos would overlap, the one with more photos wins (`symbol-sort-key` ascends) and
- * the other stays a dot. Images are drawn by `PhotoPins` on demand.
+ * the other stays a dot. Images are drawn by `PhotoPins` on demand. The selected spot's flag is not
+ * a layer: `SelectionFlag` draws it over the map, so it needs no room of its own.
  */
 export const PHOTO_PIN_LAYERS: readonly SymbolLayerSpecification[] = [
   {
@@ -348,19 +339,6 @@ export const PHOTO_PIN_LAYERS: readonly SymbolLayerSpecification[] = [
       'icon-ignore-placement': false,
       'icon-padding': PHOTO_PIN_COLLISION_PADDING,
       'symbol-sort-key': ['-', ['get', 'photoCount']],
-    },
-  },
-  {
-    id: SPOT_FLAG_LAYER_ID,
-    type: 'symbol',
-    source: SPOT_SOURCE_ID,
-    filter: FLAG_AT_REST_FILTER,
-    layout: {
-      'icon-image': ['concat', FLAG_IMAGE_PREFIX, ['get', 'id']],
-      'icon-anchor': 'bottom',
-      'icon-offset': [0, -PIN_IMAGE_LIFT_PX],
-      'icon-allow-overlap': true,
-      'icon-ignore-placement': false,
     },
   },
 ];

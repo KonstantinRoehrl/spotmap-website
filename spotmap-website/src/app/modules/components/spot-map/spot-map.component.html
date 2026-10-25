@@ -1,5 +1,44 @@
 <div #canvasHost class="spot-map__canvas"></div>
 
+<!-- The selection flag (SelectionFlag), drawn over the map and moved with it like the tooltip
+     below, which stays on top of it. Hidden from assistive technology: the detail names the spot.
+     Keyed by spot, so a flag falling back into its pin and the next one rising are two elements.
+     The still copy of the photo pin is drawn only under reduced motion, to crossfade with. -->
+@for (flag of flags(); track flag.id) {
+  <div
+    class="spot-map__flag"
+    aria-hidden="true"
+    [attr.data-phase]="flag.phase"
+    [class.spot-map__flag--from-dot]="flag.rest === 'dot'"
+    [class.spot-map__flag--demolished]="flag.demolished"
+    [class.spot-map__flag--reduced]="flag.reduced"
+    [style.transform]="'translate(' + flag.x + 'px, ' + flag.y + 'px)'"
+  >
+    <div class="spot-map__flag-pin">
+      <span class="spot-map__flag-pin-stem"></span>
+      <span class="spot-map__flag-pin-frame">
+        <img
+          [src]="flag.photo"
+          alt=""
+          crossorigin="anonymous"
+          decoding="async"
+        />
+      </span>
+    </div>
+    <div class="spot-map__flag-raise">
+      <span class="spot-map__flag-stem"></span>
+      <span class="spot-map__flag-frame">
+        <img
+          [src]="flag.photo"
+          alt=""
+          crossorigin="anonymous"
+          decoding="async"
+        />
+      </span>
+    </div>
+  </div>
+}
+
 <!-- Pointer-only, and the list carries the same name for everyone else, so it is hidden from
      assistive technology and never takes a pointer itself. Keyed by spot, so moving to another
      pin fades this card out as the next one rises in. -->
