@@ -16,7 +16,7 @@ const ELEVATION: ElevationTiles = {
   demMaxzoom: 14,
 };
 
-/** Every layer id, in draw order, of the basemap once elevation is added to it (spec §3.2). */
+/** Every layer id, in draw order, of the basemap once elevation is added to it. */
 const DRAW_ORDER = [
   'background',
   'hillshade',

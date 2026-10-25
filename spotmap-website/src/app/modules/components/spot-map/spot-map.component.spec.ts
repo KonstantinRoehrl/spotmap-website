@@ -55,7 +55,7 @@ const ELEVATION_TILES: ElevationTiles = {
   demMaxzoom: 14,
 };
 
-/** The terrain layers, each with the basemap layer it belongs under (spec §3.2). */
+/** The terrain layers, each with the basemap layer it belongs under. */
 const ELEVATION_LAYERS = [
   { id: 'hillshade', beforeId: 'landcover' },
   { id: 'contour-minor', beforeId: 'plaza' },
@@ -219,9 +219,21 @@ describe('SpotMapComponent', () => {
     };
   }
 
+  /** Puts `id`'s pin under the pointer (`null`: empty map) as the map's feature query finds it. */
+  function pointerOver(id: string | null) {
+    fake.renderedPins = id === null ? [] : tapOn(id).features;
+  }
+
+  /** A tap on the pin of spot `id`, which the map reports as a plain map click with the pin under it. */
   async function tap(id: string) {
-    fake.emit('click', tapOn(id), 'spots-hit');
+    pointerOver(id);
+    fake.emit('click', { point: { x: 1, y: 1 } });
     await fixture.whenStable();
+  }
+
+  /** The layers the last feature query under the pointer asked about. */
+  function queriedLayers(query: jasmine.Spy): string[] {
+    return query.calls.mostRecent().args[1].layers;
   }
 
   it('disables rotation so a two-finger gesture can only pan and zoom', async () => {
@@ -625,7 +637,34 @@ describe('SpotMapComponent', () => {
     fixture.detectChanges();
     await fixture.whenStable();
     expect(failed).toHaveBeenCalledWith('unsupported');
-    httpMock.expectNone('spots/vienna.geojson');
+    expect(mapFactory).not.toHaveBeenCalled();
+  });
+
+  it('still reports the spot list on a browser without WebGL, so the list works beside the failure chrome', async () => {
+    getContext.and.returnValue(null);
+    fixture = TestBed.createComponent(SpotMapComponent);
+    fixture.componentRef.setInput('city', CityEnum.Vienna);
+    fixture.componentRef.setInput('retryToken', 0);
+    const failed = jasmine.createSpy('failed');
+    const loaded: SpotListCollection[] = [];
+    const events: MapLoadEvent[] = [];
+    fixture.componentInstance.failed.subscribe(failed);
+    fixture.componentInstance.spotsLoaded.subscribe((c) => loaded.push(c));
+    fixture.componentInstance.loadEvent.subscribe((e) => events.push(e));
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(failed)
+      .withContext('no waiting on the network')
+      .toHaveBeenCalledWith('unsupported');
+    const requests = httpMock.match('spots/vienna.geojson');
+    expect(requests.length).toBe(1);
+    requests[0]?.flush(COLLECTION);
+    // Lets the spot list's promise chain settle: `whenStable()` does not wait for it.
+    await new Promise((resolve) => setTimeout(resolve));
+    expect(loaded.length).toBe(1);
+    expect(loaded[0]?.features.map((f) => f.properties.id)).toEqual(['a', 'b']);
+    expect(events.map((e) => e.kind)).toContain('spots-done');
+    expect(mapFactory).not.toHaveBeenCalled();
   });
 
   it('fails as unsupported on a browser whose WebGL stops at version 1', async () => {
@@ -651,7 +690,6 @@ describe('SpotMapComponent', () => {
     await fixture.whenStable();
     expect(failed).toHaveBeenCalledWith('unsupported');
     expect(mapFactory).not.toHaveBeenCalled();
-    httpMock.expectNone('spots/vienna.geojson');
   });
 
   it('reports a map whose renderer never arrives as unreachable', async () => {
@@ -820,10 +858,82 @@ describe('SpotMapComponent', () => {
   it('marks the pins as pointer targets while the cursor is over one', async () => {
     await create();
     fake.emit('load');
-    fake.emit('mouseenter', undefined, 'spots-hit');
+    pointerOver('a');
+    fake.emit('mousemove', { point: { x: 1, y: 1 } });
     expect(fake.canvas.style.cursor).toBe('pointer');
-    fake.emit('mouseleave', undefined, 'spots-hit');
+    pointerOver(null);
+    fake.emit('mousemove', { point: { x: 1, y: 1 } });
     expect(fake.canvas.style.cursor).toBe('');
+    pointerOver('a');
+    fake.emit('mousemove', { point: { x: 1, y: 1 } });
+    fake.emit('mouseout');
+    expect(fake.canvas.style.cursor).toBe('');
+  });
+
+  describe('pins drawn as photos and the flag', () => {
+    beforeEach(() => {
+      backend = {
+        ...UNCONFIGURED_BACKEND,
+        photoBaseUrl: 'https://photos.test',
+      };
+    });
+
+    it('takes a tap on another spot’s photo as a switch to that spot, never as an empty tap', async () => {
+      const c = await create({ selectedId: 'a' });
+      fake.emit('load');
+      const clicks: string[] = [];
+      const empty = jasmine.createSpy('emptyClick');
+      c.spotClick.subscribe((id) => clicks.push(id));
+      c.emptyClick.subscribe(empty);
+      fake.placedPhotos = [{ id: 'b', properties: { id: 'b' } }];
+      fake.emit('click', { point: { x: 1, y: 1 } });
+      expect(clicks).toEqual(['b']);
+      expect(empty).not.toHaveBeenCalled();
+    });
+
+    it('takes a tap on the flag as a tap on its spot', async () => {
+      const c = await create({ selectedId: 'a' });
+      fake.emit('load');
+      const clicks: string[] = [];
+      c.spotClick.subscribe((id) => clicks.push(id));
+      fake.renderedFlags = [tapOn('a').features[0]];
+      fake.emit('click', { point: { x: 1, y: 1 } });
+      expect(clicks).toEqual(['a']);
+    });
+
+    it('gives the pointer cursor and the hover over a photo', async () => {
+      requestHoverPointer(true);
+      const c = await create();
+      fake.emit('load');
+      const hovers: (string | null)[] = [];
+      c.pinHover.subscribe((id) => hovers.push(id));
+      fake.placedPhotos = [{ id: 'b', properties: { id: 'b' } }];
+      fake.emit('mousemove', { point: { x: 1, y: 1 } });
+      expect(fake.canvas.style.cursor).toBe('pointer');
+      expect(hovers).toEqual(['b']);
+    });
+
+    it('asks about the photo pins and the flag as well as the thumb target', async () => {
+      await create();
+      fake.emit('load');
+      const query = spyOn(fake, 'queryRenderedFeatures').and.callThrough();
+      fake.emit('click', { point: { x: 1, y: 1 } });
+      expect(queriedLayers(query)).toEqual(
+        jasmine.arrayWithExactContents([
+          'spots-hit',
+          'spots-photo',
+          'spots-flag',
+        ]),
+      );
+    });
+  });
+
+  it('asks only about the thumb target when there are no photo layers to ask about', async () => {
+    await create();
+    fake.emit('load');
+    const query = spyOn(fake, 'queryRenderedFeatures').and.callThrough();
+    fake.emit('click', { point: { x: 1, y: 1 } });
+    expect(queriedLayers(query)).toEqual(['spots-hit']);
   });
 
   describe('the selection', () => {
@@ -1515,9 +1625,10 @@ describe('SpotMapComponent', () => {
       fake.emit('load');
       const hovers: (string | null)[] = [];
       c.pinHover.subscribe((id) => hovers.push(id));
-      fake.emit('mousemove', tapOn('a'), 'spots-hit');
-      fake.emit('mousemove', tapOn('a'), 'spots-hit');
-      fake.emit('mouseleave', undefined, 'spots-hit');
+      pointerOver('a');
+      fake.emit('mousemove', { point: { x: 1, y: 1 } });
+      fake.emit('mousemove', { point: { x: 2, y: 1 } });
+      fake.emit('mouseout');
       expect(hovers).toEqual(['a', null]);
     });
 
@@ -1527,8 +1638,9 @@ describe('SpotMapComponent', () => {
       fake.emit('load');
       const hovers: (string | null)[] = [];
       c.pinHover.subscribe((id) => hovers.push(id));
-      fake.emit('mousemove', tapOn('a'), 'spots-hit');
-      fake.emit('mouseleave', undefined, 'spots-hit');
+      pointerOver('a');
+      fake.emit('mousemove', { point: { x: 1, y: 1 } });
+      fake.emit('mouseout');
       expect(hovers).toEqual([]);
     });
 
@@ -1601,7 +1713,8 @@ describe('SpotMapComponent', () => {
       fake.emit('load');
       const hovers: (string | null)[] = [];
       c.pinHover.subscribe((id) => hovers.push(id));
-      fake.emit('mousemove', tapOn('a'), 'spots-hit');
+      pointerOver('a');
+      fake.emit('mousemove', { point: { x: 1, y: 1 } });
       await retry(1);
       expect(hovers).toEqual(['a', null]);
     });
@@ -1612,6 +1725,145 @@ describe('SpotMapComponent', () => {
       fake.emit('load');
       fixture.destroy();
       expect(fake.handlers.get('idle')).toEqual([]);
+    });
+  });
+
+  describe('keeping the selected flag on the map', () => {
+    const SHEET_INSETS = { top: 0, right: 0, bottom: 510, left: 0 };
+    const eases = () =>
+      fake.cameraMoves.filter((move) => move.method === 'easeTo');
+    beforeEach(() => {
+      requestReducedMotion(false);
+      holdAnimationFrames();
+      backend = {
+        ...UNCONFIGURED_BACKEND,
+        photoBaseUrl: 'https://photos.test',
+      };
+    });
+
+    it('moves a wide map for a pin whose flag would be clipped at the top edge', async () => {
+      await create();
+      fake.emit('load');
+      fake.projected = { x: 500, y: 50 };
+      select('a');
+      expect(eases().length).toBe(1);
+    });
+
+    it('seats a pin on a phone lower in the strip, to make room for the flag above it', async () => {
+      await create({ insets: SHEET_INSETS, framing: 'centre' });
+      fake.emit('load');
+      select('a');
+      // 255 px up to the strip's middle, less half the 62 px the flag reaches above the pin.
+      expect(eases().at(-1)?.options.offset).toEqual([0, -224]);
+    });
+
+    it('reserves no room for a flag the spot does not fly', async () => {
+      backend = UNCONFIGURED_BACKEND;
+      await create({ insets: SHEET_INSETS, framing: 'centre' });
+      fake.emit('load');
+      select('a');
+      expect(eases().at(-1)?.options.offset).toEqual([0, -255]);
+    });
+  });
+
+  describe('the hover tooltip against the map’s edges', () => {
+    const tooltipElement = () =>
+      (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>(
+        '.spot-map__tooltip',
+      );
+    const shift = () =>
+      tooltipElement()?.style.getPropertyValue('--tooltip-shift');
+    const below = () =>
+      tooltipElement()?.classList.contains('spot-map__tooltip--below');
+    const hover = async (x: number, y: number, withPhoto = false) => {
+      backend = withPhoto
+        ? { ...UNCONFIGURED_BACKEND, photoBaseUrl: 'https://photos.test' }
+        : UNCONFIGURED_BACKEND;
+      await create();
+      fake.emit('load');
+      fake.projected = { x, y };
+      fixture.componentRef.setInput('hoveredId', 'a');
+      fixture.detectChanges();
+    };
+
+    it('stays above the pin and centred when there is room', async () => {
+      await hover(500, 300);
+      expect(below()).toBeFalse();
+      expect(shift()).toBe('0px');
+    });
+
+    it('slides back inside the map at the left and right edges', async () => {
+      // The 132 px card is 66 px either side of its centre; 8 px stay clear of the edge.
+      await hover(20, 300);
+      expect(shift()).toBe('54px');
+      fixture.destroy();
+      await hover(990, 300);
+      expect(shift()).toBe('-64px');
+    });
+
+    it('flips below the pin when it would run off the top', async () => {
+      await hover(500, 40);
+      expect(below()).toBeTrue();
+    });
+
+    // The backend is read once per test module, so the plate and the photo card are two specs
+    // hovering the same spot 100 px from the top.
+    it('keeps a name plate above a pin 100 px from the top', async () => {
+      await hover(500, 100);
+      expect(below()).toBeFalse();
+    });
+
+    it('flips a card with a photo below a pin 100 px from the top, where a name plate fits above', async () => {
+      await hover(500, 100, true);
+      expect(below()).toBeTrue();
+    });
+  });
+
+  describe('the one map through the selection', () => {
+    const SHEET_INSETS = { top: 0, right: 0, bottom: 510, left: 0 };
+    beforeEach(() => {
+      requestReducedMotion(false);
+      holdAnimationFrames();
+    });
+
+    it('keeps the same map when a spot is opened, switched and closed', async () => {
+      await create();
+      fake.emit('load');
+      select('a');
+      select('b');
+      select(null);
+      expect(mapFactory).toHaveBeenCalledTimes(1);
+      expect(fake.removed).toBeFalse();
+      httpMock.expectNone('spots/vienna.geojson');
+    });
+
+    it('keeps the same map when the covered strips, the framing and the opening focus change', async () => {
+      await create();
+      fake.emit('load');
+      fixture.componentRef.setInput('coveredInsets', SHEET_INSETS);
+      fixture.componentRef.setInput('selectionFraming', 'centre');
+      fixture.componentRef.setInput('openOn', {
+        center: [16.4, 48.22],
+        zoom: 15,
+      });
+      fixture.detectChanges();
+      select('a');
+      expect(mapFactory).toHaveBeenCalledTimes(1);
+      expect(fake.removed).toBeFalse();
+    });
+
+    it('keeps a map built on a shared spot through closing and reopening it', async () => {
+      await create({
+        selectedId: 'a',
+        openOn: { center: [16.37, 48.2], zoom: 16 },
+        insets: SHEET_INSETS,
+        framing: 'centre',
+      });
+      fake.emit('load');
+      select(null);
+      select('b');
+      expect(mapFactory).toHaveBeenCalledTimes(1);
+      expect(fake.removed).toBeFalse();
     });
   });
 });

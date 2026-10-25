@@ -14,7 +14,7 @@ import {
 } from '@angular/core';
 import type {
   Map as MapLibreMap,
-  MapLayerMouseEvent,
+  MapGeoJSONFeature,
   MapMouseEvent,
 } from 'maplibre-gl';
 import { filter, lastValueFrom, Subject, takeUntil, tap } from 'rxjs';
@@ -39,7 +39,7 @@ import type { MapFailureReason } from '../../../models/map/map-failure-reason';
 import type { MapLoadEvent } from '../../../models/map/map-load-event';
 import { framingBounds } from './fit-bounds';
 import { ELEVATION_LOADER, MAP_FACTORY } from './map-factory.token';
-import { PhotoPins } from './photo-pins';
+import { FLAG_REACH_PX, PhotoPins } from './photo-pins';
 import { type PointerHold, trackPointerHold } from './pointer-hold';
 import {
   boundsOfRect,
@@ -50,7 +50,8 @@ import {
 } from './selection-camera';
 import {
   PHOTO_PIN_LAYERS,
-  SPOT_HIT_LAYER_ID,
+  PHOTO_PIN_TARGET_LAYER_IDS,
+  PIN_TARGET_LAYER_IDS,
   SPOT_LAYERS,
   SPOT_SOURCE_ID,
 } from './spot-layers';
@@ -106,6 +107,21 @@ function namesAnUnusableSource(
   );
 }
 
+/** The tooltip card's width, in px: the `.spot-map__tooltip-card` width in the stylesheet. */
+const TOOLTIP_WIDTH_PX = 132;
+
+/** The gap, in px, between the pin and its tooltip card: the card's offset in the stylesheet. */
+const TOOLTIP_PIN_GAP_PX = 16;
+
+/** The clear space, in px, the tooltip keeps from the map's edges. */
+const TOOLTIP_EDGE_GAP_PX = 8;
+
+/** The tallest a card with a cover photo gets, in px: 4:3 photo plus a three-line name. */
+const TOOLTIP_PHOTO_CARD_HEIGHT_PX = 156;
+
+/** The tallest a name-only plate gets, in px: a three-line name. */
+const TOOLTIP_PLATE_HEIGHT_PX = 60;
+
 /** What the hover tooltip shows, and where: the hovered pin's canvas position. */
 interface SpotTooltip {
   /** The hovered spot's id: each spot gets its own card, so a move to another pin crossfades. */
@@ -118,6 +134,16 @@ interface SpotTooltip {
   readonly x: number;
   /** The pin's canvas y, in px. */
   readonly y: number;
+  /** Whether the card sits below the pin because there is no room above it. */
+  readonly below: boolean;
+  /** How far the card slides sideways to stay inside the map, in px. */
+  readonly shift: number;
+}
+
+/** The spot id a rendered pin feature carries: its promoted feature id, else its `id` property. */
+function spotIdOf(feature: MapGeoJSONFeature | undefined): string | undefined {
+  const id = feature?.id ?? feature?.properties?.['id'];
+  return id === undefined ? undefined : String(id);
 }
 
 /** Whether the visitor's pointer can hover: a tap on a touch screen must leave no hover behind. */
@@ -131,7 +157,7 @@ function hasHoverPointer(): boolean {
 /**
  * Draws a city's spots on a MapLibre map, reports the loaded spots, pin taps and taps on empty
  * map, and shows the selection its `selectedId` input names — the URL's, which is the selection's
- * one source (spec §7). The container owns the loading and failure chrome. With a photo host it
+ * one source. The container owns the loading and failure chrome. With a photo host it
  * frames each spot's first photo on its pin where there is room, and flies the selected one's as
  * an amber flag; a hovered pin lights and shows a tooltip.
  *
@@ -316,8 +342,9 @@ export class SpotMapComponent {
 
   /**
    * Builds the map for `city`: fetches its spots, reports them, constructs a map already framed
-   * on them — or on the spot a cold link opened — then attaches it and wires its listeners. Every await re-checks the generation, so a build that
-   * lost its race to a teardown drops its result instead of attaching it.
+   * on them — or on the spot a cold link opened — then attaches it and wires its listeners. Every
+   * await re-checks the generation, so a build that lost its race to a teardown drops its result
+   * instead of attaching it.
    */
   private async build(city: CityEnum): Promise<void> {
     const generation = this.generation;
@@ -328,6 +355,7 @@ export class SpotMapComponent {
     // and the container withholds RETRY for `unsupported`.
     if (!this.hasWebGl()) {
       this.fail('unsupported', generation);
+      await this.listWithoutMap(city, generation);
       return;
     }
 
@@ -342,16 +370,7 @@ export class SpotMapComponent {
 
     let collection: SpotListCollection;
     try {
-      const loaded = await lastValueFrom(
-        this.spots.loadSpotList(city).pipe(
-          tap((event) => this.reportSpots(event, generation)),
-          filter((event): event is SpotListLoaded => event.type === 'done'),
-          // A city switch or retry has no use for this request any more: ending it frees the
-          // connection and the live query's deadline timer instead of leaving them to run out.
-          takeUntil(this.superseded),
-        ),
-      );
-      collection = loaded.collection;
+      collection = await this.loadCollection(city, generation);
     } catch {
       this.fail('unreachable', generation);
       return;
@@ -428,6 +447,44 @@ export class SpotMapComponent {
       demMaxzoom,
     );
     this.wireInteractions(map, generation);
+  }
+
+  /**
+   * Fetches the city's spots in the list shape, reporting each loading milestone. A city switch or
+   * retry has no use for the request any more: ending it frees the connection and the live query's
+   * deadline timer instead of leaving them to run out.
+   */
+  private async loadCollection(
+    city: CityEnum,
+    generation: number,
+  ): Promise<SpotListCollection> {
+    const loaded = await lastValueFrom(
+      this.spots.loadSpotList(city).pipe(
+        tap((event) => this.reportSpots(event, generation)),
+        filter((event): event is SpotListLoaded => event.type === 'done'),
+        takeUntil(this.superseded),
+      ),
+    );
+    return loaded.collection;
+  }
+
+  /**
+   * Still reports the spots of a build whose map can never be drawn, so the list beside the
+   * container's failure chrome works. A failed request leaves the list empty: the chrome already
+   * says why the page has no map.
+   */
+  private async listWithoutMap(
+    city: CityEnum,
+    generation: number,
+  ): Promise<void> {
+    try {
+      const collection = await this.loadCollection(city, generation);
+      if (generation === this.generation) {
+        this.spotsLoaded.emit(collection);
+      }
+    } catch {
+      // Nothing more to report: the failure is already out.
+    }
   }
 
   /**
@@ -598,7 +655,7 @@ export class SpotMapComponent {
 
   /**
    * Wires the visitor-facing listeners: the attribution collapse when the map narrows, a pin tap
-   * and a tap on empty map reported to the page, and the pointer cursor and hover over a pin.
+   * and a tap on empty map reported to the page, and the pointer cursor and hover over a pin, a photo frame or the flag.
    */
   private wireInteractions(map: MapLibreMap, generation: number): void {
     // A phone turned from landscape to portrait narrows a map that opened wide, and MapLibre
@@ -619,49 +676,50 @@ export class SpotMapComponent {
       }
     });
 
-    // The rendered feature carries the spot id MapLibre promoted from its properties.
-    map.on('click', SPOT_HIT_LAYER_ID, (event: MapLayerMouseEvent) => {
-      const id = event.features?.[0]?.id;
-      if (generation === this.generation && id !== undefined) {
-        this.spotClick.emit(String(id));
-      }
-    });
-
-    // MapLibre fires the map's own click for a pin tap too, so only a click with no pin under it
-    // is a tap on empty map.
+    // One feature query serves the tap, the cursor and the hover: it asks about every layer a
+    // pointer can hit, so the photo frames and the flag take them as the dot does, and a tap on
+    // any of them is never mistaken for a tap on empty map.
     map.on('click', (event: MapMouseEvent) => {
-      if (generation !== this.generation) {
+      if (generation !== this.generation || this.outcome !== 'painted') {
         return;
       }
-      if (
-        map.queryRenderedFeatures(event.point, { layers: [SPOT_HIT_LAYER_ID] })
-          .length > 0
-      ) {
+      const hits = this.pinsAt(map, event);
+      if (hits.length === 0) {
+        this.emptyClick.emit();
         return;
       }
-      this.emptyClick.emit();
+      const id = spotIdOf(hits[0]);
+      if (id !== undefined) {
+        this.spotClick.emit(id);
+      }
     });
 
-    // A pointer over a pin should say it can be tapped; the hit layer is the 22 px thumb target.
-    map.on('mouseenter', SPOT_HIT_LAYER_ID, () => {
-      map.getCanvas().style.cursor = 'pointer';
-    });
-    // Hover is reported only from a pointer that can hover, so a tap leaves no tooltip behind.
-    map.on('mousemove', SPOT_HIT_LAYER_ID, (event: MapLayerMouseEvent) => {
-      const id = event.features?.[0]?.id;
-      if (
-        generation === this.generation &&
-        id !== undefined &&
-        hasHoverPointer()
-      ) {
-        this.reportPinHover(String(id));
+    // A pointer over a pin should say it can be tapped, and hover is reported only from a pointer
+    // that can hover, so a tap leaves no tooltip behind.
+    map.on('mousemove', (event: MapMouseEvent) => {
+      if (generation !== this.generation || this.outcome !== 'painted') {
+        return;
+      }
+      const id = spotIdOf(this.pinsAt(map, event)[0]) ?? null;
+      map.getCanvas().style.cursor = id === null ? '' : 'pointer';
+      if (hasHoverPointer()) {
+        this.reportPinHover(id);
       }
     });
-    map.on('mouseleave', SPOT_HIT_LAYER_ID, () => {
+    map.on('mouseout', () => {
       map.getCanvas().style.cursor = '';
       if (generation === this.generation) {
         this.reportPinHover(null);
       }
+    });
+  }
+
+  /** The pin features under the pointer, topmost first: dots, and photo frames and the flag if drawn. */
+  private pinsAt(map: MapLibreMap, event: MapMouseEvent): MapGeoJSONFeature[] {
+    return map.queryRenderedFeatures(event.point, {
+      layers: [
+        ...(this.photoPins ? PHOTO_PIN_TARGET_LAYER_IDS : PIN_TARGET_LAYER_IDS),
+      ],
     });
   }
 
@@ -707,7 +765,15 @@ export class SpotMapComponent {
       height: host.clientHeight,
       insets: this.coveredInsets(),
       framing: this.selectionFraming(),
+      headroom: this.flagReach(),
     };
+  }
+
+  /** How far above its pin the selected spot's flag reaches, or 0 when it flies none. */
+  private flagReach(): number {
+    return this.photoPins && this.hasCover(this.selectedId())
+      ? FLAG_REACH_PX
+      : 0;
   }
 
   /** Where the current build draws the spot `id`, or `null` for a spot it does not hold. */
@@ -771,8 +837,9 @@ export class SpotMapComponent {
   }
 
   /**
-   * Shows the tooltip above the hovered pin — never the selected one, whose detail is open — or
-   * hides it; repositioned once a frame while the map moves.
+   * Shows the tooltip above the hovered pin — below it near the top edge, and kept inside the map
+   * sideways — never for the selected one, whose detail is open; or hides it. Repositioned once a
+   * frame while the map moves.
    */
   private updateTooltip(): void {
     const map = this.map;
@@ -792,12 +859,26 @@ export class SpotMapComponent {
     const { x, y } = map.project(spot.geometry.coordinates);
     const base = this.backend.photoBaseUrl;
     const cover = spot.properties.cover;
+    const photo = base && cover ? photoUrl(base, cover, 'thumb') : null;
+    // The card is centred on the pin, above it. Near an edge it slides back inside the map, and
+    // with no room above it flips below the pin.
+    const reach = TOOLTIP_WIDTH_PX / 2 + TOOLTIP_EDGE_GAP_PX;
+    const { clientWidth } = this.canvasHost().nativeElement;
+    const centre = Math.min(
+      Math.max(x, reach),
+      Math.max(reach, clientWidth - reach),
+    );
+    const height = photo
+      ? TOOLTIP_PHOTO_CARD_HEIGHT_PX
+      : TOOLTIP_PLATE_HEIGHT_PX;
     this.tooltip.set({
       id: spot.properties.id,
       name: spot.properties.name,
-      photo: base && cover ? photoUrl(base, cover, 'thumb') : null,
+      photo,
       x,
       y,
+      below: y - TOOLTIP_PIN_GAP_PX - height < TOOLTIP_EDGE_GAP_PX,
+      shift: centre - x,
     });
   }
 

@@ -2,6 +2,8 @@ import type { Map as MapLibreMap } from 'maplibre-gl';
 import type { SpotListCollection } from '../../../models/spots/spot';
 import {
   drawPinImage,
+  loadCrossOriginPhoto,
+  MAX_CONCURRENT_FADES,
   PhotoPins,
   PIN_IMAGE_HEIGHT,
   PIN_IMAGE_WIDTH,
@@ -49,8 +51,23 @@ const LIST: SpotListCollection = {
         photoCount: 0,
       },
     },
+    {
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [16.42, 48.24] },
+      properties: {
+        id: 'd',
+        name: 'Delta',
+        status: 'active',
+        cover: 'vienna/d.webp',
+        photoCount: 1,
+      },
+    },
   ],
 };
+
+/** A 1 × 1 PNG, so a real `<img>` has something to decode without touching the network. */
+const PIXEL_PNG =
+  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
 
 /** A 64 × 48 photo of pure phosphor green, to read drawn pixels against. */
 function greenPhoto(): HTMLCanvasElement {
@@ -112,6 +129,31 @@ describe('drawPinImage', () => {
 
   it('leaves everything outside the frame and the stem clear', () => {
     expect(pixel(drawPinImage(null, 'active'), 0, 100)[3]).toBe(0);
+  });
+});
+
+describe('loadCrossOriginPhoto', () => {
+  it('stops listening for the abort once the photo has loaded, and then leaves the image alone', async () => {
+    const controller = new AbortController();
+    const removed = spyOn(
+      controller.signal,
+      'removeEventListener',
+    ).and.callThrough();
+    const photo = (await loadCrossOriginPhoto(
+      PIXEL_PNG,
+      controller.signal,
+    )) as HTMLImageElement;
+    expect(removed).toHaveBeenCalledWith('abort', jasmine.any(Function));
+    controller.abort();
+    expect(photo.src).toBe(PIXEL_PNG);
+  });
+
+  it('rejects at once for a signal that has already aborted', async () => {
+    const controller = new AbortController();
+    controller.abort();
+    await expectAsync(
+      loadCrossOriginPhoto(PIXEL_PNG, controller.signal),
+    ).toBeRejected();
   });
 });
 
@@ -225,6 +267,120 @@ describe('PhotoPins', () => {
     expect(loads.map((load) => load.url)).toEqual([
       `${PHOTO_HOST}/thumb/vienna/a.webp`,
     ]);
+  });
+
+  describe('fetching placed photos', () => {
+    afterEach(() => jasmine.clock().uninstall());
+
+    it('fetches them once the map has rendered and gone quiet, without waiting for idle', () => {
+      jasmine.clock().install();
+      const query = spyOn(fake, 'queryRenderedFeatures').and.callThrough();
+      resolveImage('spot-photo:a');
+      fake.placedPhotos = [{ properties: { id: 'a' } }];
+      for (let frame = 0; frame < 10; frame++) {
+        fake.emit('render');
+      }
+      expect(loads).withContext('not on every frame').toEqual([]);
+      jasmine.clock().tick(500);
+      expect(loads.map((load) => load.url)).toEqual([
+        `${PHOTO_HOST}/thumb/vienna/a.webp`,
+      ]);
+      expect(query)
+        .withContext('one query for the burst')
+        .toHaveBeenCalledTimes(1);
+    });
+
+    it('stops waiting on a quiet map when disposed', () => {
+      jasmine.clock().install();
+      resolveImage('spot-photo:a');
+      fake.placedPhotos = [{ properties: { id: 'a' } }];
+      fake.emit('render');
+      pins.dispose();
+      jasmine.clock().tick(500);
+      expect(loads).toEqual([]);
+      expect(fake.handlers.get('render')).toEqual([]);
+    });
+  });
+
+  describe('the cost of drawing', () => {
+    it('shares one placeholder between every pin of a style', () => {
+      const canvases = spyOn(document, 'createElement').and.callThrough();
+      resolveImage('spot-photo:a');
+      resolveImage('spot-photo:d');
+      const made = canvases.calls
+        .allArgs()
+        .filter(([tag]) => tag === 'canvas').length;
+      expect(made).toBeLessThanOrEqual(1);
+      expect(fake.images.get('spot-photo:d')?.data).toEqual(
+        fake.images.get('spot-photo:a')!.data,
+      );
+    });
+
+    it('runs every fade off one animation frame and caps how many run at once', async () => {
+      pins.dispose();
+      const many: SpotListCollection = {
+        type: 'FeatureCollection',
+        features: Array.from({ length: 20 }, (_, i) => ({
+          type: 'Feature' as const,
+          geometry: { type: 'Point' as const, coordinates: [16 + i / 100, 48] },
+          properties: {
+            id: `s${i}`,
+            name: `Spot ${i}`,
+            status: 'active' as const,
+            cover: `vienna/s${i}.webp`,
+            photoCount: 1,
+          },
+        })),
+      };
+      pins = new PhotoPins(
+        fake as unknown as MapLibreMap,
+        many,
+        PHOTO_HOST,
+        (url, signal) =>
+          new Promise((resolve, reject) =>
+            loads.push({ url, signal, resolve, reject }),
+          ),
+      );
+      pins.install();
+      for (let i = 0; i < 20; i++) {
+        resolveImage(`spot-flag:s${i}`);
+      }
+      for (const load of loads) {
+        load.resolve(greenPhoto());
+      }
+      await settle();
+      expect(frames.length).withContext('one frame loop').toBe(1);
+      runFrames(1000);
+      expect(fake.imageUpdates.length).toBeLessThanOrEqual(
+        MAX_CONCURRENT_FADES,
+      );
+      for (let now = 1100, turns = 0; frames.length && turns < 50; turns++) {
+        runFrames(now);
+        now += 100;
+      }
+      expect(new Set(fake.imageUpdates).size)
+        .withContext('every pin fades in')
+        .toBe(20);
+      expect(frames).toEqual([]);
+    });
+  });
+
+  it('draws the flag from the photo its photo pin already shows, without a second fetch', async () => {
+    resolveImage('spot-photo:a');
+    fake.placedPhotos = [{ properties: { id: 'a' } }];
+    fake.emit('idle');
+    loads[0]!.resolve(greenPhoto());
+    await settle();
+    runFrames(1000);
+    runFrames(1100);
+    runFrames(1200);
+    resolveImage('spot-flag:a');
+    expect(loads.length).withContext('no second fetch').toBe(1);
+    expect(
+      pixel(fake.images.get('spot-flag:a') as unknown as ImageData, 60, 46),
+    )
+      .withContext('the photo is there from the first frame')
+      .toEqual([0, 255, 0, 255]);
   });
 
   it('lets go of its listeners, frames and pending fetches on dispose', async () => {

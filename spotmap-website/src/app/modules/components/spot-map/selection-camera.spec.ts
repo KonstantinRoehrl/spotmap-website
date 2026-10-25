@@ -11,6 +11,7 @@ import {
   SelectionCamera,
   uncoveredRect,
 } from './selection-camera';
+import { FLAG_REACH_PX } from './photo-pins';
 import { FakeMap, requestReducedMotion } from './testing/fake-map';
 
 /** A 1000 × 600 map whose bottom 510 px a phone's sheet covers. */
@@ -19,6 +20,7 @@ const SHEET: CameraFrame = {
   height: 600,
   insets: { top: 0, right: 0, bottom: 510, left: 0 },
   framing: 'centre',
+  headroom: 0,
 };
 /** The same map uncovered, on the wide layout. */
 const WIDE: CameraFrame = {
@@ -26,6 +28,7 @@ const WIDE: CameraFrame = {
   height: 600,
   insets: NO_INSETS,
   framing: 'reveal',
+  headroom: 0,
 };
 
 describe('the selection camera geometry', () => {
@@ -81,6 +84,7 @@ describe('the selection camera geometry', () => {
     expect(
       sameFrame(SHEET, { ...SHEET, insets: { ...SHEET.insets, bottom: 300 } }),
     ).toBeFalse();
+    expect(sameFrame(SHEET, { ...SHEET, headroom: FLAG_REACH_PX })).toBeFalse();
   });
 
   it('reads the bounds of a rectangle off its two corners', () => {
@@ -142,6 +146,26 @@ describe('SelectionCamera', () => {
     expect(eases()[0]?.options).toEqual(
       jasmine.objectContaining({ center: pin, offset: [0, 0] }),
     );
+  });
+
+  it('eases a wide map when the selected pin sits where its flag would be clipped', () => {
+    const flying = { ...WIDE, headroom: FLAG_REACH_PX };
+    // 50 px down is inside the pin's own 48 px margin, but the flag reaches 62 px above it.
+    fake.projected = { x: 500, y: 50 };
+    camera.keepInView(pin, flying);
+    expect(eases().length).toBe(1);
+    camera.keepInView(pin, WIDE);
+    expect(eases().length)
+      .withContext('a pin with no flag is fine there')
+      .toBe(1);
+    fake.projected = { x: 500, y: 120 };
+    camera.keepInView(pin, flying);
+    expect(eases().length).withContext('room for the flag').toBe(1);
+  });
+
+  it('seats the pin lower in the strip by half the flag’s reach, so the pair is centred', () => {
+    camera.keepInView(pin, { ...SHEET, headroom: FLAG_REACH_PX });
+    expect(eases()[0]?.options.offset).toEqual([0, -255 + FLAG_REACH_PX / 2]);
   });
 
   it('never eases while the visitor holds the map', () => {

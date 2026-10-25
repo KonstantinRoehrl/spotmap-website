@@ -32,10 +32,21 @@ export interface CameraFrame {
    * which leaves a strip of map). `reveal`: the camera moves only for a pin off screen (wide).
    */
   readonly framing: SelectionFraming;
+  /**
+   * How far above the pin its flag reaches, in px; 0 for a pin that flies none. The flag counts as
+   * part of the pin: the pair is centred in the rectangle and the flag's top must stay inside it.
+   */
+  readonly headroom: number;
 }
 
 /** How far inside the uncovered rectangle a pin must sit to count as visible, in px. */
 export const KEEP_IN_VIEW_MARGIN_PX = 48;
+
+/**
+ * The clear space kept above a flag that reaches the top of the uncovered rectangle, in px: the
+ * flag is the selection's whole mark, so it may not sit hard against the edge.
+ */
+export const FLAG_EDGE_GAP_PX = 8;
 
 /** The camera ease's length — the sheet's own height change, so the two move together. */
 export const CAMERA_EASE_MS = 330;
@@ -78,16 +89,20 @@ export function offsetToRectCentre(
   ];
 }
 
-/** Whether `point` lies inside `rect` by at least `margin` on every side. */
+/**
+ * Whether `point` lies inside `rect` by at least `margin` on every side — and, when a `topMargin`
+ * is given, by at least that much from the top edge instead.
+ */
 export function containsPoint(
   rect: ScreenRect,
   point: ScreenPoint,
   margin: number,
+  topMargin = margin,
 ): boolean {
   return (
     point.x >= rect.left + margin &&
     point.x <= rect.right - margin &&
-    point.y >= rect.top + margin &&
+    point.y >= rect.top + topMargin &&
     point.y <= rect.bottom - margin
   );
 }
@@ -98,6 +113,7 @@ export function sameFrame(a: CameraFrame, b: CameraFrame): boolean {
     a.width === b.width &&
     a.height === b.height &&
     a.framing === b.framing &&
+    a.headroom === b.headroom &&
     a.insets.top === b.insets.top &&
     a.insets.right === b.insets.right &&
     a.insets.bottom === b.insets.bottom &&
@@ -142,7 +158,7 @@ export function boundsOfRect(
 /**
  * Keeps one build's selected pin in view and puts the camera back when the spot closes. The view
  * an open started from is saved once and survives a switch to another spot, so closing returns to
- * where the visitor was browsing (spec §4.2, "the list is frozen while a detail is open"). Nothing
+ * where the visitor was browsing: the list is frozen while a detail is open. Nothing
  * moves while the visitor holds the map: a camera ease would take the drag from their finger.
  */
 export class SelectionCamera {
@@ -217,9 +233,19 @@ export class SelectionCamera {
       return;
     }
     const rect = uncoveredRect(frame.width, frame.height, frame.insets);
+    // The flag reaches above the pin, so the top edge keeps its height clear as well.
+    const topMargin = Math.max(
+      KEEP_IN_VIEW_MARGIN_PX,
+      frame.headroom > 0 ? frame.headroom + FLAG_EDGE_GAP_PX : 0,
+    );
     if (
       frame.framing === 'reveal' &&
-      containsPoint(rect, this.map.project(pin), KEEP_IN_VIEW_MARGIN_PX)
+      containsPoint(
+        rect,
+        this.map.project(pin),
+        KEEP_IN_VIEW_MARGIN_PX,
+        topMargin,
+      )
     ) {
       return;
     }
@@ -227,11 +253,20 @@ export class SelectionCamera {
     // and the shortened ease already is the reduced-motion version.
     this.map.easeTo({
       center: pin,
-      offset: offsetToRectCentre(frame.width, frame.height, rect),
+      offset: this.seatOffset(frame, rect),
       duration,
       easing: easeOutCubic,
       essential: true,
     });
+  }
+
+  /**
+   * Where the pin lands, as an offset from the canvas centre: the rectangle's middle, lowered by
+   * half the flag's reach so the pin and its flag together are what sits in the middle.
+   */
+  private seatOffset(frame: CameraFrame, rect: ScreenRect): [number, number] {
+    const [x, y] = offsetToRectCentre(frame.width, frame.height, rect);
+    return [x, y + frame.headroom / 2];
   }
 
   /** The ease's length for the visitor's motion preference. */

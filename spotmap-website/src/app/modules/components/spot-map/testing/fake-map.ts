@@ -137,8 +137,10 @@ export class FakeMap {
   center = { lng: 16.385, lat: 48.21 };
   /** The camera's zoom, as `getZoom()` reports it; an `easeTo` with a zoom moves it. */
   zoom = 13;
-  /** What `queryRenderedFeatures()` finds under a map click: a pin, or nothing. */
+  /** What `queryRenderedFeatures()` finds on the thumb-target layer under the pointer: a pin, or nothing. */
   renderedPins: unknown[] = [];
+  /** What `queryRenderedFeatures()` finds on the flag layer under the pointer. */
+  renderedFlags: unknown[] = [];
   /** Every image the component added or updated, by id, as the map holds it now. */
   readonly images = new Map<
     string,
@@ -151,7 +153,7 @@ export class FakeMap {
   /** The missing-image resolver the component installed, if any. */
   missingImageResolver: ((id: string) => void | Promise<void>) | null = null;
   /** The photo pins MapLibre has placed on screen: what `queryRenderedFeatures` finds on the photo layer. */
-  placedPhotos: { properties: { id: string } }[] = [];
+  placedPhotos: { id?: string; properties: { id: string } }[] = [];
 
   constructor() {
     this.canvasContainer.append(this.canvas);
@@ -259,8 +261,8 @@ export class FakeMap {
     return this.wheelZooming;
   }
   /**
-   * What MapLibre finds rendered: the placed photo pins for a query on the photo layer, otherwise
-   * `renderedPins` — the pins under a map click.
+   * What MapLibre finds rendered, layer by layer in the order asked: the placed photo pins on the
+   * photo layer, `renderedFlags` on the flag layer and `renderedPins` on the thumb-target layer.
    */
   queryRenderedFeatures(
     geometryOrOptions?: unknown,
@@ -269,9 +271,13 @@ export class FakeMap {
     const layers =
       options?.layers ??
       (geometryOrOptions as { layers?: string[] } | undefined)?.layers;
-    return layers?.includes('spots-photo')
-      ? this.placedPhotos
-      : this.renderedPins;
+    return (layers ?? ['spots-hit']).flatMap((layer) =>
+      layer === 'spots-photo'
+        ? this.placedPhotos
+        : layer === 'spots-flag'
+          ? this.renderedFlags
+          : this.renderedPins,
+    );
   }
   /** A handler that removes itself after its first call, as MapLibre's `once` does. */
   once(event: string, fn: (e?: unknown) => void) {

@@ -94,14 +94,17 @@
   opacity: 0;
 }
 
-/* Lifted clear of a photo pin's stem; the halo is the pointer bloom's (DESIGN.md, "Edge glow —
-   pointer bloom"), the one glow a hover-lit element wears. */
+/* Lifted clear of a photo pin's stem (the 16 px gap and the 132 px width are mirrored in the
+   component); the halo is the pointer bloom's (DESIGN.md, "Edge glow — pointer bloom"), the one
+   glow a hover-lit element wears. The card sits above the pin by default, slides sideways by
+   --tooltip-shift to stay inside the map, and below the pin when there is no room above; all three
+   are its `translate`, so a flip or a slide eases instead of jumping. */
 .spot-map__tooltip-card {
   position: absolute;
-  bottom: 16px;
+  top: 0;
   left: 0;
   width: 132px;
-  translate: -50% 0;
+  translate: calc(-50% + var(--tooltip-shift, 0px)) calc(-100% - 16px);
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -115,11 +118,20 @@
     translate var(--dur-hover-in) ease-out;
 }
 
-/* It rises in: 6 px and a fade. The reduced-motion net keeps the fade and drops the rise. */
+.spot-map__tooltip--below .spot-map__tooltip-card {
+  translate: calc(-50% + var(--tooltip-shift, 0px)) 16px;
+}
+
+/* It rises in from the pin: 6 px and a fade. The reduced-motion net keeps the fade and drops the
+   rise. */
 @starting-style {
   .spot-map__tooltip-card {
     opacity: 0;
-    translate: -50% 6px;
+    translate: calc(-50% + var(--tooltip-shift, 0px)) calc(-100% - 10px);
+  }
+
+  .spot-map__tooltip--below .spot-map__tooltip-card {
+    translate: calc(-50% + var(--tooltip-shift, 0px)) 10px;
   }
 }
 

@@ -8,6 +8,8 @@
     class="spot-map__tooltip"
     animate.leave="spot-map__tooltip--leaving"
     aria-hidden="true"
+    [class.spot-map__tooltip--below]="tip.below"
+    [style.--tooltip-shift]="tip.shift + 'px'"
     [style.transform]="'translate(' + tip.x + 'px, ' + tip.y + 'px)'"
   >
     <div class="spot-map__tooltip-card">

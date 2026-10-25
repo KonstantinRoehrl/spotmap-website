@@ -8,6 +8,7 @@ import { TERMINAL_PALETTE } from './map-palette';
 import {
   FLAG_IMAGE_PREFIX,
   PHOTO_PIN_IMAGE_PREFIX,
+  PIN_IMAGE_LIFT_PX,
   SPOT_PHOTO_LAYER_ID,
 } from './spot-layers';
 
@@ -43,6 +44,12 @@ export const PIN_IMAGE_HEIGHT = PHOTO_HEIGHT + 2 * FLAG_FRAME_PX + STEM_PX;
 /** Device pixels per CSS px the images are drawn at, so they stay sharp on a phone. */
 export const PIN_PIXEL_RATIO = 2;
 
+/** How far above its pin the selection flag reaches, in px: the image's lift plus its height. */
+export const FLAG_REACH_PX = PIN_IMAGE_LIFT_PX + PIN_IMAGE_HEIGHT;
+
+/** How many photos fade into their frames at once; the rest wait their turn. */
+export const MAX_CONCURRENT_FADES = 8;
+
 /** How long a fetched photo takes to fade into its placeholder frame. */
 export const PHOTO_FADE_MS = 200;
 
@@ -58,21 +65,75 @@ export type PhotoLoader = (
   signal: AbortSignal,
 ) => Promise<PinPhoto>;
 
+/** The one canvas every pin image is drawn on; made on first use. */
+let scratch:
+  { canvas: HTMLCanvasElement; context: CanvasRenderingContext2D } | undefined;
+
+/**
+ * The shared pin-image canvas. Pins are drawn dozens at a time while a city's photos arrive, so
+ * one canvas is kept instead of one per image; `willReadFrequently` keeps it in CPU memory, where
+ * each `getImageData` read is cheap.
+ */
+function scratchCanvas(): {
+  canvas: HTMLCanvasElement;
+  context: CanvasRenderingContext2D;
+} {
+  if (!scratch) {
+    const canvas = document.createElement('canvas');
+    canvas.width = PIN_IMAGE_WIDTH * PIN_PIXEL_RATIO;
+    canvas.height = PIN_IMAGE_HEIGHT * PIN_PIXEL_RATIO;
+    scratch = {
+      canvas,
+      context: canvas.getContext('2d', { willReadFrequently: true })!,
+    };
+  }
+  return scratch;
+}
+
+/** The empty frame of each style, drawn once: MapLibre copies an image it is given. */
+const placeholders = new Map<PinStyle, ImageData>();
+
+/** The frame a pin shows until its photo arrives, shared by every pin of `style`. */
+function placeholderImage(style: PinStyle): ImageData {
+  let image = placeholders.get(style);
+  if (!image) {
+    image = drawPinImage(null, style);
+    placeholders.set(style, image);
+  }
+  return image;
+}
+
+/**
+ * A photo cover-cropped to its box at the pin's pixel ratio. A pin image only ever shows this much
+ * of a photo, so the 640 px original can be dropped once this is made.
+ */
+function photoTile(photo: PinPhoto): HTMLCanvasElement {
+  const tile = document.createElement('canvas');
+  tile.width = PHOTO_WIDTH * PIN_PIXEL_RATIO;
+  tile.height = PHOTO_HEIGHT * PIN_PIXEL_RATIO;
+  drawCover(tile.getContext('2d')!, photo, {
+    x: 0,
+    y: 0,
+    width: tile.width,
+    height: tile.height,
+  });
+  return tile;
+}
+
 /**
  * Draws one pin image: the photo (or, before it arrives, the `surface` fill) cover-cropped into a
  * 4 px-rounded frame on a stem — `phosphor-deep` for a standing spot, `phosphor-dim` with the photo
  * dimmed for a demolished one, a 2 px `amber` frame for the flag. `photoAlpha` fades the photo in.
+ * Every call draws on one shared canvas, so the result is a copy that is the caller's to keep.
  */
 export function drawPinImage(
   photo: PinPhoto | null,
   style: PinStyle,
   photoAlpha = 1,
 ): ImageData {
-  const canvas = document.createElement('canvas');
-  canvas.width = PIN_IMAGE_WIDTH * PIN_PIXEL_RATIO;
-  canvas.height = PIN_IMAGE_HEIGHT * PIN_PIXEL_RATIO;
-  const context = canvas.getContext('2d')!;
-  context.scale(PIN_PIXEL_RATIO, PIN_PIXEL_RATIO);
+  const { canvas, context } = scratchCanvas();
+  context.setTransform(PIN_PIXEL_RATIO, 0, 0, PIN_PIXEL_RATIO, 0, 0);
+  context.clearRect(0, 0, PIN_IMAGE_WIDTH, PIN_IMAGE_HEIGHT);
 
   const frameWidth = style === 'flag' ? FLAG_FRAME_PX : PIN_FRAME_PX;
   const inset = FLAG_FRAME_PX - frameWidth;
@@ -160,49 +221,89 @@ function drawCover(
 /**
  * The page's photo loader: an `<img>` fetched with CORS — the photo host answers
  * `access-control-allow-origin: *` — so the canvas it is drawn on stays readable for MapLibre.
- * Aborting clears the source, which cancels the download.
+ * Aborting before the photo has loaded clears the source, which cancels the download; once it has
+ * loaded the abort is no longer listened for, so the image is not kept alive by the signal.
  */
-export const loadCrossOriginPhoto: PhotoLoader = (url, signal) => {
-  const image = new Image();
-  image.crossOrigin = 'anonymous';
-  image.decoding = 'async';
-  const aborted = new Promise<never>((_, reject) =>
-    signal.addEventListener(
-      'abort',
+export const loadCrossOriginPhoto: PhotoLoader = (url, signal) =>
+  new Promise<PinPhoto>((resolve, reject) => {
+    if (signal.aborted) {
+      reject(signal.reason);
+      return;
+    }
+    const image = new Image();
+    image.crossOrigin = 'anonymous';
+    image.decoding = 'async';
+    const onAbort = () => {
+      image.src = '';
+      reject(signal.reason);
+    };
+    signal.addEventListener('abort', onAbort, { once: true });
+    image.src = url;
+    image.decode().then(
       () => {
-        image.src = '';
-        reject(signal.reason);
+        signal.removeEventListener('abort', onAbort);
+        resolve(image);
       },
-      { once: true },
-    ),
-  );
-  image.src = url;
-  return Promise.race([image.decode().then(() => image), aborted]);
-};
+      (reason) => {
+        signal.removeEventListener('abort', onAbort);
+        reject(reason);
+      },
+    );
+  });
+
+/** How long the map must stop rendering before the pins it placed have their photos fetched. */
+const PLACED_FETCH_QUIET_MS = 120;
+
+/** One photo fading into its pin image. */
+interface Fade {
+  readonly imageId: string;
+  readonly tile: HTMLCanvasElement;
+  readonly style: PinStyle;
+  /** The frame time the fade began at, set by its first frame. */
+  startedAt?: number;
+}
 
 /**
  * The images of one build's photo pins and flag. MapLibre asks for a pin's image when it lays out
  * its tile; the answer is a framed placeholder of the final size at once, so layout and collision
  * never wait on the network. Only the photo pins MapLibre actually placed have their photo fetched
- * (after each `idle` and `moveend`), and each fades into its frame by a few same-size updates; the
- * flag, one image, is fetched at once. A photo that fails keeps its placeholder and is not asked
- * for again. Built only when a photo host is configured.
+ * — once the map has rendered and gone quiet, and after each `moveend` and `idle` — and each fades
+ * into its frame by a few same-size updates, a handful at a time, all driven by one animation
+ * frame. A photo is fetched once per cover and kept as a small cropped tile, so the flag of a
+ * spot whose photo pin already shows its photo is drawn complete, with nothing fetched. A photo
+ * that fails keeps its placeholder and is not asked for again. Built only when a photo host is
+ * configured.
  */
 export class PhotoPins {
   /** The build's spots, by id. */
   private readonly spots: ReadonlyMap<string, SpotListFeature>;
   /** Image ids whose photo is drawn or fading in. */
   private readonly withPhoto = new Set<string>();
-  /** Image ids whose photo is being fetched. */
+  /** Image ids waiting on their cover's photo. */
   private readonly pending = new Set<string>();
-  /** Image ids whose photo failed to load. */
+  /** Covers whose photo failed to load. */
   private readonly failed = new Set<string>();
-  /** The animation frames fades are waiting on. */
-  private readonly frames = new Set<number>();
+  /** The cropped photos fetched so far, by cover. */
+  private readonly tiles = new Map<string, HTMLCanvasElement>();
+  /** The fetches in flight, by cover, so two images of one cover share a request. */
+  private readonly loading = new Map<string, Promise<HTMLCanvasElement>>();
+  /** The fades running, at most {@link MAX_CONCURRENT_FADES}. */
+  private readonly fading: Fade[] = [];
+  /** The fades waiting for a free place. */
+  private readonly waiting: Fade[] = [];
+  /** The animation frame the fades are waiting on, if any. */
+  private frame?: number;
+  /** The timer that fetches placed photos once rendering has gone quiet, if one is running. */
+  private quietTimer?: ReturnType<typeof setTimeout>;
   /** Aborts every pending fetch, and every fade, on dispose. */
   private readonly loads = new AbortController();
   /** Fetches the placed pins' photos once the map settles. */
   private readonly onSettled = () => this.fetchPlacedPhotos();
+  /** Restarts the quiet wait on every rendered frame. */
+  private readonly onRender = () => {
+    clearTimeout(this.quietTimer);
+    this.quietTimer = setTimeout(this.onSettled, PLACED_FETCH_QUIET_MS);
+  };
 
   /**
    * @param map the build's map, before its spot layers are added
@@ -221,31 +322,51 @@ export class PhotoPins {
     );
   }
 
-  /** Answers MapLibre's missing images and starts fetching placed photos as the map settles. */
+  /**
+   * Answers MapLibre's missing images and starts fetching placed photos as the map settles. Not
+   * only on `idle`: that waits for the relief tiles too, which would leave the pins blank frames.
+   */
   install(): void {
     this.map.setMissingStyleImageResolver((imageId) => this.resolve(imageId));
+    this.map.on('render', this.onRender);
     this.map.on('idle', this.onSettled);
     this.map.on('moveend', this.onSettled);
   }
 
-  /** Cancels every fetch and fade and stops listening; the images go with the map. */
+  /** Cancels every fetch, fade and timer and stops listening; the images go with the map. */
   dispose(): void {
     this.loads.abort();
+    this.map.off('render', this.onRender);
     this.map.off('idle', this.onSettled);
     this.map.off('moveend', this.onSettled);
-    for (const frame of this.frames) {
-      cancelAnimationFrame(frame);
+    clearTimeout(this.quietTimer);
+    this.quietTimer = undefined;
+    if (this.frame !== undefined) {
+      cancelAnimationFrame(this.frame);
+      this.frame = undefined;
     }
-    this.frames.clear();
+    this.fading.length = 0;
+    this.waiting.length = 0;
   }
 
-  /** Adds a placeholder for a pin image MapLibre needs; the flag's photo is fetched straight away. */
+  /**
+   * Adds the image MapLibre needs: a flag whose photo is already known is drawn complete; any
+   * other gets a shared placeholder, and the flag's photo is fetched straight away.
+   */
   private resolve(imageId: string): void {
     const pin = this.pinFor(imageId);
     if (!pin || this.map.hasImage(imageId)) {
       return;
     }
-    this.map.addImage(imageId, drawPinImage(null, pin.style), {
+    const tile = this.tiles.get(pin.spot.properties.cover ?? '');
+    if (pin.style === 'flag' && tile) {
+      this.withPhoto.add(imageId);
+      this.map.addImage(imageId, drawPinImage(tile, pin.style), {
+        pixelRatio: PIN_PIXEL_RATIO,
+      });
+      return;
+    }
+    this.map.addImage(imageId, placeholderImage(pin.style), {
       pixelRatio: PIN_PIXEL_RATIO,
     });
     if (pin.style === 'flag') {
@@ -277,6 +398,8 @@ export class PhotoPins {
 
   /** Fetches the photos of the photo pins MapLibre placed on screen. */
   private fetchPlacedPhotos(): void {
+    clearTimeout(this.quietTimer);
+    this.quietTimer = undefined;
     for (const feature of this.map.queryRenderedFeatures({
       layers: [SPOT_PHOTO_LAYER_ID],
     })) {
@@ -292,7 +415,7 @@ export class PhotoPins {
     }
   }
 
-  /** Fetches one image's photo and fades it in, unless it has, is being, or failed to be fetched. */
+  /** Brings one image's photo in and fades it, unless it has, is being, or failed to be fetched. */
   private fetch(
     imageId: string,
     pin: { spot: SpotListFeature; style: PinStyle },
@@ -303,50 +426,88 @@ export class PhotoPins {
       this.loads.signal.aborted ||
       this.withPhoto.has(imageId) ||
       this.pending.has(imageId) ||
-      this.failed.has(imageId)
+      this.failed.has(cover)
     ) {
       return;
     }
     this.pending.add(imageId);
-    this.loadPhoto(
-      photoUrl(this.photoBaseUrl, cover, 'thumb'),
-      this.loads.signal,
-    ).then(
-      (photo) => {
+    this.tileOf(cover).then(
+      (tile) => {
         this.pending.delete(imageId);
         if (!this.loads.signal.aborted) {
           this.withPhoto.add(imageId);
-          this.fadeIn(imageId, photo, pin.style);
+          this.startFade({ imageId, tile, style: pin.style });
         }
       },
-      () => {
-        this.pending.delete(imageId);
-        this.failed.add(imageId);
-      },
+      () => this.pending.delete(imageId),
     );
   }
 
-  /**
-   * Fades `photo` into its placeholder over {@link PHOTO_FADE_MS}, one same-size `updateImage` a
-   * frame. A fade is a change in place, so reduced motion keeps it.
-   */
-  private fadeIn(imageId: string, photo: PinPhoto, style: PinStyle): void {
-    let startedAt: number | undefined;
-    let frame: number;
-    const step = (now: number) => {
-      this.frames.delete(frame);
-      if (this.loads.signal.aborted || !this.map.hasImage(imageId)) {
-        return;
-      }
-      startedAt ??= now;
-      const progress = Math.min((now - startedAt) / PHOTO_FADE_MS, 1);
-      this.map.updateImage(imageId, drawPinImage(photo, style, progress));
-      if (progress < 1) {
-        frame = requestAnimationFrame(step);
-        this.frames.add(frame);
-      }
-    };
-    frame = requestAnimationFrame(step);
-    this.frames.add(frame);
+  /** The cropped photo of `cover`: the one fetched earlier, or one fetch shared by every asker. */
+  private tileOf(cover: string): Promise<HTMLCanvasElement> {
+    const known = this.tiles.get(cover);
+    if (known) {
+      return Promise.resolve(known);
+    }
+    let inFlight = this.loading.get(cover);
+    if (!inFlight) {
+      inFlight = this.loadPhoto(
+        photoUrl(this.photoBaseUrl, cover, 'thumb'),
+        this.loads.signal,
+      )
+        .then((photo) => {
+          const tile = photoTile(photo);
+          this.tiles.set(cover, tile);
+          return tile;
+        })
+        .catch((error: unknown) => {
+          this.failed.add(cover);
+          throw error;
+        })
+        .finally(() => this.loading.delete(cover));
+      this.loading.set(cover, inFlight);
+    }
+    return inFlight;
   }
+
+  /** Starts a fade now, or when one of the {@link MAX_CONCURRENT_FADES} places frees up. */
+  private startFade(fade: Fade): void {
+    (this.fading.length < MAX_CONCURRENT_FADES
+      ? this.fading
+      : this.waiting
+    ).push(fade);
+    this.frame ??= requestAnimationFrame(this.step);
+  }
+
+  /**
+   * One frame of every running fade, over {@link PHOTO_FADE_MS}, one same-size `updateImage` each.
+   * A fade is a change in place, so reduced motion keeps it.
+   */
+  private readonly step = (now: number): void => {
+    this.frame = undefined;
+    if (this.loads.signal.aborted) {
+      return;
+    }
+    for (const fade of [...this.fading]) {
+      if (!this.map.hasImage(fade.imageId)) {
+        this.fading.splice(this.fading.indexOf(fade), 1);
+        continue;
+      }
+      fade.startedAt ??= now;
+      const progress = Math.min((now - fade.startedAt) / PHOTO_FADE_MS, 1);
+      this.map.updateImage(
+        fade.imageId,
+        drawPinImage(fade.tile, fade.style, progress),
+      );
+      if (progress === 1) {
+        this.fading.splice(this.fading.indexOf(fade), 1);
+      }
+    }
+    while (this.fading.length < MAX_CONCURRENT_FADES && this.waiting.length) {
+      this.fading.push(this.waiting.shift()!);
+    }
+    if (this.fading.length) {
+      this.frame = requestAnimationFrame(this.step);
+    }
+  };
 }

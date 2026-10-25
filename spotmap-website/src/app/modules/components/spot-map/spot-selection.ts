@@ -40,7 +40,7 @@ export interface SelectionOptions {
 /**
  * The selected pin of one map build: the `selected` feature state that grows it and puts the
  * amber ring round it, and the lock-on pulse that marks a fresh selection. Which spot is selected
- * is the URL's to say (spec §7); this only shows it. A plain class, built by SpotMapComponent once
+ * is the URL's to say; this only shows it. A plain class, built by SpotMapComponent once
  * a build's pins exist, since feature state needs their source. With the photo layers on the map
  * it also flies the selected spot's photo as the amber flag.
  */

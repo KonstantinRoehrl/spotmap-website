@@ -39,6 +39,19 @@ export const SPOT_PHOTO_LAYER_ID = 'spots-photo';
 /** The selected spot's photo in an amber frame, shown whatever it overlaps. */
 export const SPOT_FLAG_LAYER_ID = 'spots-flag';
 
+/** The layers a pointer can hit, thumb target only: the dot, on a map with no photo host. */
+export const PIN_TARGET_LAYER_IDS: readonly string[] = [SPOT_HIT_LAYER_ID];
+
+/**
+ * The layers a pointer can hit on a map with photo pins: the flag and the photo frames reach well
+ * above the 22 px thumb target, and a tap on any of them is a tap on its spot.
+ */
+export const PHOTO_PIN_TARGET_LAYER_IDS: readonly string[] = [
+  SPOT_FLAG_LAYER_ID,
+  SPOT_PHOTO_LAYER_ID,
+  SPOT_HIT_LAYER_ID,
+];
+
 /** The image id of a spot's photo pin is this prefix and the spot id. */
 export const PHOTO_PIN_IMAGE_PREFIX = 'spot-photo:';
 
@@ -46,7 +59,7 @@ export const PHOTO_PIN_IMAGE_PREFIX = 'spot-photo:';
 export const FLAG_IMAGE_PREFIX = 'spot-flag:';
 
 /** How far above the pin's centre a pin image's foot sits, in px: clear of the selected 7.5 px dot. */
-const PIN_IMAGE_LIFT_PX = 8;
+export const PIN_IMAGE_LIFT_PX = 8;
 
 /**
  * True for a spot with at least one photo, as an expression `all` can nest: MapLibre's types only
