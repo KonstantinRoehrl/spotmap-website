@@ -205,7 +205,8 @@ describe('SpotPhotoGalleryComponent', () => {
       expect(el.querySelector('.gallery')?.classList).not.toContain(
         'gallery--instant',
       );
-      expect(el.querySelector('.gallery__loading')).toBeNull();
+      // The old photo stays under the incoming one, and the rain over it says the new one loads.
+      expect(el.querySelector('.gallery__loading')).not.toBeNull();
       expect(el.querySelector('.gallery__outgoing')?.getAttribute('src')).toBe(
         'a.webp',
       );
@@ -216,6 +217,7 @@ describe('SpotPhotoGalleryComponent', () => {
       expect(el.querySelector('.gallery__photo')?.classList).toContain(
         'gallery__photo--loaded',
       );
+      expect(el.querySelector('.gallery__loading')).toBeNull();
       expect(el.querySelector('.gallery')?.classList).not.toContain(
         'gallery--instant',
       );
@@ -290,6 +292,7 @@ describe('SpotPhotoGalleryComponent', () => {
       el().querySelectorAll<HTMLImageElement>('.gallery__outgoing');
     const incoming = () =>
       el().querySelector<HTMLImageElement>('.gallery__photo')!;
+    const rain = () => el().querySelector('.gallery__loading');
 
     /** The opacity transitions the browser is running on `image`, with their lengths in ms. */
     function opacityFades(image: HTMLElement): number[] {
@@ -342,6 +345,44 @@ describe('SpotPhotoGalleryComponent', () => {
       fixture.detectChanges();
       expect(outgoing().length).toBe(0);
       expect(incoming().getAttribute('src')).toBe(photos[1]);
+    });
+
+    it('never shows the rain when stepping to a photo that is already cached', async () => {
+      cacheEverything();
+      const c = create(photos);
+      await settle();
+      // The rain is watched as it is inserted: a cached photo is known to be complete before the
+      // step renders, so no rain may even flash in and fade out.
+      const insertedRain: Node[] = [];
+      const watcher = new MutationObserver((records) => {
+        for (const record of records) {
+          insertedRain.push(
+            ...Array.from(record.addedNodes).filter(
+              (node) =>
+                node instanceof HTMLElement &&
+                node.classList.contains('gallery__loading'),
+            ),
+          );
+        }
+      });
+      watcher.observe(el(), { childList: true, subtree: true });
+      c.next();
+      await settle();
+      c.next();
+      await settle();
+      watcher.takeRecords().forEach((record) => {
+        insertedRain.push(
+          ...Array.from(record.addedNodes).filter(
+            (node) =>
+              node instanceof HTMLElement &&
+              node.classList.contains('gallery__loading'),
+          ),
+        );
+      });
+      watcher.disconnect();
+      expect(insertedRain).toEqual([]);
+      expect(rain()).toBeNull();
+      expect(incoming().classList).toContain('gallery__photo--loaded');
     });
 
     it('does not fade the first photo, even though it is cached', async () => {
@@ -432,16 +473,33 @@ describe('SpotPhotoGalleryComponent', () => {
         );
       });
 
+      it('keeps the rain on while stepping on past a slide that has not loaded', async () => {
+        const c = create(['a.webp', 'b.webp', 'c.webp']);
+        await settle();
+        c.next();
+        await settle();
+        c.next();
+        await settle();
+        expect(outgoing().length).toBe(1);
+        expect(outgoing()[0]?.getAttribute('src')).toBe('a.webp');
+        expect(el().querySelectorAll('.gallery__loading').length).toBe(1);
+        incoming().dispatchEvent(new Event('load'));
+        fixture.detectChanges();
+        expect(rain()).toBeNull();
+      });
+
       it('keeps the outgoing photo until the incoming one has loaded and faded in', async () => {
         const c = create(['a.webp', 'b.webp']);
         await settle();
         c.next();
         await settle();
         expect(outgoing().length).toBe(1);
+        expect(rain()).not.toBeNull();
         expect(incoming().classList).not.toContain('gallery__photo--loaded');
         incoming().dispatchEvent(new Event('load'));
         fixture.detectChanges();
         expect(incoming().classList).toContain('gallery__photo--loaded');
+        expect(rain()).toBeNull();
         expect(outgoing().length).toBe(1);
         incoming().dispatchEvent(
           new TransitionEvent('transitionend', {
@@ -459,8 +517,23 @@ describe('SpotPhotoGalleryComponent', () => {
         c.next();
         await settle();
         expect(outgoing().length).toBe(1);
+        expect(rain()).not.toBeNull();
         failCurrentImage();
         expect(el().querySelector('.gallery__placeholder')).not.toBeNull();
+        expect(outgoing().length).toBe(0);
+        expect(rain()).toBeNull();
+      });
+
+      it('shows the rain alone for the slide after a failed one', async () => {
+        const c = create(['a.webp', 'b.webp', 'c.webp']);
+        await settle();
+        c.next();
+        await settle();
+        failCurrentImage();
+        c.next();
+        await settle();
+        // The failed slide dropped the kept photo, so the rain has nothing to show over.
+        expect(rain()).not.toBeNull();
         expect(outgoing().length).toBe(0);
       });
     });
@@ -482,29 +555,25 @@ describe('SpotPhotoGalleryComponent', () => {
     }
   });
 
-  it('shows the rain only where no photo has been on screen to step away from', () => {
+  it('shows the rain on every slide that has not loaded, over the outgoing photo when there is one', () => {
     const c = create(['a.webp', 'b.webp', 'c.webp']);
-    // Stepping away from a slide that never loaded leaves nothing to keep, so the rain stays.
+    const el: HTMLElement = fixture.nativeElement;
+    // Stepping away from a slide that never loaded leaves no photo to keep, so the rain shows alone.
     c.next();
     fixture.detectChanges();
-    expect(
-      fixture.nativeElement.querySelector('.gallery__loading'),
-    ).not.toBeNull();
-    expect(
-      fixture.nativeElement.querySelector('.gallery__outgoing'),
-    ).toBeNull();
-    // Stepping away from a loaded slide keeps that photo on screen while the next one loads.
+    expect(el.querySelector('.gallery__loading')).not.toBeNull();
+    expect(el.querySelector('.gallery__outgoing')).toBeNull();
+    // Stepping away from a loaded slide keeps that photo on screen, and the rain still shows
+    // over it while the next one loads.
     loadCurrentImage();
     c.next();
     fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('.gallery__loading')).toBeNull();
-    expect(
-      fixture.nativeElement.querySelector('.gallery__outgoing'),
-    ).not.toBeNull();
+    expect(el.querySelector('.gallery__outgoing')).not.toBeNull();
+    expect(el.querySelector('.gallery__loading')).not.toBeNull();
     // A slide that has loaded never shows the rain again.
     c.previous();
     fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('.gallery__loading')).toBeNull();
+    expect(el.querySelector('.gallery__loading')).toBeNull();
   });
 
   it('stays 4:3 at the width its host gives it', () => {

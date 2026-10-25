@@ -91,6 +91,8 @@
   }
 }
 
+/* The rain sits over the outgoing photo (z-index -1) and under the incoming one, which is later
+   in the markup and so covers it as it fades in while the rain fades out. */
 .gallery__loading {
   position: absolute;
   inset: 0;

@@ -22,9 +22,10 @@ const SWIPE_THRESHOLD_PX = 40;
  * viewer's stage. `photos` are thumbnail URLs, which the rail has usually loaded already, so a
  * slide shows its thumb at once. Its full-size photo, when `fullPhotos` gives one, crossfades in
  * over it once it has loaded. A full-size photo that fails leaves the thumb. A slide neither has
- * loaded shows a small block of ASCII rain, unless a photo is already on screen: then that photo
- * stays beneath the incoming one until it has loaded and faded in over it, so a step never shows
- * a blank frame between two loaded photos. A broken thumb with no full-size photo shows an
+ * loaded shows a small block of ASCII rain. A step keeps the photo it leaves beneath the incoming
+ * one until that has loaded and faded in over it, so a step never shows a blank frame between
+ * two loaded photos; while the incoming photo loads, the rain shows over the kept one, so the
+ * viewer never looks stuck. A broken thumb with no full-size photo shows an
  * in-style placeholder, and the others and the navigation keep working. The first photo, when
  * already in the browser's cache, shows at once; every later step crossfades, cached or not. The
  * slide is two-way bindable as `[(index)]`. The plates can be
@@ -115,14 +116,12 @@ export class SpotPhotoGalleryComponent {
     () => this.failed().has(this.current()) && !this.fullLoaded(),
   );
   /**
-   * Whether the rain shows: the slide has nothing loaded yet and no photo stays on screen to wait
-   * behind, which is how a slide that follows a loaded one waits.
+   * Whether the rain shows: the slide has nothing loaded yet and has not failed. It shows over
+   * the outgoing photo too, since that photo is the previous slide's and says nothing about this
+   * one loading.
    */
   protected readonly showsRain = computed(
-    () =>
-      !this.currentFailed() &&
-      !this.currentLoaded() &&
-      this.outgoingUrl() === null,
+    () => !this.currentFailed() && !this.currentLoaded(),
   );
   /** What a screen reader hears for a failed slide. */
   protected readonly placeholderLabel = computed(
@@ -162,7 +161,9 @@ export class SpotPhotoGalleryComponent {
 
     // A step keeps the photo it leaves on screen, beneath the incoming one, so the two overlap
     // while the incoming one fades in. A photo that never loaded leaves nothing to keep, and the
-    // photo already kept stays; a broken slide shows the placeholder alone.
+    // photo already kept stays; a broken slide shows the placeholder alone. The incoming slide's
+    // photos are asked whether the browser already has them before it renders, so a cached photo
+    // never shows the rain, not even for one frame.
     effect(() => {
       const thumb = this.current();
       const full = this.currentFull();
@@ -173,6 +174,10 @@ export class SpotPhotoGalleryComponent {
         if (previous !== null && previous.thumb !== thumb) {
           this.hasStepped = true;
           this.instantUrls.set(new Set());
+          this.noteCached(thumb);
+          if (full !== null) {
+            this.noteCached(full);
+          }
           this.outgoingUrl.update(
             (kept) => this.loadedPhotoOf(previous) ?? kept,
           );
@@ -264,6 +269,21 @@ export class SpotPhotoGalleryComponent {
       return slide.full;
     }
     return loaded.has(slide.thumb) ? slide.thumb : null;
+  }
+
+  /**
+   * Marks `url` as loaded when the browser already has it, before the slide's elements exist to
+   * be asked. A detached image is complete at once for a cached URL.
+   */
+  private noteCached(url: string): void {
+    if (this.loaded().has(url)) {
+      return;
+    }
+    const probe = new Image();
+    probe.src = url;
+    if (probe.complete && probe.naturalWidth > 0) {
+      this.markLoaded(url);
+    }
   }
 
   /**
