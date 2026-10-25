@@ -5,17 +5,23 @@ import {
   OnDestroy,
   OnInit,
   inject,
+  input,
 } from '@angular/core';
 import { prefersReducedMotion } from '../../utils/prefers-reduced-motion';
 
 /**
  * Scrambles a nav link's label like a glitching terminal: every 80 ms, each non-space character
- * of the host's `.nav-text` element has a 15 % chance of showing one of a dozen glyphs instead.
+ * of the label has a 15 % chance of showing one of a dozen glyphs instead, written into the host's
+ * `.nav-text` element.
+ *
+ * The label is the one bound as `[appGlitchText]`, never read off the page: a link that is already
+ * active on its first change detection starts scrambling in `ngOnInit`, before its own text has
+ * rendered, so a label read from the DOM then would be empty for good.
  *
  * Scrambling starts when the pointer enters the host, or when the host has or gains the `active`
- * class (`routerLinkActive`). It stops and the original text comes back when the pointer leaves a
- * host that is not active, or when the host loses `active` while not hovered. Under reduced motion
- * it never starts, so there is never anything to restore.
+ * class. It stops and the label comes back when the pointer leaves a host that is not active, or
+ * when the host loses `active` while not hovered. Under reduced motion it never starts, so there is
+ * never anything to restore.
  *
  * The frame interval runs outside Angular's zone: a frame writes `innerText` directly and changes
  * no bound state, so a zone turn per frame would run change detection for nothing. The hover
@@ -29,13 +35,14 @@ import { prefersReducedMotion } from '../../utils/prefers-reduced-motion';
   },
 })
 export class GlitchTextDirective implements OnInit, OnDestroy {
+  /** The label the host's `.nav-text` shows: what every frame scrambles and every restore writes back. */
+  readonly label = input.required<string>({ alias: 'appGlitchText' });
+
   /** The host link whose `.nav-text` label is scrambled. */
   private readonly el = inject<ElementRef<HTMLElement>>(ElementRef);
   /** Lets the frame interval run outside Angular's zone. */
   private readonly zone = inject(NgZone);
 
-  /** The label as it was when scrambling started; frames scramble it and restores write it back. */
-  private originalText = '';
   /** The running frame interval, or undefined while not scrambling. */
   private intervalId?: number;
   /** The glyphs a scrambled character can show. */
@@ -53,7 +60,7 @@ export class GlitchTextDirective implements OnInit, OnDestroy {
     '~',
     '$',
   ];
-  /** The host's `.nav-text` element, found when scrambling starts. */
+  /** The host's `.nav-text` element, found when scrambling starts; frames write the scrambled label into it. */
   private textNode?: HTMLElement;
   /** Watches the host's `class` attribute for `active` coming and going. */
   private observer?: MutationObserver;
@@ -82,7 +89,7 @@ export class GlitchTextDirective implements OnInit, OnDestroy {
         this.startGlitch();
       } else if (!a.matches(':hover')) {
         this.stopGlitch();
-        if (this.textNode) this.textNode.innerText = this.originalText;
+        if (this.textNode) this.textNode.innerText = this.label();
       }
     });
 
@@ -99,7 +106,7 @@ export class GlitchTextDirective implements OnInit, OnDestroy {
     const a = this.el.nativeElement;
     if (!a.classList.contains('active')) {
       this.stopGlitch();
-      if (this.textNode) this.textNode.innerText = this.originalText;
+      if (this.textNode) this.textNode.innerText = this.label();
     }
   }
 
@@ -120,13 +127,11 @@ export class GlitchTextDirective implements OnInit, OnDestroy {
       undefined;
     if (!this.textNode) return;
 
-    this.originalText = this.textNode.innerText;
-
     this.intervalId = this.zone.runOutsideAngular(() =>
       window.setInterval(() => {
         if (!this.textNode) return;
 
-        const chars = this.originalText.split('');
+        const chars = this.label().split('');
         const glitched = chars.map((c) =>
           Math.random() < 0.15 && c !== ' '
             ? this.glitchChars[
