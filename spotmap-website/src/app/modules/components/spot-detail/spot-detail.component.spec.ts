@@ -1,10 +1,5 @@
-import {
-  ComponentFixture,
-  TestBed,
-  fakeAsync,
-  flushMicrotasks,
-  tick,
-} from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 
 import type {
   SpotDetail,
@@ -17,11 +12,18 @@ import {
   SpotmapBackend,
   UNCONFIGURED_BACKEND,
 } from '../../../services/spotmap-backend';
+import { SpotPhotoRailComponent } from '../spot-photo-rail/spot-photo-rail.component';
+import {
+  PHOTO_VIEWER_LOADER,
+  type PhotoViewerLoader,
+} from '../spot-photo-viewer/photo-viewer-loader';
+import type { PhotoViewerRequest } from '../spot-photo-viewer/spot-photo-viewer';
+import { SpotShareComponent } from '../spot-share/spot-share.component';
 import { directionsUrl } from './directions';
 import { SHARE_NAVIGATOR, ShareNavigator } from './share-spot';
-import { SHARE_STATUS_MS, SpotDetailComponent } from './spot-detail.component';
+import { SpotDetailComponent } from './spot-detail.component';
 
-/** A backend with a photo host, so the gallery, strip and covers render. */
+/** A backend with a photo host, so the rail and covers render. */
 const BACKEND: SpotmapBackend = {
   apiUrl: 'https://api.test',
   publishableKey: 'sb_publishable_test',
@@ -72,10 +74,10 @@ const failed = (
   id = 'a-1',
 ): SpotDetailView => ({ status: 'failed', id, preview: from });
 
-/** A navigator with no share sheet whose clipboard answers with `copy`. */
-function copyingNavigator(copy: jasmine.Spy): ShareNavigator {
-  return { clipboard: { writeText: copy } } as unknown as ShareNavigator;
-}
+/** A navigator with no share sheet, so the share control is a plain COPY LINK plate. */
+const COPY_ONLY = {
+  clipboard: { writeText: () => Promise.resolve() },
+} as unknown as ShareNavigator;
 
 /** What the browser paints for a colour token, to compare against computed styles. */
 function painted(token: string): string {
@@ -89,11 +91,35 @@ function painted(token: string): string {
 
 describe('SpotDetailComponent', () => {
   let fixture: ComponentFixture<SpotDetailComponent>;
-  let writeText: jasmine.Spy;
+  let viewer: { open: jasmine.Spy };
+  let closeViewer: jasmine.Spy;
+  /** The fake loader; by default it resolves the fake viewer at once. */
+  let loadViewer: jasmine.Spy<PhotoViewerLoader>;
 
   beforeEach(() => {
-    writeText = jasmine.createSpy('writeText').and.resolveTo();
+    closeViewer = jasmine.createSpy('close');
+    viewer = {
+      open: jasmine.createSpy('open').and.returnValue({ close: closeViewer }),
+    };
+    loadViewer = jasmine
+      .createSpy<PhotoViewerLoader>('loadViewer')
+      .and.callFake(() => Promise.resolve(viewer));
   });
+
+  /**
+   * Makes the loader hold every load until the returned `resolve` or `reject` is called, as the
+   * viewer's chunk does while it downloads.
+   */
+  function holdLoad(): { resolve: () => void; reject: () => void } {
+    let resolve!: () => void;
+    let reject!: () => void;
+    const pending = new Promise<typeof viewer>((done, fail) => {
+      resolve = () => done(viewer);
+      reject = () => fail(new Error('chunk failed'));
+    });
+    loadViewer.and.returnValue(pending);
+    return { resolve, reject };
+  }
 
   afterEach(() => fixture?.destroy());
 
@@ -101,13 +127,8 @@ describe('SpotDetailComponent', () => {
     view: SpotDetailView,
     {
       backend = BACKEND,
-      nav = copyingNavigator(writeText),
       hostStyle = 'display:block;width:320px',
-    }: {
-      backend?: SpotmapBackend;
-      nav?: ShareNavigator;
-      hostStyle?: string;
-    } = {},
+    }: { backend?: SpotmapBackend; hostStyle?: string } = {},
   ): ComponentFixture<SpotDetailComponent> {
     TestBed.configureTestingModule({
       // The failed and loading lines leave with a real fade; TestBed skips those by default.
@@ -115,7 +136,8 @@ describe('SpotDetailComponent', () => {
       imports: [SpotDetailComponent],
       providers: [
         { provide: SPOTMAP_BACKEND, useValue: backend },
-        { provide: SHARE_NAVIGATOR, useValue: nav },
+        { provide: SHARE_NAVIGATOR, useValue: COPY_ONLY },
+        { provide: PHOTO_VIEWER_LOADER, useValue: loadViewer },
       ],
     });
     fixture = TestBed.createComponent(SpotDetailComponent);
@@ -135,23 +157,21 @@ describe('SpotDetailComponent', () => {
   const find = <T extends Element = HTMLElement>(selector: string) =>
     host().querySelector<T>(selector);
   const text = (element: Element | null) => (element?.textContent ?? '').trim();
-  const stripButtons = () =>
-    Array.from(
-      host().querySelectorAll<HTMLButtonElement>('.spot-detail__strip-photo'),
-    );
-  /** The share status the visitor reads: lines on their way out are not counted. */
-  const shareStatus = () =>
-    Array.from(
-      host().querySelectorAll(
-        '.spot-detail__share-line:not(.spot-detail__share-line--leaving)',
-      ),
-    )
-      .map(text)
-      .join('');
-  const shareButton = () =>
-    Array.from(host().querySelectorAll('button')).find(
-      (button) => text(button) === '> SHARE SPOT',
-    )!;
+  const rect = (selector: string) => find(selector)!.getBoundingClientRect();
+  const rail = () =>
+    fixture.debugElement.query(By.directive(SpotPhotoRailComponent))
+      ?.componentInstance as SpotPhotoRailComponent | undefined;
+  const share = () =>
+    fixture.debugElement.query(By.directive(SpotShareComponent))
+      ?.componentInstance as SpotShareComponent | undefined;
+  /** The request the last `SpotPhotoViewer.open` call carried, and the element focus returns to. */
+  const lastOpen = () =>
+    viewer.open.calls.mostRecent().args as [PhotoViewerRequest, HTMLElement];
+  /** Lets a photo open that waits on the viewer's load go through. */
+  const settle = () => fixture.whenStable();
+  /** Waits until the browser is idle, after any idle work the detail scheduled first. */
+  const idle = () =>
+    new Promise<void>((done) => requestIdleCallback(() => done()));
 
   /** Asserts the selectors match elements that follow each other in document order. */
   function expectInOrder(selectors: string[]): void {
@@ -169,16 +189,17 @@ describe('SpotDetailComponent', () => {
     }
   }
 
-  it('lays a spot out as gallery, strip, rights, name, notes, then actions', () => {
+  it('lays a spot out as rail, rights, name, notes, then actions', () => {
     create(loaded());
     expectInOrder([
-      'app-spot-photo-gallery',
-      '.spot-detail__strip',
+      'app-spot-photo-rail',
       '.spot-detail__rights',
       '.spot-detail__name',
       '.spot-detail__notes',
       '.spot-detail__actions',
     ]);
+    expect(find('app-spot-photo-gallery')).toBeNull();
+    expect(find('.spot-detail__strip')).toBeNull();
   });
 
   it('puts the demolished line between the notes and the actions', () => {
@@ -203,68 +224,147 @@ describe('SpotDetailComponent', () => {
     expect(text(heading)).toBe('Alpha Bank');
   });
 
-  it('builds the gallery from the photos’ thumbnails', () => {
+  it('builds the rail from the photos’ thumbnails', () => {
     create(loaded());
-    expect(find<HTMLImageElement>('.gallery__photo')!.getAttribute('src')).toBe(
+    expect(rail()!.photos()).toEqual([
       'https://photos.test/thumb/vienna/a-1-1.webp',
-    );
+      'https://photos.test/thumb/vienna/a-1-2.webp',
+      'https://photos.test/thumb/vienna/a-1-3.webp',
+    ]);
+    expect(rail()!.spotName()).toBe('Alpha Bank');
   });
 
-  it('shows the gallery and the rights line but no strip for a single photo', () => {
+  it('shows the rail and the rights line for a single photo', () => {
     create(loaded(detail({ photos: ['vienna/a-1-1.webp'] })));
-    expect(find('app-spot-photo-gallery')).not.toBeNull();
+    expect(rail()!.photos().length).toBe(1);
     expect(find('.spot-detail__rights')).not.toBeNull();
-    expect(find('.spot-detail__strip')).toBeNull();
   });
 
   it('starts at the name for a spot without photos', () => {
     create(loaded(detail({ photos: [] })));
-    expect(find('app-spot-photo-gallery')).toBeNull();
-    expect(find('.spot-detail__strip')).toBeNull();
+    expect(find('app-spot-photo-rail')).toBeNull();
     expect(find('.spot-detail__rights')).toBeNull();
   });
 
   it('starts at the name when no photo host is configured', () => {
     create(loaded(), { backend: UNCONFIGURED_BACKEND });
-    expect(find('app-spot-photo-gallery')).toBeNull();
-    expect(find('.spot-detail__strip')).toBeNull();
+    expect(find('app-spot-photo-rail')).toBeNull();
     expect(find('.spot-detail__rights')).toBeNull();
     expect(find('.spot-detail__name')).not.toBeNull();
   });
 
-  it('labels every strip photo and marks the current one', () => {
+  it('opens the viewer on the rail photo chosen, growing out of it', async () => {
     create(loaded());
-    expect(stripButtons().map((b) => b.getAttribute('aria-label'))).toEqual([
-      'Photo 1 of 3',
-      'Photo 2 of 3',
-      'Photo 3 of 3',
+    rail()!.open.emit(1);
+    await settle();
+    expect(viewer.open).toHaveBeenCalledTimes(1);
+    const [request, opener] = lastOpen();
+    expect(request.spotName).toBe('Alpha Bank');
+    expect(request.index).toBe(1);
+    expect(request.thumbs).toEqual(rail()!.photos());
+    expect(request.fulls).toEqual([
+      'https://photos.test/full/vienna/a-1-1.webp',
+      'https://photos.test/full/vienna/a-1-2.webp',
+      'https://photos.test/full/vienna/a-1-3.webp',
     ]);
-    expect(stripButtons().map((b) => b.getAttribute('aria-current'))).toEqual([
-      'true',
-      null,
-      null,
-    ]);
+    expect(opener).toBe(rail()!.photoButton(1)!);
+    expect(request.originOf(2)).toBe(rail()!.photoButton(2));
+    expect(request.originOf(3)).toBeNull();
   });
 
-  it('jumps the gallery to a strip photo when it is tapped', async () => {
+  it('opens the viewer when a rail photo is clicked', async () => {
     create(loaded());
-    stripButtons()[2].click();
-    fixture.detectChanges();
-    await fixture.whenStable();
-    expect(find<HTMLImageElement>('.gallery__photo')!.getAttribute('alt')).toBe(
-      'Alpha Bank, photo 3 of 3',
-    );
-    expect(stripButtons()[2].classList).toContain('is-current');
+    (rail()!.photoButton(2) as HTMLButtonElement).click();
+    await settle();
+    expect(lastOpen()[0].index).toBe(2);
   });
 
-  it('moves the strip’s frame along with the gallery’s arrows', async () => {
+  it('closes the viewer when another spot opens', async () => {
     create(loaded());
-    find<HTMLButtonElement>('.gallery__nav--next')!.click();
-    fixture.detectChanges();
-    await fixture.whenStable();
-    fixture.detectChanges();
-    expect(stripButtons()[1].classList).toContain('is-current');
-    expect(stripButtons()[0].classList).not.toContain('is-current');
+    rail()!.open.emit(0);
+    await settle();
+    show(loading(preview({ id: 'b-2', name: 'Beta Ledge' }), 'b-2'));
+    expect(closeViewer).toHaveBeenCalledTimes(1);
+  });
+
+  it('closes the viewer when it is destroyed', async () => {
+    create(loaded());
+    rail()!.open.emit(0);
+    await settle();
+    fixture.destroy();
+    expect(closeViewer).toHaveBeenCalledTimes(1);
+  });
+
+  it('leaves the viewer open while the same spot only re-renders', async () => {
+    create(loaded());
+    rail()!.open.emit(0);
+    await settle();
+    show(loaded(detail({ notes: 'changed' })));
+    expect(closeViewer).not.toHaveBeenCalled();
+  });
+
+  it('loads the viewer when the browser is first idle, before any photo is chosen', async () => {
+    create(loaded());
+    await idle();
+    expect(loadViewer).toHaveBeenCalledTimes(1);
+    expect(viewer.open).not.toHaveBeenCalled();
+  });
+
+  it('opens a photo chosen while the viewer still loads once it has loaded', async () => {
+    const load = holdLoad();
+    create(loaded());
+    rail()!.open.emit(1);
+    await settle();
+    expect(viewer.open).not.toHaveBeenCalled();
+    load.resolve();
+    await settle();
+    expect(viewer.open).toHaveBeenCalledTimes(1);
+    expect(lastOpen()[0].index).toBe(1);
+  });
+
+  it('drops a pending open when another spot opens before the viewer loads', async () => {
+    const load = holdLoad();
+    create(loaded());
+    rail()!.open.emit(0);
+    show(loading(preview({ id: 'b-2', name: 'Beta Ledge' }), 'b-2'));
+    load.resolve();
+    await settle();
+    expect(viewer.open).not.toHaveBeenCalled();
+  });
+
+  it('drops a pending open when the detail goes before the viewer loads', async () => {
+    const load = holdLoad();
+    create(loaded());
+    rail()!.open.emit(0);
+    fixture.destroy();
+    load.resolve();
+    await settle();
+    expect(viewer.open).not.toHaveBeenCalled();
+  });
+
+  it('opens only the last of several photos chosen while the viewer loads', async () => {
+    const load = holdLoad();
+    create(loaded());
+    rail()!.open.emit(0);
+    rail()!.open.emit(2);
+    load.resolve();
+    await settle();
+    expect(viewer.open).toHaveBeenCalledTimes(1);
+    expect(lastOpen()[0].index).toBe(2);
+  });
+
+  it('keeps the rail usable when the viewer fails to load, and retries on the next photo', async () => {
+    const load = holdLoad();
+    create(loaded());
+    rail()!.open.emit(0);
+    load.reject();
+    await settle();
+    expect(viewer.open).not.toHaveBeenCalled();
+    loadViewer.and.callFake(() => Promise.resolve(viewer));
+    rail()!.open.emit(1);
+    await settle();
+    expect(viewer.open).toHaveBeenCalledTimes(1);
+    expect(lastOpen()[0].index).toBe(1);
   });
 
   it('keeps the notes verbatim, line breaks and case included, and unlit', () => {
@@ -294,80 +394,83 @@ describe('SpotDetailComponent', () => {
     expect(directions.getAttribute('aria-label')).toBe(
       'Directions to Alpha Bank',
     );
+    expect(directions.classList).toContain('phosphor-bloom');
+    expect(directions.classList).toContain('phosphor-bloom--plate');
+    expect(directions.offsetHeight).toBeGreaterThanOrEqual(44);
   });
 
-  it('gives both actions the pointer bloom on a thumb-sized plate', () => {
+  it('hands the share action to the share control, beside the directions', () => {
     create(loaded());
-    const actions = Array.from(
-      host().querySelectorAll<HTMLElement>('.spot-detail__action'),
+    expectInOrder(['a.spot-detail__action', 'app-spot-share']);
+    expect(share()!.spotId()).toBe('a-1');
+    expect(share()!.spotName()).toBe('Alpha Bank');
+    expect(find('[role="status"].spot-detail__share-status')).toBeNull();
+  });
+
+  it('insets its content 16 px from the panel on every side', () => {
+    create(loaded());
+    const style = getComputedStyle(host());
+    expect(
+      [
+        style.paddingTop,
+        style.paddingRight,
+        style.paddingBottom,
+        style.paddingLeft,
+      ].every((value) => value === '16px'),
+    ).toBeTrue();
+    const panel = host().getBoundingClientRect();
+    expect(rect('.spot-detail__name').left).toBe(panel.left + 16);
+    expect(rect('.spot-detail__actions').left).toBe(panel.left + 16);
+  });
+
+  it('lets the rail bleed to the panel’s edges with its first photo on the inset', () => {
+    create(loaded());
+    const panel = host().getBoundingClientRect();
+    const scroller = rect('app-spot-photo-rail');
+    expect(scroller.left).toBe(panel.left);
+    expect(scroller.right).toBe(panel.right);
+    expect(rail()!.photoButton(0)!.getBoundingClientRect().left).toBe(
+      panel.left + 16,
     );
-    expect(actions.map(text)).toEqual(['> DIRECTIONS', '> SHARE SPOT']);
-    for (const action of actions) {
-      expect(action.classList).toContain('phosphor-bloom');
-      expect(action.classList).toContain('phosphor-bloom--plate');
-      expect(action.offsetHeight).toBeGreaterThanOrEqual(44);
-    }
-    // The visible words SHARE SPOT lead the name, so voice control and screen readers agree.
-    expect(shareButton().getAttribute('aria-label')).toBe(
-      'Share spot: Alpha Bank',
-    );
   });
 
-  it('shares through the native sheet and shows no line for it', async () => {
-    const share = jasmine.createSpy('share').and.resolveTo();
-    create(loaded(), {
-      nav: { share, canShare: () => true } as unknown as ShareNavigator,
-    });
-    shareButton().click();
-    await fixture.whenStable();
-    fixture.detectChanges();
-    expect(share).toHaveBeenCalledOnceWith({
-      url: jasmine.stringMatching(/\/spot\/a-1$/),
-      title: 'Alpha Bank',
-    });
-    expect(shareStatus()).toBe('');
+  it('spaces its groups 16 px apart and the items inside a group 8 px apart', () => {
+    create(loaded(detail({ status: 'demolished' })));
+    const railBox = rect('app-spot-photo-rail');
+    const rights = rect('.spot-detail__rights');
+    const name = rect('.spot-detail__name');
+    const notes = rect('.spot-detail__notes');
+    const status = rect('.spot-detail__status');
+    const actions = rect('.spot-detail__actions');
+    expect(rights.top - railBox.bottom).toBeCloseTo(8, 0);
+    expect(name.top - rights.bottom).toBeCloseTo(16, 0);
+    expect(notes.top - name.bottom).toBeCloseTo(8, 0);
+    expect(status.top - notes.bottom).toBeCloseTo(16, 0);
+    expect(actions.top - status.bottom).toBeCloseTo(16, 0);
   });
 
-  it('copies the link where there is no share sheet, and says so', async () => {
-    create(loaded());
-    shareButton().click();
-    await fixture.whenStable();
-    fixture.detectChanges();
-    expect(writeText).toHaveBeenCalledOnceWith(
-      jasmine.stringMatching(/\/spot\/a-1$/),
-    );
-    expect(shareStatus()).toBe('> LINK COPIED');
-    expect(find('[role="status"]')?.getAttribute('aria-live')).toBe('polite');
+  it('keeps a group’s 16 px after the name when there are no notes', () => {
+    create(loaded(detail({ notes: null, status: 'demolished' })));
+    expect(
+      rect('.spot-detail__status').top - rect('.spot-detail__name').bottom,
+    ).toBeCloseTo(16, 0);
   });
 
-  it('says so when the copy is refused', async () => {
-    writeText.and.rejectWith(new DOMException('denied', 'NotAllowedError'));
-    create(loaded());
-    shareButton().click();
-    await fixture.whenStable();
-    fixture.detectChanges();
-    expect(shareStatus()).toBe('> COPY FAILED // LINK NOT COPIED');
+  it('keeps the failed line where the loading line sat, 8 px under the name', () => {
+    create(loading());
+    const loadingTop = rect('.spot-detail__line--dim').top;
+    expect(loadingTop - rect('.spot-detail__name').bottom).toBeCloseTo(8, 0);
+    show(failed());
+    expect(rect('.spot-detail__line--lit').top).toBe(loadingTop);
   });
 
-  it('clears the share line after a few seconds', fakeAsync(() => {
-    create(loaded());
-    shareButton().click();
-    flushMicrotasks();
-    fixture.detectChanges();
-    expect(shareStatus()).toBe('> LINK COPIED');
-    tick(SHARE_STATUS_MS);
-    fixture.detectChanges();
-    expect(shareStatus()).toBe('');
-  }));
-
-  it('cancels a pending share-line timer when it is destroyed', fakeAsync(() => {
-    create(loaded());
-    shareButton().click();
-    flushMicrotasks();
-    fixture.destroy();
-    // fakeAsync fails the spec on a timer still queued here: destroy must have cleared it.
-    expect(fixture.componentRef.hostView.destroyed).toBeTrue();
-  }));
+  it('spaces the two action plates 8 px apart', () => {
+    // A phone-width sheet: at 320 px the two plates wrap onto two rows, as they are meant to.
+    create(loaded(), { hostStyle: 'display:block;width:375px' });
+    const directions = rect('a.spot-detail__action');
+    const shareBox = rect('app-spot-share');
+    expect(shareBox.left - directions.right).toBeCloseTo(8, 0);
+  });
 
   it('shows what the list knows at once while the file loads', () => {
     create(loading());
@@ -375,27 +478,25 @@ describe('SpotDetailComponent', () => {
     expect(
       find<HTMLImageElement>('.spot-detail__cover')!.getAttribute('src'),
     ).toBe('https://photos.test/thumb/vienna/a-1-1.webp');
-    expect(find('.spot-detail__strip-reserved')).not.toBeNull();
     expect(text(find('.spot-detail__line'))).toBe('> LOADING FILE…');
-    expect(find('app-spot-photo-gallery')).toBeNull();
+    expect(find('app-spot-photo-rail')).toBeNull();
     expect(find('.spot-detail__actions')).toBeNull();
   });
 
-  it('keeps the name where it is when the full file replaces the preview', () => {
+  it('reserves the rail’s first frame exactly, so the rail and the name land without a jump', () => {
     create(loading());
-    const before = find('.spot-detail__name')!.getBoundingClientRect().top;
-    const reserved = find('.spot-detail__reserved')!.getBoundingClientRect();
-    expect(reserved.height).toBeCloseTo((reserved.width * 3) / 4, 0);
+    const reserved = rect('.spot-detail__reserved');
+    const nameTop = rect('.spot-detail__name').top;
+    const height = window.matchMedia('(min-width: 1024px)').matches ? 132 : 112;
+    expect(reserved.height).toBe(height);
+    expect(reserved.width).toBeCloseTo((height * 4) / 3, 0);
+    expect(reserved.left).toBe(host().getBoundingClientRect().left + 16);
     show(loaded());
-    expect(find('.spot-detail__name')!.getBoundingClientRect().top).toBe(
-      before,
-    );
-  });
-
-  it('reserves no strip for a preview with one photo', () => {
-    create(loading(preview({ photoCount: 1 })));
-    expect(find('.spot-detail__reserved')).not.toBeNull();
-    expect(find('.spot-detail__strip-reserved')).toBeNull();
+    const frame = rail()!.photoButton(0)!.getBoundingClientRect();
+    expect(frame.top).toBe(reserved.top);
+    expect(frame.left).toBe(reserved.left);
+    expect(frame.height).toBe(reserved.height);
+    expect(rect('.spot-detail__name').top).toBe(nameTop);
   });
 
   it('reserves no photo room for a preview without photos', () => {
@@ -404,7 +505,7 @@ describe('SpotDetailComponent', () => {
     expect(find('.spot-detail__rights')).toBeNull();
   });
 
-  it('reserves the 4:3 box for a cold link and names nothing it does not know', () => {
+  it('reserves the rail’s frame for a cold link and names nothing it does not know', () => {
     create(loading(null));
     expect(find('.spot-detail__reserved')).not.toBeNull();
     expect(find('.spot-detail__cover')).toBeNull();
@@ -440,31 +541,24 @@ describe('SpotDetailComponent', () => {
     expect(retried).toBe(1);
   });
 
-  it('keeps the reserved photo boxes and the name in place when the file cannot be loaded', () => {
+  it('keeps the reserved frame and the name in place when the file cannot be loaded', () => {
     create(loading());
-    const nameTop = find('.spot-detail__name')!.getBoundingClientRect().top;
+    const nameTop = rect('.spot-detail__name').top;
     show(failed());
     expect(find('.spot-detail__reserved')).not.toBeNull();
     expect(
       find<HTMLImageElement>('.spot-detail__cover')!.getAttribute('src'),
     ).toBe('https://photos.test/thumb/vienna/a-1-1.webp');
-    expect(find('.spot-detail__strip-reserved')).not.toBeNull();
-    expect(find('.spot-detail__name')!.getBoundingClientRect().top).toBe(
-      nameTop,
-    );
+    expect(rect('.spot-detail__name').top).toBe(nameTop);
   });
 
   it('keeps the name in place through RETRY, from failed to loading to loaded', () => {
     create(failed());
-    const nameTop = find('.spot-detail__name')!.getBoundingClientRect().top;
+    const nameTop = rect('.spot-detail__name').top;
     show(loading());
-    expect(find('.spot-detail__name')!.getBoundingClientRect().top).toBe(
-      nameTop,
-    );
+    expect(rect('.spot-detail__name').top).toBe(nameTop);
     show(loaded());
-    expect(find('.spot-detail__name')!.getBoundingClientRect().top).toBe(
-      nameTop,
-    );
+    expect(rect('.spot-detail__name').top).toBe(nameTop);
   });
 
   it('fades the loading line in over the failed line, in the same cell, instead of cutting', async () => {
@@ -506,7 +600,7 @@ describe('SpotDetailComponent', () => {
     expect(document.activeElement).toBe(find('h2'));
   });
 
-  it('holds the 4:3 box for a cold link whose file cannot be loaded', () => {
+  it('holds the rail’s frame for a cold link whose file cannot be loaded', () => {
     create(failed(null));
     expect(find('.spot-detail__reserved')).not.toBeNull();
     expect(find('.spot-detail__cover')).toBeNull();
@@ -516,30 +610,6 @@ describe('SpotDetailComponent', () => {
     create(failed(preview({ cover: null, photoCount: 0 })));
     expect(find('.spot-detail__reserved')).toBeNull();
     expect(find('.spot-detail__rights')).toBeNull();
-  });
-
-  it('centres the current strip photo within the strip, whatever the page offset', async () => {
-    const photos = Array.from({ length: 6 }, (_, i) => `vienna/a-1-${i}.webp`);
-    // A narrow host pushed off the page's left edge: the strip overflows, and an offset measured
-    // from anywhere but the strip itself would come out 40 px too far along.
-    create(loaded(detail({ photos })), {
-      hostStyle: 'display:block;width:120px;margin-left:40px',
-    });
-    const strip = find('.spot-detail__strip')!;
-    const scrollTo = spyOn(strip, 'scrollTo');
-    stripButtons()[2].click();
-    fixture.detectChanges();
-    await fixture.whenStable();
-    expect(scrollTo).toHaveBeenCalledTimes(1);
-    const photo = stripButtons()[2];
-    const expected =
-      photo.getBoundingClientRect().left -
-      strip.getBoundingClientRect().left +
-      strip.scrollLeft -
-      (strip.clientWidth - photo.offsetWidth) / 2;
-    expect((scrollTo.calls.mostRecent().args[0] as ScrollToOptions).left).toBe(
-      expected,
-    );
   });
 
   it('focuses the heading without scrolling the pane to it', async () => {
@@ -595,19 +665,7 @@ describe('SpotDetailComponent', () => {
     expect(document.activeElement).toBe(find('h2'));
   });
 
-  it('opens another spot on its first photo', async () => {
-    create(loaded());
-    stripButtons()[2].click();
-    fixture.detectChanges();
-    show(loaded(detail({ id: 'b-2', name: 'Beta Ledge' })));
-    await fixture.whenStable();
-    fixture.detectChanges();
-    expect(find<HTMLImageElement>('.gallery__photo')!.getAttribute('alt')).toBe(
-      'Beta Ledge, photo 1 of 3',
-    );
-  });
-
-  it('uses amber for nothing but the current strip photo’s frame', () => {
+  it('uses no amber at all: nothing in the detail is the current selection', () => {
     create(loaded(detail({ status: 'demolished' })));
     const amber = painted('var(--color-amber)');
     const hits: string[] = [];
@@ -632,9 +690,7 @@ describe('SpotDetailComponent', () => {
         }
       }
     }
-    expect(hits).toEqual([
-      'spot-detail__strip-photo phosphor-bloom phosphor-bloom--inset is-current::after border-top-color',
-    ]);
+    expect(hits).toEqual([]);
   });
 
   it('sets no text below 12 px', () => {

@@ -1,29 +1,46 @@
+/* The panel inset (DESIGN.md's spacing scale): every edge of the column or sheet keeps 16 px from
+   the detail's content. The rail alone bleeds through it, by its own negative margin. */
 :host {
   display: block;
+  box-sizing: border-box;
+  padding: 16px;
 }
 
+/* Groups 16 px apart: the photos, the name with its notes, the demolished line, the actions. */
 .spot-detail {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 16px;
   font-family: var(--font-mono);
   color: var(--color-phosphor);
 }
 
-.spot-detail__gallery {
-  display: block;
+/* The rail and its rights line: one group, 8 px apart. */
+.spot-detail__photos {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-/* The gallery's own panel (spot-photo-gallery.component.css), held while the file loads: the same
-   4:3 border box, border and radius, so the gallery replaces it without moving anything below. */
+/* The rail's first frame (spot-photo-rail.component.css), held while the file loads: the same
+   4:3 border box at the rail's height, border and radius, so the rail replaces it without moving
+   anything below. It sits at the start of its column rather than stretching across it, which
+   would override the 4:3 ratio. */
 .spot-detail__reserved {
+  align-self: flex-start;
   box-sizing: border-box;
-  width: 100%;
+  height: 112px;
   aspect-ratio: 4 / 3;
   overflow: hidden;
   background: var(--color-surface);
   border: 1px solid var(--color-line);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
+}
+
+@media (min-width: 1024px) {
+  .spot-detail__reserved {
+    height: 132px;
+  }
 }
 
 .spot-detail__cover {
@@ -33,59 +50,7 @@
   object-fit: cover;
 }
 
-/* One row of 58 × 44 thumbnails (a 56 × 42 photo inside a 1px frame): thumb-height targets. It
-   scrolls sideways under a finger or a trackpad; the gallery's arrows reach every photo too, and
-   the current one is scrolled into view as they move. */
-.spot-detail__strip,
-.spot-detail__strip-reserved {
-  flex: none;
-  height: 44px;
-}
-
-.spot-detail__strip {
-  display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
-  scrollbar-width: none;
-}
-
-.spot-detail__strip-photo {
-  position: relative;
-  flex: none;
-  width: 58px;
-  height: 44px;
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-  cursor: pointer;
-}
-
-.spot-detail__strip-photo img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-/* The frame is drawn over the photo, so the current one's thicker amber frame never shifts the
-   row. Amber's one role in the spot UI is the current selection: here, the photo on screen. */
-.spot-detail__strip-photo::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border: 1px solid var(--color-line);
-  border-radius: inherit;
-  pointer-events: none;
-  transition: border-color var(--dur-fast) ease-out;
-}
-
-.spot-detail__strip-photo.is-current::after {
-  border: 2px solid var(--color-amber);
-}
-
-/* Under the gallery: the photos are the maintainer's, not free stock (the About page says how to
+/* Under the rail: the photos are the maintainer's, not free stock (the About page says how to
    ask). Small and unlit, so it never competes with the name. */
 .spot-detail__rights {
   margin: 0;
@@ -94,8 +59,15 @@
   color: var(--color-phosphor-dim);
 }
 
+/* The name and whatever the file's state shows under it: the notes 8 px below the name. */
+.spot-detail__body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .spot-detail__name {
-  margin: 4px 0 0;
+  margin: 0;
   font-size: 1.125rem;
   font-weight: 600;
   line-height: 1.2;
@@ -117,10 +89,20 @@
   outline-offset: 2px;
 }
 
+/* The notes, the demolished line and the actions are groups of their own, 16 px apart. */
 .spot-detail__facts {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 16px;
+}
+
+/* The notes belong to the name's group (8 px under it). A loaded spot without notes starts its
+   facts with the demolished line or the actions, a group of their own, so that one keeps the full
+   16 px: the body's 8 plus these 8. The failed line stays 8 px under the name, where the loading
+   line it crossfades with sits. */
+.spot-detail__facts
+  > :is(.spot-detail__status, .spot-detail__actions):first-child {
+  margin-top: 8px;
 }
 
 /* The spot's notes verbatim — mixed-case German and English, so no uppercase (Restrained-Caps
@@ -160,14 +142,14 @@
   text-shadow: var(--glow-text-standard);
 }
 
+/* Two plates, 8 px apart, wrapping on a narrow sheet. */
 .spot-detail__actions {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 4px;
 }
 
-/* Thumb-height plate buttons (styles.css `phosphor-bloom--plate`), like the gallery arrows. */
+/* Thumb-height plate buttons (styles.css `phosphor-bloom--plate`), as the share control's. */
 .spot-detail__action {
   display: inline-flex;
   align-items: center;
@@ -181,30 +163,6 @@
   text-transform: uppercase;
   text-decoration: none;
   cursor: pointer;
-}
-
-/* Reserved at one line's height, so the line fading in and out never moves the pane. */
-.spot-detail__share-status {
-  min-height: 1.4em;
-  font-size: 0.8125rem;
-  letter-spacing: 0.08em;
-  line-height: 1.4;
-  color: var(--color-phosphor-dim);
-}
-
-.spot-detail__share-line {
-  display: inline-block;
-  transition: opacity var(--dur-fade) ease-out;
-}
-
-@starting-style {
-  .spot-detail__share-line {
-    opacity: 0;
-  }
-}
-
-.spot-detail__share-line--leaving {
-  opacity: 0;
 }
 
 /* The loading line, the failed line and the full file share one cell, so each crossfades over the

@@ -1,143 +1,99 @@
 <section class="spot-detail" role="region" [attr.aria-labelledby]="headingId">
   @if (spot(); as spot) {
     @if (thumbnails().length > 0) {
-      <app-spot-photo-gallery
-        class="spot-detail__gallery"
-        [photos]="thumbnails()"
-        [spotName]="spot.name"
-        [(index)]="photoIndex"
-      />
-      @if (thumbnails().length > 1) {
-        <div
-          #strip
-          class="spot-detail__strip spot-detail__fade-in"
-          role="group"
-          aria-label="Photos"
-        >
-          @for (
-            src of thumbnails();
-            track $index;
-            let i = $index, total = $count
-          ) {
-            <button
-              type="button"
-              class="spot-detail__strip-photo phosphor-bloom phosphor-bloom--inset"
-              [class.is-current]="i === photoIndex()"
-              [attr.aria-current]="i === photoIndex() ? 'true' : null"
-              [attr.aria-label]="'Photo ' + (i + 1) + ' of ' + total"
-              (click)="photoIndex.set(i)"
-            >
-              <img [src]="src" alt="" loading="lazy" decoding="async" />
-            </button>
-          }
-        </div>
-      }
-      <p class="spot-detail__rights">© all rights reserved</p>
-    }
-  } @else if (reservesGallery()) {
-    <div class="spot-detail__reserved" aria-hidden="true">
-      @if (previewCover(); as cover) {
-        <img class="spot-detail__cover" [src]="cover" alt="" decoding="async" />
-      }
-    </div>
-    @if (reservesStrip()) {
-      <div class="spot-detail__strip-reserved" aria-hidden="true"></div>
-    }
-    @if (preview()) {
-      <p class="spot-detail__rights">© all rights reserved</p>
-    }
-  }
-
-  <h2
-    #heading
-    class="spot-detail__name"
-    [class.sr-only]="name() === null"
-    [id]="headingId"
-    tabindex="-1"
-  >
-    {{ name() ?? 'Spot loading' }}
-  </h2>
-
-  <!-- The loading line, the failed line and the file share one cell, so each crossfades over the
-       last in place instead of cutting. -->
-  <div class="spot-detail__state">
-    @if (view().status === 'loading') {
-      <p
-        class="spot-detail__line spot-detail__line--dim spot-detail__fade-in"
-        animate.leave="spot-detail__fade-in--leaving"
-      >
-        &gt; LOADING FILE…
-      </p>
-    }
-    @if (view().status === 'failed') {
-      <div
-        class="spot-detail__facts spot-detail__fade-in"
-        animate.leave="spot-detail__fade-in--leaving"
-      >
-        <p class="spot-detail__line spot-detail__line--lit">
-          &gt; SIGNAL LOST // FILE UNREACHABLE
-        </p>
-        <div class="spot-detail__actions">
-          <button
-            type="button"
-            class="spot-detail__action phosphor-bloom phosphor-bloom--plate"
-            appPointerBloom
-            (click)="retry.emit()"
-          >
-            &gt; RETRY
-          </button>
-        </div>
+      <div class="spot-detail__photos">
+        <app-spot-photo-rail
+          [photos]="thumbnails()"
+          [spotName]="spot.name"
+          (open)="openPhoto($event)"
+        />
+        <p class="spot-detail__rights">© all rights reserved</p>
       </div>
     }
-    @if (view().status === 'loaded') {
-      @if (spot(); as spot) {
-        <div class="spot-detail__facts spot-detail__fade-in">
-          @if (spot.notes; as notes) {
-            <p class="spot-detail__notes">{{ notes }}</p>
-          }
-          @if (isDemolished()) {
-            <p class="spot-detail__status">&gt; DEMOLISHED</p>
-          }
+  } @else if (reservesRail()) {
+    <div class="spot-detail__photos">
+      <div class="spot-detail__reserved" aria-hidden="true">
+        @if (previewCover(); as cover) {
+          <img
+            class="spot-detail__cover"
+            [src]="cover"
+            alt=""
+            decoding="async"
+          />
+        }
+      </div>
+      @if (preview()) {
+        <p class="spot-detail__rights">© all rights reserved</p>
+      }
+    </div>
+  }
+
+  <div class="spot-detail__body">
+    <h2
+      #heading
+      class="spot-detail__name"
+      [class.sr-only]="name() === null"
+      [id]="headingId"
+      tabindex="-1"
+    >
+      {{ name() ?? 'Spot loading' }}
+    </h2>
+
+    <!-- The loading line, the failed line and the file share one cell, so each crossfades over
+         the last in place instead of cutting. -->
+    <div class="spot-detail__state">
+      @if (view().status === 'loading') {
+        <p
+          class="spot-detail__line spot-detail__line--dim spot-detail__fade-in"
+          animate.leave="spot-detail__fade-in--leaving"
+        >
+          &gt; LOADING FILE…
+        </p>
+      }
+      @if (view().status === 'failed') {
+        <div
+          class="spot-detail__facts spot-detail__fade-in"
+          animate.leave="spot-detail__fade-in--leaving"
+        >
+          <p class="spot-detail__line spot-detail__line--lit">
+            &gt; SIGNAL LOST // FILE UNREACHABLE
+          </p>
           <div class="spot-detail__actions">
-            <a
-              class="spot-detail__action phosphor-bloom phosphor-bloom--plate"
-              appPointerBloom
-              [href]="directionsHref()"
-              target="_blank"
-              rel="noopener noreferrer"
-              [attr.aria-label]="'Directions to ' + spot.name"
-              >&gt; DIRECTIONS</a
-            >
             <button
               type="button"
               class="spot-detail__action phosphor-bloom phosphor-bloom--plate"
               appPointerBloom
-              [attr.aria-label]="'Share spot: ' + spot.name"
-              (click)="share()"
+              (click)="retry.emit()"
             >
-              &gt; SHARE SPOT
+              &gt; RETRY
             </button>
-          </div>
-          <!-- In place and empty from the start, so the first message is announced. -->
-          <div
-            class="spot-detail__share-status"
-            role="status"
-            aria-live="polite"
-          >
-            @if (shareStatus(); as status) {
-              <span
-                class="spot-detail__share-line"
-                animate.leave="spot-detail__share-line--leaving"
-                >{{
-                  status === 'copied'
-                    ? '> LINK COPIED'
-                    : '> COPY FAILED // LINK NOT COPIED'
-                }}</span
-              >
-            }
           </div>
         </div>
       }
-    }
+      @if (view().status === 'loaded') {
+        @if (spot(); as spot) {
+          <div class="spot-detail__facts spot-detail__fade-in">
+            @if (spot.notes; as notes) {
+              <p class="spot-detail__notes">{{ notes }}</p>
+            }
+            @if (isDemolished()) {
+              <p class="spot-detail__status">&gt; DEMOLISHED</p>
+            }
+            <div class="spot-detail__actions">
+              <a
+                class="spot-detail__action phosphor-bloom phosphor-bloom--plate"
+                appPointerBloom
+                [href]="directionsHref()"
+                target="_blank"
+                rel="noopener noreferrer"
+                [attr.aria-label]="'Directions to ' + spot.name"
+                >&gt; DIRECTIONS</a
+              >
+              <app-spot-share [spotId]="spot.id" [spotName]="spot.name" />
+            </div>
+          </div>
+        }
+      }
+    </div>
   </div>
 </section>
