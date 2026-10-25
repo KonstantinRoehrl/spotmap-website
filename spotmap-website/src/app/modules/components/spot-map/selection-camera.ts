@@ -4,6 +4,7 @@ import type {
 } from '../../../models/map/map-camera';
 import type { ViewBounds } from '../../../models/spots/spots-in-view';
 import { prefersReducedMotion } from '../../../utils/prefers-reduced-motion';
+import { SELECTED_RING_RADIUS } from './spot-layers';
 
 /** A rectangle on the map canvas, in canvas pixels from its top-left corner. */
 export interface ScreenRect {
@@ -34,7 +35,8 @@ export interface CameraFrame {
   readonly framing: SelectionFraming;
   /**
    * How far above the pin its flag reaches, in px; 0 for a pin that flies none. The flag counts as
-   * part of the pin: the pair is centred in the rectangle and the flag's top must stay inside it.
+   * part of the pin: the pair is centred in the rectangle, unless the rectangle is too short for
+   * that, when the pin and its ring win over the flag.
    */
   readonly headroom: number;
 }
@@ -47,6 +49,13 @@ export const KEEP_IN_VIEW_MARGIN_PX = 48;
  * flag is the selection's whole mark, so it may not sit hard against the edge.
  */
 export const FLAG_EDGE_GAP_PX = 8;
+
+/**
+ * How far from the pin's centre the selection must stay clear of the uncovered rectangle's edge,
+ * in px: the amber ring's radius plus the same gap kept around the flag. A strip too short to
+ * hold the pin and its ring on both sides of its centre gets the pin centred instead.
+ */
+export const SELECTED_PIN_REACH_PX = SELECTED_RING_RADIUS + FLAG_EDGE_GAP_PX;
 
 /** The camera ease's length — the sheet's own height change, so the two move together. */
 export const CAMERA_EASE_MS = 330;
@@ -262,11 +271,16 @@ export class SelectionCamera {
 
   /**
    * Where the pin lands, as an offset from the canvas centre: the rectangle's middle, lowered by
-   * half the flag's reach so the pin and its flag together are what sits in the middle.
+   * half the flag's reach so the pin and its flag together are what sits in the middle. The
+   * lowering stops where the pin's ring would reach the rectangle's bottom edge (the top of a
+   * phone's sheet) and shrinks to nothing as the strip gets too short to hold the ring, so a
+   * short strip keeps the pin visible at the cost of a clipped flag, and the seat moves
+   * continuously with the strip's height.
    */
   private seatOffset(frame: CameraFrame, rect: ScreenRect): [number, number] {
     const [x, y] = offsetToRectCentre(frame.width, frame.height, rect);
-    return [x, y + frame.headroom / 2];
+    const room = (rect.bottom - rect.top) / 2 - SELECTED_PIN_REACH_PX;
+    return [x, y + Math.min(frame.headroom / 2, Math.max(room, 0))];
   }
 
   /** The ease's length for the visitor's motion preference. */

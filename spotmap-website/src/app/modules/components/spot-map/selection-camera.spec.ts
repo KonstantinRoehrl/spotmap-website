@@ -7,6 +7,7 @@ import {
   containsPoint,
   KEEP_IN_VIEW_MARGIN_PX,
   offsetToRectCentre,
+  SELECTED_PIN_REACH_PX,
   sameFrame,
   SelectionCamera,
   uncoveredRect,
@@ -163,9 +164,55 @@ describe('SelectionCamera', () => {
     expect(eases().length).withContext('room for the flag').toBe(1);
   });
 
-  it('seats the pin lower in the strip by half the flag’s reach, so the pair is centred', () => {
-    camera.keepInView(pin, { ...SHEET, headroom: FLAG_REACH_PX });
-    expect(eases()[0]?.options.offset).toEqual([0, -255 + FLAG_REACH_PX / 2]);
+  /**
+   * Where `keepInView` seats the pin, in px below the top of a `strip`-px-tall uncovered strip of
+   * the 600 px map, for a pin whose flag reaches `headroom` px above it.
+   */
+  const seatInStrip = (strip: number, headroom: number): number => {
+    const before = eases().length;
+    camera.keepInView(pin, {
+      ...SHEET,
+      insets: { top: 0, right: 0, bottom: SHEET.height - strip, left: 0 },
+      headroom,
+    });
+    const offset = eases()[before]?.options.offset;
+    return (offset?.[1] ?? NaN) + SHEET.height / 2;
+  };
+
+  it('seats the pin lower in a tall strip by half the flag’s reach, so the pair is centred', () => {
+    const strip = 200;
+    expect(seatInStrip(strip, FLAG_REACH_PX)).toBe(
+      strip / 2 + FLAG_REACH_PX / 2,
+    );
+  });
+
+  it('keeps the pin and its selection ring inside a short strip', () => {
+    for (const strip of [50, 80]) {
+      const seat = seatInStrip(strip, FLAG_REACH_PX);
+      expect(seat)
+        .withContext(`ring clear of the sheet in a ${strip} px strip`)
+        .toBeLessThanOrEqual(strip - SELECTED_PIN_REACH_PX);
+      expect(seat)
+        .withContext(`ring clear of the top in a ${strip} px strip`)
+        .toBeGreaterThanOrEqual(SELECTED_PIN_REACH_PX);
+    }
+  });
+
+  it('centres the pin in a strip too short to hold its ring', () => {
+    const strip = SELECTED_PIN_REACH_PX;
+    expect(seatInStrip(strip, FLAG_REACH_PX)).toBe(strip / 2);
+    expect(seatInStrip(0, FLAG_REACH_PX)).toBe(0);
+  });
+
+  it('moves the seat by no more than the strip changes, so it never jumps', () => {
+    let previous = seatInStrip(0, FLAG_REACH_PX);
+    for (let strip = 1; strip <= 300; strip++) {
+      const seat = seatInStrip(strip, FLAG_REACH_PX);
+      expect(Math.abs(seat - previous))
+        .withContext(`seat step at a ${strip} px strip`)
+        .toBeLessThanOrEqual(1);
+      previous = seat;
+    }
   });
 
   it('never eases while the visitor holds the map', () => {
