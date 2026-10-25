@@ -385,15 +385,38 @@ describe('SpotsService', () => {
       expect(console.warn).toHaveBeenCalled();
     });
 
-    it('answers not-found from the snapshot when the live request failed and the index lacks the id', () => {
-      const { results } = recordDetail('nope');
+    it('fails, rather than answering not-found, when the live request failed and the index lacks the id', () => {
+      const { results, completed, error } = recordDetail('nope');
       expectLiveDetail('nope').flush('down', {
         status: 503,
         statusText: 'Unavailable',
       });
       httpMock.expectOne(SPOT_INDEX_URL).flush({ 'h-1': 'vienna' });
-      expect(results).toEqual([{ type: 'not-found' }]);
+      expect(results).toEqual([]);
+      expect(completed()).toBeFalse();
+      expect(error()).toBeDefined();
     });
+
+    it('fails, rather than answering not-found, when the live request failed and the city’s snapshot lacks the id', () => {
+      const { results, error } = recordDetail('h-9');
+      expectLiveDetail('h-9').flush('down', {
+        status: 503,
+        statusText: 'Unavailable',
+      });
+      httpMock.expectOne(SPOT_INDEX_URL).flush({ 'h-9': 'vienna' });
+      httpMock.expectOne('spots/vienna.geojson').flush(CITY_SNAPSHOT);
+      expect(results).toEqual([]);
+      expect(error()).toBeDefined();
+    });
+
+    it('fails, rather than answering not-found, when the live request timed out and the snapshot lacks the id', fakeAsync(() => {
+      const { results, error } = recordDetail('nope');
+      expectLiveDetail('nope');
+      tick(LIVE_SPOTS_TIMEOUT_MS);
+      httpMock.expectOne(SPOT_INDEX_URL).flush({ 'h-1': 'vienna' });
+      expect(results).toEqual([]);
+      expect(error()).toBeDefined();
+    }));
 
     it('falls back to the snapshot when the live request takes too long', fakeAsync(() => {
       const { results } = recordDetail();
@@ -415,5 +438,65 @@ describe('SpotsService', () => {
       expect(results.length).toBe(1);
       httpMock.expectNone(SPOT_INDEX_URL);
     }));
+  });
+
+  describe('a detail opened from a snapshot-derived list', () => {
+    beforeEach(() => {
+      setUp(BACKEND);
+      spyOn(console, 'warn');
+    });
+
+    /** Loads Vienna's list with the live answer given, flushing the snapshot behind it. */
+    function loadSnapshotList(liveAnswer: 'empty' | 'down'): void {
+      recordList();
+      const live = expectLiveList();
+      if (liveAnswer === 'empty') {
+        live.flush({ type: 'FeatureCollection', features: [] });
+      } else {
+        live.flush('down', { status: 503, statusText: 'Unavailable' });
+      }
+      httpMock.expectOne('spots/vienna.geojson').flush(CITY_SNAPSHOT);
+    }
+
+    it('serves a row from the snapshot when the live list was empty and the live detail answers null', () => {
+      loadSnapshotList('empty');
+      const { results, completed } = recordDetail('h-1');
+      expectLiveDetail('h-1').flush(null);
+      httpMock.expectOne(SPOT_INDEX_URL).flush({ 'h-1': 'vienna' });
+      httpMock.expectOne('spots/vienna.geojson').flush(CITY_SNAPSHOT);
+      expect(results).toEqual([
+        { type: 'found', spot: SNAPSHOT_DETAIL, source: 'snapshot' },
+      ]);
+      expect(completed()).toBeTrue();
+    });
+
+    it('serves a row from the snapshot when the live list failed and the live detail answers null', () => {
+      loadSnapshotList('down');
+      const { results } = recordDetail('h-1');
+      expectLiveDetail('h-1').flush(null);
+      httpMock.expectOne(SPOT_INDEX_URL).flush({ 'h-1': 'vienna' });
+      httpMock.expectOne('spots/vienna.geojson').flush(CITY_SNAPSHOT);
+      expect(results).toEqual([
+        { type: 'found', spot: SNAPSHOT_DETAIL, source: 'snapshot' },
+      ]);
+    });
+
+    it('still takes a live null as final for an id the snapshot-derived list did not hold', () => {
+      loadSnapshotList('empty');
+      const { results } = recordDetail('deleted');
+      expectLiveDetail('deleted').flush(null);
+      expect(results).toEqual([{ type: 'not-found' }]);
+      httpMock.expectNone(SPOT_INDEX_URL);
+    });
+
+    it('takes a live null as final again once a later list load was served live', () => {
+      loadSnapshotList('empty');
+      recordList();
+      expectLiveList().flush(LIVE_LIST);
+      const { results } = recordDetail('h-1');
+      expectLiveDetail('h-1').flush(null);
+      expect(results).toEqual([{ type: 'not-found' }]);
+      httpMock.expectNone(SPOT_INDEX_URL);
+    });
   });
 });

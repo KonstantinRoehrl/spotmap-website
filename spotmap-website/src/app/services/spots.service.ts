@@ -11,6 +11,7 @@ import {
   of,
   take,
   takeWhile,
+  tap,
   throwError,
   timer,
 } from 'rxjs';
@@ -51,8 +52,10 @@ export type SpotListLoadEvent =
 
 /**
  * The answer to one detail load: the spot and where it came from, or `not-found` — an id the live
- * database does not hold (final: never looked up in the snapshot, which can lag a deletion) or one
- * the snapshot does not hold when it stands in.
+ * database does not hold (final: never looked up in the snapshot, which can lag a deletion, unless
+ * the city's list was itself served from the snapshot) or, with no backend configured, one the
+ * snapshot does not hold. A snapshot that lacks the id after a failed or late live request is no
+ * `not-found`: the spot may exist live, so that load errors instead.
  */
 export type SpotDetailResult =
   | {
@@ -81,12 +84,20 @@ type CollectionLoadEvent<C> =
  * an empty live answer means an unseeded or out-of-date backend, not an empty city. A snapshot
  * failure reaches the caller (the map's error state and its RETRY, which asks live first again).
  * One spot comes live from `spot_detail()`, whose "no such spot" is final; only a failed or late
- * live request looks it up in the snapshot, through {@link SPOT_INDEX_URL}.
+ * live request looks it up in the snapshot, through {@link SPOT_INDEX_URL}. The one exception keeps
+ * a list and its rows coherent: a spot listed from the snapshot (the live list was empty or failed)
+ * opens from the snapshot too, even when the live detail answers "no such spot".
  */
 @Injectable({ providedIn: 'root' })
 export class SpotsService {
   private readonly http = inject(HttpClient);
   private readonly backend = inject(SPOTMAP_BACKEND);
+
+  /**
+   * The ids of each city's most recent list that was served from the snapshot. A city whose latest
+   * list came live has no entry, so a later live "no such spot" is final again for its ids.
+   */
+  private readonly snapshotListedIds = new Map<CityEnum, ReadonlySet<string>>();
 
   /**
    * The city's spots in the list shape, as milestones ending in one {@link SpotListLoaded}; see the
@@ -103,14 +114,17 @@ export class SpotsService {
             : event,
         ),
       ),
-    );
+    ).pipe(tap((event) => this.rememberListSource(city, event)));
   }
 
   /**
    * One spot's full record, as a single {@link SpotDetailResult} followed by completion. Live
-   * first within {@link LIVE_SPOTS_TIMEOUT_MS}: a live `null` is `not-found` and final; a failed or
-   * late live request falls back to the snapshot. The snapshot path errors when the index or the
-   * city's snapshot cannot be fetched, which the detail pane turns into its RETRY.
+   * first within {@link LIVE_SPOTS_TIMEOUT_MS}: a live `null` is `not-found` and final, unless the
+   * id was in a list served from the snapshot, which then also serves the detail; a failed or late
+   * live request falls back to the snapshot. The snapshot path errors when the index or the city's
+   * snapshot cannot be fetched, or, after a failed or late live request, does not hold the id (the
+   * spot may exist live, and `not-found` is reserved for a spot known to be gone); the detail pane
+   * turns that error into its RETRY.
    */
   loadSpotDetail(id: string): Observable<SpotDetailResult> {
     const snapshot = this.snapshotDetail(id);
@@ -139,9 +153,52 @@ export class SpotsService {
           `SpotsService: looking ${id} up in the bundled snapshot; the live spot failed:`,
           reason,
         );
-        return snapshot;
+        return snapshot.pipe(
+          mergeMap((result) =>
+            result.type === 'not-found'
+              ? throwError(
+                  () =>
+                    new Error(
+                      `the bundled snapshot has no spot ${id} and the live spot could not be loaded`,
+                    ),
+                )
+              : of(result),
+          ),
+        );
       }),
+      // Outside the live deadline and the outage fallback above, which only ever hand on a found
+      // spot or an error: a `not-found` reaching here is the live database's own "no such spot".
+      mergeMap((result) =>
+        result.type === 'not-found' && this.wasListedFromSnapshot(id)
+          ? snapshot
+          : of(result),
+      ),
     );
+  }
+
+  /**
+   * Remembers which spots a finished list load put on screen when it came from the snapshot, and
+   * forgets them once the city's list came live, so {@link loadSpotDetail} can open the former.
+   */
+  private rememberListSource(city: CityEnum, event: SpotListLoadEvent): void {
+    if (event.type !== 'done') {
+      return;
+    }
+    if (event.source === 'snapshot') {
+      this.snapshotListedIds.set(
+        city,
+        new Set(
+          event.collection.features.map((feature) => feature.properties.id),
+        ),
+      );
+    } else {
+      this.snapshotListedIds.delete(city);
+    }
+  }
+
+  /** Whether a list served from the snapshot showed the spot, in any city. */
+  private wasListedFromSnapshot(id: string): boolean {
+    return [...this.snapshotListedIds.values()].some((ids) => ids.has(id));
   }
 
   /**
@@ -208,7 +265,8 @@ export class SpotsService {
 
   /**
    * One spot looked up in the bundled snapshots: its city from {@link SPOT_INDEX_URL}, then the
-   * spot from that city's snapshot. An id in neither is `not-found`; a failed request errors.
+   * spot from that city's snapshot. An id in neither is `not-found` (the caller decides whether
+   * that is final); a failed request errors.
    */
   private snapshotDetail(id: string): Observable<SpotDetailResult> {
     return this.http.get<Record<string, string>>(SPOT_INDEX_URL).pipe(

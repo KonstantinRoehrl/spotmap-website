@@ -6,6 +6,8 @@
 -- for a caller that bypasses row-level security, and the detail answers SQL null — never an
 -- error — for an id that is unknown or deleted. Passes on an empty database and on one already
 -- synced with the real spots.
+-- Shape parity with the snapshot-derived list and detail is covered by the app's spot-shapes specs,
+-- not by pgTAP.
 begin;
 select plan(16);
 
