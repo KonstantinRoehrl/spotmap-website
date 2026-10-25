@@ -324,6 +324,24 @@ body {
 }
 
 /* --------------------
+   Photo viewer (spot-photo-viewer): the CDK dialog's scrim and pane. Both live in the overlay
+   container at the document root, out of reach of the component's scoped styles. The scrim fades
+   in on the CDK's own showing class over the photo's growth; the viewer fades it out itself before
+   it closes, since the dialog removes it at once. The reduced-motion net keeps its fade at
+   --dur-fade.
+-------------------- */
+.spot-photo-viewer-backdrop {
+  background: rgb(0 0 0 / 0.82);
+  transition: opacity 420ms var(--ease-out-expo);
+}
+
+/* Focus lands on the dialog itself when it opens; the dialog is not a control, so it draws no
+   ring. */
+.spot-photo-viewer-pane .cdk-dialog-container:focus {
+  outline: none;
+}
+
+/* --------------------
    Reduced-motion safety-net (DESIGN.md motion rule: still frame, changes fade)
    Movement stops, fades stay. Keyframe animations end at once, which leaves every
    sprite and loop on a still frame; transitions keep only the properties that fade

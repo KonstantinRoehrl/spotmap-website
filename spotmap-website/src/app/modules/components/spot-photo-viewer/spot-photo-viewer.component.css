@@ -1,0 +1,206 @@
+/* The window's layout. The photo is 4:3 and as large as fits: as wide as the viewport less the
+   gutters and the window's 16px side insets, and no taller than the viewport less the gutters and
+   the window's fixed rows (title 48, photo→strip 16, strip, strip→rights 8, rights 16, bottom inset
+   16). Below 1024px the gutter is 16px and the strip's 56 × 42 thumbnails sit in 44px targets;
+   from 1024px the gutter is the page's 24px and the thumbnails 72 × 54. */
+:host {
+  --viewer-gutter: 16px;
+  --viewer-thumb-width: 56px;
+  --viewer-thumb-height: 42px;
+  --viewer-strip-height: 44px;
+  --viewer-rows: calc(
+    48px + 16px + var(--viewer-strip-height) + 8px + 16px + 16px
+  );
+  --viewer-photo-width: max(
+    0px,
+    min(
+      calc(100vw - 2 * var(--viewer-gutter) - 32px),
+      calc((100dvh - 2 * var(--viewer-gutter) - var(--viewer-rows)) * 4 / 3)
+    )
+  );
+  display: block;
+  font-family: var(--font-mono);
+  color: var(--color-phosphor);
+}
+
+@media (min-width: 1024px) {
+  :host {
+    --viewer-gutter: 24px;
+    --viewer-thumb-width: 72px;
+    --viewer-thumb-height: 54px;
+    --viewer-strip-height: 54px;
+  }
+}
+
+.viewer {
+  position: relative;
+  isolation: isolate;
+  box-sizing: border-box;
+  width: calc(var(--viewer-photo-width) + 32px);
+  padding: 0 16px 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* The window itself: surface, a phosphor-deep line, R1's 8px and the frame halo. */
+.viewer__window {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--color-surface);
+  border: 1px solid var(--color-phosphor-deep);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-edge-frame);
+}
+
+/* Everything but the photo waits for it to land, then fades in: the window and the title row at
+   once, the plates a beat later, the strip and the rights line last. It all fades out together.
+   The reduced-motion net drops the delays and keeps the fades. */
+.viewer__chrome {
+  opacity: 0;
+  transition: opacity var(--dur-fade) ease-out;
+}
+
+:host(.viewer--controls) .viewer__chrome {
+  opacity: 1;
+}
+
+:host(.viewer--controls) .viewer__chrome--plates {
+  transition-delay: 60ms;
+}
+
+:host(.viewer--controls) .viewer__chrome--late {
+  transition-delay: 120ms;
+}
+
+.viewer__title {
+  flex: none;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+/* The spot's name, as the detail sets it: Display tier, cut short with an ellipsis. */
+.viewer__name {
+  margin: 0;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-phosphor-bright);
+  text-shadow: var(--glow-text-display);
+}
+
+.viewer__counter {
+  flex: none;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  color: var(--color-phosphor-dim);
+}
+
+/* The box that grows out of the rail photo; scaled from its top-left corner. */
+.viewer__stage {
+  position: relative;
+  flex: none;
+  width: var(--viewer-photo-width);
+  transform-origin: 0 0;
+}
+
+/* The gallery's ‹ › plates fade in with the ✕, a beat after the title row. */
+.viewer__gallery {
+  display: block;
+  width: 100%;
+  --gallery-controls-delay: 60ms;
+}
+
+.viewer__plates {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
+.viewer__close {
+  min-width: 44px;
+  min-height: 44px;
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* One centred row, scrolling sideways when it is wider than the window: the auto margins centre a
+   short row without clipping the start of a long one. */
+.viewer__strip {
+  flex: none;
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.viewer__thumb:first-child {
+  margin-left: auto;
+}
+
+.viewer__thumb:last-child {
+  margin-right: auto;
+}
+
+.viewer__thumb {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--viewer-thumb-width);
+  height: var(--viewer-strip-height);
+  padding: 0;
+  border: 0;
+  background: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.viewer__thumb:focus-visible {
+  outline: 1px solid var(--color-phosphor);
+  outline-offset: 2px;
+}
+
+/* The others are dimmed; the current one is whole, in a 2px amber frame — amber's one role, the
+   current selection. The frame is an inset outline, so it never moves the row. */
+.viewer__thumb img {
+  display: block;
+  width: 100%;
+  height: var(--viewer-thumb-height);
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  outline: 1px solid var(--color-line);
+  outline-offset: -1px;
+  opacity: 0.55;
+  transition:
+    opacity var(--dur-fast) ease-out,
+    outline-color var(--dur-fast) ease-out;
+}
+
+.viewer__thumb.is-current img {
+  opacity: 1;
+  outline: 2px solid var(--color-amber);
+  outline-offset: -2px;
+}
+
+/* The photos are the maintainer's, not free stock: the notice travels with them. */
+.viewer__rights {
+  flex: none;
+  margin: 8px 0 0;
+  font-size: 0.75rem;
+  line-height: 16px;
+  letter-spacing: 0.04em;
+  text-align: center;
+  color: var(--color-phosphor-dim);
+}

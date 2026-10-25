@@ -1,0 +1,66 @@
+<div class="viewer">
+  <!-- The window's fill, border and halo: drawn behind the content and faded in with the controls,
+       so the photo grows out of the rail on the scrim alone. -->
+  <div class="viewer__window viewer__chrome" aria-hidden="true"></div>
+
+  <header class="viewer__title viewer__chrome">
+    <h2 class="viewer__name">{{ data.spotName }}</h2>
+    <span class="viewer__counter" aria-hidden="true">{{ counter() }}</span>
+  </header>
+
+  <div #stage class="viewer__stage">
+    <app-spot-photo-gallery
+      class="viewer__gallery"
+      [photos]="data.thumbs"
+      [fullPhotos]="data.fulls"
+      [spotName]="data.spotName"
+      [controls]="controlsShown()"
+      [(index)]="index"
+    />
+    <!-- A layer of its own fades, so the plate's bloom transitions stay its own. -->
+    <div
+      class="viewer__plates viewer__chrome viewer__chrome--plates"
+      [inert]="!controlsShown()"
+    >
+      <button
+        type="button"
+        class="viewer__close phosphor-bloom phosphor-bloom--inset phosphor-bloom--plate"
+        appPointerBloom
+        aria-label="Close"
+        (click)="close('button')"
+      >
+        ✕
+      </button>
+    </div>
+  </div>
+
+  @if (count > 1) {
+    <div
+      #strip
+      class="viewer__strip viewer__chrome viewer__chrome--late"
+      role="group"
+      aria-label="Photos"
+      [inert]="!controlsShown()"
+    >
+      @for (src of data.thumbs; track $index; let i = $index) {
+        <button
+          type="button"
+          class="viewer__thumb"
+          [class.is-current]="i === index()"
+          [attr.aria-current]="i === index() ? 'true' : null"
+          [attr.aria-label]="'Photo ' + (i + 1) + ' of ' + count"
+          (click)="index.set(i)"
+        >
+          <img [src]="src" alt="" decoding="async" />
+        </button>
+      }
+    </div>
+  }
+
+  <p class="viewer__rights viewer__chrome viewer__chrome--late">
+    © all rights reserved
+  </p>
+
+  <!-- In place and empty from the start, so the first step is announced. -->
+  <p class="sr-only" aria-live="polite">{{ announcement() }}</p>
+</div>
