@@ -19,11 +19,12 @@ describe('SpotPhotoGalleryComponent', () => {
     }).compileComponents();
   });
 
-  it('shows the first photo and a 1-of-n counter', () => {
+  it('shows the first photo, with no counter of its own', () => {
     create(['a.webp', 'b.webp', 'c.webp']);
     const img: HTMLImageElement = fixture.nativeElement.querySelector('img');
     expect(img.getAttribute('src')).toBe('a.webp');
-    expect(fixture.nativeElement.textContent).toContain('[1/3]');
+    expect(fixture.nativeElement.querySelector('.gallery__counter')).toBeNull();
+    expect(fixture.nativeElement.textContent).not.toContain('[1/3]');
   });
 
   it('advances and wraps around', () => {
@@ -49,10 +50,12 @@ describe('SpotPhotoGalleryComponent', () => {
     );
   });
 
-  it('hides the counter and the arrows for a single photo', () => {
+  it('hides the arrows for a single photo', () => {
     create(['only.webp']);
-    expect(fixture.nativeElement.textContent).not.toContain('[1/1]');
     expect(fixture.nativeElement.querySelectorAll('button').length).toBe(0);
+    expect(
+      fixture.nativeElement.querySelector('.gallery__controls'),
+    ).toBeNull();
   });
 
   it('labels the image with the spot name for screen readers', () => {
@@ -90,17 +93,15 @@ describe('SpotPhotoGalleryComponent', () => {
     );
   });
 
-  it('keeps the counter and the arrows working past a broken photo', () => {
+  it('keeps the arrows working past a broken photo', () => {
     const c = create(['a.webp', 'b.webp']);
     failCurrentImage();
-    expect(fixture.nativeElement.textContent).toContain('[1/2]');
     expect(fixture.nativeElement.querySelectorAll('button').length).toBe(2);
     c.next();
     fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('img').getAttribute('src')).toBe(
-      'b.webp',
-    );
-    expect(fixture.nativeElement.textContent).toContain('[2/2]');
+    const img: HTMLImageElement = fixture.nativeElement.querySelector('img');
+    expect(img.getAttribute('src')).toBe('b.webp');
+    expect(img.getAttribute('alt')).toBe('Hbf Curb, photo 2 of 2');
     c.previous();
     fixture.detectChanges();
     expect(
@@ -257,7 +258,7 @@ describe('SpotPhotoGalleryComponent', () => {
     });
   });
 
-  it('rounds the arrows and the counter on the soft radius scale', () => {
+  it('rounds the arrows on the soft radius scale', () => {
     create(['a.webp', 'b.webp']);
     const probe = document.createElement('div');
     probe.style.borderRadius = 'var(--radius-sm)';
@@ -266,11 +267,8 @@ describe('SpotPhotoGalleryComponent', () => {
     probe.remove();
     expect(softRadius).not.toBe('0px');
     const el: HTMLElement = fixture.nativeElement;
-    const rounded = [
-      ...Array.from(el.querySelectorAll('.gallery__nav')),
-      el.querySelector('.gallery__counter')!,
-    ];
-    expect(rounded.length).toBe(3);
+    const rounded = Array.from(el.querySelectorAll('.gallery__nav'));
+    expect(rounded.length).toBe(2);
     for (const element of rounded) {
       expect(getComputedStyle(element).borderTopLeftRadius).toBe(softRadius);
     }
@@ -296,6 +294,148 @@ describe('SpotPhotoGalleryComponent', () => {
     const gallery: HTMLElement = el.querySelector('.gallery')!;
     expect(gallery.offsetWidth).toBe(320);
     expect(gallery.offsetHeight).toBe(240);
+  });
+
+  it('sits the plates 8 px inside the photo’s edges', () => {
+    create(['a.webp', 'b.webp']);
+    const el: HTMLElement = fixture.nativeElement;
+    el.style.display = 'block';
+    el.style.width = '320px';
+    const panel = el.querySelector<HTMLElement>('.gallery')!;
+    // The photo starts inside the panel's 1 px line frame.
+    const frame = panel.clientLeft;
+    const gallery = panel.getBoundingClientRect();
+    const prev = el
+      .querySelector('.gallery__nav--prev')!
+      .getBoundingClientRect();
+    const next = el
+      .querySelector('.gallery__nav--next')!
+      .getBoundingClientRect();
+    expect(prev.left - gallery.left - frame).toBe(8);
+    expect(gallery.right - frame - next.right).toBe(8);
+  });
+
+  it('fades the plates out and makes them inert while its controls are off', () => {
+    create(['a.webp', 'b.webp']);
+    const el: HTMLElement = fixture.nativeElement;
+    const controls = () => el.querySelector<HTMLElement>('.gallery__controls')!;
+    expect(controls().classList).not.toContain('gallery__controls--hidden');
+    expect(controls().inert).toBeFalse();
+
+    fixture.componentRef.setInput('controls', false);
+    fixture.detectChanges();
+    expect(controls().classList).toContain('gallery__controls--hidden');
+    expect(controls().inert).toBeTrue();
+    expect(getComputedStyle(controls()).transitionProperty).toContain(
+      'opacity',
+    );
+
+    fixture.componentRef.setInput('controls', true);
+    fixture.detectChanges();
+    expect(controls().classList).not.toContain('gallery__controls--hidden');
+    expect(controls().inert).toBeFalse();
+  });
+
+  describe('with full-size photos', () => {
+    /** Renders the gallery with thumbs and their full-size versions. */
+    function createWithFull() {
+      fixture = TestBed.createComponent(SpotPhotoGalleryComponent);
+      fixture.componentRef.setInput('photos', ['a.webp', 'b.webp']);
+      fixture.componentRef.setInput('fullPhotos', [
+        'a-full.webp',
+        'b-full.webp',
+      ]);
+      fixture.componentRef.setInput('spotName', 'Hbf Curb');
+      fixture.detectChanges();
+      return fixture.componentInstance;
+    }
+
+    /** Fires `type` on the image matching `selector`. */
+    function fire(selector: string, type: 'load' | 'error') {
+      fixture.nativeElement
+        .querySelector(selector)
+        .dispatchEvent(new Event(type));
+      fixture.detectChanges();
+    }
+
+    const el = () => fixture.nativeElement as HTMLElement;
+
+    it('lays the full-size photo over the thumb and crossfades it in once it loads', () => {
+      createWithFull();
+      const full = el().querySelector<HTMLImageElement>('.gallery__full')!;
+      expect(full.getAttribute('src')).toBe('a-full.webp');
+      expect(full.getAttribute('alt')).toBe('');
+      expect(full.classList).not.toContain('gallery__full--loaded');
+      expect(getComputedStyle(full).transitionProperty).toContain('opacity');
+
+      fire('.gallery__photo', 'load');
+      fire('.gallery__full', 'load');
+      expect(el().querySelector('.gallery__full')?.classList).toContain(
+        'gallery__full--loaded',
+      );
+      expect(el().querySelector('.gallery__photo')).not.toBeNull();
+    });
+
+    it('keeps the thumb when the full-size photo fails', () => {
+      createWithFull();
+      fire('.gallery__photo', 'load');
+      fire('.gallery__full', 'error');
+      expect(el().querySelector('.gallery__full')).toBeNull();
+      expect(el().querySelector('.gallery__photo')?.classList).toContain(
+        'gallery__photo--loaded',
+      );
+      expect(el().querySelector('.gallery__placeholder')).toBeNull();
+    });
+
+    it('shows the placeholder while the thumb is broken and no full-size photo has loaded', () => {
+      createWithFull();
+      fire('.gallery__photo', 'error');
+      expect(el().querySelector('.gallery__placeholder')).not.toBeNull();
+      expect(el().querySelector('.gallery__full')).not.toBeNull();
+
+      fire('.gallery__full', 'load');
+      expect(el().querySelector('.gallery__placeholder')).toBeNull();
+      expect(el().querySelector('.gallery__full')?.classList).toContain(
+        'gallery__full--loaded',
+      );
+    });
+
+    it('shows the rain until either photo has loaded', () => {
+      createWithFull();
+      expect(el().querySelector('.gallery__loading')).not.toBeNull();
+      fire('.gallery__full', 'load');
+      expect(el().querySelector('.gallery__loading')).toBeNull();
+    });
+
+    it('asks only for the full-size photo of the slide on screen', () => {
+      const c = createWithFull();
+      c.next();
+      fixture.detectChanges();
+      expect(el().querySelector('.gallery__full')?.getAttribute('src')).toBe(
+        'b-full.webp',
+      );
+      expect(el().querySelectorAll('.gallery__full').length).toBe(1);
+    });
+
+    it('shows a full-size photo that is already complete at once', async () => {
+      spyOnProperty(HTMLImageElement.prototype, 'complete').and.callFake(
+        function (this: HTMLImageElement) {
+          return this.getAttribute('src') === 'a-full.webp';
+        },
+      );
+      spyOnProperty(HTMLImageElement.prototype, 'naturalWidth').and.callFake(
+        function (this: HTMLImageElement) {
+          return this.getAttribute('src') === 'a-full.webp' ? 1400 : 0;
+        },
+      );
+      createWithFull();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      const full = el().querySelector('.gallery__full')!;
+      expect(full.classList).toContain('gallery__full--loaded');
+      expect(full.classList).toContain('gallery__full--instant');
+      expect(el().querySelector('.gallery__loading')).toBeNull();
+    });
   });
 
   it('keeps its whole width when a photo breaks, so the panel never collapses', () => {
@@ -337,12 +477,6 @@ describe('SpotPhotoGalleryComponent', () => {
       expect(arrow.classList).toContain('phosphor-bloom--inset');
       expect(arrow.classList).toContain('phosphor-bloom--plate');
     }
-  });
-
-  it('leaves the counter unlit', () => {
-    create(['a.webp', 'b.webp']);
-    const counter = fixture.nativeElement.querySelector('.gallery__counter');
-    expect(getComputedStyle(counter).textShadow).toBe('none');
   });
 
   it('lights SIGNAL LOST in the Standard tier and leaves the dim line unlit', () => {
@@ -387,16 +521,14 @@ describe('SpotPhotoGalleryComponent bound two-way', () => {
     fixture.detectChanges();
   }
 
-  const counter = () =>
-    (
-      fixture.nativeElement.querySelector('.gallery__counter')?.textContent ??
-      ''
-    ).trim();
+  /** The alt text of the photo on screen, which names its place in the list. */
+  const alt = () =>
+    fixture.nativeElement.querySelector('.gallery__photo')?.getAttribute('alt');
 
   it('shows the slide its host sets', async () => {
     fixture.componentInstance.index.set(2);
     await settle();
-    expect(counter()).toBe('[3/3]');
+    expect(alt()).toBe('Hbf Curb, photo 3 of 3');
     expect(fixture.nativeElement.querySelector('img').getAttribute('src')).toBe(
       'c.webp',
     );
@@ -413,7 +545,7 @@ describe('SpotPhotoGalleryComponent bound two-way', () => {
     await settle();
     fixture.componentInstance.photos.set(['a.webp', 'b.webp']);
     await settle();
-    expect(counter()).toBe('[2/2]');
+    expect(alt()).toBe('Hbf Curb, photo 2 of 2');
     expect(fixture.componentInstance.index()).toBe(1);
   });
 });

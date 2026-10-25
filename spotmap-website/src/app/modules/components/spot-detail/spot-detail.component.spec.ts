@@ -251,7 +251,9 @@ describe('SpotDetailComponent', () => {
     stripButtons()[2].click();
     fixture.detectChanges();
     await fixture.whenStable();
-    expect(text(find('.gallery__counter'))).toBe('[3/3]');
+    expect(find<HTMLImageElement>('.gallery__photo')!.getAttribute('alt')).toBe(
+      'Alpha Bank, photo 3 of 3',
+    );
     expect(stripButtons()[2].classList).toContain('is-current');
   });
 
@@ -600,7 +602,9 @@ describe('SpotDetailComponent', () => {
     show(loaded(detail({ id: 'b-2', name: 'Beta Ledge' })));
     await fixture.whenStable();
     fixture.detectChanges();
-    expect(text(find('.gallery__counter'))).toBe('[1/3]');
+    expect(find<HTMLImageElement>('.gallery__photo')!.getAttribute('alt')).toBe(
+      'Beta Ledge, photo 1 of 3',
+    );
   });
 
   it('uses amber for nothing but the current strip photo’s frame', () => {

@@ -83,7 +83,7 @@
                   "type": "bundle",
                   "name": "map-component",
                   "maximumWarning": "265kB",
-                  "maximumError": "320kB",
+                  "maximumError": "340kB",
                   "minimumWarning": "120kB"
                 }
               ],

@@ -26,7 +26,7 @@
     <img
       #photo
       class="gallery__photo"
-      [class.gallery__photo--loaded]="currentLoaded()"
+      [class.gallery__photo--loaded]="thumbLoaded()"
       [src]="current()"
       [alt]="altText()"
       loading="lazy"
@@ -36,25 +36,46 @@
     />
   }
 
+  <!-- Over the thumb (or the placeholder) and transparent until it has loaded; the thumb carries
+       the alt text, so this copy is silent. -->
+  @if (showsFull()) {
+    <img
+      #full
+      class="gallery__full"
+      [class.gallery__full--loaded]="fullLoaded()"
+      [class.gallery__full--instant]="fullInstant()"
+      [src]="currentFull()"
+      alt=""
+      decoding="async"
+      (load)="onImageLoad($event)"
+      (error)="onImageError($event)"
+    />
+  }
+
   @if (hasMany()) {
-    <button
-      type="button"
-      class="gallery__nav gallery__nav--prev phosphor-bloom phosphor-bloom--inset phosphor-bloom--plate"
-      appPointerBloom
-      aria-label="Previous photo"
-      (click)="previous()"
+    <div
+      class="gallery__controls"
+      [class.gallery__controls--hidden]="!controls()"
+      [inert]="!controls()"
     >
-      ‹
-    </button>
-    <button
-      type="button"
-      class="gallery__nav gallery__nav--next phosphor-bloom phosphor-bloom--inset phosphor-bloom--plate"
-      appPointerBloom
-      aria-label="Next photo"
-      (click)="next()"
-    >
-      ›
-    </button>
-    <span class="gallery__counter" aria-hidden="true">{{ counter() }}</span>
+      <button
+        type="button"
+        class="gallery__nav gallery__nav--prev phosphor-bloom phosphor-bloom--inset phosphor-bloom--plate"
+        appPointerBloom
+        aria-label="Previous photo"
+        (click)="previous()"
+      >
+        ‹
+      </button>
+      <button
+        type="button"
+        class="gallery__nav gallery__nav--next phosphor-bloom phosphor-bloom--inset phosphor-bloom--plate"
+        appPointerBloom
+        aria-label="Next photo"
+        (click)="next()"
+      >
+        ›
+      </button>
+    </div>
   }
 </div>
