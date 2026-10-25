@@ -58,6 +58,71 @@ export const PHOTO_PIN_IMAGE_PREFIX = 'spot-photo:';
 /** The image id of a spot's flag is this prefix and the spot id. */
 export const FLAG_IMAGE_PREFIX = 'spot-flag:';
 
+/**
+ * The dot footprints: an invisible, collision-only symbol on every spot, so a resting photo pin is
+ * placed only where its frame covers no other spot's dot, and the basemap labels keep off the dots
+ * too. Its id.
+ */
+export const SPOT_FOOTPRINT_LAYER_ID = 'spots-footprint';
+
+/** The footprint's image id: one transparent square shared by every spot. */
+export const SPOT_FOOTPRINT_IMAGE_ID = 'spot-footprint';
+
+/**
+ * The footprint's side, in px: the largest resting dot, the demolished ring (a 6 px radius and a
+ * 2 px stroke outside it), with a 2 px margin all round. Not the bloom: a frame over a dot's glow
+ * but clear of the dot itself hides nothing.
+ */
+export const FOOTPRINT_SIZE_PX = 20;
+
+/**
+ * The photo pin's collision padding, `[top, right, bottom, left]` in px. The 2 px MapLibre gives by
+ * default on three sides; at the bottom, -6 lifts the box's foot off all but the last 2 px of the
+ * 8 px stem band. The box then ends 14 px above the pin's centre, clear of the pin's own 20 px
+ * footprint, which ends 10 px above it. So a spot's own dot never blocks its own photo, while every
+ * other spot's dot does.
+ */
+export const PHOTO_PIN_COLLISION_PADDING: [number, number, number, number] = [
+  2, 2, -6, 2,
+];
+
+/**
+ * The footprint's image: a transparent {@link FOOTPRINT_SIZE_PX} square. Nothing is drawn, so pixel
+ * ratio 1 is enough: only its size counts, and MapLibre sizes a symbol's collision box by its image.
+ */
+export function spotFootprintImage(): {
+  width: number;
+  height: number;
+  data: Uint8Array;
+} {
+  return {
+    width: FOOTPRINT_SIZE_PX,
+    height: FOOTPRINT_SIZE_PX,
+    data: new Uint8Array(FOOTPRINT_SIZE_PX * FOOTPRINT_SIZE_PX * 4),
+  };
+}
+
+/**
+ * The footprint layer, on every spot. It is always placed and never drawn (`icon-allow-overlap`,
+ * opacity 0), yet it still enters the collision index (`icon-ignore-placement: false`). It is added
+ * last, on top of every other layer, so MapLibre, which places the top layer first, places it
+ * before any photo pin, flag or label: those are then kept off the dots.
+ */
+export const SPOT_FOOTPRINT_LAYER: SymbolLayerSpecification = {
+  id: SPOT_FOOTPRINT_LAYER_ID,
+  type: 'symbol',
+  source: SPOT_SOURCE_ID,
+  layout: {
+    'icon-image': SPOT_FOOTPRINT_IMAGE_ID,
+    'icon-allow-overlap': true,
+    'icon-ignore-placement': false,
+    'icon-padding': 0,
+  },
+  paint: {
+    'icon-opacity': 0,
+  },
+};
+
 /** How far above the pin's centre a pin image's foot sits, in px: clear of the selected 7.5 px dot. */
 export const PIN_IMAGE_LIFT_PX = 8;
 
@@ -263,10 +328,11 @@ export const SPOT_LAYERS: readonly (
 
 /**
  * The photo pins and the selection flag, added on top of {@link SPOT_LAYERS} only when a photo
- * host is configured. MapLibre places the top layer first, so the flag always stands and blocks
- * photos from sitting on it, and the photo pins then claim room before the basemap labels; where
- * two photos would overlap, the one with more photos wins (`symbol-sort-key` ascends) and the
- * other stays a dot. Images are drawn by `PhotoPins` on demand.
+ * host is configured, and under {@link SPOT_FOOTPRINT_LAYER}. MapLibre places the top layer first:
+ * the dot footprints, then the flag, which always stands and blocks photos from sitting on it, then
+ * the photo pins, which claim room before the basemap labels but only where they cover no dot;
+ * where two photos would overlap, the one with more photos wins (`symbol-sort-key` ascends) and
+ * the other stays a dot. Images are drawn by `PhotoPins` on demand.
  */
 export const PHOTO_PIN_LAYERS: readonly SymbolLayerSpecification[] = [
   {
@@ -280,7 +346,7 @@ export const PHOTO_PIN_LAYERS: readonly SymbolLayerSpecification[] = [
       'icon-offset': [0, -PIN_IMAGE_LIFT_PX],
       'icon-allow-overlap': false,
       'icon-ignore-placement': false,
-      'icon-padding': 2,
+      'icon-padding': PHOTO_PIN_COLLISION_PADDING,
       'symbol-sort-key': ['-', ['get', 'photoCount']],
     },
   },

@@ -2,13 +2,20 @@ import { MAP_PALETTE } from './map-palette';
 import {
   FLAG_AT_REST_FILTER,
   flagFilter,
+  FOOTPRINT_SIZE_PX,
   HAS_COVER,
   LOCK_ON_AT_REST_FILTER,
+  PHOTO_PIN_COLLISION_PADDING,
   PHOTO_PIN_LAYERS,
   photoPinFilter,
+  PIN_IMAGE_LIFT_PX,
   SELECTED_RING_RADIUS,
+  SPOT_FOOTPRINT_IMAGE_ID,
+  SPOT_FOOTPRINT_LAYER,
+  SPOT_FOOTPRINT_LAYER_ID,
   SPOT_LAYERS,
   SPOT_SOURCE_ID,
+  spotFootprintImage,
 } from './spot-layers';
 
 /** A spot as the pin layers see it: its id, its status, and whether it is the selected one. */
@@ -261,9 +268,29 @@ describe('PHOTO_PIN_LAYERS', () => {
         'icon-image': ['concat', 'spot-photo:', ['get', 'id']],
         'icon-anchor': 'bottom',
         'icon-allow-overlap': false,
+        'icon-padding': PHOTO_PIN_COLLISION_PADDING,
         'symbol-sort-key': ['-', ['get', 'photoCount']],
       }),
     );
+  });
+
+  it('collides by the photo frame and only 2 px of the stem band below it', () => {
+    expect(PHOTO_PIN_COLLISION_PADDING).toEqual([2, 2, -6, 2]);
+  });
+
+  it('keeps a spot’s own dot footprint clear of its own photo pin’s collision box', () => {
+    // Screen y grows downwards from the dot's centre. The pin image's foot sits at its offset
+    // (anchor `bottom`), and the bottom padding moves that edge down by its value, so a negative
+    // value lifts it. The footprint is centred on the dot.
+    const [, liftY] = (photo.layout as Record<string, [number, number]>)[
+      'icon-offset'
+    ];
+    const boxBottom = liftY + PHOTO_PIN_COLLISION_PADDING[2];
+    const footprintTop = -FOOTPRINT_SIZE_PX / 2;
+    expect(liftY).toBe(-PIN_IMAGE_LIFT_PX);
+    expect(boxBottom)
+      .withContext('the photo pin’s box ends above its own footprint')
+      .toBeLessThan(footprintTop);
   });
 
   it('rests the flag on no spot and shows it whatever it overlaps, still keeping others off it', () => {
@@ -286,5 +313,48 @@ describe('PHOTO_PIN_LAYERS', () => {
       ['!=', ['get', 'id'], 'a'],
     ]);
     expect(photoPinFilter(null) as unknown).toEqual(HAS_COVER);
+  });
+});
+
+describe('SPOT_FOOTPRINT_LAYER', () => {
+  const layout = SPOT_FOOTPRINT_LAYER.layout as Record<string, unknown>;
+
+  it('stands an invisible footprint on every spot, from the spot source', () => {
+    expect(SPOT_FOOTPRINT_LAYER.id).toBe(SPOT_FOOTPRINT_LAYER_ID);
+    expect(SPOT_FOOTPRINT_LAYER_ID).toBe('spots-footprint');
+    expect(SPOT_FOOTPRINT_LAYER.type).toBe('symbol');
+    expect(SPOT_FOOTPRINT_LAYER.source).toBe(SPOT_SOURCE_ID);
+    expect(SPOT_FOOTPRINT_LAYER.filter)
+      .withContext('every spot, with or without a photo')
+      .toBeUndefined();
+    expect(layout['icon-image']).toBe(SPOT_FOOTPRINT_IMAGE_ID);
+    expect(
+      (SPOT_FOOTPRINT_LAYER.paint as Record<string, unknown>)['icon-opacity'],
+    ).toBe(0);
+  });
+
+  it('always places a footprint, and keeps every later symbol off it', () => {
+    expect(layout['icon-allow-overlap']).toBeTrue();
+    expect(layout['icon-ignore-placement']).toBeFalse();
+  });
+
+  it('is exactly the footprint square: centred on the dot, no padding', () => {
+    expect(layout['icon-anchor'] ?? 'center').toBe('center');
+    expect(layout['icon-padding']).toBe(0);
+    expect(layout['icon-offset']).toBeUndefined();
+  });
+
+  it('covers the largest resting dot with a 2 px margin', () => {
+    // The demolished ring: a 6 px radius and a 2 px stroke drawn outside it.
+    const demolishedReach = 6 + 2;
+    expect(FOOTPRINT_SIZE_PX).toBe(2 * (demolishedReach + 2));
+  });
+
+  it('is drawn from a transparent square the size of the footprint', () => {
+    const image = spotFootprintImage();
+    expect(image.width).toBe(FOOTPRINT_SIZE_PX);
+    expect(image.height).toBe(FOOTPRINT_SIZE_PX);
+    expect(image.data.length).toBe(FOOTPRINT_SIZE_PX * FOOTPRINT_SIZE_PX * 4);
+    expect(image.data.every((channel) => channel === 0)).toBeTrue();
   });
 });

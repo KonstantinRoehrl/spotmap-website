@@ -256,7 +256,7 @@ describe('SpotMapComponent', () => {
     expect(fake.bearing).toBe(0);
   });
 
-  it('adds the spot source and its pin layers', async () => {
+  it('adds the spot source, its pin layers, and the dot footprints last', async () => {
     await create();
     fake.emit('load');
     expect(fake.sources['spots']).toBeDefined();
@@ -269,8 +269,55 @@ describe('SpotMapComponent', () => {
       'spots-body',
       'spots-hover',
       'spots-demolished-mark',
+      'spots-footprint',
     ]);
   });
+
+  /**
+   * Records the order the map is handed images and layers in, as `image:<id>` and `layer:<id>`,
+   * while still adding them to the fake.
+   */
+  function recordAdditions(): string[] {
+    const added: string[] = [];
+    const addImage = fake.addImage.bind(fake);
+    const addLayer = fake.addLayer.bind(fake);
+    spyOn(fake, 'addImage').and.callFake((id, image, options) => {
+      added.push(`image:${id}`);
+      return addImage(id, image, options);
+    });
+    spyOn(fake, 'addLayer').and.callFake((layer, beforeId) => {
+      added.push(`layer:${layer.id}`);
+      addLayer(layer, beforeId);
+    });
+    return added;
+  }
+
+  for (const photoHost of [false, true]) {
+    it(`adds the footprints’ transparent image, then their layer, on top of every other layer${photoHost ? ' with a photo host' : ''}`, async () => {
+      if (photoHost) {
+        backend = {
+          ...UNCONFIGURED_BACKEND,
+          photoBaseUrl: 'https://photos.test',
+        };
+      }
+      await create();
+      const added = recordAdditions();
+      fake.emit('load');
+      expect(added.slice(-2)).toEqual([
+        'image:spot-footprint',
+        'layer:spots-footprint',
+      ]);
+      expect(fake.layers.at(-1)?.id).toBe('spots-footprint');
+      const image = fake.images.get('spot-footprint')!;
+      expect([image.width, image.height]).toEqual([20, 20]);
+      expect(
+        Array.from(image.data).every((channel) => channel === 0),
+      ).toBeTrue();
+      expect(fake.imageOptions.get('spot-footprint')).toEqual({
+        pixelRatio: 1,
+      });
+    });
+  }
 
   it('draws the thumb target under the visible pin, not over it', async () => {
     await create();
@@ -1700,7 +1747,7 @@ describe('SpotMapComponent', () => {
       expect(fake.missingImageResolver).toBeNull();
     });
 
-    it('adds the photo pins and the flag above the pins with a photo host, the resolver first', async () => {
+    it('adds the photo pins and the flag above the pins and under the dot footprints with a photo host, the resolver first', async () => {
       withPhotoHost();
       await create();
       spyOn(fake, 'addSource').and.callFake((id: string, source: unknown) => {
@@ -1710,9 +1757,10 @@ describe('SpotMapComponent', () => {
         fake.sources[id] = source;
       });
       fake.emit('load');
-      expect(fake.layers.map((l) => l.id).slice(-2)).toEqual([
+      expect(fake.layers.map((l) => l.id).slice(-3)).toEqual([
         'spots-photo',
         'spots-flag',
+        'spots-footprint',
       ]);
     });
 

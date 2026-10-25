@@ -53,9 +53,12 @@ import {
   PHOTO_PIN_TARGET_LAYER_IDS,
   PIN_TARGET_LAYER_IDS,
   SPOT_FLAG_LAYER_ID,
+  SPOT_FOOTPRINT_IMAGE_ID,
+  SPOT_FOOTPRINT_LAYER,
   SPOT_LAYERS,
   SPOT_PHOTO_LAYER_ID,
   SPOT_SOURCE_ID,
+  spotFootprintImage,
 } from './spot-layers';
 import { SpotSelection } from './spot-selection';
 import {
@@ -1043,7 +1046,12 @@ export class SpotMapComponent {
     }
   }
 
-  /** Adds the spot source, in the list shape, its pins and — with a photo host — the photo pins and flag. */
+  /**
+   * Adds the spot source, in the list shape, its pins, with a photo host the photo pins and flag,
+   * and the dot footprints last. On top, the footprints are placed first, so every photo pin and
+   * basemap label placed after them keeps off the dots. They go on every map: without a photo host
+   * they still keep the labels clear.
+   */
   private drawSpots(map: MapLibreMap, collection: SpotListCollection): void {
     map.addSource(SPOT_SOURCE_ID, {
       type: 'geojson',
@@ -1059,6 +1067,10 @@ export class SpotMapComponent {
         map.addLayer(layer);
       }
     }
+    map.addImage(SPOT_FOOTPRINT_IMAGE_ID, spotFootprintImage(), {
+      pixelRatio: 1,
+    });
+    map.addLayer(SPOT_FOOTPRINT_LAYER);
   }
 
   /** Reports one spot-load milestone as the matching load event. */
