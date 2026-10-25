@@ -84,6 +84,16 @@ function listFeature(id: string, name: string): SpotListFeature {
 const ALPHA = listFeature('a', 'Alpha Bank');
 const BETA = listFeature('b', 'Beta Ledge');
 
+/** What the browser paints for a token, so assertions compare rendered values, not token text. */
+function painted(property: string, token: string): string {
+  const probe = document.createElement('span');
+  probe.style.setProperty(property, token);
+  document.body.appendChild(probe);
+  const value = getComputedStyle(probe).getPropertyValue(property);
+  probe.remove();
+  return value;
+}
+
 /** A store the specs drive by hand: every state a writable signal, every action a spy. */
 function fakeStore() {
   return {
@@ -420,9 +430,59 @@ describe('MapComponent', () => {
         style.paddingBottom,
         style.paddingLeft,
       ]).toEqual(['16px', '16px', '16px', '16px']);
-      expect(style.borderBottomWidth).toBe('1px');
+      // The rule is drawn over the row's last pixel row, not as a border that takes layout space.
+      expect(style.borderBottomWidth).toBe('0px');
+      const rule = getComputedStyle(toolbar!, '::after');
+      expect([rule.position, rule.bottom, rule.left, rule.right]).toEqual([
+        'absolute',
+        '0px',
+        '0px',
+        '0px',
+      ]);
+      expect(rule.height).toBe('1px');
+      expect(rule.backgroundColor).toBe(
+        painted('background-color', 'var(--color-line)'),
+      );
       // The toolbar never scrolls: it sits beside the pane, not inside it.
       expect(toolbar!.closest('.spot-pane')).toBeNull();
+    });
+
+    it('keeps the toolbar content 16 px from the row’s top and bottom edges, in the list and the detail state', () => {
+      store.shownSpots.set([ALPHA, BETA]);
+      const host = create();
+      const toolbar = host.querySelector<HTMLElement>('.spot-column__toolbar')!;
+      const gaps = (content: Element) => {
+        const row = toolbar.getBoundingClientRect();
+        const box = content.getBoundingClientRect();
+        return {
+          top: box.top - row.top,
+          bottom: row.bottom - box.bottom,
+          height: box.height,
+        };
+      };
+      const expected = { top: 16, bottom: 16, height: 32 };
+
+      const listContent = toolbar.querySelector('.spot-column__count-content')!;
+      expect(gaps(listContent)).withContext('list state').toEqual(expected);
+
+      showSpot('a', ALPHA);
+      fixture.detectChanges();
+      const back = toolbar.querySelector('.spot-column__back')!;
+      expect(gaps(back.closest('.spot-column__count-content')!))
+        .withContext('detail state cell')
+        .toEqual(expected);
+      expect(gaps(back)).withContext('back plate').toEqual(expected);
+    });
+
+    it('does not move the pane: it starts at the toolbar’s bottom edge', () => {
+      store.shownSpots.set([ALPHA]);
+      const host = create();
+
+      const toolbar = host.querySelector('.spot-column__toolbar')!;
+      const pane = host.querySelector('aside.spot-column .spot-pane')!;
+      expect(pane.getBoundingClientRect().top).toBe(
+        toolbar.getBoundingClientRect().bottom,
+      );
     });
 
     it('pads the list 8 px so its rows’ content sits 16 px in from the column edge', () => {

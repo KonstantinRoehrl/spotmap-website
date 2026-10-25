@@ -185,16 +185,30 @@
 /* The toolbar (R2): a fixed 64 px row, 16 px above, below and beside its 32 px content, over one
    1 px rule. It never scrolls; the pane under it does. */
 .spot-column__toolbar {
+  position: relative;
   flex: none;
   display: grid;
   box-sizing: border-box;
   height: 64px;
   padding: 16px;
-  border-bottom: 1px solid var(--color-line);
   font-family: var(--font-mono);
   font-size: 0.8125rem;
   font-weight: 500;
   letter-spacing: 0.08em;
+}
+
+/* The rule under the toolbar, drawn over the row's last pixel row rather than as a border: a
+   border would take 1 px of the 64 and leave the 32 px content 31 px of room and the bottom padding
+   short. */
+.spot-column__toolbar::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: var(--color-line);
+  pointer-events: none;
 }
 
 /* The count line and the back button share the cell and crossfade, like the sheet's head. */
