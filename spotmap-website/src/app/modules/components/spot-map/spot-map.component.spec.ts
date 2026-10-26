@@ -424,6 +424,80 @@ describe('SpotMapComponent', () => {
     expect(attribution.classList).toContain('maplibregl-compact-show');
   });
 
+  describe('on a wide map whose uncovered strip is short', () => {
+    /** Gives the element a layout height, as {@link setWidth} gives it a width. */
+    function setHeight(host: HTMLElement, height: number): void {
+      Object.defineProperty(host, 'clientHeight', {
+        configurable: true,
+        value: height,
+      });
+    }
+
+    /** The insets of a sheet of `height` px over the bottom of the map. */
+    const sheet = (height: number): MapInsets => ({
+      top: 0,
+      right: 0,
+      bottom: height,
+      left: 0,
+    });
+
+    it('collapses the attribution on paint when the uncovered height is under the credits room', async () => {
+      await create({ insets: sheet(116) });
+      const host = fixture.nativeElement.querySelector('.spot-map__canvas');
+      setHeight(host, 232);
+      const attribution = addAttributionControl(host, 700);
+      fake.emit('load');
+      expect(attribution.classList).not.toContain('maplibregl-compact-show');
+    });
+
+    it('leaves the attribution open when the uncovered height is exactly the credits room', async () => {
+      await create({ insets: sheet(385) });
+      const host = fixture.nativeElement.querySelector('.spot-map__canvas');
+      setHeight(host, 625);
+      const attribution = addAttributionControl(host, 868);
+      fake.emit('load');
+      expect(attribution.classList).toContain('maplibregl-compact-show');
+    });
+
+    it('leaves the attribution open on a tall wide map with a sheet over part of it', async () => {
+      await create({ insets: sheet(313) });
+      const host = fixture.nativeElement.querySelector('.spot-map__canvas');
+      setHeight(host, 625);
+      const attribution = addAttributionControl(host, 868);
+      fake.emit('load');
+      expect(attribution.classList).toContain('maplibregl-compact-show');
+    });
+
+    it('collapses the attribution when a tall wide map is resized to a short uncovered height', async () => {
+      await create({ insets: sheet(313) });
+      const host = fixture.nativeElement.querySelector('.spot-map__canvas');
+      setHeight(host, 625);
+      const attribution = addAttributionControl(host, 868);
+      fake.emit('load');
+      expect(attribution.classList).toContain('maplibregl-compact-show');
+      setHeight(host, 232);
+      setWidth(host, 700);
+      fixture.componentRef.setInput('coveredInsets', sheet(116));
+      fixture.detectChanges();
+      fake.emit('resize');
+      expect(attribution.classList).not.toContain('maplibregl-compact-show');
+    });
+
+    it('does not close the attribution again on a resize while the uncovered height stays short', async () => {
+      await create({ insets: sheet(116) });
+      const host = fixture.nativeElement.querySelector('.spot-map__canvas');
+      setHeight(host, 232);
+      const attribution = addAttributionControl(host, 700);
+      fake.emit('load');
+      // The visitor taps the info button open; a later resize that leaves the strip short is not
+      // a reason to shut it on them.
+      attribution.classList.add('maplibregl-compact-show');
+      setHeight(host, 236);
+      fake.emit('resize');
+      expect(attribution.classList).toContain('maplibregl-compact-show');
+    });
+  });
+
   it('leaves the attribution open on a map wide enough to spare the room', async () => {
     await create();
     const attribution = addAttributionControl(

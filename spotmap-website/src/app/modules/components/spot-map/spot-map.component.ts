@@ -88,6 +88,15 @@ const FIT_MAX_ZOOM = 16;
 const NARROW_MAP_MAX_WIDTH_PX = 640;
 
 /**
+ * A map whose uncovered part — what the page's covered strips leave of it — is shorter than this
+ * has its attribution collapsed to the info button, on the same two moments as the width rule.
+ * The expanded credits on a wide map are 124 px tall; twice that leaves a selected pin room
+ * beside them, where a shorter strip has the panel fill it and hide the pin, its ring and its
+ * flag.
+ */
+const MIN_UNCOVERED_HEIGHT_FOR_CREDITS_PX = 240;
+
+/**
  * Whether a MapLibre `error` means a source the style cannot do without never came up — the one
  * failure this map can never paint through. Both fields are read off the payload, since neither
  * is declared on maplibre-gl's public `ErrorEvent`:
@@ -281,11 +290,12 @@ export class SpotMapComponent {
   private map?: MapLibreMap;
 
   /**
-   * Whether the map was last measured at or under {@link NARROW_MAP_MAX_WIDTH_PX}, so a resize
-   * collapses the attribution on the way down to a phone width and never again while the visitor
-   * has it open there.
+   * Whether the map was last measured too cramped to hold the expanded credits — at or under
+   * {@link NARROW_MAP_MAX_WIDTH_PX} wide, or with an uncovered part under
+   * {@link MIN_UNCOVERED_HEIGHT_FOR_CREDITS_PX} tall — so a resize collapses the attribution on
+   * the way in and never again while the visitor has it open there.
    */
-  private mapIsNarrow = false;
+  private mapIsCramped = false;
 
   /**
    * Latched the moment the map either paints or gives up, so one map can never report both
@@ -708,8 +718,8 @@ export class SpotMapComponent {
         this.ready.emit();
       };
       map.on('render', pinsDrawn);
-      this.mapIsNarrow = this.isNarrow();
-      this.collapseAttributionOnNarrowMap(this.mapIsNarrow);
+      this.mapIsCramped = this.isCramped();
+      this.collapseAttributionOnCrampedMap(this.mapIsCramped);
       // Only now: `load` waits on every visible source's tiles, so terrain in the opening style
       // would hold the pins back behind the slowest DEM tile.
       // A missing terrain library resolves `null` — the loader never rejects — and leaves the map
@@ -719,19 +729,20 @@ export class SpotMapComponent {
   }
 
   /**
-   * Wires the visitor-facing listeners: the attribution collapse when the map narrows, a pin tap
+   * Wires the visitor-facing listeners: the attribution collapse when the map becomes cramped, a pin tap
    * and a tap on empty map reported to the page, and the pointer cursor and hover over a pin, a photo frame or the raised flag.
    */
   private wireInteractions(map: MapLibreMap, generation: number): void {
-    // A phone turned from landscape to portrait narrows a map that opened wide, and MapLibre
-    // only re-collapses its compact attribution on a drag, so the narrowing is caught here.
+    // A phone turned from landscape to portrait narrows a map that opened wide, and a sheet that
+    // grows can leave a wide map's uncovered strip short; MapLibre only re-collapses its compact
+    // attribution on a drag, so both are caught here.
     map.on('resize', () => {
       if (generation !== this.generation || this.outcome !== 'painted') {
         return;
       }
-      const narrow = this.isNarrow();
-      this.collapseAttributionOnNarrowMap(narrow && !this.mapIsNarrow);
-      this.mapIsNarrow = narrow;
+      const cramped = this.isCramped();
+      this.collapseAttributionOnCrampedMap(cramped && !this.mapIsCramped);
+      this.mapIsCramped = cramped;
       this.scheduleBounds();
     });
 
@@ -1169,21 +1180,30 @@ export class SpotMapComponent {
     }
   }
 
-  /** Whether the map's canvas host is at or under {@link NARROW_MAP_MAX_WIDTH_PX} wide. */
-  private isNarrow(): boolean {
+  /**
+   * Whether the map is too cramped for the expanded credits: its canvas host is at or under
+   * {@link NARROW_MAP_MAX_WIDTH_PX} wide, or the part of it the covered strips leave open is under
+   * {@link MIN_UNCOVERED_HEIGHT_FOR_CREDITS_PX} tall. The height is read off the same camera frame
+   * the bounds report uses.
+   */
+  private isCramped(): boolean {
+    const { width, height, insets } = this.cameraFrame();
+    const uncovered = uncoveredRect(width, height, insets);
     return (
-      this.canvasHost().nativeElement.offsetWidth <= NARROW_MAP_MAX_WIDTH_PX
+      this.canvasHost().nativeElement.offsetWidth <= NARROW_MAP_MAX_WIDTH_PX ||
+      uncovered.bottom - uncovered.top < MIN_UNCOVERED_HEIGHT_FOR_CREDITS_PX
     );
   }
 
   /**
    * Collapses the attribution control to its info button when `collapse` is set. MapLibre opens
    * it on a map of any width and only collapses it on the first drag, which on a phone leaves the
-   * credits over half the map until the visitor happens to pan. This is the same collapse the
+   * credits over half the map, and on a short uncovered strip over the selected pin, until the
+   * visitor happens to pan. This is the same collapse the
    * drag makes — the credits stay one tap away — and the control is the library's, so its CSS
    * class is the only handle there is.
    */
-  private collapseAttributionOnNarrowMap(collapse: boolean): void {
+  private collapseAttributionOnCrampedMap(collapse: boolean): void {
     if (!collapse) {
       return;
     }
