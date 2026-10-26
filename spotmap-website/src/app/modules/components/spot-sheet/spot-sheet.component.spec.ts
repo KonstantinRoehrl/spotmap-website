@@ -54,6 +54,9 @@ describe('SpotSheetComponent', () => {
   const button = (sheet: HTMLElement, selector: string) =>
     sheet.querySelector(selector) as HTMLButtonElement;
 
+  /** The detail head's back plate, drawn by the shared overview-back component. */
+  const backPlate = 'app-overview-back button';
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [HostComponent],
@@ -114,24 +117,27 @@ describe('SpotSheetComponent', () => {
     expect(toggle('peek', 1)).toBe('1 spot in view, show list');
     fixture.destroy();
     expect(toggle('peek', null)).toBe('Loading spots, show list');
-    fixture.destroy();
-    expect(
-      button(create('detail', null), '.spot-sheet__back').getAttribute(
-        'aria-label',
-      ),
-    ).toBe('In view, back to the list');
   });
 
-  it('heads a detail with back to the list and close', () => {
+  it('heads a detail with the overview back plate, whatever the count, and close', () => {
+    for (const count of [null, 1, 9]) {
+      const sheet = create('detail', count);
+      expect(sheet.querySelector('.spot-sheet__toggle')).toBeNull();
+      const back = button(sheet, backPlate);
+      expect(back.textContent!.trim())
+        .withContext(`count ${count}`)
+        .toBe('< OVERVIEW');
+      expect(back.getAttribute('aria-label'))
+        .withContext(`count ${count}`)
+        .toBe('Overview, back to the list');
+      fixture.destroy();
+    }
     const sheet = create('detail');
-    expect(sheet.querySelector('.spot-sheet__toggle')).toBeNull();
-    const back = button(sheet, '.spot-sheet__back');
     const close = button(sheet, '.spot-sheet__close');
-    expect(back.getAttribute('aria-label')).toBe('9 in view, back to the list');
-    expect(back.textContent!.trim()).toBe('‹ 9 IN VIEW');
     expect(close.getAttribute('aria-label')).toBe('Close');
     expect(close.textContent!.trim()).toBe('✕');
-    back.click();
+    button(sheet, backPlate).click();
+    expect(fixture.componentInstance.events).toEqual(['back']);
     close.click();
     expect(fixture.componentInstance.events).toEqual(['back', 'close']);
   });
@@ -139,7 +145,7 @@ describe('SpotSheetComponent', () => {
   it('gives every head control the shared bloom', () => {
     for (const [state, selectors] of [
       ['peek', ['.spot-sheet__toggle']],
-      ['detail', ['.spot-sheet__back', '.spot-sheet__close']],
+      ['detail', [backPlate, '.spot-sheet__close']],
     ] as const) {
       const sheet = create(state);
       for (const selector of selectors) {
@@ -155,9 +161,9 @@ describe('SpotSheetComponent', () => {
     }
     const close = button(create('detail'), '.spot-sheet__close');
     expect(close.classList).toContain('phosphor-bloom--plate');
-    expect(
-      button(fixture.nativeElement, '.spot-sheet__back').classList,
-    ).toContain('phosphor-bloom--plate');
+    expect(button(fixture.nativeElement, backPlate).classList).toContain(
+      'phosphor-bloom--plate',
+    );
   });
 
   it('makes the whole 64 px head the toggle’s target, its words 16 px from the sheet’s edges', () => {
@@ -173,11 +179,11 @@ describe('SpotSheetComponent', () => {
     expect(frame.right - hint.getBoundingClientRect().right).toBe(16);
   });
 
-  it('draws the back and close plates 32 px tall, 16 px in, with a 44 px target', () => {
+  it('draws the overview and close plates 32 px tall, 16 px in, with a 44 px target', () => {
     const sheet = create('detail');
     sheet.scrollIntoView({ block: 'start' });
     const frame = sheet.getBoundingClientRect();
-    const back = button(sheet, '.spot-sheet__back');
+    const back = button(sheet, backPlate);
     const close = button(sheet, '.spot-sheet__close');
     const backBox = back.getBoundingClientRect();
     const closeBox = close.getBoundingClientRect();

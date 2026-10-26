@@ -6,6 +6,7 @@ import {
   output,
 } from '@angular/core';
 import { PointerBloomDirective } from '../../directives/pointer-bloom.directive';
+import { OverviewBackComponent } from '../overview-back/overview-back.component';
 import { SheetState, sheetHeight } from './spot-sheet-state';
 
 /**
@@ -18,7 +19,7 @@ import { SheetState, sheetHeight } from './spot-sheet-state';
  */
 @Component({
   selector: 'app-spot-sheet',
-  imports: [PointerBloomDirective],
+  imports: [PointerBloomDirective, OverviewBackComponent],
   templateUrl: './spot-sheet.component.html',
   styleUrl: './spot-sheet.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -34,7 +35,7 @@ export class SpotSheetComponent {
 
   /** The head was tapped at peek or list: toggle between them. */
   headTap = output<void>();
-  /** The detail's back button (‹): return to the list. */
+  /** The detail's back plate (< OVERVIEW): return to the list. */
   back = output<void>();
   /** The detail's close button (✕): close the detail to the peek bar. */
   close = output<void>();
@@ -51,11 +52,5 @@ export class SpotSheetComponent {
       return '> LOADING SPOTS…';
     }
     return count === 1 ? '> 1 SPOT IN VIEW' : `> ${count} SPOTS IN VIEW`;
-  });
-
-  /** The detail's back label, carrying the count of the list it returns to. */
-  protected readonly backLabel = computed(() => {
-    const count = this.count();
-    return count === null ? '‹ IN VIEW' : `‹ ${count} IN VIEW`;
   });
 }

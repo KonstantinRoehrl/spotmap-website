@@ -1002,7 +1002,11 @@ describe('MapComponent', () => {
       store.shownSpots.set([ALPHA, BETA]);
       showSpot('a', ALPHA);
       const host = create();
-      host.querySelector<HTMLButtonElement>('.spot-sheet__back')!.focus();
+      host
+        .querySelector<HTMLButtonElement>(
+          'app-spot-sheet app-overview-back button',
+        )!
+        .focus();
 
       sheet().back.emit();
       closeSpot();
