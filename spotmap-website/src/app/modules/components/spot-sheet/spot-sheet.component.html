@@ -1,0 +1,62 @@
+<!-- Control names start with the visible words, then say what a tap does. -->
+@let spotsInView =
+  count() === null
+    ? 'Loading spots'
+    : count() === 1
+      ? '1 spot in view'
+      : count() + ' spots in view';
+
+<!-- Both head variants share one grid cell, so swapping them is a crossfade, not a cut. -->
+<div
+  class="spot-sheet__head"
+  [class.spot-sheet__head--open]="state() !== 'peek'"
+>
+  <div class="spot-sheet__handle" aria-hidden="true">
+    <span class="spot-sheet__grip"></span>
+  </div>
+  @if (state() === 'detail') {
+    <div
+      class="spot-sheet__head-content spot-sheet__head-content--detail"
+      animate.leave="spot-sheet__head-content--leaving"
+    >
+      <app-overview-back (back)="back.emit()" />
+      <button
+        type="button"
+        class="spot-sheet__close phosphor-bloom phosphor-bloom--inset phosphor-bloom--plate"
+        appPointerBloom
+        aria-label="Close"
+        (click)="close.emit()"
+      >
+        ✕
+      </button>
+    </div>
+  } @else {
+    <div
+      class="spot-sheet__head-content"
+      animate.leave="spot-sheet__head-content--leaving"
+    >
+      <button
+        type="button"
+        class="spot-sheet__toggle phosphor-bloom phosphor-bloom--inset"
+        appPointerBloom
+        [attr.aria-label]="
+          spotsInView + (state() === 'peek' ? ', show list' : ', show map')
+        "
+        (click)="headTap.emit()"
+      >
+        <span>{{ countLine() }}</span>
+        <span class="spot-sheet__hint" aria-hidden="true">{{
+          state() === 'peek' ? 'LIST ▲' : 'MAP ▼'
+        }}</span>
+      </button>
+    </div>
+  }
+</div>
+
+<div
+  class="spot-sheet__body"
+  [class.spot-sheet__body--hidden]="state() === 'peek'"
+  [inert]="state() === 'peek'"
+>
+  <ng-content />
+</div>

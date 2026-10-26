@@ -7,9 +7,9 @@ import type { Map as MapLibreMap } from 'maplibre-gl';
  * moment a finger or button goes down or the wheel starts, before the camera has moved.
  *
  * The keyboard handler is left out: it never reports itself active (`KeyboardHandler.isActive`
- * returns a flag nothing sets), so an arrow key cannot be told from no input. Its ease replaces a
- * pan the popup controller has just started instead, which loses nothing: the popup is revealed when the
- * key's ease ends.
+ * returns a flag nothing sets), so an arrow key cannot be told from no input. Its ease replaces any
+ * camera ease the map has just started instead, which loses nothing: that ease was only bringing a
+ * pin into view.
  */
 const GESTURE_HANDLERS = [
   'dragPan',

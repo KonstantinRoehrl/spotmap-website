@@ -22,7 +22,8 @@ export const TERMINAL_PALETTE = {
  * decoration — direct sun on a phone washes out anything dimmer than about `#00b800`, so meaning
  * lives in line brightness, width, labels and pin shape. Roles that are CSS tokens point at
  * {@link TERMINAL_PALETTE} instead of repeating its hex, and no value has all three channels above
- * 200 (the No-White Rule).
+ * 200 (the No-White Rule) — `pinHover`'s `phosphor-bright` included, the same pale mint every
+ * Display label wears.
  */
 export const MAP_PALETTE = {
   ground: TERMINAL_PALETTE.bg,
@@ -49,5 +50,6 @@ export const MAP_PALETTE = {
   placeLabel: '#e8ffb8',
   pinActive: TERMINAL_PALETTE.phosphor,
   pinDemolished: TERMINAL_PALETTE.phosphorDim,
+  pinHover: TERMINAL_PALETTE.phosphorBright,
   selection: TERMINAL_PALETTE.amber,
 } as const;

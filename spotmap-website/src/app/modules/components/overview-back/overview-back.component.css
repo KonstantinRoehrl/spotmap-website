@@ -1,0 +1,22 @@
+/* Label type (DESIGN.md §3): 13px, 500, 0.08em, uppercase. A plate drawn 32 px tall, the R2 row's
+   control height. */
+.overview-back {
+  box-sizing: border-box;
+  height: 32px;
+  padding: 0 12px;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+/* The hit area reaches the 44 px target through ::after, since ::before is the bloom's gradient.
+   The ::after is placed against the plate's padding box, 30 px inside its 1 px border, so it
+   reaches 7 px out above and below to make 44. */
+.overview-back::after {
+  content: '';
+  position: absolute;
+  inset: -7px 0;
+}

@@ -1,25 +1,6 @@
-import {
-  createMapLibreMap,
-  createMapLibrePopup,
-  loadElevation,
-} from './map-factory';
+import { createMapLibreMap, loadElevation } from './map-factory';
 
 describe('the maplibre-gl factories', () => {
-  it('builds a real maplibre-gl popup with the options it is handed', async () => {
-    const options = {
-      anchor: 'top',
-      closeButton: false,
-      closeOnClick: false,
-      maxWidth: '320px',
-      className: 'spot-popup-frame spot-popup-frame--pending',
-    } as const;
-    const popup = await createMapLibrePopup(options);
-    expect(popup.options).toEqual(jasmine.objectContaining(options));
-    expect(popup.isOpen())
-      .withContext('built, not yet added to a map')
-      .toBe(false);
-  });
-
   it('hands its options to the real maplibre-gl Map constructor', async () => {
     // Whether the real constructor gets a WebGL2 context depends on the machine running the spec:
     // without one it rejects with MapLibre's own GPUInitializationError, with one it builds a map.

@@ -5,7 +5,8 @@
  * checked on its own: a FeatureCollection of Point features with finite, in-range coordinates,
  * ids unique across every snapshot, exactly the served record `{ id, name, status, notes,
  * photos }` in that key order (what `city_spots()` returns and `SpotProperties` reads), a known
- * status, notes as text or null, and photo keys in the `<city>/<file>.webp` shape.
+ * status, notes as text or null, and photo keys in the `<city>/<file>.webp` shape. The id → city index beside them, `public/spots/index.json`, must map exactly those ids to their
+ * cities.
  *
  * "One snapshot per supported city" stays the Karma spot-datasets.spec.ts check: Node cannot read
  * the TypeScript city list without parsing it. This lives under tools/ because it is part of
@@ -15,6 +16,7 @@ import { strict as assert } from 'node:assert';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { test } from 'node:test';
+import { SPOT_INDEX_FILE } from '../sync-supabase/snapshot.mjs';
 import { PUBLIC_SPOTS_DIR } from './paths.mjs';
 
 /** The served record's keys, in the order `city_spots()` writes them. */
@@ -172,4 +174,21 @@ test('the check reports an id two snapshots share', () => {
     snapshotProblems('graz', collectionOf(servedFeature('graz', 'x-1')), ids),
     ['graz: feature #0 (x-1): id also used in vienna'],
   );
+});
+
+test('public/spots/index.json maps exactly every committed snapshot id to its city, keys sorted', () => {
+  const index = JSON.parse(
+    readFileSync(join(PUBLIC_SPOTS_DIR, SPOT_INDEX_FILE), 'utf8'),
+  );
+  const expected = {};
+  for (const city of cities) {
+    const collection = JSON.parse(
+      readFileSync(join(PUBLIC_SPOTS_DIR, `${city}.geojson`), 'utf8'),
+    );
+    for (const feature of collection.features) {
+      expected[feature.properties.id] = city;
+    }
+  }
+  assert.deepEqual(index, expected);
+  assert.deepEqual(Object.keys(index), Object.keys(index).toSorted());
 });

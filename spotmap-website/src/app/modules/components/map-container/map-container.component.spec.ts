@@ -9,11 +9,9 @@ import {
 import { By } from '@angular/platform-browser';
 
 import { CityEnum } from '../../../models/enums/map-enum';
-import {
-  ELEVATION_LOADER,
-  MAP_FACTORY,
-  POPUP_FACTORY,
-} from '../spot-map/map-factory.token';
+import { SpotListCollection } from '../../../models/spots/spot';
+import type { ViewBounds } from '../../../models/spots/spots-in-view';
+import { ELEVATION_LOADER, MAP_FACTORY } from '../spot-map/map-factory.token';
 import { MapLoaderComponent } from '../map-loader/map-loader.component';
 import { SpotMapComponent } from '../spot-map/spot-map.component';
 import { INITIAL_MAP_LOAD_STATE, MapLoadState } from './map-load-progress';
@@ -25,11 +23,11 @@ import {
 } from './map-container.component';
 
 /**
- * SpotMapComponent injects both maplibre factories and the elevation loader the moment it is
+ * SpotMapComponent injects the maplibre map factory and the elevation loader the moment it is
  * constructed. These tests never let it call any of them (the spot request below is never
  * flushed), so a never-resolving stub is enough — and providing them keeps the ESM-only
- * maplibre-gl and maplibre-contour out of the karma bundle, which is why none of the three
- * tokens carries a default (map-factory.token.ts).
+ * maplibre-gl and maplibre-contour out of the karma bundle, which is why neither
+ * token carries a default (map-factory.token.ts).
  */
 const neverResolves = () => new Promise<never>(() => {});
 
@@ -41,7 +39,6 @@ describe('MapContainerComponent', () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         { provide: MAP_FACTORY, useValue: neverResolves },
-        { provide: POPUP_FACTORY, useValue: neverResolves },
         { provide: ELEVATION_LOADER, useValue: neverResolves },
       ],
     }).compileComponents();
@@ -149,6 +146,54 @@ describe('MapContainerComponent', () => {
   it('renders the maplibre map for vienna', () => {
     const fixture = create(true, CityEnum.Vienna);
     expect(fixture.nativeElement.querySelector('app-spot-map')).toBeTruthy();
+    fixture.destroy();
+  });
+
+  it('hands the camera inputs to the map and re-emits its bounds', () => {
+    const fixture = create(true);
+    const insets = { top: 0, right: 0, bottom: 300, left: 0 };
+    const focus = { center: [16.37, 48.2] as [number, number], zoom: 16 };
+    fixture.componentRef.setInput('coveredInsets', insets);
+    fixture.componentRef.setInput('openOn', focus);
+    fixture.componentRef.setInput('attributionCorner', 'top-right');
+    fixture.detectChanges();
+    const map = fixture.debugElement.query(By.directive(SpotMapComponent))
+      .componentInstance as SpotMapComponent;
+    expect(map.coveredInsets()).toBe(insets);
+    expect(map.openOn()).toBe(focus);
+    expect(map.attributionCorner()).toBe('top-right');
+    const bounds: ViewBounds[] = [];
+    fixture.componentInstance.boundsChange.subscribe((b) => bounds.push(b));
+    const box = { west: 1, south: 2, east: 3, north: 4 };
+    map.boundsChange.emit(box);
+    expect(bounds).toEqual([box]);
+    fixture.destroy();
+  });
+
+  it('hands the selection to the map and re-emits what the map reports', () => {
+    const fixture = create(true);
+    fixture.componentRef.setInput('selectedId', 'a');
+    fixture.detectChanges();
+    const map = fixture.debugElement.query(By.directive(SpotMapComponent))
+      .componentInstance as SpotMapComponent;
+    expect(map.selectedId()).toBe('a');
+
+    const clicks: string[] = [];
+    const lists: SpotListCollection[] = [];
+    const empty = jasmine.createSpy('emptyClick');
+    fixture.componentInstance.spotClick.subscribe((id) => clicks.push(id));
+    fixture.componentInstance.spotsLoaded.subscribe((c) => lists.push(c));
+    fixture.componentInstance.emptyClick.subscribe(empty);
+    const list: SpotListCollection = {
+      type: 'FeatureCollection',
+      features: [],
+    };
+    map.spotClick.emit('b');
+    map.spotsLoaded.emit(list);
+    map.emptyClick.emit();
+    expect(clicks).toEqual(['b']);
+    expect(lists).toEqual([list]);
+    expect(empty).toHaveBeenCalledTimes(1);
     fixture.destroy();
   });
 
@@ -427,6 +472,21 @@ describe('MapContainerComponent', () => {
       '> NO RENDERER // THIS BROWSER CANNOT DRAW THE MAP',
     );
     expect(fixture.nativeElement.querySelector('.map-error__retry')).toBeNull();
+    fixture.destroy();
+  });
+
+  it('hands the hovered spot to the map and re-emits the pin under the pointer', () => {
+    const fixture = create(true);
+    fixture.componentRef.setInput('hoveredId', 'a');
+    fixture.detectChanges();
+    const map = fixture.debugElement.query(By.directive(SpotMapComponent))
+      .componentInstance as SpotMapComponent;
+    expect(map.hoveredId()).toBe('a');
+    const hovers: (string | null)[] = [];
+    fixture.componentInstance.pinHover.subscribe((id) => hovers.push(id));
+    map.pinHover.emit('b');
+    map.pinHover.emit(null);
+    expect(hovers).toEqual(['b', null]);
     fixture.destroy();
   });
 });

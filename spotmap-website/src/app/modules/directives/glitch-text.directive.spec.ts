@@ -30,9 +30,13 @@ const LABEL = 'Map it';
 /** The directive's frame period, in ms. */
 const FRAME = 80;
 
-const PLAIN_LINK = `<a appGlitchText><span class="nav-text">${LABEL}</span></a>`;
-const ACTIVE_LINK = `<a appGlitchText class="active"><span class="nav-text">${LABEL}</span></a>`;
-const ROUTED_LINK = `<a routerLink="/a" routerLinkActive="active" appGlitchText><span class="nav-text">${LABEL}</span></a>`;
+const PLAIN_LINK = `<a appGlitchText="${LABEL}"><span class="nav-text">${LABEL}</span></a>`;
+const ACTIVE_LINK = `<a appGlitchText="${LABEL}" class="active"><span class="nav-text">${LABEL}</span></a>`;
+const ROUTED_LINK = `<a routerLink="/a" routerLinkActive="active" appGlitchText="${LABEL}"><span class="nav-text">${LABEL}</span></a>`;
+/** A link whose own text has not rendered yet: what an active nav link looks like when the directive starts. */
+const ACTIVE_UNRENDERED_LINK = `<a appGlitchText="${LABEL}" class="active"><span class="nav-text"></span></a>`;
+/** A plain link whose own text has not rendered yet. */
+const PLAIN_UNRENDERED_LINK = `<a appGlitchText="${LABEL}"><span class="nav-text"></span></a>`;
 
 /**
  * Renders `template` in the app's real change-detection mode. TestBed is zoneless by default,
@@ -112,7 +116,7 @@ describe('GlitchTextDirective', () => {
 
   it('draws replacement glyphs from its 12-glyph set', fakeAsync(() => {
     const fixture = render(
-      '<a appGlitchText><span class="nav-text">M</span></a>',
+      '<a appGlitchText="M"><span class="nav-text">M</span></a>',
     );
     link(fixture).dispatchEvent(new MouseEvent('mouseenter'));
 
@@ -150,6 +154,24 @@ describe('GlitchTextDirective', () => {
     link(fixture).dispatchEvent(new MouseEvent('mouseleave'));
     expect(navText(fixture).innerText).toBe(LABEL);
     tick(FRAME * 10);
+    expect(navText(fixture).innerText).toBe(LABEL);
+
+    fixture.destroy();
+  }));
+
+  it('scrambles the label it is given, even before the link’s own text has rendered', fakeAsync(() => {
+    const fixture = render(ACTIVE_UNRENDERED_LINK);
+    tick(FRAME);
+    expect(navText(fixture).innerText).toBe('### ##');
+
+    fixture.destroy();
+  }));
+
+  it('restores the label it is given, not what the link showed when scrambling began', fakeAsync(() => {
+    const fixture = render(PLAIN_UNRENDERED_LINK);
+    link(fixture).dispatchEvent(new MouseEvent('mouseenter'));
+    tick(FRAME);
+    link(fixture).dispatchEvent(new MouseEvent('mouseleave'));
     expect(navText(fixture).innerText).toBe(LABEL);
 
     fixture.destroy();

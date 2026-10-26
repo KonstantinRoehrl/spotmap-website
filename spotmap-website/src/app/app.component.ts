@@ -12,6 +12,7 @@ import { AsciiAnimationTextComponent } from './modules/components/ascii-animatio
 import { NavBarComponent } from './modules/components/nav-bar/nav-bar.component';
 import { PointerBloomDirective } from './modules/directives/pointer-bloom.directive';
 import { isAdminPath } from './utils/admin-path';
+import { isMapPagePath, isSpotPath } from './utils/map-page-path';
 
 // Session-scoped flag so the intro only plays on the first visit of a browser
 // session. Cleared automatically when the tab/session ends.
@@ -21,7 +22,8 @@ const INTRO_SEEN_KEY = 'spotmap:introSeen';
  * The app shell: plays the once-per-session ASCII intro (skippable by click, Esc or the
  * `[ SKIP ]` button, which carries the shared pointer bloom), then reveals the nav bar and the
  * routed page. On the hidden admin routes it skips the intro without marking it seen and hides
- * the public nav bar; the admin shell brings its own header.
+ * the public nav bar; the admin shell brings its own header. A spot link skips the intro the same
+ * way, and the map page runs edge to edge without the content padding.
  */
 @Component({
   selector: 'app-root',
@@ -38,22 +40,27 @@ const INTRO_SEEN_KEY = 'spotmap:introSeen';
 })
 export class AppComponent {
   /**
-   * Whether the current route is in the admin tree. Read from `Location` at construction — the
-   * router's first navigation has not ended yet, and a sign-in link lands here before it — and
-   * from every `NavigationEnd` after that.
+   * The path the app opened on, relative to the base href. Read from `Location` at construction:
+   * the router's first navigation has not ended yet, and a sign-in link lands here before it.
    */
-  protected readonly onAdminRoute = signal(
-    isAdminPath(inject(Location).path()),
-  );
+  private readonly initialPath = inject(Location).path();
+  /** Whether the current route is in the admin tree: the opening path, then every `NavigationEnd`. */
+  protected readonly onAdminRoute = signal(isAdminPath(this.initialPath));
+  /**
+   * Whether the current route is the map page (`/map` or `/spot/<id>`): the opening path, then
+   * every `NavigationEnd`. It drops the content container's padding so the map runs edge to edge.
+   */
+  protected readonly onMapPage = signal(isMapPagePath(this.initialPath));
   /**
    * Whether the intro is over and the nav bar and routed page show. Starts true when the intro
-   * already played this session or the app opened on an admin route: content then shows
-   * immediately and the animation never mounts. Deliberately does NOT force a route, so reloading
-   * or deep-linking /home, /map, /about or /admin stays on that page. The admin case does not mark
-   * the intro seen: the maintainer's first public visit still plays it.
+   * already played this session, when the app opened on an admin route, or when it opened on a
+   * spot link (a shared spot goes straight to the map). Content then shows immediately and the
+   * animation never mounts. Deliberately does NOT force a route, so reloading or deep-linking
+   * /home, /map, /spot/<id>, /about or /admin stays on that page. Neither exemption marks the intro
+   * seen, so the first plain public visit of the session still plays it.
    */
   protected introFinished = signal<boolean>(
-    this.onAdminRoute() || this.hasSeenIntro(),
+    this.onAdminRoute() || isSpotPath(this.initialPath) || this.hasSeenIntro(),
   );
 
   constructor() {
@@ -64,9 +71,10 @@ export class AppComponent {
         ),
         takeUntilDestroyed(),
       )
-      .subscribe((event) =>
-        this.onAdminRoute.set(isAdminPath(event.urlAfterRedirects)),
-      );
+      .subscribe((event) => {
+        this.onAdminRoute.set(isAdminPath(event.urlAfterRedirects));
+        this.onMapPage.set(isMapPagePath(event.urlAfterRedirects));
+      });
   }
 
   /** Escape from anywhere ends the intro early (a11y skip standard). */

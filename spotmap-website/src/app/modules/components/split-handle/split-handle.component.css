@@ -1,0 +1,78 @@
+/* A 16 px target between the map and the column; the page overlaps it 8 px into each, so it adds
+   no width of its own. No text selection or touch gesture may start on it: a drag here is a
+   resize. */
+:host {
+  position: relative;
+  display: block;
+  flex: none;
+  box-sizing: border-box;
+  width: 16px;
+  cursor: col-resize;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  outline: none;
+}
+
+/* The map | column hairline, the column's old 30 % phosphor rule. */
+.split-handle__line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(50% - 0.5px);
+  width: 1px;
+  background: color-mix(in srgb, var(--color-phosphor) 30%, transparent);
+  pointer-events: none;
+}
+
+/* The grip: an 8 × 40 plate centred on the line, on the surface so it reads over the hairline. */
+.split-handle__grip {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  box-sizing: border-box;
+  width: 8px;
+  height: 40px;
+  translate: -50% -50%;
+  --bloom-rest-bg: var(--color-surface);
+  pointer-events: none;
+}
+
+/* The grip takes the shared bloom's lit state (styles.css) from the handle's own state: the handle
+   is what is hovered, focused or dragged, and the grip is what lights. Hover only on a pointer that
+   hovers, like the bloom itself. */
+@media (hover: hover) {
+  :host(:hover) .split-handle__grip {
+    border-color: transparent;
+    box-shadow:
+      0 0 var(--bloom-halo) var(--bloom-edge),
+      inset 0 0 0 1px var(--bloom-edge);
+    transition-duration: var(--dur-hover-in);
+  }
+
+  :host(:hover) .split-handle__grip::before {
+    opacity: 1;
+    transition-duration: var(--dur-hover-in);
+  }
+}
+
+:host(:focus-visible) .split-handle__grip,
+:host(.is-dragging) .split-handle__grip {
+  border-color: transparent;
+  box-shadow:
+    0 0 var(--bloom-halo) var(--bloom-edge),
+    inset 0 0 0 1px var(--bloom-edge);
+  transition-duration: var(--dur-hover-in);
+}
+
+:host(:focus-visible) .split-handle__grip::before,
+:host(.is-dragging) .split-handle__grip::before {
+  opacity: 1;
+  transition-duration: var(--dur-hover-in);
+}
+
+/* The keyboard ring sits on the grip, the one visible part of the separator. */
+:host(:focus-visible) .split-handle__grip {
+  outline: 1px solid var(--color-phosphor);
+  outline-offset: 2px;
+}

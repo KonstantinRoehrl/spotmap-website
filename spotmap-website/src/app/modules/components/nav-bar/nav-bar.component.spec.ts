@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import {
   ComponentFixture,
   TestBed,
@@ -20,7 +20,7 @@ class StubPageComponent {}
 class HostComponent {
   links: NavBarLink[] = [
     { name: 'Home', url: '/home', icon: '⌂' },
-    { name: 'Map', url: '/map', icon: '⌖' },
+    { name: 'Map', url: '/map', icon: '⌖', activeAlsoUnder: '/spot/' },
     { name: 'About', url: '/about', icon: 'ⓘ' },
   ];
 }
@@ -37,6 +37,7 @@ describe('NavBarComponent', () => {
           { path: 'home', component: StubPageComponent },
           { path: 'map', component: StubPageComponent },
           { path: 'about', component: StubPageComponent },
+          { path: 'spot/:id', component: StubPageComponent },
         ]),
       ],
     }).compileComponents();
@@ -78,6 +79,31 @@ describe('NavBarComponent', () => {
 
     fixture.ngZone!.run(() => router.navigate(['/home']));
     tick();
+    fixture.detectChanges();
+    expect(activeLabels()).toEqual(['Home']);
+  }));
+
+  it('lights the Map link on a spot link too, and no other link', fakeAsync(() => {
+    fixture.detectChanges();
+    fixture.ngZone!.run(() => router.navigateByUrl('/spot/hbf-curb-99f6e5'));
+    tick();
+    fixture.detectChanges();
+    // Home and About carry no activeAlsoUnder, so they stay exact.
+    expect(activeLabels()).toEqual(['Map']);
+  }));
+
+  it('ignores the query string and fragment when lighting a link', fakeAsync(() => {
+    fixture.detectChanges();
+    fixture.ngZone!.run(() => router.navigateByUrl('/about?from=nav#team'));
+    tick();
+    fixture.detectChanges();
+    expect(activeLabels()).toEqual(['About']);
+  }));
+
+  it('lights the link for the route the app opened on, before any navigation of its own', fakeAsync(() => {
+    fixture.ngZone!.run(() => router.navigateByUrl('/home'));
+    tick();
+    // The nav is created only now, after the navigation has ended.
     fixture.detectChanges();
     expect(activeLabels()).toEqual(['Home']);
   }));
@@ -126,4 +152,81 @@ describe('NavBarComponent', () => {
     link('Map').dispatchEvent(new Event('touchstart', { bubbles: true }));
     // fakeAsync fails the test if any timer is still queued here.
   }));
+});
+
+/** The directive's frame period, in ms. */
+const FRAME = 80;
+
+/**
+ * Waits on real time. The class observer that stops a link's scramble when it loses `active`
+ * reports in a native microtask, which `fakeAsync` does not control, so this spec runs on real
+ * timers (as the directive's own route spec does).
+ */
+function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Creates the nav only once `show` is set, as the app shell does after the welcome intro, when the
+ * router's first navigation may long have ended.
+ */
+@Component({
+  imports: [NavBarComponent],
+  template: '@if (show()) { <app-nav-bar [links]="links" /> }',
+})
+class LateHostComponent {
+  readonly show = signal(false);
+  readonly links: NavBarLink[] = [
+    { name: 'Home', url: '/home', icon: '⌂' },
+    { name: 'Map', url: '/map', icon: '⌖', activeAlsoUnder: '/spot/' },
+    { name: 'About', url: '/about', icon: 'ⓘ' },
+  ];
+}
+
+describe('NavBarComponent created after the first navigation', () => {
+  let fixture: ComponentFixture<LateHostComponent>;
+  let router: Router;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [LateHostComponent],
+      providers: [
+        provideRouter([
+          { path: 'home', component: StubPageComponent },
+          { path: 'map', component: StubPageComponent },
+          { path: 'about', component: StubPageComponent },
+        ]),
+      ],
+    }).compileComponents();
+    fixture = TestBed.createComponent(LateHostComponent);
+    router = TestBed.inject(Router);
+  });
+
+  afterEach(() => fixture.destroy());
+
+  /** Every link's label as it reads now, in display order. */
+  function labels(): string[] {
+    const el = fixture.nativeElement as HTMLElement;
+    return Array.from(el.querySelectorAll('.nav-text')).map(
+      (text) => text.textContent ?? '',
+    );
+  }
+
+  it('keeps the active link’s label, and gives it back whole once the link is left', async () => {
+    // 0 rolls under the 15 % chance and picks '#' for every character, so a running frame shows.
+    spyOn(Math, 'random').and.returnValue(0);
+    fixture.detectChanges();
+    await router.navigateByUrl('/map');
+
+    fixture.componentInstance.show.set(true);
+    fixture.detectChanges();
+    await wait(FRAME * 2);
+    // Scrambled, glyph for glyph: three characters, not the empty label of the bug.
+    expect(labels()[1]).toBe('###');
+
+    await router.navigateByUrl('/home');
+    fixture.detectChanges();
+    await wait(FRAME * 2);
+    expect(labels()).toEqual(['####', 'Map', 'About']);
+  });
 });

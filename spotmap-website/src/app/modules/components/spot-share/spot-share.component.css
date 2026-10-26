@@ -1,0 +1,108 @@
+/* One plate in the detail's actions row; positioned, so the menu is placed against it. */
+:host {
+  position: relative;
+  display: inline-flex;
+}
+
+/* A thumb-height plate (styles.css `phosphor-bloom--plate`), set like the detail's DIRECTIONS. */
+.spot-share__trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-height: 44px;
+  padding: 10px 16px;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+/* Every label shares one cell: the hidden ones size it, the shown one crossfades. */
+.spot-share__label {
+  display: grid;
+}
+
+.spot-share__label > * {
+  grid-area: 1 / 1;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.spot-share__sizer {
+  visibility: hidden;
+}
+
+.spot-share__label-text {
+  transition: opacity var(--dur-fade) ease-out;
+}
+
+@starting-style {
+  .spot-share__label-text {
+    opacity: 0;
+  }
+}
+
+.spot-share__label-text--leaving {
+  opacity: 0;
+}
+
+/* A small panel against the trigger: surface, a deep-phosphor border and the pointer bloom's halo
+   (the hover tooltip's), 8 px from the trigger. It fades and rises 4 px in; the reduced-motion net
+   keeps the fade and drops the rise. */
+.spot-share__menu {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 8px);
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-sizing: border-box;
+  min-width: 100%;
+  padding: 8px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-phosphor-deep);
+  border-radius: var(--radius-md);
+  box-shadow: 0 0 14px rgba(0, 255, 0, 0.35);
+  transition:
+    opacity var(--dur-fast) ease-out,
+    translate var(--dur-fast) var(--ease-out-expo);
+}
+
+.spot-share__menu--above {
+  top: auto;
+  bottom: calc(100% + 8px);
+}
+
+@starting-style {
+  .spot-share__menu {
+    opacity: 0;
+    translate: 0 4px;
+  }
+}
+
+.spot-share__menu--leaving {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* The menu clips nothing but sits on a panel, so its items wear the inset bloom like list rows. */
+.spot-share__item {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 16px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}

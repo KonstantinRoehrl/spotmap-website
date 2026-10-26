@@ -17,7 +17,7 @@ export interface Rendition {
 /** The full-size rendition the gallery opens: long edge 1400 px, quality 72. */
 export const FULL_RENDITION: Rendition = { longEdgePx: 1400, quality: 72 };
 
-/** The popup's thumbnail: long edge 640 px, quality 70. */
+/** The thumbnail the list rows, photo pins and detail gallery show: long edge 640 px, quality 70. */
 export const THUMB_RENDITION: Rendition = { longEdgePx: 640, quality: 70 };
 
 /**

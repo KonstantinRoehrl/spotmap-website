@@ -5,7 +5,7 @@ import { InjectionToken } from '@angular/core';
  * publishable key and the base URL photo keys resolve under. The publishable key is public by
  * design — row-level security lets it read and nothing else — which is why it ships in the
  * bundle. Empty strings mean no backend is configured: the map serves the bundled snapshot only
- * and popups show no gallery, the site as it was before Phase 6.
+ * and the spot detail shows no gallery (nor do pins or list rows show photos), the site as it was before Phase 6.
  */
 export interface SpotmapBackend {
   /** The project URL without a trailing slash, e.g. `https://<ref>.supabase.co`; empty when unconfigured. */

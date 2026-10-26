@@ -6,10 +6,19 @@ import {
   effect,
   inject,
   input,
+  output,
   signal,
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { CityEnum } from '../../../models/enums/map-enum';
+import {
+  NO_INSETS,
+  type AttributionCorner,
+  type MapFocus,
+  type MapInsets,
+} from '../../../models/map/map-camera';
+import { SpotListCollection } from '../../../models/spots/spot';
+import type { ViewBounds } from '../../../models/spots/spots-in-view';
 import { PointerBloomDirective } from '../../directives/pointer-bloom.directive';
 import { MapLoaderComponent } from '../map-loader/map-loader.component';
 import { SpotMapComponent } from '../spot-map/spot-map.component';
@@ -47,6 +56,28 @@ function cityName(city: string): string {
 export class MapContainerComponent {
   /** The city whose map is shown; the instance is reused when it changes. */
   city = input.required<CityEnum>();
+
+  /** The spot the URL has open, handed to the map; see `SpotMapComponent.selectedId`. */
+  selectedId = input<string | null>(null);
+  /** The strips the page's UI covers, handed to the map; see `SpotMapComponent.coveredInsets`. */
+  coveredInsets = input<MapInsets>(NO_INSETS);
+  /** Where the next build opens; see `SpotMapComponent.openOn`. */
+  openOn = input<MapFocus | null>(null);
+  /** The attribution's corner; see `SpotMapComponent.attributionCorner`. */
+  attributionCorner = input<AttributionCorner>('bottom-right');
+  /** The spot a pointer or list row hovers, handed to the map; see `SpotMapComponent.hoveredId`. */
+  hoveredId = input<string | null>(null);
+
+  /** The pin under a hovering pointer, re-emitted from `SpotMapComponent.pinHover`. */
+  pinHover = output<string | null>();
+  /** The map's spots in the list shape, re-emitted from `SpotMapComponent.spotsLoaded`. */
+  spotsLoaded = output<SpotListCollection>();
+  /** A pin tap, re-emitted from `SpotMapComponent.spotClick`. */
+  spotClick = output<string>();
+  /** A tap on empty map, re-emitted from `SpotMapComponent.emptyClick`. */
+  emptyClick = output<void>();
+  /** The uncovered part of the map's bounds, re-emitted from `SpotMapComponent.boundsChange`. */
+  boundsChange = output<ViewBounds>();
 
   /** Bumped on each retry so the active renderer re-attempts from scratch. */
   protected readonly retryToken = signal(0);

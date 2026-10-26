@@ -4,32 +4,57 @@ import {
   provideHttpClientTesting,
   TestRequest,
 } from '@angular/common/http/testing';
-import { ApplicationRef } from '@angular/core';
+import { provideLocationMocks } from '@angular/common/testing';
+import { createEnvironmentInjector, EnvironmentInjector } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { CityEnum } from '../../../models/enums/map-enum';
-import type { MapLoadEvent } from '../../../models/map/map-load-event';
-import type { ElevationTiles } from './elevation';
 import {
-  ELEVATION_LOADER,
-  MAP_FACTORY,
-  POPUP_FACTORY,
-} from './map-factory.token';
-import { POPUP_MAX_HEIGHT_VAR } from './popup-fit';
-import { LOCK_ON_AT_REST_FILTER } from './spot-layers';
+  type AttributionCorner,
+  type MapFocus,
+  type MapInsets,
+  NO_INSETS,
+} from '../../../models/map/map-camera';
+import type { MapLoadEvent } from '../../../models/map/map-load-event';
+import { SpotListCollection } from '../../../models/spots/spot';
+import type { ViewBounds } from '../../../models/spots/spots-in-view';
+import {
+  FLAG_REACH_PX,
+  PIN_IMAGE_HEIGHT,
+  PIN_IMAGE_WIDTH,
+  RAISED_FRAME_HEIGHT,
+  RAISED_FRAME_WIDTH,
+  RAISED_STEM_PX,
+} from './photo-pins';
+import { FLAG_FADE_MS, FLAG_MOTION_MS, SYMBOL_FADE_MS } from './selection-flag';
+import { SELECTED_PIN_REACH_PX } from './selection-camera';
+import { SpotBrowserStore } from '../../pages/map/spot-browser.store';
+import type { ElevationTiles } from './elevation';
+import { ELEVATION_LOADER, MAP_FACTORY } from './map-factory.token';
+import {
+  SPOTMAP_BACKEND,
+  type SpotmapBackend,
+  UNCONFIGURED_BACKEND,
+} from '../../../services/spotmap-backend';
+import {
+  HAS_COVER,
+  LOCK_ON_AT_REST_FILTER,
+  photoPinFilter,
+  PIN_IMAGE_LIFT_PX,
+} from './spot-layers';
 import { SpotMapComponent } from './spot-map.component';
 import { BASEMAP_SOURCE_ID } from './terminal-map-style';
 import {
   addAttributionControl,
   buildAttributionControl,
-  CameraMove,
   COLLECTION,
   FakeMap,
-  FakePopup,
   holdAnimationFrames,
   LOCK_ON_AT_REST,
+  onlySpot,
+  requestHoverPointer,
   requestReducedMotion,
   setWidth,
-  stubResizeObserver,
   tapOn,
 } from './testing/fake-map';
 
@@ -42,7 +67,7 @@ const ELEVATION_TILES: ElevationTiles = {
   demMaxzoom: 14,
 };
 
-/** The terrain layers, each with the basemap layer it belongs under (spec §3.2). */
+/** The terrain layers, each with the basemap layer it belongs under. */
 const ELEVATION_LAYERS = [
   { id: 'hillshade', beforeId: 'landcover' },
   { id: 'contour-minor', beforeId: 'plaza' },
@@ -82,7 +107,6 @@ function loadMapLibreAttributionRules(): HTMLStyleElement {
 describe('SpotMapComponent', () => {
   let fixture: ComponentFixture<SpotMapComponent>;
   let fake: FakeMap;
-  let popups: FakePopup[];
   let httpMock: HttpTestingController;
   let getContext: jasmine.Spy;
   let loseContext: jasmine.Spy;
@@ -90,12 +114,14 @@ describe('SpotMapComponent', () => {
   let elevation: ElevationTiles | null;
   /** What the fake `ELEVATION_LOADER` hands back; resolves `elevation` unless a spec holds it. */
   let loadElevation: (demMaxzoom: number) => Promise<ElevationTiles | null>;
+  /** The backend `SPOTMAP_BACKEND` answers with; set before `create()`, which first reads it. */
+  let backend: SpotmapBackend;
 
   beforeEach(async () => {
     elevation = null;
+    backend = UNCONFIGURED_BACKEND;
     loadElevation = () => Promise.resolve(elevation);
     fake = new FakeMap();
-    popups = [];
     // Headless Chrome hands out no WebGL context, so the component's support probe is faked
     // here; the unsupported spec below drives the same spy to null.
     loseContext = jasmine.createSpy('loseContext');
@@ -117,14 +143,7 @@ describe('SpotMapComponent', () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         { provide: MAP_FACTORY, useValue: mapFactory },
-        {
-          provide: POPUP_FACTORY,
-          useValue: (options: FakePopup['options']) => {
-            const popup = new FakePopup(options, () => fixture.nativeElement);
-            popups.push(popup);
-            return Promise.resolve(popup);
-          },
-        },
+        { provide: SPOTMAP_BACKEND, useFactory: () => backend },
         {
           provide: ELEVATION_LOADER,
           useValue: (demMaxzoom: number) => loadElevation(demMaxzoom),
@@ -137,32 +156,39 @@ describe('SpotMapComponent', () => {
   async function create({
     city = CityEnum.Vienna,
     collection = COLLECTION,
-  }: { city?: CityEnum; collection?: object } = {}) {
+    selectedId = null,
+    insets = NO_INSETS,
+    openOn = null as MapFocus | null,
+    attributionCorner = 'bottom-right' as AttributionCorner,
+  }: {
+    city?: CityEnum;
+    collection?: object;
+    selectedId?: string | null;
+    insets?: MapInsets;
+    openOn?: MapFocus | null;
+    attributionCorner?: AttributionCorner;
+  } = {}) {
     fixture = TestBed.createComponent(SpotMapComponent);
-    // A laid-out host, so the popup's fit box and the popup itself have real sizes to measure.
+    // A laid-out host, so the canvas host has a real size.
     fixture.nativeElement.style.cssText =
       'display:block;width:1000px;height:600px;position:relative';
-    // The Karma frame is smaller than this host and earlier specs can leave content above it, so
-    // the visual viewport is pinned around the host: the fit box is then the host inset by its
-    // margin, whatever frame the suite runs in.
-    spyOnProperty(window, 'visualViewport').and.callFake(() => {
-      const host = (
-        fixture.nativeElement as HTMLElement
-      ).getBoundingClientRect();
-      return {
-        offsetLeft: host.left,
-        offsetTop: host.top,
-        width: host.width,
-        height: host.height,
-      } as VisualViewport;
-    });
     fixture.componentRef.setInput('city', city);
     fixture.componentRef.setInput('retryToken', 0);
+    fixture.componentRef.setInput('selectedId', selectedId);
+    fixture.componentRef.setInput('coveredInsets', insets);
+    fixture.componentRef.setInput('openOn', openOn);
+    fixture.componentRef.setInput('attributionCorner', attributionCorner);
     fixture.detectChanges();
     httpMock.expectOne(`spots/${city}.geojson`).flush(collection);
     await fixture.whenStable();
     fixture.detectChanges();
     return fixture.componentInstance;
+  }
+
+  /** Puts `id` in the URL's place, the way the page binds `selectedId`. */
+  function select(id: string | null) {
+    fixture.componentRef.setInput('selectedId', id);
+    fixture.detectChanges();
   }
 
   /** Re-arms the renderer the way the container's RETRY does, on a fresh map. */
@@ -187,25 +213,36 @@ describe('SpotMapComponent', () => {
     return resolve;
   }
 
+  /** Holds every animation frame the component asks for until the spec runs them. */
+  function captureFrames(): () => void {
+    const pending: FrameRequestCallback[] = [];
+    spyOn(window, 'requestAnimationFrame').and.callFake((callback) => {
+      pending.push(callback);
+      return pending.length;
+    });
+    spyOn(window, 'cancelAnimationFrame');
+    return () => {
+      for (const callback of pending.splice(0)) {
+        callback(performance.now());
+      }
+    };
+  }
+
+  /** Puts `id`'s pin under the pointer (`null`: empty map) as the map's feature query finds it. */
+  function pointerOver(id: string | null) {
+    fake.renderedPins = id === null ? [] : tapOn(id).features;
+  }
+
+  /** A tap on the pin of spot `id`, which the map reports as a plain map click with the pin under it. */
   async function tap(id: string) {
-    fake.emit('click', tapOn(id), 'spots-hit');
+    pointerOver(id);
+    fake.emit('click', { point: { x: 1, y: 1 } });
     await fixture.whenStable();
   }
 
-  /** The pans the component asked the map for, in order. */
-  function pansRequested(): CameraMove[] {
-    return fake.cameraMoves.filter((move) => move.method === 'panBy');
-  }
-
-  /** Lets every animation on the popup's container finish, and the component act on that. */
-  async function settleAnimations(popup: FakePopup | undefined) {
-    const element = popup?.getElement();
-    await Promise.all(
-      (element?.getAnimations() ?? []).map((animation) =>
-        animation.finished.catch(() => undefined),
-      ),
-    );
-    await fixture.whenStable();
+  /** The layers the last feature query under the pointer asked about. */
+  function queriedLayers(query: jasmine.Spy): string[] {
+    return query.calls.mostRecent().args[1].layers;
   }
 
   it('disables rotation so a two-finger gesture can only pan and zoom', async () => {
@@ -226,7 +263,7 @@ describe('SpotMapComponent', () => {
     expect(fake.bearing).toBe(0);
   });
 
-  it('adds the spot source and its pin layers', async () => {
+  it('adds the spot source, its pin layers, and the dot footprints last', async () => {
     await create();
     fake.emit('load');
     expect(fake.sources['spots']).toBeDefined();
@@ -237,9 +274,57 @@ describe('SpotMapComponent', () => {
       'spots-selected',
       'spots-lock-on',
       'spots-body',
+      'spots-hover',
       'spots-demolished-mark',
+      'spots-footprint',
     ]);
   });
+
+  /**
+   * Records the order the map is handed images and layers in, as `image:<id>` and `layer:<id>`,
+   * while still adding them to the fake.
+   */
+  function recordAdditions(): string[] {
+    const added: string[] = [];
+    const addImage = fake.addImage.bind(fake);
+    const addLayer = fake.addLayer.bind(fake);
+    spyOn(fake, 'addImage').and.callFake((id, image, options) => {
+      added.push(`image:${id}`);
+      return addImage(id, image, options);
+    });
+    spyOn(fake, 'addLayer').and.callFake((layer, beforeId) => {
+      added.push(`layer:${layer.id}`);
+      addLayer(layer, beforeId);
+    });
+    return added;
+  }
+
+  for (const photoHost of [false, true]) {
+    it(`adds the footprints’ transparent image, then their layer, on top of every other layer${photoHost ? ' with a photo host' : ''}`, async () => {
+      if (photoHost) {
+        backend = {
+          ...UNCONFIGURED_BACKEND,
+          photoBaseUrl: 'https://photos.test',
+        };
+      }
+      await create();
+      const added = recordAdditions();
+      fake.emit('load');
+      expect(added.slice(-2)).toEqual([
+        'image:spot-footprint',
+        'layer:spots-footprint',
+      ]);
+      expect(fake.layers.at(-1)?.id).toBe('spots-footprint');
+      const image = fake.images.get('spot-footprint')!;
+      expect([image.width, image.height]).toEqual([20, 20]);
+      expect(
+        Array.from(image.data).every((channel) => channel === 0),
+      ).toBeTrue();
+      expect(fake.imageOptions.get('spot-footprint')).toEqual({
+        pixelRatio: 1,
+      });
+    });
+  }
 
   it('draws the thumb target under the visible pin, not over it', async () => {
     await create();
@@ -339,6 +424,80 @@ describe('SpotMapComponent', () => {
     expect(attribution.classList).toContain('maplibregl-compact-show');
   });
 
+  describe('on a wide map whose uncovered strip is short', () => {
+    /** Gives the element a layout height, as {@link setWidth} gives it a width. */
+    function setHeight(host: HTMLElement, height: number): void {
+      Object.defineProperty(host, 'clientHeight', {
+        configurable: true,
+        value: height,
+      });
+    }
+
+    /** The insets of a sheet of `height` px over the bottom of the map. */
+    const sheet = (height: number): MapInsets => ({
+      top: 0,
+      right: 0,
+      bottom: height,
+      left: 0,
+    });
+
+    it('collapses the attribution on paint when the uncovered height is under the credits room', async () => {
+      await create({ insets: sheet(116) });
+      const host = fixture.nativeElement.querySelector('.spot-map__canvas');
+      setHeight(host, 232);
+      const attribution = addAttributionControl(host, 700);
+      fake.emit('load');
+      expect(attribution.classList).not.toContain('maplibregl-compact-show');
+    });
+
+    it('leaves the attribution open when the uncovered height is exactly the credits room', async () => {
+      await create({ insets: sheet(385) });
+      const host = fixture.nativeElement.querySelector('.spot-map__canvas');
+      setHeight(host, 625);
+      const attribution = addAttributionControl(host, 868);
+      fake.emit('load');
+      expect(attribution.classList).toContain('maplibregl-compact-show');
+    });
+
+    it('leaves the attribution open on a tall wide map with a sheet over part of it', async () => {
+      await create({ insets: sheet(313) });
+      const host = fixture.nativeElement.querySelector('.spot-map__canvas');
+      setHeight(host, 625);
+      const attribution = addAttributionControl(host, 868);
+      fake.emit('load');
+      expect(attribution.classList).toContain('maplibregl-compact-show');
+    });
+
+    it('collapses the attribution when a tall wide map is resized to a short uncovered height', async () => {
+      await create({ insets: sheet(313) });
+      const host = fixture.nativeElement.querySelector('.spot-map__canvas');
+      setHeight(host, 625);
+      const attribution = addAttributionControl(host, 868);
+      fake.emit('load');
+      expect(attribution.classList).toContain('maplibregl-compact-show');
+      setHeight(host, 232);
+      setWidth(host, 700);
+      fixture.componentRef.setInput('coveredInsets', sheet(116));
+      fixture.detectChanges();
+      fake.emit('resize');
+      expect(attribution.classList).not.toContain('maplibregl-compact-show');
+    });
+
+    it('does not close the attribution again on a resize while the uncovered height stays short', async () => {
+      await create({ insets: sheet(116) });
+      const host = fixture.nativeElement.querySelector('.spot-map__canvas');
+      setHeight(host, 232);
+      const attribution = addAttributionControl(host, 700);
+      fake.emit('load');
+      // The visitor taps the info button open; a later resize that leaves the strip short is not
+      // a reason to shut it on them.
+      attribution.classList.add('maplibregl-compact-show');
+      setHeight(host, 236);
+      fake.emit('resize');
+      expect(attribution.classList).toContain('maplibregl-compact-show');
+    });
+  });
+
   it('leaves the attribution open on a map wide enough to spare the room', async () => {
     await create();
     const attribution = addAttributionControl(
@@ -347,117 +506,6 @@ describe('SpotMapComponent', () => {
     );
     fake.emit('load');
     expect(attribution.classList).toContain('maplibregl-compact-show');
-  });
-
-  describe('the attribution control along the bottom of the map', () => {
-    /** Runs the animation frame the resize asked the re-fit for. */
-    function runRefitFrame() {
-      const frames = window.requestAnimationFrame as jasmine.Spy;
-      (frames.calls.mostRecent().args[0] as FrameRequestCallback)(0);
-    }
-
-    /**
-     * Stands the control in at the map's bottom-right corner, `height` tall: the open bar on a
-     * desktop map, or the info button on a phone. Its box is real, so the component measures it.
-     */
-    function placeAttribution(height: number): HTMLElement {
-      const attribution = addAttributionControl(
-        fixture.nativeElement.querySelector('.spot-map__canvas'),
-        1000,
-      );
-      setAttributionHeight(attribution, height);
-      return attribution;
-    }
-
-    function setAttributionHeight(attribution: HTMLElement, height: number) {
-      attribution.style.cssText = `display:block;position:absolute;right:0;bottom:0;width:200px;height:${height}px`;
-    }
-
-    /** The height cap the popup was fitted to: the visible map less its margins and the tip. */
-    function popupMaxHeight(): number {
-      return parseFloat(
-        popups[0]?.getElement().style.getPropertyValue(POPUP_MAX_HEIGHT_VAR) ??
-          '',
-      );
-    }
-
-    it('fits the popup to the whole frame when the control is not there', async () => {
-      requestReducedMotion(false);
-      await create();
-      fake.emit('load');
-      await tap('a');
-      // 600 px frame, less a 16 px margin each side and the 10 px tip.
-      expect(popupMaxHeight()).toBe(558);
-    });
-
-    it('keeps the popup above the control, which takes its strip out of the visible map', async () => {
-      requestReducedMotion(false);
-      await create();
-      placeAttribution(78);
-      fake.emit('load');
-      await tap('a');
-      // The 78 px strip comes off the bottom: 558 - 78.
-      expect(popupMaxHeight()).toBe(480);
-    });
-
-    it('pans a pin near the bottom up until its popup and tip clear the control', async () => {
-      requestReducedMotion(false);
-      await create();
-      placeAttribution(78);
-      fake.emit('load');
-      fake.projected = { x: 500, y: 540 };
-      await tap('a');
-      // The pin sits 34 px below the fit box's bottom edge at 506 (600 - 78 - 16).
-      expect(pansRequested().length).toBe(1);
-      expect(pansRequested()[0]?.options.offset).toEqual([0, 34]);
-    });
-
-    it('reserves only the info button on a phone map, where the control is collapsed', async () => {
-      requestReducedMotion(false);
-      await create();
-      placeAttribution(29);
-      fake.emit('load');
-      await tap('a');
-      expect(popupMaxHeight()).toBe(558 - 29);
-    });
-
-    it('re-fits the popup when the control changes size, then pans it clear of the bar', async () => {
-      requestReducedMotion(false);
-      holdAnimationFrames();
-      const observers = stubResizeObserver();
-      await create();
-      const attribution = placeAttribution(29);
-      fake.emit('load');
-      fake.projected = { x: 500, y: 540 };
-      await tap('a');
-      expect(pansRequested())
-        .withContext('the collapsed button leaves room for the popup')
-        .toEqual([]);
-      const watcher = observers.find((observer) =>
-        observer.observed.includes(attribution),
-      );
-      expect(watcher).withContext('the control is watched').toBeDefined();
-
-      // The observer reports once when it starts watching; only a later report is a change.
-      watcher?.report();
-      setAttributionHeight(attribution, 78);
-      watcher?.report();
-      runRefitFrame();
-      expect(pansRequested().length).toBe(1);
-      expect(pansRequested()[0]?.options.offset).toEqual([0, 34]);
-    });
-
-    it('stops watching the control when the component is destroyed', async () => {
-      const observers = stubResizeObserver();
-      await create();
-      const attribution = placeAttribution(29);
-      fake.emit('load');
-      const watcher = observers.find((observer) =>
-        observer.observed.includes(attribution),
-      );
-      fixture.destroy();
-      expect(watcher?.disconnect).toHaveBeenCalled();
-    });
   });
 
   for (const corner of ['bottom-right', 'bottom-left'] as const) {
@@ -719,7 +767,111 @@ describe('SpotMapComponent', () => {
     fixture.detectChanges();
     await fixture.whenStable();
     expect(failed).toHaveBeenCalledWith('unsupported');
-    httpMock.expectNone('spots/vienna.geojson');
+    expect(mapFactory).not.toHaveBeenCalled();
+  });
+
+  it('still reports the spot list on a browser without WebGL, so the list works beside the failure chrome', async () => {
+    getContext.and.returnValue(null);
+    fixture = TestBed.createComponent(SpotMapComponent);
+    fixture.componentRef.setInput('city', CityEnum.Vienna);
+    fixture.componentRef.setInput('retryToken', 0);
+    const failed = jasmine.createSpy('failed');
+    const loaded: SpotListCollection[] = [];
+    const events: MapLoadEvent[] = [];
+    fixture.componentInstance.failed.subscribe(failed);
+    fixture.componentInstance.spotsLoaded.subscribe((c) => loaded.push(c));
+    fixture.componentInstance.loadEvent.subscribe((e) => events.push(e));
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(failed)
+      .withContext('no waiting on the network')
+      .toHaveBeenCalledWith('unsupported');
+    const requests = httpMock.match('spots/vienna.geojson');
+    expect(requests.length).toBe(1);
+    requests[0]?.flush(COLLECTION);
+    // Lets the spot list's promise chain settle: `whenStable()` does not wait for it.
+    await new Promise((resolve) => setTimeout(resolve));
+    expect(loaded.length).toBe(1);
+    expect(loaded[0]?.features.map((f) => f.properties.id)).toEqual(['a', 'b']);
+    expect(events.map((e) => e.kind)).toContain('spots-done');
+    expect(mapFactory).not.toHaveBeenCalled();
+  });
+
+  describe('the spot list beside a map that cannot paint', () => {
+    /** Both spots of {@link COLLECTION}, A–Z, as the list shows them. */
+    const ALL_SPOT_IDS = ['a', 'b'];
+
+    let pageInjector: EnvironmentInjector;
+
+    afterEach(() => pageInjector.destroy());
+
+    /**
+     * Wires `component` to a page store the way the map page's template does — `spotsLoaded` into
+     * `setList`, `boundsChange` into `setBounds` — so a spec reads what a visitor's list would show.
+     */
+    function listOf(component: SpotMapComponent): () => string[] | null {
+      pageInjector = createEnvironmentInjector(
+        [provideRouter([]), provideLocationMocks(), SpotBrowserStore],
+        TestBed.inject(EnvironmentInjector),
+      );
+      const store = pageInjector.get(SpotBrowserStore);
+      component.spotsLoaded.subscribe((list) => store.setList(list));
+      component.boundsChange.subscribe((bounds) => store.setBounds(bounds));
+      return () =>
+        store.shownSpots()?.map((spot) => spot.properties.id) ?? null;
+    }
+
+    /** Starts a build the spec has wired to a store, with its spots request unanswered. */
+    function startBuild() {
+      fixture = TestBed.createComponent(SpotMapComponent);
+      fixture.componentRef.setInput('city', CityEnum.Vienna);
+      fixture.componentRef.setInput('retryToken', 0);
+      const shown = listOf(fixture.componentInstance);
+      fixture.detectChanges();
+      return shown;
+    }
+
+    /** Answers the unanswered spots request and lets the build's promise chain settle. */
+    async function answerSpots() {
+      httpMock.expectOne('spots/vienna.geojson').flush(COLLECTION);
+      await fixture.whenStable();
+      await new Promise((resolve) => setTimeout(resolve));
+    }
+
+    it('lists every spot when the browser has no WebGL, as no spot is out of view of a map that is not there', async () => {
+      getContext.and.returnValue(null);
+      const shown = startBuild();
+      await answerSpots();
+      expect(shown()).toEqual(ALL_SPOT_IDS);
+    });
+
+    it('lists every spot when the map is refused after the spots arrived', async () => {
+      spyOn(console, 'error');
+      mapFactory.and.callFake(() => Promise.reject(new Error('no context')));
+      const shown = startBuild();
+      await answerSpots();
+      expect(shown()).toEqual(ALL_SPOT_IDS);
+    });
+
+    it('lists every spot when the basemap dies before the map paints', async () => {
+      const shown = startBuild();
+      await answerSpots();
+      expect(shown()).withContext('no view known yet').toBeNull();
+      fake.failBasemapSource();
+      expect(shown()).toEqual(ALL_SPOT_IDS);
+    });
+
+    it('keeps the list a painted map shows when a late error names a dead source', async () => {
+      const shown = startBuild();
+      await answerSpots();
+      fake.emit('load');
+      const inView = shown();
+      expect(inView)
+        .withContext('the fake map’s view holds no spot')
+        .toEqual([]);
+      fake.failBasemapSource();
+      expect(shown()).toEqual(inView);
+    });
   });
 
   it('fails as unsupported on a browser whose WebGL stops at version 1', async () => {
@@ -745,7 +897,6 @@ describe('SpotMapComponent', () => {
     await fixture.whenStable();
     expect(failed).toHaveBeenCalledWith('unsupported');
     expect(mapFactory).not.toHaveBeenCalled();
-    httpMock.expectNone('spots/vienna.geojson');
   });
 
   it('reports a map whose renderer never arrives as unreachable', async () => {
@@ -893,22 +1044,7 @@ describe('SpotMapComponent', () => {
     });
   });
 
-  describe('a resize while the visitor holds the map', () => {
-    it('forgets a finger left on the map of an earlier build', async () => {
-      requestReducedMotion(false);
-      holdAnimationFrames();
-      await create();
-      fake.emit('load');
-      fake.grab();
-      await retry(1);
-      fake.emit('load');
-      fake.projected = { x: 20, y: 500 };
-      await tap('a');
-      expect(pansRequested().length)
-        .withContext('nothing holds the rebuilt map, so the popup is panned in')
-        .toBe(1);
-    });
-
+  describe('the visitor’s hold on the map', () => {
     it('stops listening for pointers once the component is destroyed', async () => {
       await create();
       const removed = spyOn(window, 'removeEventListener').and.callThrough();
@@ -926,122 +1062,249 @@ describe('SpotMapComponent', () => {
     });
   });
 
-  it('never fits or reveals a popup that was waiting for the camera when the map is torn down', async () => {
-    requestReducedMotion(false);
-    await create();
-    fake.emit('load');
-    fake.projected = { x: 20, y: 500 };
-    await tap('a');
-    await tap('b');
-    const waiting = popups[1];
-    fixture.destroy();
-    fake.emit('moveend');
-    expect(waiting?.removed).toBe(true);
-    expect(waiting?.getElement().getAnimations().length).toBe(0);
-    expect(pansRequested().length)
-      .withContext('no pan after the teardown')
-      .toBe(1);
-    expect(TestBed.inject(ApplicationRef).viewCount).toBe(0);
-  });
-
-  it('opens the tapped pin’s popup through the map’s pin click handler', async () => {
-    await create();
-    fake.emit('load');
-    await tap('a');
-    expect(popups.length).toBe(1);
-    expect(popups[0]?.addedTo === fake)
-      .withContext('the popup went on the live map')
-      .toBe(true);
-    expect(fake.featureStates['a']?.['selected']).toBe(true);
-  });
-
-  it('closes on a map click that misses every pin, not on one that hits a pin', async () => {
-    await create();
-    fake.emit('load');
-    await tap('a');
-    fake.renderedPins = [{}];
-    fake.emit('click', { point: { x: 1, y: 1 } });
-    expect(fake.featureStates['a']?.['selected'])
-      .withContext("a click on a pin is that pin's to handle")
-      .toBe(true);
-    fake.renderedPins = [];
-    fake.emit('click', { point: { x: 1, y: 1 } });
-    expect(fake.featureStates['a']?.['selected']).toBeUndefined();
-    await settleAnimations(popups[0]);
-    expect(popups[0]?.removed).toBe(true);
-  });
-
-  it('closes a popup still waiting for the camera on a map click that misses every pin, never fitting or revealing it', async () => {
-    await create();
-    fake.emit('load');
-    // The camera is mid-move, so the tapped pin's popup waits hidden for it to settle.
-    fake.startMove();
-    await tap('a');
-    expect(popups[0]?.isPending())
-      .withContext('waiting for the camera')
-      .toBe(true);
-    fake.renderedPins = [];
-    fake.emit('click', { point: { x: 1, y: 1 } });
-    expect(fake.featureStates['a']?.['selected'])
-      .withContext('the click closed the waiting popup')
-      .toBeUndefined();
-    await fixture.whenStable();
-    expect(popups[0]?.removed).toBe(true);
-    fake.emit('moveend');
-    expect(popups[0]?.getElement().getAnimations().length)
-      .withContext('never revealed')
-      .toBe(0);
-    expect(popups[0]?.getElement().style.getPropertyValue(POPUP_MAX_HEIGHT_VAR))
-      .withContext('never fitted')
-      .toBe('');
-    expect(pansRequested()).toEqual([]);
-  });
-
-  it('removes every popup at once on teardown, a failure or a city switch', async () => {
-    await create();
-    fake.emit('load');
-    await tap('a');
-    popups[0]?.content
-      ?.querySelector<HTMLElement>('.spot-popup__close')
-      ?.click();
-    await tap('b');
-    expect(popups[0]?.removed).withContext('a is still closing').toBe(false);
-    fake = new FakeMap();
-    fixture.componentRef.setInput('retryToken', 1);
-    fixture.detectChanges();
-    expect(popups.map((popup) => popup.removed)).toEqual([true, true]);
-    httpMock.expectOne('spots/vienna.geojson').flush(COLLECTION);
-    await fixture.whenStable();
-  });
-
-  it('re-fits once per frame however many resizes arrive', async () => {
-    holdAnimationFrames();
-    await create();
-    fake.emit('load');
-    const frames = window.requestAnimationFrame as jasmine.Spy;
-    frames.calls.reset();
-    fake.emit('resize');
-    fake.emit('resize');
-    fake.emit('resize');
-    expect(frames).toHaveBeenCalledTimes(1);
-  });
-
-  it('destroys the popup and its view on destroy', async () => {
-    await create();
-    fake.emit('load');
-    await tap('a');
-    fixture.destroy();
-    expect(popups[0]?.removed).toBe(true);
-    expect(TestBed.inject(ApplicationRef).viewCount).toBe(0);
-  });
-
   it('marks the pins as pointer targets while the cursor is over one', async () => {
     await create();
     fake.emit('load');
-    fake.emit('mouseenter', undefined, 'spots-hit');
+    pointerOver('a');
+    fake.emit('mousemove', { point: { x: 1, y: 1 } });
     expect(fake.canvas.style.cursor).toBe('pointer');
-    fake.emit('mouseleave', undefined, 'spots-hit');
+    pointerOver(null);
+    fake.emit('mousemove', { point: { x: 1, y: 1 } });
     expect(fake.canvas.style.cursor).toBe('');
+    pointerOver('a');
+    fake.emit('mousemove', { point: { x: 1, y: 1 } });
+    fake.emit('mouseout');
+    expect(fake.canvas.style.cursor).toBe('');
+  });
+
+  describe('pins drawn as photos', () => {
+    beforeEach(() => {
+      backend = {
+        ...UNCONFIGURED_BACKEND,
+        photoBaseUrl: 'https://photos.test',
+      };
+    });
+
+    it('takes a tap on another spot’s photo as a switch to that spot, never as an empty tap', async () => {
+      const c = await create({ selectedId: 'a' });
+      fake.emit('load');
+      const clicks: string[] = [];
+      const empty = jasmine.createSpy('emptyClick');
+      c.spotClick.subscribe((id) => clicks.push(id));
+      c.emptyClick.subscribe(empty);
+      fake.placedPhotos = [{ id: 'b', properties: { id: 'b' } }];
+      fake.emit('click', { point: { x: 1, y: 1 } });
+      expect(clicks).toEqual(['b']);
+      expect(empty).not.toHaveBeenCalled();
+    });
+
+    it('gives the pointer cursor and the hover over a photo', async () => {
+      requestHoverPointer(true);
+      const c = await create();
+      fake.emit('load');
+      const hovers: (string | null)[] = [];
+      c.pinHover.subscribe((id) => hovers.push(id));
+      fake.placedPhotos = [{ id: 'b', properties: { id: 'b' } }];
+      fake.emit('mousemove', { point: { x: 1, y: 1 } });
+      expect(fake.canvas.style.cursor).toBe('pointer');
+      expect(hovers).toEqual(['b']);
+    });
+
+    describe('a dot that shows through the transparent stem band of a neighbour’s photo frame', () => {
+      /** Spot `a`'s pin, with its photo frame standing above it. */
+      const FRAMED_PIN = { x: 500, y: 300 };
+      /**
+       * Spot `b`'s dot, 12 px above `a`'s pin: inside the 8 px stem band at the foot of the frame's
+       * icon box, which the photo layer reports as hit although nothing opaque is drawn there.
+       */
+      const DOT_IN_STEM_BAND = { x: 500, y: 288 };
+      /** Spot `b`'s dot behind the frame's body, hidden by it. */
+      const DOT_UNDER_BODY = { x: 500, y: 270 };
+
+      /** Both spots on screen, `a` framed as a photo, and `b`'s dot at `dot`. */
+      async function frameWithDotAt(dot: { x: number; y: number }) {
+        const c = await create();
+        fake.emit('load');
+        fake.projectedAt = ([lng]) => (lng === 16.37 ? FRAMED_PIN : dot);
+        fake.placedPhotos = [{ id: 'a', properties: { id: 'a' } }];
+        // Both thumb targets reach the pointer: they are 22 px circles round each pin.
+        fake.renderedPins = [...tapOn('a').features, ...tapOn('b').features];
+        return c;
+      }
+
+      it('opens the dot’s spot, not the frame’s', async () => {
+        const c = await frameWithDotAt(DOT_IN_STEM_BAND);
+        const clicks: string[] = [];
+        c.spotClick.subscribe((id) => clicks.push(id));
+        fake.emit('click', { point: DOT_IN_STEM_BAND });
+        expect(clicks).toEqual(['b']);
+      });
+
+      it('hovers the dot’s spot, not the frame’s', async () => {
+        requestHoverPointer(true);
+        const c = await frameWithDotAt(DOT_IN_STEM_BAND);
+        const hovers: (string | null)[] = [];
+        c.pinHover.subscribe((id) => hovers.push(id));
+        fake.emit('mousemove', { point: DOT_IN_STEM_BAND });
+        expect(hovers).toEqual(['b']);
+      });
+
+      it('still opens the frame’s spot where its opaque body hides a dot', async () => {
+        const c = await frameWithDotAt(DOT_UNDER_BODY);
+        const clicks: string[] = [];
+        c.spotClick.subscribe((id) => clicks.push(id));
+        fake.emit('click', { point: DOT_UNDER_BODY });
+        expect(clicks).toEqual(['a']);
+      });
+
+      it('opens the frame’s own spot from its own stem band', async () => {
+        const c = await frameWithDotAt(DOT_UNDER_BODY);
+        const clicks: string[] = [];
+        c.spotClick.subscribe((id) => clicks.push(id));
+        // 12 px above `a`'s pin, in the band, with `b`'s dot a long way off.
+        fake.emit('click', { point: { x: 500, y: 288 } });
+        expect(clicks).toEqual(['a']);
+      });
+    });
+
+    it('asks about the photo pins as well as the thumb target', async () => {
+      await create();
+      fake.emit('load');
+      const query = spyOn(fake, 'queryRenderedFeatures').and.callThrough();
+      fake.emit('click', { point: { x: 1, y: 1 } });
+      expect(queriedLayers(query)).toEqual(
+        jasmine.arrayWithExactContents(['spots-hit', 'spots-photo']),
+      );
+    });
+  });
+
+  it('asks only about the thumb target when there are no photo layers to ask about', async () => {
+    await create();
+    fake.emit('load');
+    const query = spyOn(fake, 'queryRenderedFeatures').and.callThrough();
+    fake.emit('click', { point: { x: 1, y: 1 } });
+    expect(queriedLayers(query)).toEqual(['spots-hit']);
+  });
+
+  describe('the selection', () => {
+    it('reports a pin tap as a spotClick and selects nothing by itself', async () => {
+      const c = await create();
+      fake.emit('load');
+      const clicks: string[] = [];
+      c.spotClick.subscribe((id) => clicks.push(id));
+      await tap('a');
+      expect(clicks).toEqual(['a']);
+      expect(fake.featureStates['a']).toBeUndefined();
+    });
+
+    it('selects the pin selectedId names, with the lock-on pulse', async () => {
+      requestReducedMotion(false);
+      holdAnimationFrames();
+      await create();
+      fake.emit('load');
+      select('a');
+      expect(fake.featureStates['a']?.['selected']).toBe(true);
+      expect(fake.lastLockOnFilter()).toEqual(onlySpot('a'));
+    });
+
+    it('moves the selection when selectedId changes, and clears it on null', async () => {
+      requestReducedMotion(false);
+      holdAnimationFrames();
+      await create();
+      fake.emit('load');
+      select('a');
+      select('b');
+      expect(fake.featureStates['a']?.['selected']).toBeUndefined();
+      expect(fake.featureStates['b']?.['selected']).toBe(true);
+      select(null);
+      expect(fake.featureStates['b']?.['selected']).toBeUndefined();
+      expect(fake.lastLockOnFilter()).toBe(LOCK_ON_AT_REST_FILTER);
+    });
+
+    it('waits for the pins before it selects, then shows a selection the map was built with without the pulse', async () => {
+      requestReducedMotion(false);
+      holdAnimationFrames();
+      await create({ selectedId: 'b' });
+      expect(fake.featureStates['b'])
+        .withContext('no spot source before load')
+        .toBeUndefined();
+      fake.emit('load');
+      expect(fake.featureStates['b']?.['selected']).toBe(true);
+      expect(fake.filterCalls.filter((call) => call.layer === 'spots-lock-on'))
+        .withContext('a shared link or a rebuild is no tap: no lock-on')
+        .toEqual([]);
+    });
+
+    it('reports a map click that misses every pin as emptyClick, and not one on a pin', async () => {
+      const c = await create();
+      fake.emit('load');
+      const empty = jasmine.createSpy('emptyClick');
+      c.emptyClick.subscribe(empty);
+      fake.renderedPins = [{}];
+      fake.emit('click', { point: { x: 1, y: 1 } });
+      expect(empty).withContext('a click on a pin').not.toHaveBeenCalled();
+      fake.renderedPins = [];
+      fake.emit('click', { point: { x: 1, y: 1 } });
+      expect(empty).toHaveBeenCalledTimes(1);
+    });
+
+    it('reports the loaded spots in the list shape before the map paints, and feeds the pins that shape', async () => {
+      fixture = TestBed.createComponent(SpotMapComponent);
+      const loaded: SpotListCollection[] = [];
+      fixture.componentInstance.spotsLoaded.subscribe((c) => loaded.push(c));
+      fixture.componentRef.setInput('city', CityEnum.Vienna);
+      fixture.componentRef.setInput('retryToken', 0);
+      fixture.detectChanges();
+      httpMock.expectOne('spots/vienna.geojson').flush(COLLECTION);
+      await fixture.whenStable();
+      const expected: SpotListCollection = {
+        type: 'FeatureCollection',
+        features: [
+          {
+            type: 'Feature',
+            geometry: { type: 'Point', coordinates: [16.37, 48.2] },
+            properties: {
+              id: 'a',
+              name: 'Alpha Bank',
+              status: 'active',
+              cover: 'spots/vienna/a-1.webp',
+              photoCount: 1,
+            },
+          },
+          {
+            type: 'Feature',
+            geometry: { type: 'Point', coordinates: [16.4, 48.22] },
+            properties: {
+              id: 'b',
+              name: 'Beta Ledge',
+              status: 'demolished',
+              cover: 'spots/vienna/b-1.webp',
+              photoCount: 1,
+            },
+          },
+        ],
+      };
+      expect(loaded).toEqual([expected]);
+      fake.emit('load');
+      expect((fake.sources['spots'] as { data: unknown }).data).toEqual(
+        expected,
+      );
+    });
+
+    it('reports only the spots of the build a city switch left standing', async () => {
+      fixture = TestBed.createComponent(SpotMapComponent);
+      const loaded: SpotListCollection[] = [];
+      fixture.componentInstance.spotsLoaded.subscribe((c) => loaded.push(c));
+      fixture.componentRef.setInput('city', CityEnum.Vienna);
+      fixture.componentRef.setInput('retryToken', 0);
+      fixture.detectChanges();
+      httpMock.expectOne('spots/vienna.geojson');
+      fixture.componentRef.setInput('city', CityEnum.Graz);
+      fixture.detectChanges();
+      httpMock.expectOne('spots/graz.geojson').flush(COLLECTION);
+      await fixture.whenStable();
+      expect(loaded.length).toBe(1);
+    });
   });
 
   it('builds and paints a flat map when elevation is unavailable', async () => {
@@ -1218,7 +1481,7 @@ describe('SpotMapComponent', () => {
     const cancelFrame = holdAnimationFrames();
     await create();
     fake.emit('load');
-    await tap('a');
+    select('a');
     fixture.destroy();
     expect(cancelFrame).toHaveBeenCalled();
     expect(fake.paintCallsAfterRemoval)
@@ -1334,6 +1597,788 @@ describe('SpotMapComponent', () => {
       await retry(1);
       old.drawPins();
       expect(ready).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('the camera and the visible bounds', () => {
+    /** The 1000 × 600 host's bottom 510 px, covered by a phone's sheet at detail height. */
+    const SHEET_INSETS = { top: 0, right: 0, bottom: 510, left: 0 };
+    const eases = () =>
+      fake.cameraMoves.filter((move) => move.method === 'easeTo');
+
+    it('reports the uncovered bounds when the map paints', async () => {
+      const c = await create({
+        insets: { top: 0, right: 0, bottom: 200, left: 0 },
+      });
+      const bounds: ViewBounds[] = [];
+      c.boundsChange.subscribe((b) => bounds.push(b));
+      fake.emit('load');
+      expect(bounds.length).toBe(1);
+      expect(bounds[0]).toEqual(
+        jasmine.objectContaining({ west: 0, north: 50, east: 1 }),
+      );
+      expect(bounds[0]?.south).toBeCloseTo(49.6, 9);
+    });
+
+    it('reports the bounds at most once a frame while the map moves', async () => {
+      const runFrames = captureFrames();
+      const c = await create();
+      fake.emit('load');
+      const bounds: ViewBounds[] = [];
+      c.boundsChange.subscribe((b) => bounds.push(b));
+      fake.emit('move');
+      fake.emit('move');
+      fake.emit('move');
+      runFrames();
+      expect(bounds.length).toBe(1);
+    });
+
+    it('reports new bounds when the covered strip changes', async () => {
+      const runFrames = captureFrames();
+      const c = await create();
+      fake.emit('load');
+      const bounds: ViewBounds[] = [];
+      c.boundsChange.subscribe((b) => bounds.push(b));
+      fixture.componentRef.setInput('coveredInsets', {
+        top: 0,
+        right: 0,
+        bottom: 300,
+        left: 0,
+      });
+      fixture.detectChanges();
+      runFrames();
+      expect(bounds.at(-1)?.south).toBeCloseTo(49.7, 9);
+    });
+
+    it('reports nothing from a build a retry replaced', async () => {
+      const runFrames = captureFrames();
+      const c = await create();
+      fake.emit('load');
+      const old = fake;
+      const bounds: ViewBounds[] = [];
+      c.boundsChange.subscribe((b) => bounds.push(b));
+      await retry(1);
+      old.emit('move');
+      runFrames();
+      expect(bounds).toEqual([]);
+    });
+
+    it('cancels a pending bounds frame on teardown', async () => {
+      captureFrames();
+      await create();
+      fake.emit('load');
+      fake.emit('move');
+      fixture.destroy();
+      expect(window.cancelAnimationFrame).toHaveBeenCalled();
+    });
+
+    it('eases a pin opened under a phone’s sheet into the strip above it', async () => {
+      requestReducedMotion(false);
+      holdAnimationFrames();
+      await create({ insets: SHEET_INSETS });
+      fake.emit('load');
+      select('a');
+      expect(eases().at(-1)?.options).toEqual(
+        jasmine.objectContaining({
+          center: [16.37, 48.2],
+          offset: [0, -255],
+          duration: 330,
+        }),
+      );
+    });
+
+    it('keeps a phone’s map still for a pin already in the strip above the sheet', async () => {
+      requestReducedMotion(false);
+      holdAnimationFrames();
+      // A sheet at half the 600 px map leaves a 300 px strip; the pin sits in its middle.
+      await create({ insets: { top: 0, right: 0, bottom: 300, left: 0 } });
+      fake.emit('load');
+      fake.projected = { x: 500, y: 150 };
+      select('a');
+      expect(eases()).toEqual([]);
+      fake.projected = { x: 500, y: 290 };
+      select('b');
+      expect(eases().length)
+        .withContext('a pin at the sheet’s edge is revealed')
+        .toBe(1);
+    });
+
+    it('moves a wide map only for a pin off screen', async () => {
+      requestReducedMotion(false);
+      holdAnimationFrames();
+      await create();
+      fake.emit('load');
+      fake.projected = { x: 500, y: 300 };
+      select('a');
+      expect(eases()).withContext('the pin was in view').toEqual([]);
+      fake.projected = { x: 20, y: 300 };
+      select('b');
+      expect(eases().length).toBe(1);
+    });
+
+    it('leaves the camera where it is when a spot closes, however the camera moved while it was open', async () => {
+      requestReducedMotion(false);
+      holdAnimationFrames();
+      await create({ insets: SHEET_INSETS });
+      fake.emit('load');
+      select('a');
+      select('b');
+      const before = eases().length;
+      // The visitor pans and zooms with the spot open.
+      fake.center = { lng: 16.41, lat: 48.25 };
+      fake.zoom = 14;
+      select(null);
+      expect(eases().length)
+        .withContext('closing a spot issues no camera move')
+        .toBe(before);
+    });
+
+    it('leaves a wide map where it is when a spot closes', async () => {
+      requestReducedMotion(false);
+      holdAnimationFrames();
+      await create();
+      fake.emit('load');
+      fake.projected = { x: 500, y: 300 };
+      select('a');
+      fake.center = { lng: 16.41, lat: 48.25 };
+      fake.zoom = 14;
+      const before = eases().length;
+      select(null);
+      expect(eases().length).toBe(before);
+    });
+
+    it('does not re-centre on a change detection that leaves the frame as it was', async () => {
+      requestReducedMotion(false);
+      holdAnimationFrames();
+      await create({ insets: SHEET_INSETS });
+      fake.emit('load');
+      select('a');
+      const count = eases().length;
+      fixture.componentRef.setInput('coveredInsets', { ...SHEET_INSETS });
+      fixture.detectChanges();
+      expect(eases().length).toBe(count);
+    });
+
+    it('builds a cold-opened map on the spot, jumps the pin into the strip', async () => {
+      requestReducedMotion(false);
+      holdAnimationFrames();
+      await create({
+        selectedId: 'a',
+        openOn: { center: [16.37, 48.2], zoom: 16 },
+        insets: SHEET_INSETS,
+      });
+      const options = mapFactory.calls.mostRecent().args[0];
+      expect(options).toEqual(
+        jasmine.objectContaining({ center: [16.37, 48.2], zoom: 16 }),
+      );
+      expect(options.bounds).toBeUndefined();
+      expect(options.fitBoundsOptions).toBeUndefined();
+      fake.emit('load');
+      expect(eases()).toEqual([
+        jasmine.objectContaining({
+          method: 'easeTo',
+          options: jasmine.objectContaining({ offset: [0, -255], duration: 0 }),
+        }),
+      ]);
+      select(null);
+      expect(eases().length).withContext('nothing to go back to').toBe(1);
+    });
+
+    it('never eases a map the visitor holds', async () => {
+      requestReducedMotion(false);
+      holdAnimationFrames();
+      await create({ insets: SHEET_INSETS });
+      fake.emit('load');
+      fake.touchDown();
+      select('a');
+      expect(eases()).toEqual([]);
+    });
+
+    it('moves the attribution to the top-right corner on the sheet layout', async () => {
+      await create({ attributionCorner: 'top-right' });
+      const host = fixture.nativeElement as HTMLElement;
+      expect(host.classList).toContain('spot-map--attribution-top');
+      const container = buildAttributionControl('bottom-right');
+      host.querySelector('.spot-map__canvas')!.append(container);
+      const corner = container.querySelector<HTMLElement>(
+        '.maplibregl-ctrl-bottom-right',
+      )!;
+      expect(getComputedStyle(corner).top).toBe('0px');
+      expect(getComputedStyle(corner).bottom).toBe('auto');
+      fixture.componentRef.setInput('attributionCorner', 'bottom-right');
+      fixture.detectChanges();
+      expect(host.classList).not.toContain('spot-map--attribution-top');
+    });
+  });
+
+  describe('photo pins and hover', () => {
+    const PHOTO_HOST = 'https://photos.test';
+    const withPhotoHost = () => {
+      backend = { ...UNCONFIGURED_BACKEND, photoBaseUrl: PHOTO_HOST };
+    };
+    const tooltip = () =>
+      (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>(
+        '.spot-map__tooltip',
+      );
+
+    it('adds no photo pins or image resolver without a photo host', async () => {
+      await create();
+      fake.emit('load');
+      expect(fake.layers.map((l) => l.id)).not.toContain('spots-photo');
+      expect(fake.missingImageResolver).toBeNull();
+    });
+
+    it('adds the photo pins above the pins and under the dot footprints with a photo host, the resolver first', async () => {
+      withPhotoHost();
+      await create();
+      spyOn(fake, 'addSource').and.callFake((id: string, source: unknown) => {
+        expect(fake.missingImageResolver)
+          .withContext('resolver before the pins')
+          .not.toBeNull();
+        fake.sources[id] = source;
+      });
+      fake.emit('load');
+      expect(fake.layers.map((l) => l.id).slice(-2)).toEqual([
+        'spots-photo',
+        'spots-footprint',
+      ]);
+    });
+
+    it('lights the pin hoveredId names and moves the light with it', async () => {
+      await create();
+      fake.emit('load');
+      fixture.componentRef.setInput('hoveredId', 'a');
+      fixture.detectChanges();
+      expect(fake.featureStates['a']?.['hovered']).toBe(true);
+      fixture.componentRef.setInput('hoveredId', 'b');
+      fixture.detectChanges();
+      expect(fake.featureStates['a']?.['hovered']).toBeUndefined();
+      expect(fake.featureStates['b']?.['hovered']).toBe(true);
+      fixture.componentRef.setInput('hoveredId', null);
+      fixture.detectChanges();
+      expect(fake.featureStates['b']?.['hovered']).toBeUndefined();
+    });
+
+    it('reports the pin under a hovering pointer once, and the pointer leaving it', async () => {
+      requestHoverPointer(true);
+      const c = await create();
+      fake.emit('load');
+      const hovers: (string | null)[] = [];
+      c.pinHover.subscribe((id) => hovers.push(id));
+      pointerOver('a');
+      fake.emit('mousemove', { point: { x: 1, y: 1 } });
+      fake.emit('mousemove', { point: { x: 2, y: 1 } });
+      fake.emit('mouseout');
+      expect(hovers).toEqual(['a', null]);
+    });
+
+    it('reports no hover from a pointer that cannot hover', async () => {
+      requestHoverPointer(false);
+      const c = await create();
+      fake.emit('load');
+      const hovers: (string | null)[] = [];
+      c.pinHover.subscribe((id) => hovers.push(id));
+      pointerOver('a');
+      fake.emit('mousemove', { point: { x: 1, y: 1 } });
+      fake.emit('mouseout');
+      expect(hovers).toEqual([]);
+    });
+
+    it('shows the hovered spot’s name above its pin, and nothing for the selected spot', async () => {
+      await create();
+      fake.emit('load');
+      fixture.componentRef.setInput('hoveredId', 'a');
+      fixture.detectChanges();
+      expect(tooltip()?.textContent).toContain('Alpha Bank');
+      expect(tooltip()?.style.transform).toBe('translate(500px, 300px)');
+      expect(tooltip()?.querySelector('img'))
+        .withContext('no photo host, so a name-only plate')
+        .toBeNull();
+      select('a');
+      expect(tooltip()).toBeNull();
+    });
+
+    it('shows the cover photo in the tooltip with a photo host', async () => {
+      withPhotoHost();
+      await create();
+      fake.emit('load');
+      fixture.componentRef.setInput('hoveredId', 'a');
+      fixture.detectChanges();
+      expect(tooltip()?.querySelector('img')?.getAttribute('src')).toBe(
+        `${PHOTO_HOST}/thumb/spots/vienna/a-1.webp`,
+      );
+    });
+
+    it('moves the tooltip with the map, once a frame', async () => {
+      const runFrames = captureFrames();
+      await create();
+      fake.emit('load');
+      fixture.componentRef.setInput('hoveredId', 'a');
+      fixture.detectChanges();
+      fake.projected = { x: 100, y: 200 };
+      fake.emit('move');
+      runFrames();
+      fixture.detectChanges();
+      expect(tooltip()?.style.transform).toBe('translate(100px, 200px)');
+    });
+
+    it('fades the tooltip out instead of cutting it', async () => {
+      await create();
+      fake.emit('load');
+      fixture.componentRef.setInput('hoveredId', 'a');
+      fixture.detectChanges();
+      const anchor = tooltip()!;
+      expect(getComputedStyle(anchor).transitionProperty).toContain('opacity');
+      // Read the leave's end state, not the fade's first frame.
+      anchor.style.transition = 'none';
+      anchor.classList.add('spot-map__tooltip--leaving');
+      expect(getComputedStyle(anchor).opacity).toBe('0');
+    });
+
+    it('swaps in a new tooltip for the next spot rather than moving the old one', async () => {
+      await create();
+      fake.emit('load');
+      fixture.componentRef.setInput('hoveredId', 'a');
+      fixture.detectChanges();
+      const first = tooltip();
+      fixture.componentRef.setInput('hoveredId', 'b');
+      fixture.detectChanges();
+      expect(tooltip()?.textContent).toContain('Beta Ledge');
+      expect(tooltip()).not.toBe(first);
+    });
+
+    it('reports the hover gone when a city change tears the hovered map down', async () => {
+      requestHoverPointer(true);
+      const c = await create();
+      fake.emit('load');
+      const hovers: (string | null)[] = [];
+      c.pinHover.subscribe((id) => hovers.push(id));
+      pointerOver('a');
+      fake.emit('mousemove', { point: { x: 1, y: 1 } });
+      await retry(1);
+      expect(hovers).toEqual(['a', null]);
+    });
+
+    it('lets go of the photo pins on teardown', async () => {
+      withPhotoHost();
+      await create();
+      fake.emit('load');
+      fixture.destroy();
+      expect(fake.handlers.get('idle')).toEqual([]);
+    });
+  });
+
+  describe('the selection flag', () => {
+    const PHOTO_HOST = 'https://photos.test';
+    const flags = () =>
+      Array.from(
+        (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
+          '.spot-map__flag',
+        ),
+      );
+    const photoFilters = () =>
+      fake.filterCalls.filter((c) => c.layer === 'spots-photo');
+    /** The flag's travelling frame: the one that rises and falls. */
+    const frameOf = (flag: HTMLElement) =>
+      flag.querySelector<HTMLElement>(
+        '.spot-map__flag-raise .spot-map__flag-frame',
+      )!;
+    /** How far above the pin's point the frame's foot stands, in px. */
+    const footAbovePin = (flag: HTMLElement) =>
+      flag.getBoundingClientRect().top -
+      frameOf(flag).getBoundingClientRect().bottom;
+    /** A map built on spot `a`: a cold `/spot/a` link. */
+    const COLD_A = {
+      selectedId: 'a',
+      openOn: { center: [16.37, 48.2] as [number, number], zoom: 16 },
+    };
+
+    beforeEach(() => {
+      backend = { ...UNCONFIGURED_BACKEND, photoBaseUrl: PHOTO_HOST };
+      requestReducedMotion(false);
+    });
+
+    afterEach(() => jasmine.clock().uninstall());
+
+    /** A painted map with `a`'s photo pin placed on screen or not, the clock in the spec's hand. */
+    async function paint(placed: boolean) {
+      await create();
+      fake.emit('load');
+      fake.placedPhotos = placed ? [{ id: 'a', properties: { id: 'a' } }] : [];
+      jasmine.clock().install();
+    }
+
+    it('stands the flag exactly on the photo pin it replaces until the map has taken the pin away, then rises', async () => {
+      await paint(true);
+      select('a');
+      const [flag] = flags();
+      expect(flag?.dataset['phase']).toBe('held');
+      expect(photoFilters().at(-1)?.filter).toEqual(photoPinFilter(['a']));
+      const frame = frameOf(flag!).getBoundingClientRect();
+      // The photo pin's frame: the pin image less its 8 px stem, on the stem and the 8 px lift.
+      expect([frame.width, frame.height]).toEqual([
+        PIN_IMAGE_WIDTH,
+        PIN_IMAGE_HEIGHT - 8,
+      ]);
+      expect(footAbovePin(flag!)).toBe(PIN_IMAGE_LIFT_PX + 8);
+      fake.placedPhotos = [];
+      fake.emit('render');
+      fixture.detectChanges();
+      expect(flag?.dataset['phase']).toBe('rising');
+      expect(getComputedStyle(frameOf(flag!)).animationName).toMatch(
+        /spot-flag-frame-from-pin$/,
+      );
+      expect(getComputedStyle(frameOf(flag!)).animationPlayState).toBe(
+        'running',
+      );
+    });
+
+    it('opens a map built on a spot with its flag already raised, full size, in amber, over its photo', async () => {
+      await create(COLD_A);
+      fake.emit('load');
+      fixture.detectChanges();
+      const [flag] = flags();
+      expect(flag?.dataset['phase']).toBe('raised');
+      const frame = frameOf(flag!);
+      const rect = frame.getBoundingClientRect();
+      expect([rect.width, rect.height]).toEqual([
+        RAISED_FRAME_WIDTH,
+        RAISED_FRAME_HEIGHT,
+      ]);
+      expect(footAbovePin(flag!)).toBe(PIN_IMAGE_LIFT_PX + RAISED_STEM_PX);
+      const amber = document.createElement('span');
+      amber.style.color = 'var(--color-amber)';
+      document.body.append(amber);
+      expect(getComputedStyle(frame).borderTopColor).toBe(
+        getComputedStyle(amber).color,
+      );
+      amber.remove();
+      const photo = frame.querySelector('img')!;
+      expect(photo.getAttribute('src')).toBe(
+        `${PHOTO_HOST}/thumb/spots/vienna/a-1.webp`,
+      );
+      expect(photo.getAttribute('crossorigin')).toBe('anonymous');
+      expect(photoFilters().at(-1)?.filter).toEqual(photoPinFilter(['a']));
+    });
+
+    it('unfolds the flag out of the dot of a spot whose photo pin was not placed', async () => {
+      await paint(false);
+      select('a');
+      const [flag] = flags();
+      expect(flag?.dataset['phase']).toBe('rising');
+      expect(flag?.classList).toContain('spot-map__flag--from-dot');
+      expect(getComputedStyle(frameOf(flag!)).animationName).toMatch(
+        /spot-flag-frame-from-dot$/,
+      );
+    });
+
+    it('lowers the flag back into its pin and gives the pin back only once it has landed', async () => {
+      await paint(true);
+      select('a');
+      fake.placedPhotos = [];
+      fake.emit('render');
+      select(null);
+      const [flag] = flags();
+      expect(flag?.dataset['phase']).toBe('falling');
+      expect(getComputedStyle(frameOf(flag!)).animationName).toMatch(
+        /spot-flag-frame-to-pin$/,
+      );
+      expect(photoFilters().at(-1)?.filter).toEqual(photoPinFilter(['a']));
+      jasmine.clock().tick(FLAG_MOTION_MS);
+      expect(photoFilters().at(-1)?.filter).toEqual(HAS_COVER);
+      jasmine.clock().tick(SYMBOL_FADE_MS);
+      fixture.detectChanges();
+      expect(flag?.dataset['phase']).toBe('leaving');
+      expect(getComputedStyle(flag!).transitionProperty).toContain('opacity');
+      jasmine.clock().tick(FLAG_FADE_MS);
+      fixture.detectChanges();
+      expect(flags()).toEqual([]);
+    });
+
+    it('crossfades the flag in place of travelling under reduced motion', async () => {
+      requestReducedMotion(true);
+      await paint(true);
+      select('a');
+      fake.placedPhotos = [];
+      fake.emit('render');
+      fixture.detectChanges();
+      const [flag] = flags();
+      expect(flag?.classList).toContain('spot-map__flag--reduced');
+      expect(getComputedStyle(frameOf(flag!)).animationName).toBe('none');
+      const still = flag!.querySelector<HTMLElement>('.spot-map__flag-pin')!;
+      const raised = flag!.querySelector<HTMLElement>('.spot-map__flag-raise')!;
+      expect(getComputedStyle(still).display)
+        .withContext('a still copy of the pin to fade from')
+        .not.toBe('none');
+      expect(getComputedStyle(still).transitionProperty).toContain('opacity');
+      expect(getComputedStyle(raised).transitionProperty).toContain('opacity');
+    });
+
+    it('takes a tap or a hover on the raised flag as its spot, whatever lies under it', async () => {
+      requestHoverPointer(true);
+      const c = await create(COLD_A);
+      fake.emit('load');
+      fixture.detectChanges();
+      // `a` stands at (500, 300); `b`'s dot hides 60 px above it, under the raised photo.
+      fake.projectedAt = ([lng]) =>
+        lng === 16.37 ? { x: 500, y: 300 } : { x: 500, y: 240 };
+      fake.renderedPins = tapOn('b').features;
+      const clicks: string[] = [];
+      const hovers: (string | null)[] = [];
+      const empty = jasmine.createSpy('emptyClick');
+      c.spotClick.subscribe((id) => clicks.push(id));
+      c.pinHover.subscribe((id) => hovers.push(id));
+      c.emptyClick.subscribe(empty);
+      fake.emit('click', { point: { x: 500, y: 240 } });
+      fake.emit('mousemove', { point: { x: 500, y: 240 } });
+      expect(clicks).toEqual(['a']);
+      expect(hovers).toEqual(['a']);
+      fake.renderedPins = [];
+      fake.emit('click', { point: { x: 520, y: 220 } });
+      expect(empty)
+        .withContext('a tap on the flag is no tap on empty map')
+        .not.toHaveBeenCalled();
+      expect(getComputedStyle(flags()[0]!).pointerEvents)
+        .withContext('a drag that starts on the flag still pans the map')
+        .toBe('none');
+    });
+
+    it('moves the flag with the map, once a frame', async () => {
+      const runFrames = captureFrames();
+      await create(COLD_A);
+      fake.emit('load');
+      fake.projected = { x: 100, y: 200 };
+      fake.emit('move');
+      runFrames();
+      fixture.detectChanges();
+      expect(flags()[0]?.style.transform).toBe('translate(100px, 200px)');
+    });
+
+    it('flies no flag for a spot without a photo, and leaves the photo pins alone', async () => {
+      await create({
+        collection: {
+          type: 'FeatureCollection',
+          features: [
+            {
+              type: 'Feature',
+              geometry: { type: 'Point', coordinates: [16.37, 48.2] },
+              properties: {
+                id: 'a',
+                name: 'Alpha Bank',
+                status: 'active',
+                notes: null,
+                photos: [],
+              },
+            },
+          ],
+        },
+      });
+      fake.emit('load');
+      select('a');
+      expect(flags()).toEqual([]);
+      expect(photoFilters()).toEqual([]);
+    });
+
+    it('sets nothing on a removed map when a fall would have landed after teardown', async () => {
+      await paint(false);
+      select('a');
+      select(null);
+      fixture.destroy();
+      jasmine.clock().tick(FLAG_MOTION_MS + SYMBOL_FADE_MS + FLAG_FADE_MS);
+      expect(fake.filterCallsAfterRemoval).toEqual([]);
+    });
+  });
+
+  describe('keeping the selected flag on the map', () => {
+    const SHEET_INSETS = { top: 0, right: 0, bottom: 510, left: 0 };
+    const eases = () =>
+      fake.cameraMoves.filter((move) => move.method === 'easeTo');
+    beforeEach(() => {
+      requestReducedMotion(false);
+      holdAnimationFrames();
+      backend = {
+        ...UNCONFIGURED_BACKEND,
+        photoBaseUrl: 'https://photos.test',
+      };
+    });
+
+    it('moves a wide map for a pin whose flag would be clipped at the top edge', async () => {
+      await create();
+      fake.emit('load');
+      fake.projected = { x: 500, y: 50 };
+      select('a');
+      expect(eases().length).toBe(1);
+    });
+
+    it('seats a pin on a phone lower in the strip, to make room for the flag above it', async () => {
+      await create({ insets: SHEET_INSETS });
+      fake.emit('load');
+      select('a');
+      // The 600 px map's strip above the 510 px sheet is 90 px tall, its middle 255 px up from the
+      // canvas centre. The pin is lowered by half the flag's reach, but only as far as the strip
+      // has room for the pin's ring on each side of its middle.
+      const stripHeight = 600 - SHEET_INSETS.bottom;
+      const lowering = Math.min(
+        FLAG_REACH_PX / 2,
+        stripHeight / 2 - SELECTED_PIN_REACH_PX,
+      );
+      expect(eases().at(-1)?.options.offset).toEqual([0, -255 + lowering]);
+    });
+
+    it('reserves no room for a flag the spot does not fly', async () => {
+      backend = UNCONFIGURED_BACKEND;
+      await create({ insets: SHEET_INSETS });
+      fake.emit('load');
+      select('a');
+      expect(eases().at(-1)?.options.offset).toEqual([0, -255]);
+    });
+  });
+
+  describe('the hover tooltip against the map’s edges', () => {
+    const tooltipElement = () =>
+      (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>(
+        '.spot-map__tooltip',
+      );
+    const shift = () =>
+      tooltipElement()?.style.getPropertyValue('--tooltip-shift');
+    const below = () =>
+      tooltipElement()?.classList.contains('spot-map__tooltip--below');
+    const hover = async (x: number, y: number, withPhoto = false) => {
+      backend = withPhoto
+        ? { ...UNCONFIGURED_BACKEND, photoBaseUrl: 'https://photos.test' }
+        : UNCONFIGURED_BACKEND;
+      await create();
+      fake.emit('load');
+      fake.projected = { x, y };
+      fixture.componentRef.setInput('hoveredId', 'a');
+      fixture.detectChanges();
+    };
+
+    it('stays above the pin and centred when there is room', async () => {
+      await hover(500, 300);
+      expect(below()).toBeFalse();
+      expect(shift()).toBe('0px');
+    });
+
+    it('slides back inside the map at the left and right edges', async () => {
+      // The 132 px card, padding and border included, is 66 px either side of its centre; 8 px
+      // stay clear of the edge.
+      await hover(20, 300);
+      expect(shift()).toBe('54px');
+      fixture.destroy();
+      await hover(990, 300);
+      expect(shift()).toBe('-64px');
+    });
+
+    it('clamps by the width the card really has on screen', async () => {
+      await hover(500, 300);
+      const card = tooltipElement()!.querySelector<HTMLElement>(
+        '.spot-map__tooltip-card',
+      )!;
+      expect(card.offsetWidth).toBe(132);
+    });
+
+    it('flips below the pin when it would run off the top', async () => {
+      await hover(500, 40);
+      expect(below()).toBeTrue();
+    });
+
+    describe('a card that flips from above its pin to below it', () => {
+      /** Every tooltip element in the page, a card still fading out among them. */
+      const tooltips = () =>
+        Array.from(
+          (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
+            '.spot-map__tooltip',
+          ),
+        );
+
+      /** Hovers `a` with room above its pin, then pans the pin up to the top edge. */
+      async function panUnderTheTopEdge() {
+        const runFrames = captureFrames();
+        await hover(500, 300);
+        const before = tooltipElement()!;
+        expect(below()).toBeFalse();
+        fake.projected = { x: 500, y: 40 };
+        fake.emit('move');
+        runFrames();
+        fixture.detectChanges();
+        return before;
+      }
+
+      it('is the same card, easing across, under normal motion', async () => {
+        requestReducedMotion(false);
+        const before = await panUnderTheTopEdge();
+        expect(tooltips()).toEqual([before]);
+        expect(below()).toBeTrue();
+      });
+
+      it('is a new card under reduced motion, which cannot slide: the old one fades out and the new one fades in', async () => {
+        requestReducedMotion(true);
+        const before = await panUnderTheTopEdge();
+        const flipped = tooltips().filter((card) =>
+          card.classList.contains('spot-map__tooltip--below'),
+        );
+        expect(flipped.length).toBe(1);
+        expect(flipped[0]).not.toBe(before);
+      });
+    });
+
+    // The backend is read once per test module, so the plate and the photo card are two specs
+    // hovering the same spot 100 px from the top.
+    it('keeps a name plate above a pin 100 px from the top', async () => {
+      await hover(500, 100);
+      expect(below()).toBeFalse();
+    });
+
+    it('flips a card with a photo below a pin 100 px from the top, where a name plate fits above', async () => {
+      await hover(500, 100, true);
+      expect(below()).toBeTrue();
+    });
+  });
+
+  describe('the one map through the selection', () => {
+    const SHEET_INSETS = { top: 0, right: 0, bottom: 510, left: 0 };
+    beforeEach(() => {
+      requestReducedMotion(false);
+      holdAnimationFrames();
+    });
+
+    it('keeps the same map when a spot is opened, switched and closed', async () => {
+      await create();
+      fake.emit('load');
+      select('a');
+      select('b');
+      select(null);
+      expect(mapFactory).toHaveBeenCalledTimes(1);
+      expect(fake.removed).toBeFalse();
+      httpMock.expectNone('spots/vienna.geojson');
+    });
+
+    it('keeps the same map when the covered strips and the opening focus change', async () => {
+      await create();
+      fake.emit('load');
+      fixture.componentRef.setInput('coveredInsets', SHEET_INSETS);
+      fixture.componentRef.setInput('openOn', {
+        center: [16.4, 48.22],
+        zoom: 15,
+      });
+      fixture.detectChanges();
+      select('a');
+      expect(mapFactory).toHaveBeenCalledTimes(1);
+      expect(fake.removed).toBeFalse();
+    });
+
+    it('keeps a map built on a shared spot through closing and reopening it', async () => {
+      await create({
+        selectedId: 'a',
+        openOn: { center: [16.37, 48.2], zoom: 16 },
+        insets: SHEET_INSETS,
+      });
+      fake.emit('load');
+      select(null);
+      select('b');
+      expect(mapFactory).toHaveBeenCalledTimes(1);
+      expect(fake.removed).toBeFalse();
     });
   });
 });

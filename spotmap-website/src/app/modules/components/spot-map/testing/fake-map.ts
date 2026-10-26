@@ -1,19 +1,22 @@
 import { BASEMAP_SOURCE_ID } from '../terminal-map-style';
 
 /*
- * Stand-ins for MapLibre's map and popup, and the small page fakes the spot-map specs share. Spec
+ * Stand-ins for MapLibre's map and the small page fakes the spot-map specs share. Spec
  * files import this; no app code does, so the production build never compiles it.
  *
  * MapLibre internals named in this file were read in maplibre-gl 6.15.0.
  */
 
-/** One camera move the component asked for, trimmed to the option that decides its motion. */
+/** One camera move the component asked for, trimmed to the options the specs assert about. */
 export interface CameraMove {
   method: string;
   options: {
     duration?: number;
     essential?: boolean;
     offset?: [number, number];
+    center?: [number, number];
+    zoom?: number;
+    easing?: (t: number) => number;
   };
 }
 
@@ -31,7 +34,7 @@ export class FakeMap {
   readonly canvas = document.createElement('canvas');
   /**
    * MapLibre's canvas container, which its handlers listen on and which holds the canvas but not
-   * the popups or controls (`getCanvasContainer`). Attached to the page so a pointer released away
+   * the controls (`getCanvasContainer`). Attached to the page so a pointer released away
    * from the map still bubbles to the window; `remove()` takes it off.
    */
   readonly canvasContainer = document.createElement('div');
@@ -119,41 +122,69 @@ export class FakeMap {
   readonly loadedSources = new Set<string>();
   /**
    * Every camera move *the component* asked for, with the option bag it asked with, so the
-   * reduced-motion spec can assert about all of them rather than about the one call site that
-   * exists today. Moves MapLibre starts by itself — the keyboard ease, drag-pan inertia — never
-   * reach this fake, so nothing here can speak for them. `easeTo` and `flyTo` are recorded
-   * although the component calls neither today: MapLibre animates both unless the caller passes
-   * `duration: 0`, so an unguarded one added later is exactly the regression that spec catches.
+   * reduced-motion and keep-in-view specs can assert about all of them. Moves MapLibre starts by
+   * itself — the keyboard ease, drag-pan inertia — never reach this fake, so nothing here can
+   * speak for them. `fitBounds` and `flyTo` are recorded although the component calls neither:
+   * MapLibre animates both unless the caller passes `duration: 0`, so an unguarded one added
+   * later is exactly the regression those specs catch.
    */
   readonly cameraMoves: CameraMove[] = [];
   /** The style the component handed the factory. */
   style?: { sources: Record<string, unknown> };
   /** Where `project()` puts every spot on screen; a spec moves it to place the tapped pin. */
   projected = { x: 500, y: 300 };
-  /** What `queryRenderedFeatures()` finds under a map click: a pin, or nothing. */
+  /**
+   * Places spots one by one: when set, `project()` asks it for the coordinates it is given instead
+   * of answering {@link projected}. For specs that need two pins at different screen points.
+   */
+  projectedAt: ((lngLat: [number, number]) => { x: number; y: number }) | null =
+    null;
+  /** Where the camera is centred, as `getCenter()` reports it; an `easeTo` with a centre moves it. */
+  center = { lng: 16.385, lat: 48.21 };
+  /** The camera's zoom, as `getZoom()` reports it; an `easeTo` with a zoom moves it. */
+  zoom = 13;
+  /** What `queryRenderedFeatures()` finds on the thumb-target layer under the pointer: a pin, or nothing. */
   renderedPins: unknown[] = [];
-  /** Makes every pan finish at zero duration, the way any path MapLibre runs instantly would. */
-  jumps = false;
+  /** Every image the component added or updated, by id, as the map holds it now. */
+  readonly images = new Map<
+    string,
+    { width: number; height: number; data: Uint8Array | Uint8ClampedArray }
+  >();
+  /** The options each image was added with, by id. */
+  readonly imageOptions = new Map<string, unknown>();
+  /** The id of every `updateImage` call, in order. */
+  readonly imageUpdates: string[] = [];
+  /** The missing-image resolver the component installed, if any. */
+  missingImageResolver: ((id: string) => void | Promise<void>) | null = null;
+  /** The photo pins MapLibre has placed on screen: what `queryRenderedFeatures` finds on the photo layer. */
+  placedPhotos: { id?: string; properties: { id: string } }[] = [];
 
   constructor() {
     this.canvasContainer.append(this.canvas);
     document.body.append(this.canvasContainer);
   }
 
-  project() {
-    return this.projected;
+  project(lngLat?: [number, number]) {
+    return (lngLat && this.projectedAt?.(lngLat)) || this.projected;
+  }
+
+  getCenter() {
+    return this.center;
+  }
+  getZoom() {
+    return this.zoom;
+  }
+  /**
+   * A screen point back to a coordinate on a plain linear scale — a thousandth of a degree per
+   * pixel, latitude falling down the screen from 50° — enough to check the bounds arithmetic.
+   */
+  unproject([x, y]: [number, number]) {
+    return { lng: x / 1000, lat: 50 - y / 1000 };
   }
 
   getCanvasContainer() {
     return this.canvasContainer;
   }
-  /**
-   * Whether the camera is mid-move: a `panBy` ease or a gesture's move began, and no `moveend`
-   * has ended it yet. Every `moveend` the fake emits ends it, as MapLibre clears `_moving` before
-   * it fires the event (`Camera._afterEase`).
-   */
-  private panning = false;
-
   /** Whether a finger or button is down on the map, so a pan handler is active. */
   private fingerDown = false;
 
@@ -162,9 +193,7 @@ export class FakeMap {
 
   /**
    * Only the pan handler turning active, as a finger or button goes down: the instant before
-   * MapLibre's manager stops the camera's ease. {@link grab} is this plus that stop; on its own it
-   * is the state a re-fit meets if it runs between the two. The pointer goes down on the canvas
-   * container too, which is what the component tracks independently of the handlers.
+   * MapLibre's manager stops the camera's ease. The pointer goes down on the canvas container too, which is what the component tracks independently of the handlers.
    */
   touchDown() {
     this.fingerDown = true;
@@ -193,20 +222,6 @@ export class FakeMap {
   }
 
   /**
-   * The visitor putting a finger or button down on the map, without moving it yet. MapLibre's
-   * manager sees an active handler and stops the camera's ease (`HandlerManager.handleEvent`),
-   * which fires that ease's `moveend` synchronously: with `isMoving()` already false
-   * (`Camera._afterEase`), the pan handler already active, and the drag's own `movestart` still
-   * to come. The camera starts moving under the finger only afterwards, once the pointer travels.
-   */
-  grab() {
-    this.touchDown();
-    if (this.panning) {
-      this.emit('moveend');
-    }
-  }
-
-  /**
    * The visitor turning the wheel, or pinching a trackpad, on the map. `ScrollZoomHandler._start`
    * sets `_zooming` before the manager stops the camera's ease (`HandlerManager.handleEvent`), so
    * the stopped ease's `moveend` fires with the scroll-zoom handler active and `isMoving()`
@@ -214,20 +229,12 @@ export class FakeMap {
    */
   wheel() {
     this.wheelZooming = true;
-    if (this.panning) {
-      this.emit('moveend');
-    }
   }
 
   /** The wheel zoom running out: the handler goes inactive and the zoom's own `moveend` fires. */
   endWheel() {
     this.wheelZooming = false;
     this.emit('moveend');
-  }
-
-  /** The grabbed map starting to travel under the finger: a drag's camera move begins. */
-  drag() {
-    this.panning = true;
   }
 
   /** The finger or button coming up on the map: the pan handler resets and the drag's move ends. */
@@ -253,50 +260,27 @@ export class FakeMap {
     this.firePointer('pointercancel', this.canvasContainer);
   }
 
-  /**
-   * A move the component did not start — a drag, a fling's inertia, a wheel zoom — begins and runs
-   * until the spec emits `moveend`.
-   */
-  startMove() {
-    this.panning = true;
-  }
-
-  /**
-   * Recorded like every other camera move, with the offset folded into its options. A pan that
-   * starts while another is still running stops it first, and MapLibre fires the stopped ease's
-   * `moveend` synchronously from inside the new `panBy` (`easeTo` → `_stop` → `_afterEase`).
-   * MapLibre also zeroes the duration of an ease that is not `essential` when the visitor asks for
-   * reduced motion (`Camera.easeTo`), and a zero-duration ease finishes, firing its own `moveend`,
-   * before `panBy` returns (`Camera._ease`).
-   */
-  panBy(offset: [number, number], options: CameraMove['options']) {
-    if (this.panning) {
-      this.emit('moveend');
-    }
-    // `easeTo` stops the gestures too (`Camera._stop(false)` → `_stopHandlers`): a pan the
-    // component starts under a visitor's finger takes the drag away from them.
-    this.fingerDown = false;
-    this.wheelZooming = false;
-    this.cameraMoves.push({ method: 'panBy', options: { ...options, offset } });
-    this.panning = true;
-    const reducedMotion = window.matchMedia(
-      '(prefers-reduced-motion: reduce)',
-    ).matches;
-    if (
-      this.jumps ||
-      options.duration === 0 ||
-      (!options.essential && reducedMotion)
-    ) {
-      this.emit('moveend');
-    }
-    return this;
-  }
   /** Whether the camera is mid-move, as MapLibre's `isMoving()` reports it. */
   isMoving() {
-    return this.panning || this.wheelZooming;
+    return this.wheelZooming;
   }
-  queryRenderedFeatures() {
-    return this.renderedPins;
+  /**
+   * What MapLibre finds rendered, layer by layer in the order asked: the placed photo pins on the
+   * photo layer and `renderedPins` on the thumb-target layer, each feature tagged with the layer it
+   * was found on, as MapLibre's are (`layer.id`).
+   */
+  queryRenderedFeatures(
+    geometryOrOptions?: unknown,
+    options?: { layers?: string[] },
+  ) {
+    const layers =
+      options?.layers ??
+      (geometryOrOptions as { layers?: string[] } | undefined)?.layers;
+    return (layers ?? ['spots-hit']).flatMap((layer) =>
+      (layer === 'spots-photo' ? this.placedPhotos : this.renderedPins).map(
+        (feature) => ({ ...(feature as object), layer: { id: layer } }),
+      ),
+    );
   }
   /** A handler that removes itself after its first call, as MapLibre's `once` does. */
   once(event: string, fn: (e?: unknown) => void) {
@@ -325,9 +309,6 @@ export class FakeMap {
     return this;
   }
   emit(event: string, payload?: unknown, layer?: string) {
-    if (event === 'moveend') {
-      this.panning = false;
-    }
     for (const fn of this.handlers.get(this.key(event, layer)) ?? []) {
       fn(payload);
     }
@@ -342,6 +323,44 @@ export class FakeMap {
   }
   private key(event: string, layer?: string) {
     return layer ? `${event}:${layer}` : event;
+  }
+  /** MapLibre's `setMissingStyleImageResolver`: who answers a layer asking for an image it lacks. */
+  setMissingStyleImageResolver(
+    resolver: ((id: string) => void | Promise<void>) | null,
+  ) {
+    this.missingImageResolver = resolver;
+    return this;
+  }
+  /** Adds an image to the style, remembering the options (its pixel ratio) it came with. */
+  addImage(
+    id: string,
+    image: {
+      width: number;
+      height: number;
+      data: Uint8Array | Uint8ClampedArray;
+    },
+    options?: unknown,
+  ) {
+    this.images.set(id, image);
+    this.imageOptions.set(id, options);
+    return this;
+  }
+  /** Replaces an image's pixels in place, recording the update. */
+  updateImage(
+    id: string,
+    image: {
+      width: number;
+      height: number;
+      data: Uint8Array | Uint8ClampedArray;
+    },
+  ) {
+    this.images.set(id, image);
+    this.imageUpdates.push(id);
+    return this;
+  }
+  /** Whether the style holds an image with this id. */
+  hasImage(id: string) {
+    return this.images.has(id);
   }
   addSource(id: string, source: unknown) {
     this.sources[id] = source;
@@ -362,6 +381,12 @@ export class FakeMap {
   }
   easeTo(options: CameraMove['options']) {
     this.cameraMoves.push({ method: 'easeTo', options });
+    if (options.center) {
+      this.center = { lng: options.center[0], lat: options.center[1] };
+    }
+    if (options.zoom !== undefined) {
+      this.zoom = options.zoom;
+    }
   }
   flyTo(options: CameraMove['options']) {
     this.cameraMoves.push({ method: 'flyTo', options });
@@ -569,85 +594,6 @@ export class FakeMap {
   }
 }
 
-/**
- * Records everything the component asks of a popup, without being one. Its container is built in
- * `addTo` the way MapLibre builds one — the class names, a `.maplibregl-popup-content` box holding
- * the content, the width cap — and laid out inside the host it is given, so the component can
- * measure it.
- */
-export class FakePopup {
-  lngLat?: [number, number];
-  content?: HTMLElement;
-  addedTo?: unknown;
-  removed = false;
-  /** Every width cap the component set after creating the popup. */
-  readonly maxWidths: string[] = [];
-  private container?: HTMLElement;
-
-  constructor(
-    readonly options: {
-      anchor: string;
-      closeButton: boolean;
-      closeOnClick: boolean;
-      maxWidth: string;
-      className: string;
-    },
-    private readonly host: () => HTMLElement,
-  ) {}
-
-  setLngLat(lngLat: [number, number]) {
-    this.lngLat = lngLat;
-    return this;
-  }
-  getLngLat() {
-    return this.lngLat;
-  }
-  setDOMContent(node: HTMLElement) {
-    this.content = node;
-    return this;
-  }
-  setMaxWidth(value: string) {
-    this.maxWidths.push(value);
-    if (this.container) {
-      this.container.style.maxWidth = value;
-    }
-    return this;
-  }
-  addTo(map: unknown) {
-    this.addedTo = map;
-    const container = document.createElement('div');
-    container.className = `maplibregl-popup maplibregl-popup-anchor-${this.options.anchor} ${this.options.className}`;
-    container.style.maxWidth = this.options.maxWidth;
-    const content = document.createElement('div');
-    content.className = 'maplibregl-popup-content';
-    if (this.content) {
-      content.append(this.content);
-    }
-    container.append(content);
-    this.host().append(container);
-    this.container = container;
-    return this;
-  }
-  getElement(): HTMLElement {
-    if (!this.container) {
-      throw new Error(
-        'getElement() before addTo(): MapLibre has no container yet',
-      );
-    }
-    return this.container;
-  }
-  /** Whether the container still waits, hidden, for the component to reveal it. */
-  isPending() {
-    return this.getElement().classList.contains('spot-popup-frame--pending');
-  }
-  /** MapLibre takes the container out of the page synchronously. */
-  remove() {
-    this.removed = true;
-    this.container?.remove();
-    return this;
-  }
-}
-
 /** Two spots, one active and one demolished, each with one photo: the feed most specs load. */
 export const COLLECTION = {
   type: 'FeatureCollection',
@@ -675,21 +621,30 @@ export const COLLECTION = {
   ],
 };
 
+/** What the faked media queries answer; reset whenever a spec installs the fake afresh. */
+const fakeMedia = { reducedMotion: false, hoverPointer: false };
+
 /**
- * Answers the media query `prefersReducedMotion()` asks — the same `window.matchMedia` fake the
- * ascii-animation-text spec drives its reduced-motion branch with. Call before `create()`: the
- * preference is read while the map draws. A second call within one spec changes the answer.
+ * Installs (or reuses) the `window.matchMedia` spy that answers from {@link fakeMedia} — the same
+ * fake the ascii-animation-text spec drives its reduced-motion branch with. A new spy starts from
+ * no reduced motion and no hover pointer, so nothing leaks between specs.
  */
-export function requestReducedMotion(reduce: boolean): void {
-  const matchMedia: jasmine.Spy<typeof window.matchMedia> = jasmine.isSpy(
-    window.matchMedia,
-  )
-    ? (window.matchMedia as jasmine.Spy<typeof window.matchMedia>)
-    : spyOn(window, 'matchMedia');
+function fakeMatchMedia(): void {
+  let matchMedia: jasmine.Spy<typeof window.matchMedia>;
+  if (jasmine.isSpy(window.matchMedia)) {
+    matchMedia = window.matchMedia as jasmine.Spy<typeof window.matchMedia>;
+  } else {
+    fakeMedia.reducedMotion = false;
+    fakeMedia.hoverPointer = false;
+    matchMedia = spyOn(window, 'matchMedia');
+  }
   matchMedia.and.callFake(
     (query: string) =>
       ({
-        matches: reduce && query.includes('prefers-reduced-motion'),
+        matches:
+          (fakeMedia.reducedMotion &&
+            query.includes('prefers-reduced-motion')) ||
+          (fakeMedia.hoverPointer && query.includes('(hover: hover)')),
         media: query,
         onchange: null,
         addListener: () => {},
@@ -699,6 +654,21 @@ export function requestReducedMotion(reduce: boolean): void {
         dispatchEvent: () => false,
       }) as MediaQueryList,
   );
+}
+
+/**
+ * Answers the media query `prefersReducedMotion()` asks. Call before `create()`: the preference
+ * is read while the map draws. A second call within one spec changes the answer.
+ */
+export function requestReducedMotion(reduce: boolean): void {
+  fakeMatchMedia();
+  fakeMedia.reducedMotion = reduce;
+}
+
+/** Answers `(hover: hover)`: whether the visitor's pointer can hover, as a mouse can and a finger cannot. */
+export function requestHoverPointer(hover: boolean): void {
+  fakeMatchMedia();
+  fakeMedia.hoverPointer = hover;
 }
 
 /**
@@ -719,35 +689,6 @@ export const onlySpot = (id: string) => ['==', ['get', 'id'], id];
 /** The shape MapLibre hands a layer click handler, trimmed to what the component reads. */
 export function tapOn(id: string) {
   return { features: [{ id, properties: { id } }] };
-}
-
-/**
- * Replaces `ResizeObserver` with one a spec reports through by hand, recording what each
- * observer watches and whether it was disconnected.
- */
-export function stubResizeObserver() {
-  const created: {
-    observed: Element[];
-    disconnect: jasmine.Spy;
-    report: () => void;
-  }[] = [];
-  spyOn(window, 'ResizeObserver').and.callFake(function (
-    callback: ResizeObserverCallback,
-  ) {
-    const observed: Element[] = [];
-    const observer = {
-      observe: (element: Element) => observed.push(element),
-      unobserve: () => {},
-      disconnect: jasmine.createSpy('disconnect'),
-    };
-    created.push({
-      observed,
-      disconnect: observer.disconnect,
-      report: () => callback([], observer as unknown as ResizeObserver),
-    });
-    return observer;
-  } as never);
-  return created;
 }
 
 /** Gives the element a layout width, which jsdom-free Karma would otherwise measure for real. */
@@ -798,9 +739,4 @@ export function addAttributionControl(
   const container = buildAttributionControl(corner);
   host.append(container);
   return container.querySelector<HTMLElement>('.maplibregl-ctrl-attrib')!;
-}
-
-/** Lets every promise chain and zero-delay task already queued run to its end. */
-export function flushPending(): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve));
 }

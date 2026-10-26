@@ -46,5 +46,5 @@ Guiding metaphor: **time travel back to earlier days.** Everything the site cont
 ## Accessibility & Inclusion
 
 - **Mobile-first** is the accessibility priority: one-handed use, outdoors, in bright sunlight. Watch that the green-on-black glow stays legible in daylight (glow must not smear text; keep effective contrast high) and that touch targets/city-switching are thumb-friendly.
-- **Honor `prefers-reduced-motion`** for every animation (typewriter intro, glitch text, the map loader's rain and letters, popups): movement stops on a still frame, but changes still fade — never a hard cut.
+- **Honor `prefers-reduced-motion`** for every animation (typewriter intro, glitch text, the map loader's rain and letters, the spot sheet and detail): movement stops on a still frame, but changes still fade — never a hard cut.
 - **Pragmatic WCAG AA where feasible** — prioritize contrast and keyboard/screen-reader basics (the map needs an accessible name; decorative ASCII should be hidden from AT). Not chasing full formal AA compliance for a niche passion project, but no obvious exclusions.

@@ -100,6 +100,9 @@ jobs:
   database:
     # This name is a required status check in the "Protect main and dev" ruleset; renaming
     # the job leaves that check pending forever, so change both together.
+    # The name says "parity", but this job only runs the pgTAP tests, seeds the empty database and
+    # re-syncs it. It does not compare the SQL list/detail output with the snapshot-derived shapes;
+    # the app's spot-shapes specs cover the snapshot side alone.
     name: 'Database: migrations, RLS and live-vs-snapshot parity'
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -127,7 +130,7 @@ jobs:
       - name: Start the local Supabase stack (database, REST API, Storage) and apply the migrations
         run: npm run db:start
 
-      - name: Run the database tests (pgTAP — admin, access rules, city_spots, insert-only sync)
+      - name: Run the database tests (pgTAP — admin, access rules, city_spots, spot list and detail, insert-only sync)
         run: npm run db:test
 
       - name: Point the sync at the local stack

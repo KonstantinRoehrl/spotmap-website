@@ -59,10 +59,12 @@ are covered in their own sections below.
 src/
   app/
     modules/
-      components/   # nav-bar, map-container, map-loader, spot-map, spot-popup,
-                    # spot-photo-gallery, ascii-rain, ascii-animation-text
+      components/   # nav-bar, map-container, map-loader, spot-map, city-picker,
+                    # spot-list, spot-detail, spot-sheet, spot-photo-gallery,
+                    # spot-photo-rail, spot-photo-viewer, spot-share, split-handle,
+                    # overview-back, ascii-rain, ascii-animation-text
       components/admin/  # satellite-picker (the maintainer tool's satellite pin picker)
-      pages/        # home, map, about (routed)
+      pages/        # home, map (also serves /spot/<id>; its SpotBrowserStore), about (routed)
       pages/admin/  # the maintainer tool: shell, sign-in, create-or-attach, spot list, spot edit (lazy)
       directives/   # glitch-text (per-character scramble),
                     # pointer-bloom (centres the shared hover bloom on the pointer)
@@ -71,8 +73,8 @@ src/
     services/       # spots.service.ts (live spots with snapshot fallback),
                     # spotmap-backend.ts (the backend the app talks to);
                     # admin/ (the maintainer tool's sign-in, data access, imagery and photo pipeline)
-    utils/          # admin-path, prefers-reduced-motion
-    app.routes.ts   # home · map · about · admin (lazy) · '' → map · ** → home
+    utils/          # admin-path, map-page-path (the /map + /spot/<id> matcher), prefers-reduced-motion
+    app.routes.ts   # home · map and spot/<id> (one page) · about · admin (lazy) · '' → map · ** → home
   environments/     # the backend each build talks to (environment.prod.ts in production)
   styles.css        # Tailwind + @theme design tokens (OKLCH colors, glow, motion, radius)
   theme.scss        # Angular Material M3 green-terminal theme
@@ -90,6 +92,21 @@ data/
   thumbs/           # derived 640px thumbnails (local, not committed)
 supabase/           # Supabase CLI project: config.toml, the migrations, pgTAP tests, the magic-link email template
 ```
+
+## Spot links
+
+Every spot has a link, `/spot/<id>` (the database's stable text id), that opens
+the map with that spot selected and its detail open; the detail's share menu
+copies it (`> COPY LINK`) or hands it to the device's share sheet
+(`> SHARE VIA…`). `/map` and
+`/spot/<id>` are one page (one route matcher, `matchMapPage`), so opening,
+switching or closing a spot never rebuilds the map. A shared link skips the
+welcome intro, switches to the spot's city and centres the map on it; an
+unknown id opens the remembered city with a not-found line. GitHub Pages serves
+deep paths through the `404.html` copy of `index.html` the deploy writes, so no
+hosting change is needed (such a page answers with HTTP 404, which is harmless
+here). Link previews (Open Graph cards) are not possible on a static single-page
+site.
 
 ## Spot data extraction
 
@@ -293,13 +310,14 @@ check.
 
 ## Spot data backend (Supabase)
 
-The map reads each city's spots live from a Supabase project — Postgres with
+The map reads each city's spots — a light list (`city_spot_list(city)`: id, name, status, first photo, photo count) for the pins and the list, and one spot's full detail (`spot_detail(id)`) when it is opened — live from a Supabase project — Postgres with
 PostGIS, row-level security and Storage — and falls back to the bundled
 `public/spots/<city>.geojson` when the backend errors, takes longer than 5 s,
 answers with no spots, or is not configured (`SpotsService`). Photos are served
 from the public `spot-photos` bucket as `full/<city>/<file>.webp` (the 1400px
-encode) and `thumb/<city>/<file>.webp` (640px, what the popup shows); with no
-photo host configured, popups show no gallery.
+encode, which the photo viewer loads over the thumbnail) and `thumb/<city>/<file>.webp` (640px, what the list rows,
+photo pins, the detail's photo rail and the viewer's strip show); with no photo host configured, there are no photos
+anywhere: no photo rail or viewer, no photo pins, and list rows show a NO PHOTO plate.
 
 Each build's backend is set in `src/environments/`. Production builds
 (`environment.prod.ts`) talk to the hosted EU Supabase project, so the deployed
@@ -329,7 +347,7 @@ prints both and guesses nothing.
 ### Access
 
 The public (the publishable key the site ships in its bundle) can read the
-`cities`, `spots` and `spot_photos` tables and call `city_spots(city)`, and
+`cities`, `spots` and `spot_photos` tables and call `city_spots(city)`, `city_spot_list(city)` and `spot_detail(id)`, and
 nothing else: no table, function or bucket write. Only the **secret key**
 (`sb_secret_…`, which bypasses row-level security) writes, through
 `sync_existing_spots()` / `sync_insert_spots(payload)` and Storage uploads. It
@@ -338,7 +356,7 @@ is sent in the `apikey` header only.
 
 A signed-in admin (a row in `public.admins`) writes through the `admin_*`
 functions and the `is_admin()`-gated Storage policies. Soft-deleted spots
-(`deleted_at` set) are hidden from the public and from `city_spots()`. The Esri
+(`deleted_at` set) are hidden from the public and from all three read functions (`spot_detail` answers `null` for one, as for an unknown id). The Esri
 imagery key lives in the admin-only `admin_settings` table and reaches the
 browser only through `admin_get_setting()`.
 
@@ -383,7 +401,7 @@ Needs Docker.
 
 ```bash
 npm run db:start   # db, REST API, Storage on http://127.0.0.1:54321 (applies the migrations)
-npm run db:test    # pgTAP: access rules, city_spots, the admin functions, sync_insert_spots
+npm run db:test    # pgTAP: access rules, city_spots, city_spot_list and spot_detail, the admin functions, sync_insert_spots
 npm run db:reset   # re-apply the migrations from scratch
 npm run db:stop
 ```
@@ -434,7 +452,7 @@ npm run snapshot:supabase -- --city <slug> # also writes a city that has no snap
 ```
 
 Writes `public/spots/<city>.geojson` from `city_spots()` for every city that
-already has a snapshot, plus each `--city` given (repeatable). Exit codes: 0 all
+already has a snapshot, plus each `--city` given (repeatable). It then rewrites `public/spots/index.json`, the id → city index of every snapshot, which lets a shared `/spot/<id>` link find its city while the backend is down. Exit codes: 0 all
 written, 1 a city failed, 2 bad arguments or a target refused (a hosted URL
 without `--hosted`, or `--hosted` against the local stack).
 
@@ -499,6 +517,11 @@ origin (a local-network address or a tunnel) to the redirect allow-list for the
 test, and remove it afterwards.
 
 A custom domain means updating the site URL and the redirect allow-list.
+
+A pull request that adds a migration carries a checklist item: the maintainer
+applies it to the hosted project (`npx supabase db push`, linked as in step 2)
+**before** merging to `main`. New read functions sit beside the old ones, so the
+live site works before and after the push.
 
 ## Design system
 

@@ -1,0 +1,177 @@
+/* Positioned so a line that is fading out can leave the flow without jumping. */
+:host {
+  position: relative;
+  display: block;
+}
+
+.spot-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Rows and lines that enter or leave the view fade; A–Z order keeps the rows that stay where they
+   are. */
+.spot-list__item,
+.spot-list__line {
+  transition: opacity var(--dur-fast) ease-out;
+}
+
+@starting-style {
+  .spot-list__item,
+  .spot-list__line {
+    opacity: 0;
+  }
+}
+
+.spot-list__item--leaving,
+.spot-list__line--leaving {
+  opacity: 0;
+}
+
+/* The loading and empty lines fade out where they stand while the rows that replace them fade in:
+   out of the flow, so the rows do not start below a line that is about to go. */
+.spot-list__line--leaving {
+  position: absolute;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+}
+
+/* The not-found notice above the rows takes its height with its fade, in and out, so the rows ease
+   down and back up instead of jumping by the notice's height. The clip is what collapses: a grid
+   track animating between 1fr and 0fr, with the paragraph clipped inside it. Under
+   prefers-reduced-motion the global net animates opacity only, so the height then changes at
+   once while the notice still fades, as the sheet's does. */
+.spot-list__notice-slot {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition:
+    grid-template-rows var(--dur-fast) ease-out,
+    opacity var(--dur-fast) ease-out;
+}
+
+@starting-style {
+  .spot-list__notice-slot {
+    grid-template-rows: 0fr;
+    opacity: 0;
+  }
+}
+
+.spot-list__notice-slot--leaving {
+  grid-template-rows: 0fr;
+  opacity: 0;
+}
+
+.spot-list__notice-clip {
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* A thumb-height row. The list column and the sheet clip their content, so the row wears the
+   inset bloom: no outer halo, the ring pulled inside. */
+.spot-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+}
+
+/* Lit from its pin: the shared bloom's hover state (styles.css), applied by class because the row
+   itself is not hovered. Two classes plus the scoping attribute outrank the global rest rules. */
+.spot-row.is-highlighted {
+  color: var(--color-phosphor-bright);
+  border-color: transparent;
+  box-shadow:
+    0 0 var(--bloom-halo) var(--bloom-edge),
+    inset 0 0 0 1px var(--bloom-edge);
+  transition-duration: var(--dur-hover-in);
+}
+
+.spot-row.is-highlighted::before {
+  opacity: 1;
+  transition-duration: var(--dur-hover-in);
+}
+
+/* The 4:3 thumbnail and its placeholder share one box, so a row never changes height. */
+.spot-row__thumb {
+  flex: none;
+  box-sizing: border-box;
+  width: 72px;
+  height: 54px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  object-fit: cover;
+}
+
+.spot-row__thumb--empty {
+  display: grid;
+  place-items: center;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  color: var(--color-phosphor-dim);
+  text-shadow: none;
+}
+
+.spot-row__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+/* Display-tier ink, unlit at rest so a long list stays legible in sunlight; the glow arrives with
+   the row's own light (hover, focus, press, or its pin's hover). */
+.spot-row__name {
+  font-size: 0.875rem;
+  letter-spacing: 0.08em;
+  line-height: 1.25;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+  color: var(--color-phosphor-bright);
+  text-shadow: none;
+  transition: text-shadow var(--dur-hover-out) ease-out;
+}
+
+@media (hover: hover) {
+  .spot-row:hover .spot-row__name {
+    text-shadow: var(--glow-text-display);
+    transition-duration: var(--dur-hover-in);
+  }
+}
+
+.spot-row:is(:focus-visible, :active, .is-highlighted) .spot-row__name {
+  text-shadow: var(--glow-text-display);
+  transition-duration: var(--dur-hover-in);
+}
+
+.spot-row__meta {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  color: var(--color-phosphor-dim);
+  text-shadow: none;
+}
+
+.spot-list__line {
+  margin: 0;
+  padding: 8px;
+  font-size: 0.8125rem;
+  letter-spacing: 0.08em;
+  line-height: 1.4;
+}
+
+.spot-list__line--dim {
+  color: var(--color-phosphor-dim);
+}
+
+.spot-list__line--lit {
+  color: var(--color-phosphor);
+  text-shadow: var(--glow-text-standard);
+}

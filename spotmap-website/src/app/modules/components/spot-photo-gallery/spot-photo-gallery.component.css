@@ -1,3 +1,8 @@
+/* A block, so the panel's 100% width is its host's. */
+:host {
+  display: block;
+}
+
 .gallery {
   position: relative;
   background: var(--color-surface);
@@ -5,16 +10,14 @@
   border-radius: var(--radius-sm);
   overflow: hidden;
   aspect-ratio: 4 / 3;
-  /* Border-box, so the fitted height the map sets is the panel's whole height, border included,
-     and a full-width panel does not overflow the popup by its border. */
+  /* Border-box, so the 4:3 box is the panel's whole size, border included. */
   box-sizing: border-box;
-  /* The map fits the popup by setting this; unset, the 4:3 aspect ratio decides. */
-  height: var(--spot-popup-gallery-height, auto);
-  /* `width: 100vw` claims the popup's whole max width (so a broken photo cannot collapse it to
-     its text); `max-width: 100%` then holds it to the popup, however narrow the map makes it. */
-  width: 100vw;
-  max-width: 100%;
-  transition: height var(--dur-fast) ease-out;
+  /* The whole width the host gives it, whether or not the photo has loaded, so a broken photo
+     never collapses the panel to its placeholder text. */
+  width: 100%;
+  /* Its own stacking context, so the outgoing photo can sit at z-index -1 above the panel's
+     background and below everything else in it. */
+  isolation: isolate;
 }
 
 .gallery__photo {
@@ -30,22 +33,66 @@
   opacity: 1;
 }
 
-/* A photo already in the cache shows at once: fading it in would only delay it. The rain, which
-   renders for one pass before the slide is known to be complete, must not fade out over it. */
+/* The full-size photo lies over the thumb at the same crop and crossfades in once it has loaded,
+   so the sharper image arrives without the slide changing. */
+.gallery__full {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  opacity: 0;
+  transition: opacity var(--dur-crossfade) ease-out;
+}
+
+.gallery__full--loaded {
+  opacity: 1;
+}
+
+/* A photo stepped to is a new element that starts transparent, so it fades in over the outgoing
+   photo whether or not it was already loaded; the global reduced-motion net shortens that fade to
+   --dur-fade but keeps it. */
+@starting-style {
+  .gallery__photo,
+  .gallery__full {
+    opacity: 0;
+  }
+}
+
+/* The photo the last step left, beneath the incoming one at the same crop until that has faded
+   in. */
+.gallery__outgoing {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* The first photo, when already in the cache, shows at once: fading it in would only delay it.
+   The rain, which renders for one pass before the slide is known to be complete, must not fade
+   out over it. */
 .gallery--instant .gallery__photo,
-.gallery--instant .gallery__loading {
+.gallery--instant .gallery__loading,
+.gallery__full--instant {
   transition: none;
 }
 
-/* The global reduced-motion net would give these a short fade; a cached photo has nothing to
+/* The global reduced-motion net would give these a short fade; the first photo has nothing to
    fade from, so the net's !important is answered with a more specific one. */
 @media (prefers-reduced-motion: reduce) {
   .gallery--instant .gallery__photo,
-  .gallery--instant .gallery__loading {
+  .gallery--instant .gallery__loading,
+  .gallery__full--instant {
     transition: none !important;
   }
 }
 
+/* The rain sits over the outgoing photo (z-index -1) and under the incoming one, which is later
+   in the markup and so covers it as it fades in while the rain fades out. */
 .gallery__loading {
   position: absolute;
   inset: 0;
@@ -64,7 +111,25 @@
   opacity: 0;
 }
 
-/* The gallery clips at its edge, 4px from each arrow, so the arrows wear the inset bloom and the
+/* The plates' layer covers the panel so the plates keep their places, but only the plates take a
+   pointer. It fades as one, which leaves the plates' own bloom transitions untouched; a host can
+   delay its fade-in behind its own controls through --gallery-controls-delay. */
+.gallery__controls {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-fade) ease-out;
+}
+
+.gallery__controls:not(.gallery__controls--hidden) {
+  transition-delay: var(--gallery-controls-delay, 0s);
+}
+
+.gallery__controls--hidden {
+  opacity: 0;
+}
+
+/* The gallery clips at its edge, 8px from each plate, so the plates wear the inset bloom and the
    shared plate (styles.css). */
 .gallery__nav {
   position: absolute;
@@ -76,32 +141,20 @@
   font-size: 1.5rem;
   line-height: 1;
   cursor: pointer;
+  pointer-events: auto;
 }
 
 .gallery__nav--prev {
-  left: 4px;
+  left: 8px;
 }
 
 .gallery__nav--next {
-  right: 4px;
-}
-
-.gallery__counter {
-  position: absolute;
-  right: 6px;
-  bottom: 4px;
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  letter-spacing: 0.08em;
-  color: var(--color-phosphor-dim);
-  background: color-mix(in srgb, var(--color-surface) 80%, transparent);
-  padding: 1px 4px;
-  border-radius: var(--radius-sm);
+  right: 8px;
 }
 
 /* A photo that did not load gets the map's own failure voice instead of the browser's
-   broken-image glyph, inside the same 4:3 panel so the popup does not jump. The side padding
-   keeps the text clear of the prev/next arrows (44px wide, 4px from the edge). */
+   broken-image glyph, inside the same 4:3 panel so the panel does not jump. The side padding
+   keeps the text clear of the prev/next arrows (44px wide, 8px from the edge). */
 .gallery__placeholder {
   box-sizing: border-box;
   width: 100%;

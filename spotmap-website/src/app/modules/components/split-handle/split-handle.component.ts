@@ -1,0 +1,174 @@
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  ElementRef,
+  inject,
+  input,
+  output,
+  signal,
+} from '@angular/core';
+import {
+  clampColumnWidth,
+  COLUMN_BIG_STEP_PX,
+  COLUMN_STEP_PX,
+  maxColumnWidth,
+  MIN_COLUMN_WIDTH_PX,
+} from './column-split';
+
+/** A drag under way: the pointer it follows, and where the pointer and the column started. */
+interface Drag {
+  readonly pointerId: number;
+  readonly startX: number;
+  readonly startWidth: number;
+}
+
+/** A frame width's share of `width`, in whole percent; 0 before the frame has been measured. */
+function percentOf(width: number, frameWidth: number): number {
+  return frameWidth > 0 ? Math.round((width / frameWidth) * 100) : 0;
+}
+
+/**
+ * The wide layout's handle between the map and the spot column: a hairline with a grip, in a 16
+ * px target. It follows the WAI-ARIA window-splitter pattern: a focusable vertical separator whose
+ * value is the column's share of the frame. Dragging moves the column by what the pointer moves.
+ * ← widens it and → narrows it (16 px, 64 px with Shift), Home and End go to its minimum and
+ * maximum, and a double-click asks for the default width. It is presentational: it reports
+ * clamped widths and the reset, and the page applies and remembers them (`column-split.ts`).
+ *
+ * The drag captures its pointer on the host, so every move and the release reach the handle
+ * wherever the pointer goes, and nothing is left listening once it ends: capture ends with the
+ * pointer, or with the element.
+ */
+@Component({
+  selector: 'app-split-handle',
+  templateUrl: './split-handle.component.html',
+  styleUrl: './split-handle.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    role: 'separator',
+    tabindex: '0',
+    'aria-orientation': 'vertical',
+    'aria-label': 'Resize map and spot column',
+    'aria-valuemax': '50',
+    '[attr.aria-valuenow]': 'valueNow()',
+    '[attr.aria-valuemin]': 'valueMin()',
+    '[attr.aria-valuetext]': "'Spot column ' + valueNow() + ' percent'",
+    '[class.is-dragging]': 'dragging()',
+    '(keydown)': 'onKeydown($event)',
+    '(pointerdown)': 'onPointerDown($event)',
+    '(pointermove)': 'onPointerMove($event)',
+    '(pointerup)': 'endDrag($event)',
+    '(pointercancel)': 'endDrag($event)',
+    '(lostpointercapture)': 'endDrag($event)',
+    '(dblclick)': 'widthReset.emit()',
+  },
+})
+export class SplitHandleComponent {
+  /** The column's current width, px. */
+  readonly columnWidth = input.required<number>();
+  /** The frame's width, px: the handle's limits are worked out from it. */
+  readonly frameWidth = input.required<number>();
+
+  /** The visitor moved the handle (drag, arrow keys, Home, End): the column's new width, already clamped. */
+  readonly widthChange = output<number>();
+  /** The visitor double-clicked the handle: back to the default width. */
+  readonly widthReset = output<void>();
+
+  /** Whether a drag is under way; the grip stays lit for it. */
+  protected readonly dragging = signal(false);
+
+  /** The column's share of the frame, in whole percent: the separator's value. */
+  protected readonly valueNow = computed(() =>
+    percentOf(this.columnWidth(), this.frameWidth()),
+  );
+
+  /** The minimum width's share of the frame, in whole percent. */
+  protected readonly valueMin = computed(() =>
+    percentOf(MIN_COLUMN_WIDTH_PX, this.frameWidth()),
+  );
+
+  /** The handle itself, whose pointer capture a drag holds. */
+  private readonly host =
+    inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
+
+  /** The drag under way, if any. */
+  private drag?: Drag;
+
+  /** Moves the column by a key, as the window-splitter pattern asks; other keys are the page's. */
+  protected onKeydown(event: KeyboardEvent): void {
+    const width = this.columnWidth();
+    const frameWidth = this.frameWidth();
+    const step = event.shiftKey ? COLUMN_BIG_STEP_PX : COLUMN_STEP_PX;
+    let target: number;
+    switch (event.key) {
+      case 'ArrowLeft':
+        target = width + step;
+        break;
+      case 'ArrowRight':
+        target = width - step;
+        break;
+      case 'Home':
+        target = MIN_COLUMN_WIDTH_PX;
+        break;
+      case 'End':
+        target = maxColumnWidth(frameWidth);
+        break;
+      default:
+        return;
+    }
+    event.preventDefault();
+    this.report(clampColumnWidth(target, frameWidth));
+  }
+
+  /** A primary-button press starts a drag from the column's current width. */
+  protected onPointerDown(event: PointerEvent): void {
+    if (event.button !== 0 || this.drag) {
+      return;
+    }
+    this.host.setPointerCapture(event.pointerId);
+    this.drag = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startWidth: this.columnWidth(),
+    };
+    this.dragging.set(true);
+  }
+
+  /**
+   * The column follows the drag: it gains what the pointer has moved left since the press. Measured
+   * from the width the drag started at, so the page feeding each new width back never compounds it.
+   */
+  protected onPointerMove(event: PointerEvent): void {
+    const drag = this.drag;
+    if (!drag || event.pointerId !== drag.pointerId) {
+      return;
+    }
+    this.report(
+      clampColumnWidth(
+        drag.startWidth + (drag.startX - event.clientX),
+        this.frameWidth(),
+      ),
+    );
+  }
+
+  /** The drag's pointer went up, was cancelled or lost its capture: the drag ends. */
+  protected endDrag(event: PointerEvent): void {
+    const drag = this.drag;
+    if (!drag || event.pointerId !== drag.pointerId) {
+      return;
+    }
+    this.drag = undefined;
+    if (this.host.hasPointerCapture(drag.pointerId)) {
+      this.host.releasePointerCapture(drag.pointerId);
+    }
+    this.dragging.set(false);
+  }
+
+  /** Reports `width` unless it is the width the column already has. */
+  private report(width: number): void {
+    if (width !== this.columnWidth()) {
+      this.widthChange.emit(width);
+    }
+  }
+}

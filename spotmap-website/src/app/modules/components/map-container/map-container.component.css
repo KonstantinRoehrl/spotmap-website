@@ -1,9 +1,8 @@
+/* The map runs edge to edge (no frame radius or halo since Phase 12); the near-black backing stays,
+   so a blank, slow or failed map reads black-green, never white. */
 .map-container {
   position: relative;
-  /* Near-black backing so a blank/slow/failed map reads black-green, never white. */
   background: var(--color-surface);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--glow-edge-frame);
   overflow: hidden;
 }
 

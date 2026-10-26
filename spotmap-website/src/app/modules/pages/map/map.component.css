@@ -1,21 +1,275 @@
-/* --------------------
-   Map Page and Container
--------------------- */
-.map-page {
+/* The page fills the shell's content area, which drops its side padding on the map page and keeps
+   only the phone's 60 px for the bottom nav (app.component.css). */
+:host {
+  display: block;
   height: 100%;
 }
 
-.map-container {
-  flex: 1 1 auto;
+/* The page gutter (DESIGN.md spacing): 16 px, and 24 px in the wide layout. Set by the layout
+   class rather than a media query, so it always agrees with the layout the page chose. */
+.map-page {
+  --map-page-gutter: 16px;
   display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
 }
 
-/* --------------------
-   Material select / form-field styling lives GLOBALLY in src/theme.scss.
-   The dropdown is a CDK overlay rendered at the document root (outside this
-   component's DOM), so it can only be reached from a global stylesheet —
-   NOT from here. Colour, background, mono font, soft corners, amber
-   selection and the phosphor glow are all driven by the M3 `--mat-sys-*`
-   design tokens + a small set of global rules in theme.scss, which is why
-   this file no longer needs any shadow-piercing overrides or forced flags.
--------------------- */
+.map-page--wide {
+  --map-page-gutter: 24px;
+}
+
+/* From 769 px: the banner and the city select in one row under the top nav, inside the gutter.
+   The row has no bottom padding: the body's top gutter is the space between it and the window. */
+.map-header {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: var(--map-page-gutter) var(--map-page-gutter) 0;
+}
+
+.map-header__banner {
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 40px;
+  overflow: hidden;
+}
+
+/* The banner's container centres its line; both bars read from the left, without the dot gutters
+   (`[dotGutters]="false"`). The component is ViewEncapsulation.None, but this page's own rules
+   are scoped and would never match the container's unscoped markup, so ::ng-deep is the only way
+   to reach it. */
+.map-header__banner ::ng-deep .ascii-container,
+.map-topbar__banner ::ng-deep .ascii-container {
+  justify-content: flex-start;
+}
+
+/* 40 px tall through Material's own field tokens, and as wide as its longest label,
+   `bratislava · SK`, 15 glyphs: the field's 16 px side padding twice, the arrow (about 10 px, 12
+   with a margin) and the glyphs at IBM Plex Mono's 0.6 em advance in the 13 px label size, the
+   tracking removed. The field's content measures 25 px round the select's 24 px line, so 8 px of
+   padding would make it 41: 7 px lets the 40 px minimum height set it. */
+.map-header__picker {
+  --city-label-glyphs: 15;
+  --mat-select-trigger-text-size: 0.8125rem;
+  --mat-select-trigger-text-tracking: 0;
+  --mat-form-field-container-height: 40px;
+  --mat-form-field-container-vertical-padding: 7px;
+  flex: none;
+  width: calc(2rem + 12px + var(--city-label-glyphs) * 0.6 * 0.8125rem);
+}
+
+/* Phone: two fixed rows, the banner over the city select, 16 px round them, the top below the
+   safe-area inset. Its bottom padding is the gutter above the window. Neither row's width or height
+   depends on the line playing or the city chosen, so nothing in the bar ever resizes or reflows. */
+.map-topbar {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: calc(16px + env(safe-area-inset-top)) 16px 16px;
+}
+
+/* Row one: the banner across the whole content width, in a fixed 24 px row. */
+.map-topbar__banner {
+  display: block;
+  height: 24px;
+  overflow: hidden;
+}
+
+/* Row two: the city select across the whole content width, 40 px tall through Material's own field
+   tokens at the header picker's 7 px padding. Its floating CITY label rides the 8 px gap above it,
+   over the banner row's empty strip under its text. */
+.map-topbar__picker {
+  --mat-select-trigger-text-size: 0.8125rem;
+  --mat-select-trigger-text-tracking: 0;
+  --mat-form-field-container-height: 40px;
+  --mat-form-field-container-vertical-padding: 7px;
+  display: block;
+}
+
+/* The window fills the rest of the page inside the gutter, the bottom edge included. */
+.map-page__body {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  box-sizing: border-box;
+  padding: var(--map-page-gutter);
+}
+
+/* Phone: the top bar's own 16 px bottom padding is the gutter above the window. */
+.map-page--phone .map-page__body {
+  padding-top: 0;
+}
+
+/* The map frame (DESIGN.md "Map Canvas"), at every width: an 8 px radius, the surface backing
+   and the 24 px edge glow. It clips the map, the handle, the column and the sheet to its
+   corners; its own halo is outside the clip. */
+.map-window {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-edge-frame);
+}
+
+/* The map's surface backing reads black-green while nothing is drawn yet. */
+.map-page__map {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  background: var(--color-surface);
+}
+
+.map-page__map-container {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* The handle's 16 px hit area overlaps the map and the column by 8 px each, so it adds no width,
+   and stacks above both (and above MapLibre's controls) so it always takes the pointer. Its
+   hairline is the only line between the map and the column. */
+.map-window__handle {
+  position: relative;
+  z-index: 3;
+  flex: none;
+  margin-inline: -8px;
+}
+
+/* Wide: the column on the right, sized by the page from the handle; no border of its own. */
+.spot-column {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  background: var(--color-surface);
+}
+
+/* Only while the handle's reset eases the column back to its default: a drag follows the
+   pointer at once. The reduced-motion net drops width from every transition, so there the reset
+   lands at once, as the page also asks. */
+.spot-column--easing {
+  transition: width 330ms var(--ease-out-expo);
+}
+
+/* The toolbar (R2): a fixed 64 px row, 16 px above, below and beside its 32 px content, over one
+   1 px rule. It never scrolls; the pane under it does. */
+.spot-column__toolbar {
+  position: relative;
+  flex: none;
+  display: grid;
+  box-sizing: border-box;
+  height: 64px;
+  padding: 16px;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+
+/* The rule under the toolbar, drawn over the row's last pixel row rather than as a border: a
+   border would take 1 px of the 64 and leave the 32 px content 31 px of room and the bottom padding
+   short. */
+.spot-column__toolbar::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: var(--color-line);
+  pointer-events: none;
+}
+
+/* The count line and the back plate share the cell and crossfade, like the sheet's head. */
+.spot-column__count-content {
+  grid-area: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  transition: opacity var(--dur-fade) ease-out;
+}
+
+@starting-style {
+  .spot-column__count-content {
+    opacity: 0;
+  }
+}
+
+.spot-column__count-content--leaving {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.spot-column__count-line {
+  color: var(--color-phosphor);
+}
+
+.spot-column__count-line:focus-visible {
+  outline: 1px solid var(--color-phosphor);
+  outline-offset: 2px;
+}
+
+.spot-column__order {
+  color: var(--color-phosphor-dim);
+}
+
+/* Under 1024 px: the sheet inside the window, on its left, right and bottom edges, over the map. */
+.map-page__sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+}
+
+/* The pane: list and open spot share one grid cell, so they crossfade instead of stacking. */
+.spot-pane {
+  display: grid;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.spot-pane__view {
+  grid-area: 1 / 1;
+  display: block;
+  min-height: 0;
+  overflow-y: auto;
+  transition:
+    opacity var(--dur-fast) ease-out,
+    transform var(--dur-fast) var(--ease-out-expo);
+}
+
+/* The list's rows keep their own 8 px padding; these 8 px put their content 16 px (the panel
+   inset) from the panel's edge. The detail pads itself. */
+.spot-pane__view--list {
+  box-sizing: border-box;
+  padding: 8px;
+}
+
+/* Arriving views settle 8 px in from the right; the reduced-motion net keeps only the fade. */
+@starting-style {
+  .spot-pane__view {
+    opacity: 0;
+    transform: translateX(8px);
+  }
+}
+
+.spot-pane__view--leaving {
+  opacity: 0;
+  transform: translateX(-8px);
+  pointer-events: none;
+}
