@@ -561,3 +561,8 @@ one PR per ecosystem, majors one PR each. `jasmine-core`, `@types/jasmine` and
 Pushing to `main` triggers the GitHub Actions workflow
 (`.github/workflows/deploy-angular.yml`), which builds and deploys the app.
 Because a push to `main` deploys automatically, treat `main` as production.
+
+CI does not deploy the hosted Supabase project: its migrations, data and settings are changed by
+hand. A release therefore follows the checklist in `.claude/skills/release/SKILL.md`, which puts
+the migrations on the hosted project before `main` is merged and covers the tag, the release
+bundle with its `SHA256SUMS` and the merge back into `dev`.
