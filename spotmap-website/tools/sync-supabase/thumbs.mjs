@@ -1,5 +1,5 @@
 /**
- * The thumbnail tree, data/thumbs/<city>/<file>.webp: the popup's 640 px renditions of the
+ * The thumbnail tree, data/thumbs/<city>/<file>.webp: the 640 px renditions (list rows, photo pins, the detail gallery) of the
  * encoded photos in data/spots/<city>/. A sibling tree on purpose, never a subfolder of a city's
  * photo folder: extract:spots deletes every entry of that folder its new dataset does not list,
  * so a thumb/ directory there would break the next extraction. Thumbnails are derived one at a

@@ -1,0 +1,49 @@
+<div class="rail" role="group" [attr.aria-label]="'Photos of ' + spotName()">
+  @for (src of photos(); track src; let i = $index, total = $count) {
+    <button
+      #photoButton
+      type="button"
+      class="rail__photo phosphor-bloom phosphor-bloom--inset"
+      [class.rail__photo--instant]="instant().has(src)"
+      appPointerBloom
+      [attr.aria-label]="
+        'Open photo ' +
+        (i + 1) +
+        ' of ' +
+        total +
+        (failed().has(src) ? ', did not load' : '')
+      "
+      (click)="open.emit(i)"
+    >
+      @if (failed().has(src)) {
+        <span class="rail__failed" aria-hidden="true">
+          <span class="rail__failed-line rail__failed-line--lost"
+            >&gt; SIGNAL LOST</span
+          >&ngsp;<span class="rail__failed-line rail__failed-line--dim"
+            >PHOTO UNREACHABLE</span
+          >
+        </span>
+      } @else {
+        @if (!loaded().has(src)) {
+          <span
+            class="rail__loading"
+            aria-hidden="true"
+            animate.leave="rail__loading--leaving"
+          >
+            <app-ascii-rain [columns]="6" [rows]="5" />
+          </span>
+        }
+        <img
+          class="rail__img"
+          [class.rail__img--loaded]="loaded().has(src)"
+          [src]="src"
+          alt=""
+          loading="lazy"
+          decoding="async"
+          (load)="onImageLoad($event)"
+          (error)="onImageError($event)"
+        />
+      }
+    </button>
+  }
+</div>

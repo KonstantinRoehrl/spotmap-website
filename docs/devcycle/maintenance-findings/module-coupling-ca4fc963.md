@@ -1,0 +1,11 @@
+# sync-supabase imports path constants, a limiter and the JSON serializer from unrelated extract-spots command modules
+- finding-kind: maintenance-finding
+- finding-id: module-coupling:ca4fc963
+- culprit-kind: module-coupling
+- severity: low
+- confidence: verified
+- affected-files: spotmap-website/tools/sync-supabase/cli.mjs, spotmap-website/tools/sync-supabase/parity.mjs, spotmap-website/tools/extract-spots/promote.mjs, spotmap-website/tools/extract-spots/photos.mjs, spotmap-website/tools/extract-spots/dataset.mjs
+- first-seen: 2026-10-23
+- last-seen: 2026-10-23
+- passes: 1
+- verify: 

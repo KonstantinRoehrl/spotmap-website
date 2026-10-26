@@ -118,4 +118,88 @@ describe('AsciiAnimationTextComponent', () => {
 
     f.destroy();
   });
+
+  it('sets the line at a fixed size when given one, and never refits it', () => {
+    const f = TestBed.createComponent(AsciiAnimationTextComponent);
+    f.componentRef.setInput('messages', ['SPOTMAP']);
+    f.componentRef.setInput('fixedFontSize', 14);
+    f.detectChanges();
+    const pre = f.nativeElement.querySelector('.ascii-display') as HTMLElement;
+    expect(pre.style.fontSize).toBe('14px');
+
+    window.dispatchEvent(new Event('resize'));
+    f.detectChanges();
+    expect(pre.style.fontSize).toBe('14px');
+
+    f.destroy();
+  });
+
+  it('keeps its dot gutters by default and drops them when asked', () => {
+    const gutters = (dotGutters: boolean | undefined) => {
+      const f = TestBed.createComponent(AsciiAnimationTextComponent);
+      if (dotGutters !== undefined) {
+        f.componentRef.setInput('dotGutters', dotGutters);
+      }
+      f.detectChanges();
+      const pre = f.nativeElement.querySelector('.ascii-display')!;
+      const count = pre.querySelectorAll('.loading-dots').length;
+      expect(pre.querySelectorAll('.ascii-line').length).toBe(1);
+      f.destroy();
+      return count;
+    };
+    expect(gutters(undefined)).toBe(2);
+    expect(gutters(false)).toBe(0);
+  });
+
+  it('announces each line before its first character is typed', fakeAsync(() => {
+    const f = TestBed.createComponent(AsciiAnimationTextComponent);
+    f.componentRef.setInput('messages', ['AB', 'CD']);
+    f.componentRef.setInput('glitchChance', 0);
+    f.componentRef.setInput('animationSpeed', 10);
+    f.componentRef.setInput('waitFrames', 1);
+    f.componentRef.setInput('breakFrames', 1);
+    const starts: string[] = [];
+    f.componentInstance.lineStart.subscribe((line) => starts.push(line));
+    f.detectChanges();
+    expect(starts).toEqual([]);
+
+    tick(10); // frame 1: `AB` starts, its first character typed in the same frame
+    expect(starts).toEqual(['AB']);
+    expect(f.componentInstance.baseText()).toBe('A_');
+
+    // `AB` takes 15 frames (2 typed, 1 shown, 1 waited, 10 collapsing, 1 blank) and the next
+    // message is picked on frame 15, so frame 16 announces and types `CD`.
+    tick(10 * 15);
+    expect(starts).toEqual(['AB', 'CD']);
+    expect(f.componentInstance.baseText()).toBe('C_');
+
+    f.destroy();
+  }));
+
+  it('under reduced motion announces the static line once, and nothing without lines', () => {
+    spyOn(window, 'matchMedia').and.callFake(
+      (query: string) =>
+        ({
+          matches: query.includes('prefers-reduced-motion'),
+          media: query,
+          onchange: null,
+          addListener: () => {},
+          removeListener: () => {},
+          addEventListener: () => {},
+          removeEventListener: () => {},
+          dispatchEvent: () => false,
+        }) as MediaQueryList,
+    );
+    const announced = (messages: string[]) => {
+      const f = TestBed.createComponent(AsciiAnimationTextComponent);
+      f.componentRef.setInput('messages', messages);
+      const starts: string[] = [];
+      f.componentInstance.lineStart.subscribe((line) => starts.push(line));
+      f.detectChanges();
+      f.destroy();
+      return starts;
+    };
+    expect(announced(['ALPHA', 'OMEGA'])).toEqual(['OMEGA']);
+    expect(announced([])).toEqual([]);
+  });
 });

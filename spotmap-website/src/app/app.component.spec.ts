@@ -1,6 +1,14 @@
+import { Location } from '@angular/common';
+import { provideLocationMocks } from '@angular/common/testing';
+import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { AppComponent } from './app.component';
+import { matchMapPage } from './utils/map-page-path';
+
+/** A routed page with nothing in it, so navigations have somewhere to land. */
+@Component({ template: '' })
+class BlankPageComponent {}
 
 describe('AppComponent', () => {
   beforeEach(async () => {
@@ -17,11 +25,6 @@ describe('AppComponent', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it(`should have the 'spotmap-website' title`, () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    expect(fixture.componentInstance.title).toEqual('spotmap-website');
-  });
-
   it('shows the intro animation and hides the nav before the intro finishes', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
@@ -33,7 +36,7 @@ describe('AppComponent', () => {
   it('skips the intro when it was already seen this browser session', () => {
     sessionStorage.setItem('spotmap:introSeen', '1');
     const fixture = TestBed.createComponent(AppComponent);
-    fixture.detectChanges(); // ngOnInit -> already seen -> reveal content in place
+    fixture.detectChanges(); // seen at construction -> reveal content in place
 
     const el = fixture.nativeElement as HTMLElement;
     expect(el.querySelector('app-ascii-animation-text')).toBeFalsy();
@@ -87,5 +90,135 @@ describe('AppComponent', () => {
       '.intro-skip',
     )!;
     expect(skip.classList).toContain('phosphor-bloom');
+  });
+});
+
+describe('AppComponent on the admin routes', () => {
+  beforeEach(async () => {
+    sessionStorage.clear();
+    await TestBed.configureTestingModule({
+      imports: [AppComponent],
+      providers: [
+        provideRouter([
+          { path: 'admin', component: BlankPageComponent },
+          { path: 'map', component: BlankPageComponent },
+        ]),
+        provideLocationMocks(),
+      ],
+    }).compileComponents();
+  });
+
+  it('skips the intro and hides the public nav bar when the app opens on an admin path', () => {
+    TestBed.inject(Location).go('/admin/sign-in');
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('app-ascii-animation-text')).toBeNull();
+    expect(el.querySelector('app-nav-bar')).toBeNull();
+    expect(el.querySelector('router-outlet')).not.toBeNull();
+    // The public intro still plays on the maintainer's first public visit.
+    expect(sessionStorage.getItem('spotmap:introSeen')).toBeNull();
+  });
+
+  it('hides the public nav bar after navigating into the admin routes, and shows it again outside them', async () => {
+    sessionStorage.setItem('spotmap:introSeen', '1');
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('app-nav-bar')).not.toBeNull();
+
+    await TestBed.inject(Router).navigateByUrl('/admin');
+    fixture.detectChanges();
+    expect(el.querySelector('app-nav-bar')).toBeNull();
+
+    await TestBed.inject(Router).navigateByUrl('/map');
+    fixture.detectChanges();
+    expect(el.querySelector('app-nav-bar')).not.toBeNull();
+  });
+});
+
+describe('AppComponent on the map page', () => {
+  beforeEach(async () => {
+    sessionStorage.clear();
+    await TestBed.configureTestingModule({
+      imports: [AppComponent],
+      providers: [
+        provideRouter([
+          { path: 'home', component: BlankPageComponent },
+          { matcher: matchMapPage, component: BlankPageComponent },
+        ]),
+        provideLocationMocks(),
+      ],
+    }).compileComponents();
+  });
+
+  it('skips the intro on a cold spot link without marking it seen', () => {
+    TestBed.inject(Location).go('/spot/hbf-curb-99f6e5');
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('app-ascii-animation-text')).toBeNull();
+    expect(el.querySelector('app-nav-bar')).not.toBeNull();
+    // A later fresh visit to /map still plays it.
+    expect(sessionStorage.getItem('spotmap:introSeen')).toBeNull();
+  });
+
+  it('still plays the intro on a fresh visit to /map', () => {
+    TestBed.inject(Location).go('/map');
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('app-ascii-animation-text')).not.toBeNull();
+    expect(el.querySelector('app-nav-bar')).toBeNull();
+  });
+
+  it('lets the map page run edge to edge and leaves every other page padded as before', async () => {
+    sessionStorage.setItem('spotmap:introSeen', '1');
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    const container = () =>
+      el.querySelector('.content-container') as HTMLElement;
+    const router = TestBed.inject(Router);
+
+    await router.navigateByUrl('/home');
+    fixture.detectChanges();
+    expect(container().classList).not.toContain('content-container--map');
+    expect(container().classList).toContain('px-6');
+
+    // The fixed bottom nav is 60px tall on a phone; from 769px up the nav sits on top.
+    const bottom = window.matchMedia('(max-width: 768px)').matches
+      ? '60px'
+      : '0px';
+    for (const url of ['/map', '/spot/hbf-curb-99f6e5']) {
+      await router.navigateByUrl(url);
+      fixture.detectChanges();
+      const style = getComputedStyle(container());
+      expect(container().classList)
+        .withContext(url)
+        .toContain('content-container--map');
+      expect(style.paddingLeft).withContext(url).toBe('0px');
+      expect(style.paddingRight).withContext(url).toBe('0px');
+      expect(style.paddingBottom).withContext(url).toBe(bottom);
+      expect(style.overflow).withContext(url).toBe('hidden');
+    }
+
+    await router.navigateByUrl('/home');
+    fixture.detectChanges();
+    expect(container().classList).not.toContain('content-container--map');
+  });
+
+  it('lights the Map tab on a spot link', async () => {
+    sessionStorage.setItem('spotmap:introSeen', '1');
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    await TestBed.inject(Router).navigateByUrl('/spot/hbf-curb-99f6e5');
+    fixture.detectChanges();
+    const active = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll(
+        'app-nav-bar a.active',
+      ),
+    ).map((a) => a.querySelector('.nav-text')?.textContent?.trim());
+    expect(active).toEqual(['Map']);
   });
 });

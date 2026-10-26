@@ -1,0 +1,93 @@
+<div class="picker">
+  <div
+    class="picker__frame"
+    role="region"
+    aria-label="Satellite map. Pan the imagery until the spot sits under the pin."
+    aria-describedby="picker-readout"
+    data-testid="picker-map"
+  >
+    <div #mapHost class="picker__map"></div>
+    <!-- Decorative: the readout plate carries the position in words. -->
+    <span class="picker__pin" aria-hidden="true"></span>
+    <p
+      id="picker-readout"
+      class="picker__readout"
+      aria-live="polite"
+      data-testid="picker-readout"
+    >
+      {{ readout() }}
+    </p>
+    <div class="picker__zoom">
+      <button
+        type="button"
+        class="picker__button phosphor-bloom phosphor-bloom--plate phosphor-bloom--inset"
+        appPointerBloom
+        aria-label="Zoom in"
+        data-testid="picker-zoom-in"
+        [disabled]="failure() !== null"
+        (click)="zoomIn()"
+      >
+        +
+      </button>
+      <button
+        type="button"
+        class="picker__button phosphor-bloom phosphor-bloom--plate phosphor-bloom--inset"
+        appPointerBloom
+        aria-label="Zoom out"
+        data-testid="picker-zoom-out"
+        [disabled]="failure() !== null"
+        (click)="zoomOut()"
+      >
+        −
+      </button>
+    </div>
+    @if (failure(); as failure) {
+      <div
+        class="picker__failure"
+        role="alert"
+        data-testid="picker-failure"
+        animate.leave="picker__notice--leaving"
+      >
+        @if (failure === 'unsupported') {
+          <p>
+            This browser cannot draw the map, so the pin cannot be placed here.
+          </p>
+        } @else {
+          <p>The map did not load.</p>
+          <button
+            type="button"
+            class="picker__button picker__button--primary phosphor-bloom phosphor-bloom--plate"
+            appPointerBloom
+            data-testid="picker-retry"
+            (click)="retry()"
+          >
+            Retry
+          </button>
+        }
+      </div>
+    }
+  </div>
+
+  @if (missingToken()) {
+    <p
+      class="picker__notice"
+      role="status"
+      data-testid="picker-no-token"
+      animate.leave="picker__notice--leaving"
+    >
+      &gt; No imagery key reached this page, so the satellite view stays blank.
+      The pin still works: the readout shows where it is.
+    </p>
+  }
+  @if (tileError()) {
+    <p
+      class="picker__notice picker__notice--error"
+      role="status"
+      data-testid="picker-tile-error"
+      animate.leave="picker__notice--leaving"
+    >
+      &gt; Imagery tiles are failing to load (a rejected key or no connection).
+      The pin still works.
+    </p>
+  }
+</div>

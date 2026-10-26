@@ -1,0 +1,11 @@
+# npm audit reports body-parser via karma (high) and fast-uri via @angular/cli (moderate)
+- finding-kind: maintenance-finding
+- finding-id: dependency-health:df9e9428
+- culprit-kind: dependency-health
+- severity: medium
+- confidence: verified
+- affected-files: spotmap-website/package.json
+- first-seen: 2026-10-23
+- last-seen: 2026-10-23
+- passes: 1
+- verify: 

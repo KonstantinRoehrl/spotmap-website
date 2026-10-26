@@ -1,0 +1,69 @@
+<button
+  #trigger
+  type="button"
+  class="spot-share__trigger phosphor-bloom phosphor-bloom--plate"
+  appPointerBloom
+  [id]="triggerId"
+  [attr.aria-label]="triggerName()"
+  [attr.aria-haspopup]="withSheet() ? 'menu' : null"
+  [attr.aria-expanded]="withSheet() ? menuOpen() : null"
+  [attr.aria-controls]="withSheet() && menuOpen() ? menuId : null"
+  (click)="onTrigger()"
+  (keydown)="onTriggerKeydown($event)"
+>
+  <!-- Every label the trigger can show holds the cell invisibly, so a change never resizes the
+       plate; the one on show is keyed by its text, so a change crossfades instead of cutting. -->
+  <span class="spot-share__label">
+    @for (candidate of labels(); track candidate) {
+      <span class="spot-share__sizer" aria-hidden="true">{{ candidate }}</span>
+    }
+    @for (label of shownLabel(); track label.text) {
+      <span
+        class="spot-share__label-text"
+        animate.leave="spot-share__label-text--leaving"
+        >{{ label.text }}</span
+      >
+    }
+  </span>
+</button>
+
+@if (menuOpen()) {
+  <div
+    #menu
+    class="spot-share__menu"
+    [class.spot-share__menu--above]="placement() === 'above'"
+    role="menu"
+    [id]="menuId"
+    [attr.aria-labelledby]="triggerId"
+    animate.leave="spot-share__menu--leaving"
+    (keydown)="onMenuKeydown($event)"
+  >
+    <button
+      #item
+      type="button"
+      role="menuitem"
+      tabindex="-1"
+      class="spot-share__item phosphor-bloom phosphor-bloom--inset"
+      appPointerBloom
+      aria-label="Copy link"
+      (click)="onCopyItem()"
+    >
+      &gt; COPY LINK
+    </button>
+    <button
+      #item
+      type="button"
+      role="menuitem"
+      tabindex="-1"
+      class="spot-share__item phosphor-bloom phosphor-bloom--inset"
+      appPointerBloom
+      aria-label="Share via…"
+      (click)="onShareItem()"
+    >
+      &gt; SHARE VIA…
+    </button>
+  </div>
+}
+
+<!-- In place and empty from the start, so the first outcome is announced. -->
+<p class="sr-only" role="status" aria-live="polite">{{ announcement() }}</p>

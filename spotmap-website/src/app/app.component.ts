@@ -1,14 +1,18 @@
+import { Location } from '@angular/common';
 import {
   Component,
   signal,
   ChangeDetectionStrategy,
-  HostListener,
-  OnInit,
+  inject,
 } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { filter } from 'rxjs';
 import { AsciiAnimationTextComponent } from './modules/components/ascii-animation-text/ascii-animation-text.component';
 import { NavBarComponent } from './modules/components/nav-bar/nav-bar.component';
 import { PointerBloomDirective } from './modules/directives/pointer-bloom.directive';
+import { isAdminPath } from './utils/admin-path';
+import { isMapPagePath, isSpotPath } from './utils/map-page-path';
 
 // Session-scoped flag so the intro only plays on the first visit of a browser
 // session. Cleared automatically when the tab/session ends.
@@ -17,7 +21,9 @@ const INTRO_SEEN_KEY = 'spotmap:introSeen';
 /**
  * The app shell: plays the once-per-session ASCII intro (skippable by click, Esc or the
  * `[ SKIP ]` button, which carries the shared pointer bloom), then reveals the nav bar and the
- * routed page.
+ * routed page. On the hidden admin routes it skips the intro without marking it seen and hides
+ * the public nav bar; the admin shell brings its own header. A spot link skips the intro the same
+ * way, and the map page runs edge to edge without the content padding.
  */
 @Component({
   selector: 'app-root',
@@ -30,22 +36,48 @@ const INTRO_SEEN_KEY = 'spotmap:introSeen';
   templateUrl: './app.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: './app.component.css',
+  host: { '(document:keydown.escape)': 'onEscape()' },
 })
-export class AppComponent implements OnInit {
-  title = 'spotmap-website';
-  protected introFinished = signal<boolean>(false);
+export class AppComponent {
+  /**
+   * The path the app opened on, relative to the base href. Read from `Location` at construction:
+   * the router's first navigation has not ended yet, and a sign-in link lands here before it.
+   */
+  private readonly initialPath = inject(Location).path();
+  /** Whether the current route is in the admin tree: the opening path, then every `NavigationEnd`. */
+  protected readonly onAdminRoute = signal(isAdminPath(this.initialPath));
+  /**
+   * Whether the current route is the map page (`/map` or `/spot/<id>`): the opening path, then
+   * every `NavigationEnd`. It drops the content container's padding so the map runs edge to edge.
+   */
+  protected readonly onMapPage = signal(isMapPagePath(this.initialPath));
+  /**
+   * Whether the intro is over and the nav bar and routed page show. Starts true when the intro
+   * already played this session, when the app opened on an admin route, or when it opened on a
+   * spot link (a shared spot goes straight to the map). Content then shows immediately and the
+   * animation never mounts. Deliberately does NOT force a route, so reloading or deep-linking
+   * /home, /map, /spot/<id>, /about or /admin stays on that page. Neither exemption marks the intro
+   * seen, so the first plain public visit of the session still plays it.
+   */
+  protected introFinished = signal<boolean>(
+    this.onAdminRoute() || isSpotPath(this.initialPath) || this.hasSeenIntro(),
+  );
 
-  ngOnInit(): void {
-    // Already played this session → skip the intro and reveal content immediately
-    // (never mount the animation). Deliberately does NOT force a route, so
-    // reloading or deep-linking /home, /map, or /about stays on that page.
-    if (this.hasSeenIntro()) {
-      this.introFinished.set(true);
-    }
+  constructor() {
+    inject(Router)
+      .events.pipe(
+        filter(
+          (event): event is NavigationEnd => event instanceof NavigationEnd,
+        ),
+        takeUntilDestroyed(),
+      )
+      .subscribe((event) => {
+        this.onAdminRoute.set(isAdminPath(event.urlAfterRedirects));
+        this.onMapPage.set(isMapPagePath(event.urlAfterRedirects));
+      });
   }
 
   /** Escape from anywhere ends the intro early (a11y skip standard). */
-  @HostListener('document:keydown.escape')
   protected onEscape(): void {
     this.skipIntro();
   }

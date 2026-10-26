@@ -1,0 +1,167 @@
+/* Pinned to the bottom of the map frame the page puts it in; the height comes from the host
+   binding and eases on the house curve. Under prefers-reduced-motion the global net drops `height`
+   from the transitioned properties, so the height then changes at once while the head and body
+   still fade. That is the net's rule: movement stops, fades stay. Rounded on every corner like the
+   frame it sits in. */
+:host {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  overflow: hidden;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  transition: height 330ms var(--ease-out-expo);
+}
+
+/* The 1px line frame, drawn over the content rather than as a border: a border would take 2 px of
+   the 64 px peek and leave the head's bottom padding short, and the pane scrolling under this one
+   never covers the edge. */
+:host::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border: 1px solid var(--color-line);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* The R2 head: 16 px above, below and beside its 32 px controls, so 64 px, the peek height
+   (SHEET_PEEK_HEIGHT_PX). */
+.spot-sheet__head {
+  position: relative;
+  flex: none;
+  display: grid;
+  box-sizing: border-box;
+  height: 64px;
+  padding: 16px;
+}
+
+/* The rule between the head and the pane, shown only while the sheet is open. It fades by opacity,
+   which the reduced-motion net keeps. */
+.spot-sheet__head::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: var(--color-line);
+  opacity: 0;
+  transition: opacity var(--dur-fade) ease-out;
+  pointer-events: none;
+}
+
+.spot-sheet__head--open::after {
+  opacity: 1;
+}
+
+/* The grab handle sits in the head's top padding and never takes a tap: the toggle under it does. */
+.spot-sheet__handle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 16px;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.spot-sheet__grip {
+  width: 36px;
+  height: 4px;
+  border-radius: var(--radius-sm);
+  background: var(--color-phosphor-deep);
+}
+
+.spot-sheet__head-content {
+  grid-area: 1 / 1;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  transition: opacity var(--dur-fade) ease-out;
+}
+
+@starting-style {
+  .spot-sheet__head-content {
+    opacity: 0;
+  }
+}
+
+.spot-sheet__head-content--leaving {
+  opacity: 0;
+}
+
+.spot-sheet__head-content--detail {
+  justify-content: space-between;
+  gap: 8px;
+}
+
+/* Label type (DESIGN.md §3): 13px, 500, 0.08em, uppercase. */
+.spot-sheet__toggle,
+.spot-sheet__close {
+  box-sizing: border-box;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+/* The toggle fills the whole head, so the 64 px bar is one target; its padding puts its words on
+   the same 16 px inset as the detail head's plates. */
+.spot-sheet__toggle {
+  flex: 1 1 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  height: 64px;
+  margin: -16px;
+  padding: 16px;
+  border: none;
+  border-radius: var(--radius-lg);
+}
+
+.spot-sheet__hint {
+  color: var(--color-phosphor-dim);
+}
+
+/* The close plate is drawn 32 px square (the R2 toolbar's controls); the hit area reaches the 44 px
+   target through ::after, since ::before is the bloom's gradient. The ::after is placed against the
+   plate's padding box, 30 px inside its 1 px border, so it reaches 7 px out on every side to make
+   44. */
+.spot-sheet__close {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  font-size: 1rem;
+}
+
+.spot-sheet__close::after {
+  content: '';
+  position: absolute;
+  inset: -7px;
+}
+
+.spot-sheet__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  transition: opacity var(--dur-fade) ease-out;
+}
+
+/* At peek the pane fades out and is inert, so nothing under the head can be reached or read. Only
+   opacity changes: visibility is not among the properties the reduced-motion net still
+   transitions, so a visibility step would cut the fade there. */
+.spot-sheet__body--hidden {
+  opacity: 0;
+}

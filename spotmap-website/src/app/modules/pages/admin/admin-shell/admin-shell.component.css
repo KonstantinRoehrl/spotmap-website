@@ -1,0 +1,127 @@
+/* Admin shell — variant A (.devcycle/design/admin-ui-direction.md): brand and sign-out, the
+   signed-in email, then a two-tab strip over a 1px line rule. */
+:host {
+  display: block;
+}
+
+.admin-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.admin-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.admin-brand {
+  color: var(--color-phosphor-bright);
+  text-shadow: var(--glow-text-display);
+  font-weight: 600;
+}
+
+.admin-email {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-phosphor-dim);
+  font-size: 0.75rem;
+}
+
+.admin-nav {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.admin-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 10px 16px;
+  border-width: 1px;
+  border-style: solid;
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  --bloom-rest-border: var(--color-phosphor-deep);
+}
+
+.admin-tab {
+  flex: 1;
+  --bloom-rest-border: transparent;
+}
+
+.admin-tab.active {
+  --bloom-rest-border: var(--color-phosphor-deep);
+  --bloom-rest-bg: color-mix(in srgb, var(--color-phosphor) 7%, transparent);
+}
+
+.admin-button:disabled {
+  cursor: default;
+  text-shadow: none;
+  --bloom-rest-color: var(--color-phosphor-deep);
+}
+
+.admin-error {
+  margin: 0.5rem 0 0;
+  color: var(--color-amber);
+  transition: opacity var(--dur-fade) ease-out;
+}
+
+@starting-style {
+  .admin-error {
+    opacity: 0;
+  }
+}
+
+.admin-error--leaving {
+  opacity: 0;
+}
+
+.admin-status {
+  min-height: 1.3em;
+  margin: 0.25rem 0 0;
+  color: var(--color-phosphor-dim);
+  font-size: 0.8125rem;
+}
+
+.admin-status:not(:empty)::before {
+  content: '> ';
+}
+
+.admin-main {
+  padding: 0.5rem 0 1.5rem;
+}
+
+/* The focus target of a route change is not a control: no ring on the region, a phosphor line on
+   a heading (the step headings' treatment, DESIGN.md). ::ng-deep reaches the routed page's h1. */
+.admin-main:focus {
+  outline: none;
+}
+
+:host ::ng-deep .admin-main h1:focus-visible {
+  outline: 1px solid var(--color-phosphor);
+}
+
+/* The Add page's h1 is for screen readers and focus; its steps carry their own visible headings. */
+.admin-page-title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

@@ -1,0 +1,148 @@
+<section class="page" aria-labelledby="spot-list-title">
+  <h1 id="spot-list-title" class="page__title">Spots</h1>
+
+  <div class="filters" role="search" aria-label="Filter spots">
+    <label class="field">
+      <span class="field__label">City</span>
+      <span class="select">
+        <select
+          class="field__control"
+          data-testid="city-filter"
+          [attr.aria-describedby]="citiesError() ? 'cities-error' : null"
+          (change)="onCityChange($event)"
+        >
+          <option [value]="allCities" [selected]="city() === allCities">
+            All cities
+          </option>
+          @for (slug of cities(); track slug) {
+            <option [value]="slug" [selected]="slug === city()">
+              {{ slug }}
+            </option>
+          }
+        </select>
+      </span>
+    </label>
+    @if (citiesError(); as message) {
+      <p
+        id="cities-error"
+        class="field__error"
+        data-testid="cities-error"
+        animate.leave="fade--leaving"
+      >
+        {{ message }}
+        <button
+          type="button"
+          class="button phosphor-bloom"
+          appPointerBloom
+          data-testid="cities-retry"
+          (click)="reload()"
+        >
+          Retry
+        </button>
+      </p>
+    }
+    <label class="field">
+      <span class="field__label">Name</span>
+      <input
+        class="field__control"
+        type="search"
+        autocomplete="off"
+        data-testid="name-filter"
+        [value]="nameFilter()"
+        (input)="onNameInput($event)"
+      />
+    </label>
+    <label class="check">
+      <input
+        class="check__box"
+        type="checkbox"
+        data-testid="include-deleted"
+        [checked]="includeDeleted()"
+        (change)="onIncludeDeletedChange($event)"
+      />
+      <span>Include deleted</span>
+    </label>
+  </div>
+
+  <p class="status" role="status" aria-live="polite" data-testid="list-status">
+    @for (line of statusLines(); track line) {
+      <span class="status__line" animate.leave="fade--leaving">{{ line }}</span>
+    }
+  </p>
+
+  <div class="stack">
+    @switch (load()) {
+      @case ('loading') {
+        <p
+          class="fade"
+          data-testid="list-loading"
+          aria-hidden="true"
+          animate.leave="fade--leaving"
+        >
+          &gt; …
+        </p>
+      }
+      @case ('error') {
+        <div
+          class="fade"
+          data-testid="list-error"
+          animate.leave="fade--leaving"
+        >
+          <p>&gt; Could not load the spots: {{ loadError() }}</p>
+          <button
+            type="button"
+            class="button phosphor-bloom"
+            appPointerBloom
+            data-testid="list-retry"
+            (click)="reload()"
+          >
+            Retry
+          </button>
+        </div>
+      }
+      @default {
+        @if (visibleSpots().length === 0) {
+          <p
+            class="fade"
+            data-testid="list-empty"
+            animate.leave="fade--leaving"
+          >
+            &gt; No spots match. Clear the filter or tick include deleted.
+          </p>
+        } @else {
+          <ul class="rows fade" animate.leave="fade--leaving">
+            @for (spot of visibleSpots(); track spot.id) {
+              <li
+                class="row fade"
+                data-testid="spot-row"
+                animate.leave="fade--leaving"
+              >
+                <a
+                  class="row__link phosphor-bloom"
+                  appPointerBloom
+                  [routerLink]="['/admin/spots', spot.id]"
+                >
+                  <span
+                    class="row__name"
+                    [class.row__name--deleted]="spot.deletedAt !== null"
+                    data-testid="row-name"
+                    >{{ spot.name }}</span
+                  >
+                  @if (spot.deletedAt !== null) {
+                    <span class="tag" data-testid="row-deleted">Deleted</span>
+                  } @else {
+                    <span class="row__go" aria-hidden="true">&gt;</span>
+                  }
+                  <span class="row__meta" data-testid="row-meta"
+                    >{{ spot.city }} / {{ spot.status }} /
+                    {{ photoCount(spot) }}</span
+                  >
+                </a>
+              </li>
+            }
+          </ul>
+        }
+      }
+    }
+  </div>
+</section>

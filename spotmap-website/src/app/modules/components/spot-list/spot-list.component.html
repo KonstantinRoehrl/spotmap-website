@@ -1,0 +1,74 @@
+<!-- Only what the eye reads: the page announces the notice through a live region of its own, which
+     is in place before this list exists (the list can be created with the notice already in it). -->
+@if (notice() === 'not-found') {
+  <div
+    class="spot-list__notice-slot"
+    animate.leave="spot-list__notice-slot--leaving"
+  >
+    <div class="spot-list__notice-clip">
+      <p class="spot-list__line spot-list__line--dim spot-list__notice">
+        &gt; FILE NOT FOUND // GONE FROM THE ARCHIVE
+      </p>
+    </div>
+  </div>
+}
+
+@let rows = spots();
+@if (rows === null) {
+  <p
+    class="spot-list__line spot-list__line--dim"
+    animate.leave="spot-list__line--leaving"
+  >
+    &gt; LOADING SPOTS…
+  </p>
+} @else if (rows.length === 0) {
+  <p
+    class="spot-list__line spot-list__line--lit"
+    animate.leave="spot-list__line--leaving"
+  >
+    &gt; NO SPOTS IN VIEW
+  </p>
+  <p
+    class="spot-list__line spot-list__line--dim"
+    animate.leave="spot-list__line--leaving"
+  >
+    pan around or zoom out. the city’s bigger than this.
+  </p>
+} @else {
+  <ul class="spot-list" role="list">
+    @for (spot of rows; track spot.properties.id) {
+      <li class="spot-list__item" animate.leave="spot-list__item--leaving">
+        <a
+          class="spot-row phosphor-bloom phosphor-bloom--inset"
+          appPointerBloom
+          [class.is-highlighted]="spot.properties.id === highlightedId()"
+          [attr.data-spot-id]="spot.properties.id"
+          [href]="hrefFor(spot.properties.id)"
+          (click)="onRowClick($event, spot.properties.id)"
+          (mouseenter)="onRowHover(spot.properties.id)"
+          (mouseleave)="onRowHover(null)"
+        >
+          @if (thumbnailFor(spot); as src) {
+            <img
+              class="spot-row__thumb"
+              [src]="src"
+              alt=""
+              loading="lazy"
+              decoding="async"
+            />
+          } @else {
+            <span
+              class="spot-row__thumb spot-row__thumb--empty"
+              aria-hidden="true"
+              >NO PHOTO</span
+            >
+          }
+          <span class="spot-row__text">
+            <span class="spot-row__name">{{ spot.properties.name }}</span>
+            <span class="spot-row__meta">{{ metaFor(spot) }}</span>
+          </span>
+        </a>
+      </li>
+    }
+  </ul>
+}

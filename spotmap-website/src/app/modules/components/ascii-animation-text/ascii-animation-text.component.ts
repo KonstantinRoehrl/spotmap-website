@@ -1,6 +1,7 @@
 import {
   AfterViewInit,
   Component,
+  computed,
   ElementRef,
   input,
   OnDestroy,
@@ -22,7 +23,10 @@ const MEASURE_REFERENCE_PX = 100;
  * glitch effects, holds it, collapses it, then moves on to the next one.
  * Emits `animationFinished` once the last message has played, unless `loop` is
  * set (or immediately when the user prefers reduced motion or there is nothing
- * to type).
+ * to type). Announces each message through `lineStart` just before it is typed.
+ * By default the line is fitted to its container and sits between two dot
+ * gutters; the map page's banners set it at a fixed size without gutters,
+ * on a row of their own.
  */
 @Component({
   selector: 'app-ascii-animation-text',
@@ -51,8 +55,24 @@ export class AsciiAnimationTextComponent implements AfterViewInit, OnDestroy {
   glitchChance = input<number>(0.015);
   breakFrames = input<number>(5);
   loop = input<boolean>(false);
+  /**
+   * A fixed size for the line, px. Set, the line is set at that size and never fitted to its
+   * container: the map page fixes the banner's size instead.
+   */
+  fixedFontSize = input<number | null>(null);
+  /**
+   * Whether the line sits between two 3ch gutters: the trailing one holds a `...` line's loading
+   * dots, the leading one balances it so a centred line stays put. A banner whose lines have no
+   * dots turns them off, so its rendered width is the line's alone.
+   */
+  dotGutters = input<boolean>(true);
 
   animationFinished = output<void>();
+  /**
+   * The message about to be typed, emitted before its first character; under reduced motion, once,
+   * the static final line.
+   */
+  lineStart = output<string>();
 
   // Scoped to THIS component's view so measurement never picks up another
   // <app-ascii-animation-text> instance's container from the document.
@@ -62,6 +82,10 @@ export class AsciiAnimationTextComponent implements AfterViewInit, OnDestroy {
   baseText = signal<string>(''); // main text
   dots = signal<string>(''); // animated dots
   fontSize = signal<number>(22); // default 22px
+  /** The size the line is set in: the fixed one when given, else the fitted one. */
+  protected readonly renderedFontSize = computed(
+    () => this.fixedFontSize() ?? this.fontSize(),
+  );
 
   // Lazily-created canvas 2d context reused for glyph measurement.
   // `undefined` = not created yet, `null` = created but no 2d context.
@@ -134,6 +158,9 @@ export class AsciiAnimationTextComponent implements AfterViewInit, OnDestroy {
       const messages = this.messages();
       const finalMessage = messages.length ? messages[messages.length - 1] : '';
       this.baseText.set(this.animateLoadingDots(finalMessage));
+      if (messages.length) {
+        this.lineStart.emit(finalMessage);
+      }
       this.hasFinished = true;
       this.animationFinished.emit();
       return;
@@ -153,6 +180,9 @@ export class AsciiAnimationTextComponent implements AfterViewInit, OnDestroy {
 
       // Typing phase
       if (this.charIndex < currentMessage.length) {
+        if (this.charIndex === 0) {
+          this.lineStart.emit(currentMessage);
+        }
         const baseText = currentMessage.substring(0, this.charIndex + 1);
         this.baseText.set(this.applyEffects(baseText, true) + '_');
         this.charIndex++;
@@ -245,6 +275,9 @@ export class AsciiAnimationTextComponent implements AfterViewInit, OnDestroy {
   }
 
   private updateFontSize() {
+    // A fixed size is the page's to choose; fitting would only measure for nothing.
+    if (this.fixedFontSize() !== null) return;
+
     // Query THIS component's own container, not the first .ascii-container in
     // the document (there can be several instances on the page).
     const container = this.asciiContainer().nativeElement;

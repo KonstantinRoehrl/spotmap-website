@@ -12,8 +12,17 @@ dark, glowing terminal shell so a slow map never flashes white.
 - **Angular Material 22** — a custom M3 "green terminal" theme (`src/theme.scss`) via `--mat-sys-*` system tokens.
 - **Tailwind CSS v4** — CSS-first `@theme` design tokens in `src/styles.css`.
 - **IBM Plex Mono** — self-hosted (`src/fonts/`, emitted hashed under `media/`); the whole UI is one monospace character grid.
-- **Karma + Jasmine** — unit tests.
+- **Karma + Jasmine** — unit tests, run through `@angular/build:karma`, which bundles the specs with esbuild.
 - **TypeScript 6**, **Zone.js** (change detection is OnPush, Zone retained).
+
+### Dependency overrides
+
+`package.json` pins `vite` to `8.3.5` under `overrides`. `@angular/build` 22.2 requires exactly
+`vite` 8.3.0, which has known dev-server security advisories, and the override replaces that copy so
+`npm audit` stays clean. Vite only runs the local dev server; it is not part of the deployed site.
+**Remove the override once `@angular/build`'s own `vite` dependency is 8.3.3 or later** — check with
+`npm view @angular/build@<version> dependencies.vite` when upgrading Angular. The pin is exact, so it
+never moves on its own, and Dependabot will not retire it for you.
 
 ## Getting started
 
@@ -27,17 +36,45 @@ npm run build     # production build → dist/
 npm test          # unit tests (Karma/Jasmine, headless-capable)
 ```
 
+### Scripts
+
+| Command                            | What it does                                                                                                                                                                      |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run watch`                    | development build that rebuilds on every change                                                                                                                                   |
+| `npm run format`                   | rewrites `src/` (`.ts`, `.html`, `.css`, `.scss`) with Prettier                                                                                                                   |
+| `npm run format:check`             | the same files, check only — a required CI check                                                                                                                                  |
+| `npm run build:pages`              | what CI and the deploy run: `npm run test:tools`, the production build into `../dist/spotmap-website` with the `/spotmap-website/` base href, then the three dist verifiers below |
+| `npm run test:tools`               | the Node test suite for `tools/` (`tools/**/*.test.mjs`)                                                                                                                          |
+| `npm run verify:map-worker-assets` | dist guard: MapLibre's web-worker module is in the browser output, so the map's worker request does not 404                                                                       |
+| `npm run verify:css-asset-urls`    | dist guard: no root-absolute `url()` in the emitted CSS (it would 404 under the deploy prefix), and every relative one resolves to an emitted file                                |
+| `npm run verify:initial-bundle`    | dist guard: no library only the maintainer tool needs ships in the initial bundle                                                                                                 |
+| `npm run verify:dev-map-worker`    | manual check: starts `ng serve` on port 4271 (or the port given after `--`) and confirms the dev server serves the map worker                                                     |
+
+`npm run extract:spots`, the `db:*` scripts and `sync:supabase` / `snapshot:supabase`
+are covered in their own sections below.
+
 ## Project structure
 
 ```
 src/
   app/
     modules/
-      components/   # nav-bar, map-container, map-loader, ascii-rain, ascii-animation-text
-      pages/        # home, map, about (routed)
-      directives/   # glitch-text (per-character scramble)
-    models/enums/   # city / country / config data (SUPPORTED_CITIES)
-    app.routes.ts   # home · map · about · '' → home · ** → home
+      components/   # nav-bar, map-container, map-loader, spot-map, city-picker,
+                    # spot-list, spot-detail, spot-sheet, spot-photo-gallery,
+                    # spot-photo-rail, spot-photo-viewer, spot-share, split-handle,
+                    # overview-back, ascii-rain, ascii-animation-text
+      components/admin/  # satellite-picker (the maintainer tool's satellite pin picker)
+      pages/        # home, map (also serves /spot/<id>; its SpotBrowserStore), about (routed)
+      pages/admin/  # the maintainer tool: shell, sign-in, create-or-attach, spot list, spot edit (lazy)
+      directives/   # glitch-text (per-character scramble),
+                    # pointer-bloom (centres the shared hover bloom on the pointer)
+    models/         # admin/, enums/ (city / country enums), map/ (SUPPORTED_CITIES registry,
+                    # map failure and load-event types), spots/
+    services/       # spots.service.ts (live spots with snapshot fallback),
+                    # spotmap-backend.ts (the backend the app talks to);
+                    # admin/ (the maintainer tool's sign-in, data access, imagery and photo pipeline)
+    utils/          # admin-path, map-page-path (the /map + /spot/<id> matcher), prefers-reduced-motion
+    app.routes.ts   # home · map and spot/<id> (one page) · about · admin (lazy) · '' → map · ** → home
   environments/     # the backend each build talks to (environment.prod.ts in production)
   styles.css        # Tailwind + @theme design tokens (OKLCH colors, glow, motion, radius)
   theme.scss        # Angular Material M3 green-terminal theme
@@ -47,14 +84,29 @@ src/
                     # prefix (tools/verify-css-asset-urls.mjs guards it)
   index.html
 tools/
-  extract-spots/    # npm run extract:spots / promote:spots — My Maps KML → data/spots/ → public/spots/ (see below)
-  sync-supabase/    # npm run sync:supabase / parity:supabase — data/spots/ → Supabase (see below)
+  extract-spots/    # npm run extract:spots — My Maps KML → data/spots/ (see below)
+  sync-supabase/    # npm run sync:supabase (insert-only) / snapshot:supabase — data/spots/ → Supabase → public/spots/ (see below)
   verify-*.mjs      # build:pages runs the dist guards; verify:dev-map-worker is manual
 data/
   spots/            # extracted per-city datasets (GeoJSON + run reports)
   thumbs/           # derived 640px thumbnails (local, not committed)
-supabase/           # Supabase CLI project: config.toml, the migration, pgTAP tests
+supabase/           # Supabase CLI project: config.toml, the migrations, pgTAP tests, the magic-link email template
 ```
+
+## Spot links
+
+Every spot has a link, `/spot/<id>` (the database's stable text id), that opens
+the map with that spot selected and its detail open; the detail's share menu
+copies it (`> COPY LINK`) or hands it to the device's share sheet
+(`> SHARE VIA…`). `/map` and
+`/spot/<id>` are one page (one route matcher, `matchMapPage`), so opening,
+switching or closing a spot never rebuilds the map. A shared link skips the
+welcome intro, switches to the spot's city and centres the map on it; an
+unknown id opens the remembered city with a not-found line. GitHub Pages serves
+deep paths through the `404.html` copy of `index.html` the deploy writes, so no
+hosting change is needed (such a page answers with HTTP 404, which is harmless
+here). Link previews (Open Graph cards) are not possible on a static single-page
+site.
 
 ## Spot data extraction
 
@@ -69,38 +121,28 @@ npm run extract:spots -- vienna split       # only these cities
 npm run extract:spots -- vienna --reencode  # download and encode existing photos again
 ```
 
-The tool lives in `tools/extract-spots/` and writes to `data/`. Each city it
-writes successfully is then **promoted**: `public/spots/<city>.geojson`, the file
-the app loads, is rewritten as a trimmed copy of the data file. Each spot keeps
-its geometry and its served record (`tools/extract-spots/served-record.mjs`):
+The tool writes only `data/`: the datasets, their reports and the encoded
+photos. Each spot's served record (`tools/extract-spots/served-record.mjs`) is
 `id`, `name`, `status`, `notes` — the first non-empty description across its
 maps, verbatim, or `null` — and `photos` as object keys `<city>/<file>.webp`
-under the photo host. Source records and folders stay in `data/` only. The
-Supabase sync writes the same record, so the snapshot is exactly what the app
-falls back to.
+under the photo host; `npm run sync:supabase` inserts the spots the database has
+never seen. The bundled `public/spots/<city>.geojson` snapshots are no longer
+derived from `data/spots/`: `npm run snapshot:supabase` exports them from the
+database (see [Snapshots](#snapshots)). `tools/extract-spots/committed-datasets.test.mjs`
+checks every committed snapshot on its own (a well-formed collection, unique
+ids, valid statuses and coordinates, photo keys `<city>/<file>.webp`) and the
+Karma `spot-datasets.spec.ts` checks one snapshot per supported city.
 
-```bash
-npm run promote:spots                 # re-promote every city, offline
-npm run promote:spots -- vienna graz  # only these cities
-```
-
-`promote:spots` never touches the network. An unknown city exits 2; a city whose
-data file cannot be read is named, the others are still promoted, and the run
-exits 1. `tools/extract-spots/promote.test.mjs` (part of `npm run test:tools`, so
-CI and `build:pages` run it) fails when a `public/spots/<city>.geojson` differs
-from what promoting its data file would write, or when `public/spots/` holds
-anything other than one `<city>.geojson` per city.
-
-| Path                               | Committed | Contents                                                                       |
-| ---------------------------------- | --------- | ------------------------------------------------------------------------------ |
-| `data/spots/sources.json`          | yes       | the map registry: every My Maps map by slug, and each city's maps and prefixes |
-| `data/spots/<city>.geojson`        | yes       | the city's spots; photo paths are base-relative (`spots/<city>/…`)             |
-| `data/spots/<city>.report.json`    | yes       | counts, dead, recovered and repeated photos, match issues and warnings         |
-| `data/spots/<map>.map-report.json` | yes       | the placemarks of a shared or extra map that no city or several cities claim   |
-| `public/spots/<city>.geojson`      | yes       | the promoted copy the app serves as fallback: served records, no sources       |
-| `data/spots/<city>/*.webp`         | no        | the encoded photos                                                             |
-| `data/thumbs/<city>/*.webp`        | no        | the sync's 640px thumbnails of the encoded photos                              |
-| `data/.cache/kml/<map>.kml`        | no        | the raw KML of each map's last fetch that parsed                               |
+| Path                               | Committed | Contents                                                                            |
+| ---------------------------------- | --------- | ----------------------------------------------------------------------------------- |
+| `data/spots/sources.json`          | yes       | the map registry: every My Maps map by slug, and each city's maps and prefixes      |
+| `data/spots/<city>.geojson`        | yes       | the city's spots; photo paths are base-relative (`spots/<city>/…`)                  |
+| `data/spots/<city>.report.json`    | yes       | counts, dead, recovered and repeated photos, match issues and warnings              |
+| `data/spots/<map>.map-report.json` | yes       | the placemarks of a shared or extra map that no city or several cities claim        |
+| `public/spots/<city>.geojson`      | yes       | the snapshot the app falls back to, exported from the database by snapshot:supabase |
+| `data/spots/<city>/*.webp`         | no        | the encoded photos                                                                  |
+| `data/thumbs/<city>/*.webp`        | no        | the sync's 640px thumbnails of the encoded photos                                   |
+| `data/.cache/kml/<map>.kml`        | no        | the raw KML of each map's last fetch that parsed                                    |
 
 Photos are not committed: all cities together come to well over a thousand
 images, too heavy for git. They are hosted in Supabase Storage — see "Spot data
@@ -238,11 +280,7 @@ where any are non-zero.
 ### When a city fails
 
 A city that fails keeps its previous files; the run carries on and exits
-non-zero, naming each failed city. The one exception is a failed promotion. It
-comes after the data file and report are written, so that city has its new data
-and report, a stale `public/spots/<city>.geojson` and no photo deleted. The drift
-test flags the stale copy until `npm run promote:spots -- <city>` rewrites it. A
-city also fails, so a wrong error from Google or a moved placemark cannot wipe
+non-zero, naming each failed city. A city also fails, so a wrong error from Google or a moved placemark cannot wipe
 good photos, when compared with its previous run:
 
 - **a photo is newly dead**: one the previous run downloaded now comes back
@@ -272,35 +310,90 @@ check.
 
 ## Spot data backend (Supabase)
 
-The map reads each city's spots live from a Supabase project — Postgres with
+The map reads each city's spots — a light list (`city_spot_list(city)`: id, name, status, first photo, photo count) for the pins and the list, and one spot's full detail (`spot_detail(id)`) when it is opened — live from a Supabase project — Postgres with
 PostGIS, row-level security and Storage — and falls back to the bundled
 `public/spots/<city>.geojson` when the backend errors, takes longer than 5 s,
 answers with no spots, or is not configured (`SpotsService`). Photos are served
 from the public `spot-photos` bucket as `full/<city>/<file>.webp` (the 1400px
-encode) and `thumb/<city>/<file>.webp` (640px, what the popup shows); with no
-photo host configured, popups show no gallery.
+encode, which the photo viewer loads over the thumbnail) and `thumb/<city>/<file>.webp` (640px, what the list rows,
+photo pins, the detail's photo rail and the viewer's strip show); with no photo host configured, there are no photos
+anywhere: no photo rail or viewer, no photo pins, and list rows show a NO PHOTO plate.
 
-Each build's backend is set in `src/environments/`. The production one,
-`environment.prod.ts`, stays empty until the hosted project is set up (see
-[Rollout to the hosted project](#rollout-to-the-hosted-project)); until then
-the deployed site serves the snapshot and shows no photos.
+Each build's backend is set in `src/environments/`. Production builds
+(`environment.prod.ts`) talk to the hosted EU Supabase project, so the deployed
+site shows live spots and photos and falls back to the snapshot as described
+above. Development builds talk to the local stack (see [Local stack](#local-stack)).
+[The hosted project](#the-hosted-project) records how the production project is
+set up and how to re-point the site at another one.
 
-Until the maintainer tool replaces it, Google My Maps stays the editing surface
-(roadmap Decision 1), so the database is a **mirror** of `data/spots/`:
+### The maintainer loop
 
-1. edit My Maps → `npm run extract:spots`
-2. commit the datasets and snapshots
-3. `npm run sync:supabase -- --hosted`
+The database is the source of truth. Existing spots are edited only in the
+maintainer tool (see [The maintainer tool](#the-maintainer-tool)). Google My Maps
+stays an input for **new** spots only: a change made there to a spot the database
+already holds — a moved pin, a new name, a new photo, a status — never flows in.
+
+1. Edit in the tool; the change is live at once.
+2. Optionally add new spots in My Maps → `npm run extract:spots` →
+   `npm run sync:supabase -- --hosted` (inserts only spots the database has
+   never seen).
+3. `npm run snapshot:supabase -- --hosted` → commit `public/spots/` (the
+   fallback may lag the live map until then).
+
+A spot moved more than 25 m, or renamed, in My Maps after it was synced gets a
+new id: the sync prints it as a possible duplicate or inserts it as new. It
+prints both and guesses nothing.
 
 ### Access
 
 The public (the publishable key the site ships in its bundle) can read the
-`cities`, `spots` and `spot_photos` tables and call `city_spots(city)`, and
+`cities`, `spots` and `spot_photos` tables and call `city_spots(city)`, `city_spot_list(city)` and `spot_detail(id)`, and
 nothing else: no table, function or bucket write. Only the **secret key**
 (`sb_secret_…`, which bypasses row-level security) writes, through
-`sync_spots(payload)` and Storage uploads. It lives in
-`spotmap-website/.env.local` (gitignored; template `.env.example`) and is sent
-in the `apikey` header only.
+`sync_existing_spots()` / `sync_insert_spots(payload)` and Storage uploads. It
+lives in `spotmap-website/.env.local` (gitignored; template `.env.example`) and
+is sent in the `apikey` header only.
+
+A signed-in admin (a row in `public.admins`) writes through the `admin_*`
+functions and the `is_admin()`-gated Storage policies. Soft-deleted spots
+(`deleted_at` set) are hidden from the public and from all three read functions (`spot_detail` answers `null` for one, as for an unknown id). The Esri
+imagery key lives in the admin-only `admin_settings` table and reaches the
+browser only through `admin_get_setting()`.
+
+### The maintainer tool
+
+The maintainer tool lives at `/spotmap-website/admin` on the Pages origin and at
+`http://127.0.0.1:4200/admin` under `ng serve`. Nothing on the public site links
+to it; its routes skip the intro and hide the public nav bar.
+
+**Sign-in.** Enter the email address: one email carries a link and a 6-digit
+code. Open the link, or type the code on the page (which works when the link
+opens in another browser). Only an invited user can sign in and only a user in
+`admins` can do anything. The default mailer sends about 2 emails per hour.
+
+**Add (create-or-attach).** Pick photos from the camera roll (HEIC or JPEG). They
+are decoded and re-encoded in the browser to WebP at 1,400 px / quality 72 and
+640 px / quality 70, with no EXIF. GPS, when present, is only the picker's first
+guess and is never stored. Place the spot on Esri satellite imagery by panning
+under the fixed centre pin; the view opens on the first photo with GPS, else on
+the centre of the chosen city's spots. Spots within 25 m (or of the same name
+within 100 m) are offered as candidates: attach here, restore and attach a
+deleted one, or create a new spot anyway. The result is a saved spot with
+thumbnails. Photos picked together land on one spot; a batch spread over more
+than 25 m warns and lets photos be dropped.
+
+**Spots.** The list filters by city and name and can include deleted spots. The
+edit page renames, changes the status and notes, moves the pin on the picker,
+reorders photos (earlier / later), removes a photo (confirmed in the page; both
+files are deleted) and adds photos, and deletes (soft, restorable) or restores
+the spot. Every edit is one database call and shows saving, saved or the error.
+
+**New city.** "New city…" in the city field inserts a `cities` row only.
+Visitors see the city after a normal code change adds it to `CityEnum`
+(`src/app/models/enums/map-enum.ts`), `SUPPORTED_CITIES`
+(`src/app/models/map/supported-cities.ts`) and, if it has a My Maps map,
+`data/spots/sources.json`, plus its snapshot via
+`npm run snapshot:supabase -- --hosted --city <slug>`.
 
 ### Local stack
 
@@ -308,52 +401,71 @@ Needs Docker.
 
 ```bash
 npm run db:start   # db, REST API, Storage on http://127.0.0.1:54321 (applies the migrations)
-npm run db:test    # pgTAP: access rules, city_spots, sync_spots
+npm run db:test    # pgTAP: access rules, city_spots, city_spot_list and spot_detail, the admin functions, sync_insert_spots
 npm run db:reset   # re-apply the migrations from scratch
 npm run db:stop
 ```
 
 `ng serve` talks to this stack (`src/environments/environment.ts`); with the
-stack down the map simply serves the snapshot.
+stack down the map simply serves the snapshot. `npm run db:start` also starts the
+mail catcher (Mailpit, `http://127.0.0.1:54324`, `[local_smtp]` in
+`supabase/config.toml`), so a local sign-in email can be read there.
 
 ### The sync
 
+Inserts the spots the extraction found that the database has never seen. Once a
+spot is in the database the maintainer tool owns it, so the sync never updates,
+deletes or prunes anything.
+
 ```bash
-npm run sync:supabase                 # local stack
-npm run sync:supabase -- --dry-run    # plan every step, write nothing
-npm run sync:supabase -- --db-only    # database only, from the committed datasets (no photos needed)
-npm run sync:supabase -- --hosted     # required whenever SUPABASE_URL is not the local stack
-npm run parity:supabase               # every city's live answer must equal its snapshot
-npm run parity:supabase -- --public   # the same, and fail unless it reads as the public
+npm run sync:supabase                          # local stack
+npm run sync:supabase -- --dry-run             # plan against the database, write nothing
+npm run sync:supabase -- --db-only             # database only, from the committed datasets (no photos needed); local stack only
+npm run sync:supabase -- --hosted              # required whenever SUPABASE_URL is not the local stack
+npm run sync:supabase -- --expect-no-inserts   # plan against the database, write nothing, exit 1 if anything would be inserted
 ```
 
-`sync:supabase` and `parity:supabase` both read `SUPABASE_URL` and
-`SUPABASE_SECRET_KEY` from `.env.local` or the environment (the environment
-wins), so they target whichever project those two name: the local stack by
-default, the hosted project once `.env.local` points at it. `parity:supabase`
-reads with the secret key, which bypasses row-level security, unless
-`SUPABASE_PUBLISHABLE_KEY` (the project's publishable key) is set too; then it
-reads as the browser does. `--public` makes that a requirement: without the
-publishable key it exits 2 instead of falling back to the secret key.
+It reads `SUPABASE_URL` and `SUPABASE_SECRET_KEY` from `.env.local` or the
+environment (the environment wins), so it targets whichever project those two
+name: the local stack by default, the hosted project once `.env.local` points at
+it.
 
 It prints the target first, then runs each step only after the previous one
-succeeded: load and check every referenced photo is on disk → derive missing or
-outdated thumbnails into `data/thumbs/` and delete orphaned ones → upload every
-object the bucket lacks or holds with other bytes (compared by MD5, since a file
-name fingerprints Google's rendition, not the served bytes) → mirror the
-database in one `sync_spots()` transaction → delete bucket objects nothing
-references any more, only after the database sync succeeded. A re-run with
-unchanged data reports zero everywhere. Exit codes: 0 done, 1 a step failed
-(named), 2 bad arguments or environment. CI runs the pgTAP tests, a `--db-only`
-sync and the parity check on every pull request.
+succeeded: read every existing spot, deleted ones included → plan: an id
+already present is skipped, a spot within 25 m of an existing one (or with the
+identical name within 100 m) is printed as "possible duplicate of <id>" and held
+back, every other spot is inserted → load and check the photos of the spots it
+will insert → derive their thumbnails into `data/thumbs/` → upload the objects
+the bucket lacks (one it already holds is skipped) → insert in one `sync_insert_spots()`
+transaction. A re-run with unchanged data inserts nothing.
+Exit codes: 0 done, 1 a step failed (named), 2 bad arguments or environment
+(including `--db-only` against a hosted project, whose rows would point at photos
+never uploaded). CI's database job runs it this way on every pull request (see
+[Branches and CI](#branches-and-ci)).
 
-### Rollout to the hosted project
+### Snapshots
 
-`main` deploys to GitHub Pages, so the hosted project is set up and verified
-before the branch that turns the backend on is merged:
+```bash
+npm run snapshot:supabase                  # from the local stack
+npm run snapshot:supabase -- --hosted      # from the hosted project
+npm run snapshot:supabase -- --city <slug> # also writes a city that has no snapshot yet
+```
+
+Writes `public/spots/<city>.geojson` from `city_spots()` for every city that
+already has a snapshot, plus each `--city` given (repeatable). It then rewrites `public/spots/index.json`, the id → city index of every snapshot, which lets a shared `/spot/<id>` link find its city while the backend is down. Exit codes: 0 all
+written, 1 a city failed, 2 bad arguments or a target refused (a hosted URL
+without `--hosted`, or `--hosted` against the local stack).
+
+### The hosted project
+
+Production runs on one hosted Supabase project. These steps set one up from
+nothing; to move the site to a different project, run them against the new
+one and redeploy:
 
 1. Create the Supabase project (EU region, free tier).
-2. Apply the migrations to it:
+2. Apply the migrations to it. All of them must be in before steps 5 and 7,
+   which insert into `public.admins` and `public.admin_settings`, tables the
+   maintainer-tool migration creates:
 
    ```bash
    npx supabase login
@@ -365,20 +477,51 @@ before the branch that turns the backend on is merged:
    from the project's API settings, and `photoBaseUrl` as
    `<apiUrl>/storage/v1/object/public/spot-photos`. The key line keeps a
    trailing `// gitleaks:allow`, since the secret scan flags any committed key.
-4. Put `SUPABASE_URL` (the same `apiUrl`), `SUPABASE_SECRET_KEY` and
-   `SUPABASE_PUBLISHABLE_KEY` (the same publishable key as in
-   `environment.prod.ts`) into `.env.local`. It is never committed.
-5. Fill the project, then check it as the public, the way the browser reads it
-   (the CI parity step runs the same `--public` command):
+4. Put `SUPABASE_URL` (the same `apiUrl`) and `SUPABASE_SECRET_KEY` into
+   `.env.local`. It is never committed.
+5. Auth: set the site URL to the Pages origin
+   `https://<user>.github.io/spotmap-website/` and add
+   `https://<user>.github.io/spotmap-website/admin` and
+   `http://127.0.0.1:4200/admin` to the redirect allow-list; disable signups;
+   invite the maintainer (Authentication → Users → Invite). Then, in the SQL
+   editor:
 
-   ```bash
-   npm run sync:supabase -- --hosted
-   npm run parity:supabase -- --public
+   ```sql
+   insert into public.admins (user_id)
+   select id from auth.users where email = '<maintainer email>';
    ```
 
-6. Merge to `main` only after the parity check passes. Without the rollout the
-   site still degrades safely (snapshot pins, no photos), but it is not the
-   photo release.
+6. Email: paste `supabase/templates/magic-link.html` into Authentication →
+   Email Templates → Magic Link. It carries `{{ .ConfirmationURL }}` and
+   `{{ .Token }}`, so the email has both the link and the code. The default
+   mailer's limit is about 2 emails per hour.
+7. Imagery: create an ArcGIS Location Platform API key with only the static
+   basemap tiles privilege, referrer-restricted to the Pages origin. Check it:
+
+   ```bash
+   curl -s -o /dev/null -w '%{http_code}' "https://static-map-tiles-api.arcgis.com/arcgis/rest/services/static-basemap-tiles-service/v1/arcgis/imagery/static/tile/3/3/3?token=$KEY"
+   ```
+
+   It must print `200`; a failing check means the key or the imagery provider
+   needs revisiting before going on. Then store the key; it is never committed:
+
+   ```sql
+   insert into public.admin_settings (key, value) values ('esri_api_key', '<key>');
+   ```
+
+8. `npm run sync:supabase -- --hosted`, then
+   `npm run snapshot:supabase -- --hosted`.
+
+To test a branch on a phone against the hosted sign-in, add the phone-reachable
+origin (a local-network address or a tunnel) to the redirect allow-list for the
+test, and remove it afterwards.
+
+A custom domain means updating the site URL and the redirect allow-list.
+
+A pull request that adds a migration carries a checklist item: the maintainer
+applies it to the hosted project (`npx supabase db push`, linked as in step 2)
+**before** merging to `main`. New read functions sit beside the old ones, so the
+live site works before and after the push.
 
 ## Design system
 
@@ -386,6 +529,32 @@ The visual North Star and its rules — two-phosphor palette (green voice + ambe
 for care/selection), the No-White rule, glow-as-depth (no drop-shadows),
 monospace everything, and soft 4/6/8 px corners — live in `PRODUCT.md` and
 `DESIGN.md` at the repository root.
+
+## Branches and CI
+
+`dev` is the integration branch: work lands on a topic branch, opens a pull
+request into `dev`, and `dev` reaches `main` by pull request (`main` is
+production, see [Deployment](#deployment)).
+
+Every pull request into `dev` or `main` runs `.github/workflows/ci.yml`:
+
+- **format** — `npm run format:check` (Prettier).
+- **build** — `npm run build:pages`: the `tools/` tests, the production build
+  and the dist verifiers, so the artifact `main` would deploy is checked first.
+- **test** — the Karma unit tests in headless Chrome
+  (`npm test -- --no-watch --no-progress --browsers=ChromeHeadless`).
+- **database** — on a local Supabase stack: the migrations (`npm run db:start`)
+  and pgTAP tests (`npm run db:test`), the sync seeding the empty database from
+  `data/spots` (`npm run sync:supabase -- --db-only`), then the same sync again
+  with `--db-only --expect-no-inserts`, which fails if the committed datasets and
+  the database disagree.
+- **secrets** — a gitleaks scan of the whole git history.
+
+Dependabot opens weekly update PRs for the GitHub Actions (repo root) and the
+npm dependencies (`spotmap-website/`); minor and patch updates arrive grouped in
+one PR per ecosystem, majors one PR each. `jasmine-core`, `@types/jasmine` and
+`typescript` are held at their current major (an `ignore:` rule in
+`.github/dependabot.yml`): moving one is a deliberate upgrade, made by hand.
 
 ## Deployment
 

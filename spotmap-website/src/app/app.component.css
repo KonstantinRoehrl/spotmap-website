@@ -55,22 +55,40 @@
     padding-bottom: 76px;
     /* Navbar height + spacing */
   }
-
-  .map-page {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    height: calc(100vh - (76px + env(safe-area-inset-bottom)));
-  }
-
-  app-map-container {
-    flex: 1;
-    min-height: 0;
-  }
 }
 
 @media (min-width: 769px) {
   .content-container {
     padding-bottom: 16px;
+  }
+}
+
+/* Admin routes show no public nav bar, so no room is kept for the mobile bottom bar. Two classes
+   outrank the single-class rules in the media queries above. */
+.content-container.content-container--admin {
+  padding-bottom: 16px;
+}
+
+/* The map page (/map and /spot/<id>) runs edge to edge: no side padding, and it lays out its own
+   map and column instead of scrolling the container. Two classes outrank the single-class rules
+   in the media queries above, and the component's unlayered rule outranks Tailwind's px-6, which
+   lives in Tailwind's utilities layer. Every other page keeps the padding above. */
+.content-container.content-container--map {
+  padding-inline: 0;
+  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  /* Exactly the fixed bottom nav's height (nav-bar.component.css), so the map meets the nav with
+     no gap and nothing of the page hides behind it. */
+  .content-container.content-container--map {
+    padding-bottom: 60px;
+  }
+}
+
+@media (min-width: 769px) {
+  /* The nav sits on top here: the map page runs down to the window's bottom edge. */
+  .content-container.content-container--map {
+    padding-bottom: 0;
   }
 }

@@ -1,13 +1,12 @@
 /**
  * Tests for the sync's Supabase client: the requests it sends (endpoints, headers, bodies), list
- * pagination, batched deletes, failure messages, and the per-request timeout and bounded retry.
+ * pagination, failure messages, and the per-request timeout and bounded retry.
  * `fetch` and the retry delay are injected, so nothing here touches the network or waits.
  */
 import { strict as assert } from 'node:assert';
 import { test } from 'node:test';
 import {
   CACHE_CONTROL,
-  DELETE_BATCH_SIZE,
   LIST_PAGE_SIZE,
   MAX_ATTEMPTS,
   createSupabaseClient,
@@ -75,12 +74,15 @@ test('rpc posts JSON to the REST endpoint with the secret key as apikey only', a
     fetch,
   });
 
-  assert.deepEqual(await client.rpc('sync_spots', { payload: { a: 1 } }), {
-    ok: 1,
-  });
+  assert.deepEqual(
+    await client.rpc('sync_insert_spots', { payload: { a: 1 } }),
+    {
+      ok: 1,
+    },
+  );
 
   const [request] = requests;
-  assert.equal(request.url, `${URL_}/rest/v1/rpc/sync_spots`);
+  assert.equal(request.url, `${URL_}/rest/v1/rpc/sync_insert_spots`);
   assert.equal(request.method, 'POST');
   assert.equal(request.headers.get('apikey'), SECRET);
   assert.equal(request.headers.get('authorization'), null);
@@ -95,8 +97,8 @@ test('a failed request throws with the status and body', async () => {
   const client = createSupabaseClient({ url: URL_, secretKey: SECRET, fetch });
 
   await assert.rejects(
-    client.rpc('sync_spots', {}),
-    /rpc sync_spots: HTTP 400 \{"message":"boom"\}/,
+    client.rpc('sync_insert_spots', {}),
+    /rpc sync_insert_spots: HTTP 400 \{"message":"boom"\}/,
   );
 });
 
@@ -105,13 +107,12 @@ test('listFolder pages through a folder and marks sub-folders', async () => {
     Array.from({ length: count }, (_, i) => ({
       name: `f${offset + i}.webp`,
       id: `id-${offset + i}`,
-      metadata: { eTag: `"etag${offset + i}"` },
     }));
   const { fetch, requests } = recordingFetch((request, index) => {
     if (index === 0) return Response.json(page(LIST_PAGE_SIZE, 0));
     return Response.json([
       ...page(1, LIST_PAGE_SIZE),
-      { name: 'sub', id: null, metadata: null },
+      { name: 'sub', id: null },
     ]);
   });
   const client = createSupabaseClient({ url: URL_, secretKey: SECRET, fetch });
@@ -128,12 +129,8 @@ test('listFolder pages through a folder and marks sub-folders', async () => {
   });
   assert.equal(JSON.parse(requests[1].body).offset, LIST_PAGE_SIZE);
   assert.equal(entries.length, LIST_PAGE_SIZE + 2);
-  assert.deepEqual(entries[0], {
-    name: 'f0.webp',
-    folder: false,
-    eTag: 'etag0',
-  });
-  assert.deepEqual(entries.at(-1), { name: 'sub', folder: true, eTag: null });
+  assert.deepEqual(entries[0], { name: 'f0.webp', folder: false });
+  assert.deepEqual(entries.at(-1), { name: 'sub', folder: true });
 });
 
 test('upload upserts one WebP with the one-week cache header', async () => {
@@ -154,33 +151,6 @@ test('upload upserts one WebP with the one-week cache header', async () => {
   assert.equal(request.headers.get('x-upsert'), 'true');
   assert.equal(request.headers.get('apikey'), SECRET);
   assert.equal(request.body, bytes);
-});
-
-test('remove deletes in batches and reports how many keys it removed', async () => {
-  const { fetch, requests } = recordingFetch(() => Response.json([]));
-  const client = createSupabaseClient({ url: URL_, secretKey: SECRET, fetch });
-  const keys = Array.from(
-    { length: DELETE_BATCH_SIZE + 1 },
-    (_, i) => `full/x/${i}.webp`,
-  );
-
-  assert.equal(await client.remove(keys), keys.length);
-
-  assert.equal(requests.length, 2);
-  assert.equal(requests[0].method, 'DELETE');
-  assert.equal(requests[0].url, `${URL_}/storage/v1/object/spot-photos`);
-  assert.equal(JSON.parse(requests[0].body).prefixes.length, DELETE_BATCH_SIZE);
-  assert.deepEqual(JSON.parse(requests[1].body), {
-    prefixes: [`full/x/${DELETE_BATCH_SIZE}.webp`],
-  });
-});
-
-test('remove sends nothing for no keys', async () => {
-  const { fetch, requests } = recordingFetch();
-  const client = createSupabaseClient({ url: URL_, secretKey: SECRET, fetch });
-
-  assert.equal(await client.remove([]), 0);
-  assert.equal(requests.length, 0);
 });
 
 /** A fake `sleep` that records the delays it was asked for instead of waiting. */
@@ -269,7 +239,7 @@ test('429 and a dropped connection are retried too', async () => {
     sleep: recordingSleep().sleep,
   });
 
-  assert.equal(await client.remove(['full/x/a.webp']), 1);
+  assert.deepEqual(await client.listFolder('full/x'), []);
 
   assert.equal(requests.length, 3);
 });
@@ -328,8 +298,8 @@ test('rpc is sent once on a 503, because its first attempt may have committed', 
     sleep,
   });
 
-  await assert.rejects(client.rpc('sync_spots', {}), (problem) =>
-    /^rpc sync_spots: HTTP 503 busy$/.test(problem.message),
+  await assert.rejects(client.rpc('sync_insert_spots', {}), (problem) =>
+    /^rpc sync_insert_spots: HTTP 503 busy$/.test(problem.message),
   );
 
   assert.equal(requests.length, 1);
@@ -346,26 +316,9 @@ test('rpc still has the timeout', async () => {
   });
 
   await assert.rejects(
-    settlesWithin(1000, client.rpc('sync_spots', {})),
-    /rpc sync_spots: timed out after 20 ms$/,
+    settlesWithin(1000, client.rpc('sync_insert_spots', {})),
+    /rpc sync_insert_spots: timed out after 20 ms$/,
   );
 
   assert.equal(calls(), 1);
-});
-
-test('a publishable key replaces the secret key in apikey, and nothing goes in Authorization', async () => {
-  const { fetch, requests } = recordingFetch(() => Response.json([]));
-  const client = createSupabaseClient({
-    url: URL_,
-    secretKey: SECRET,
-    publishableKey: 'sb_publishable_test',
-    fetch,
-  });
-
-  await client.rpc('city_spots', { p_city: 'vienna' });
-
-  const [request] = requests;
-  assert.equal(request.headers.get('apikey'), 'sb_publishable_test');
-  assert.equal(request.headers.get('authorization'), null);
-  assert.ok(!JSON.stringify([...request.headers]).includes(SECRET));
 });

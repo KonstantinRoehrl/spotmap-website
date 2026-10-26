@@ -1,0 +1,11 @@
+# The city-registry guard test parses the CityEnum TypeScript source by regex
+- finding-kind: maintenance-finding
+- finding-id: fragile-guard:35316e5e
+- culprit-kind: fragile-guard
+- severity: low
+- confidence: suspected
+- affected-files: spotmap-website/tools/extract-spots/sources.test.mjs, spotmap-website/src/app/models/enums/map-enum.ts
+- first-seen: 2026-10-23
+- last-seen: 2026-10-23
+- passes: 1
+- verify: 

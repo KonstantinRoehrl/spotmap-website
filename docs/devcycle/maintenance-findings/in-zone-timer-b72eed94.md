@@ -1,0 +1,11 @@
+# AsciiAnimationTextComponent ticks its 45 ms interval inside the Angular zone, triggering app-wide change detection
+- finding-kind: maintenance-finding
+- finding-id: in-zone-timer:b72eed94
+- culprit-kind: in-zone-timer
+- severity: medium
+- confidence: suspected
+- affected-files: spotmap-website/src/app/modules/components/ascii-animation-text/ascii-animation-text.component.ts
+- first-seen: 2026-10-23
+- last-seen: 2026-10-23
+- passes: 1
+- verify: 

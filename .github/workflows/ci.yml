@@ -19,15 +19,18 @@ jobs:
   format:
     name: Prettier formatting
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: spotmap-website
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Set up Node.js (version from .nvmrc) + npm cache
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: spotmap-website/.nvmrc
           cache: 'npm'
@@ -42,15 +45,18 @@ jobs:
   build:
     name: Production build + tool tests
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: spotmap-website
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Set up Node.js (version from .nvmrc) + npm cache
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: spotmap-website/.nvmrc
           cache: 'npm'
@@ -59,23 +65,27 @@ jobs:
       - name: Install dependencies (npm ci — clean, from lockfile)
         run: npm ci
 
-      # build:pages chains the tools/ test suite, the production build, and both
-      # deploy-artifact verifiers, so this one step gates the artifact main deploys.
-      - name: Build the deploy artifact (tool tests, production build, asset verifiers)
+      # build:pages chains the tools/ test suite, the production build, and the
+      # deploy-artifact verifiers (asset paths, and no admin library in the initial
+      # bundle), so this one step gates the artifact main deploys.
+      - name: Build the deploy artifact (tool tests, production build, output verifiers)
         run: npm run build:pages
 
   test:
     name: Unit tests (Karma, headless Chrome)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: spotmap-website
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Set up Node.js (version from .nvmrc) + npm cache
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: spotmap-website/.nvmrc
           cache: 'npm'
@@ -88,17 +98,25 @@ jobs:
         run: npm test -- --no-watch --no-progress --browsers=ChromeHeadless
 
   database:
+    # This name is a required status check in the "Protect main and dev" ruleset; renaming
+    # the job leaves that check pending forever, so change both together.
+    # The name says "parity", but this job only runs the pgTAP tests, seeds the empty database and
+    # re-syncs it. It does not compare the SQL list/detail output with the snapshot-derived shapes;
+    # the app's spot-shapes specs cover the snapshot side alone.
     name: 'Database: migrations, RLS and live-vs-snapshot parity'
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: spotmap-website
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Set up Node.js (version from .nvmrc) + npm cache
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: spotmap-website/.nvmrc
           cache: 'npm'
@@ -112,7 +130,7 @@ jobs:
       - name: Start the local Supabase stack (database, REST API, Storage) and apply the migrations
         run: npm run db:start
 
-      - name: Run the database tests (pgTAP — schema, row-level security, city_spots, sync_spots)
+      - name: Run the database tests (pgTAP — admin, access rules, city_spots, spot list and detail, insert-only sync)
         run: npm run db:test
 
       - name: Point the sync at the local stack
@@ -120,29 +138,29 @@ jobs:
           eval "$(npx supabase status -o env 2>/dev/null)"
           echo "SUPABASE_URL=$API_URL" >> "$GITHUB_ENV"
           echo "SUPABASE_SECRET_KEY=$SECRET_KEY" >> "$GITHUB_ENV"
-          echo "SUPABASE_PUBLISHABLE_KEY=$PUBLISHABLE_KEY" >> "$GITHUB_ENV"
           case "$PUBLISHABLE_KEY" in
             sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH) ;; # gitleaks:allow
             *) echo "::warning::The local publishable key differs from src/environments/environment.ts" ;;
           esac
 
-      - name: Seed the database from the committed datasets (no photos)
+      - name: Seed the empty database from the committed datasets (no photos)
         run: npm run sync:supabase -- --db-only
 
-      # --public fails the step when SUPABASE_PUBLISHABLE_KEY is empty, instead of reading with the
-      # secret key: the reads must go through the gateway and row-level security as the browser's
-      # anonymous ones do.
-      - name: Check every city's live spots, read as the public, equal its bundled snapshot
-        run: npm run parity:supabase -- --public
+      # The second run plans against the database the first one wrote: every spot must be found
+      # already present, so a sync that would re-insert or duplicate anything fails the job.
+      - name: Re-run the sync and require that it inserts nothing
+        run: npm run sync:supabase -- --db-only --expect-no-inserts
 
   secrets:
     name: Secret scan (gitleaks)
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Check out repository (full history — gitleaks scans every commit)
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       # The MIT-licensed binary, not gitleaks-action, which is license-gated for
       # organization accounts. Bump GITLEAKS_VERSION and GITLEAKS_SHA256 together;

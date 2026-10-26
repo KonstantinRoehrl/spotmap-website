@@ -16,9 +16,19 @@ graphify-out/
 # Planning artifacts — specs, plans and brainstorm notes stay local and untracked
 docs/superpowers/
 
+# Local maintenance audits — untracked snapshots of past drift; once fixed they would feed the graph stale claims
+docs/audits/
+
 # Per-session devcycle on-device verification output — local scratch, never committed
 docs/*/on-device-checklist.md
 docs/*/on-device-results.md
 
-# Spot photos are content, not architecture; the scope's image entry is public/icon*.png
+# The bundled spot snapshots are data exported from the database, not architecture; the scope's image entry is public/icon*.png
 spotmap-website/public/spots/
+
+# Local spot photos and their thumbnails. Git ignores them through spotmap-website/.gitignore,
+# which graphify never reads: it reads .gitignore files only from the repo root down to the scan root.
+# spots/*/* and not spots/*/: graphify matches with fnmatch, where * crosses /, so spots/*/ would
+# also drop the committed spots/*.geojson, *.report.json and sources.json.
+spotmap-website/data/thumbs/
+spotmap-website/data/spots/*/*

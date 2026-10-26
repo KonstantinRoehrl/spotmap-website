@@ -1,9 +1,20 @@
 import { MAP_PALETTE } from './map-palette';
 import {
+  FOOTPRINT_SIZE_PX,
+  HAS_COVER,
   LOCK_ON_AT_REST_FILTER,
+  PHOTO_PIN_COLLISION_PADDING,
+  PHOTO_PIN_LAYERS,
+  PHOTO_PIN_TARGET_LAYER_IDS,
+  photoPinFilter,
+  PIN_IMAGE_LIFT_PX,
   SELECTED_RING_RADIUS,
+  SPOT_FOOTPRINT_IMAGE_ID,
+  SPOT_FOOTPRINT_LAYER,
+  SPOT_FOOTPRINT_LAYER_ID,
   SPOT_LAYERS,
   SPOT_SOURCE_ID,
+  spotFootprintImage,
 } from './spot-layers';
 
 /** A spot as the pin layers see it: its id, its status, and whether it is the selected one. */
@@ -11,6 +22,8 @@ interface Pin {
   id: string;
   status: 'active' | 'demolished';
   selected: boolean;
+  /** Whether a pointer or its list row hovers it. */
+  hovered?: boolean;
 }
 
 /**
@@ -38,7 +51,11 @@ function evaluate(expression: unknown, pin: Pin): unknown {
       return key === 'status' || key === 'id' ? pin[key] : null;
     }
     case 'feature-state':
-      return args[0] === 'selected' ? pin.selected : null;
+      return args[0] === 'selected'
+        ? pin.selected
+        : args[0] === 'hovered'
+          ? (pin.hovered ?? false)
+          : null;
     case 'boolean': {
       const value = evaluate(args[0], pin);
       return typeof value === 'boolean' ? value : evaluate(args[1], pin);
@@ -79,6 +96,7 @@ describe('SPOT_LAYERS', () => {
       'spots-selected',
       'spots-lock-on',
       'spots-body',
+      'spots-hover',
       'spots-demolished-mark',
     ]);
     for (const l of SPOT_LAYERS) {
@@ -136,9 +154,7 @@ describe('SPOT_LAYERS', () => {
 
   it('draws every standing spot alike: Decision 1 left two states', () => {
     expect(JSON.stringify(SPOT_LAYERS)).not.toContain('unclassified');
-    expect(
-      (layer('spots-glow').paint as Record<string, unknown>)['circle-opacity'],
-    ).toBe(0.5);
+    expect(paintFor('spots-glow', 'circle-opacity', active)).toBe(0.5);
     expect(
       (layer('spots-body').paint as Record<string, unknown>)['circle-radius'],
     ).toEqual([
@@ -206,5 +222,120 @@ describe('SPOT_LAYERS', () => {
     expect(layer('spots-lock-on').filter as unknown).toBe(
       LOCK_ON_AT_REST_FILTER,
     );
+  });
+
+  it('lights a hovered pin with a stronger bloom and a thin bright ring', () => {
+    const hovered = { ...active, hovered: true };
+    expect(paintFor('spots-glow', 'circle-radius', hovered)).toBe(18);
+    expect(paintFor('spots-glow', 'circle-opacity', hovered)).toBe(0.85);
+    expect(paintFor('spots-glow', 'circle-radius', active)).toBe(14);
+    expect(paintFor('spots-hover', 'circle-stroke-opacity', hovered)).toBe(1);
+    expect(paintFor('spots-hover', 'circle-stroke-opacity', active)).toBe(0);
+    expect(paintFor('spots-hover', 'circle-stroke-width', hovered)).toBe(1);
+    expect(paintFor('spots-hover', 'circle-stroke-color', hovered)).toBe(
+      MAP_PALETTE.pinHover,
+    );
+  });
+
+  it('lets a × never take a photo pin’s place', () => {
+    expect(
+      (layer('spots-demolished-mark').layout as Record<string, unknown>)[
+        'text-ignore-placement'
+      ],
+    ).toBeTrue();
+  });
+});
+
+describe('PHOTO_PIN_LAYERS', () => {
+  const photo = PHOTO_PIN_LAYERS.find((l) => l.id === 'spots-photo')!;
+
+  it('draws the photo pins from the spot source, and lets a pointer hit them and the dots', () => {
+    expect(PHOTO_PIN_LAYERS.map((l) => l.id)).toEqual(['spots-photo']);
+    expect(photo.source).toBe(SPOT_SOURCE_ID);
+    expect(PHOTO_PIN_TARGET_LAYER_IDS).toEqual(['spots-photo', 'spots-hit']);
+  });
+
+  it('takes away the photo pins of the spots a flag flies for, and none at rest', () => {
+    expect(photoPinFilter(['a', 'b']) as unknown).toEqual([
+      'all',
+      HAS_COVER,
+      ['!', ['in', ['get', 'id'], ['literal', ['a', 'b']]]],
+    ]);
+    expect(photoPinFilter([]) as unknown).toEqual(HAS_COVER);
+  });
+
+  it('gives every spot with a photo a photo pin that yields to a neighbour with more photos', () => {
+    expect(photo.filter as unknown).toEqual(HAS_COVER);
+    expect(photo.layout as unknown).toEqual(
+      jasmine.objectContaining({
+        'icon-image': ['concat', 'spot-photo:', ['get', 'id']],
+        'icon-anchor': 'bottom',
+        'icon-allow-overlap': false,
+        'icon-padding': PHOTO_PIN_COLLISION_PADDING,
+        'symbol-sort-key': ['-', ['get', 'photoCount']],
+      }),
+    );
+  });
+
+  it('collides by the photo frame and only 2 px of the stem band below it', () => {
+    expect(PHOTO_PIN_COLLISION_PADDING).toEqual([2, 2, -6, 2]);
+  });
+
+  it('keeps a spot’s own dot footprint clear of its own photo pin’s collision box', () => {
+    // Screen y grows downwards from the dot's centre. The pin image's foot sits at its offset
+    // (anchor `bottom`), and the bottom padding moves that edge down by its value, so a negative
+    // value lifts it. The footprint is centred on the dot.
+    const [, liftY] = (photo.layout as Record<string, [number, number]>)[
+      'icon-offset'
+    ];
+    const boxBottom = liftY + PHOTO_PIN_COLLISION_PADDING[2];
+    const footprintTop = -FOOTPRINT_SIZE_PX / 2;
+    expect(liftY).toBe(-PIN_IMAGE_LIFT_PX);
+    expect(boxBottom)
+      .withContext('the photo pin’s box ends above its own footprint')
+      .toBeLessThan(footprintTop);
+  });
+});
+
+describe('SPOT_FOOTPRINT_LAYER', () => {
+  const layout = SPOT_FOOTPRINT_LAYER.layout as Record<string, unknown>;
+
+  it('stands an invisible footprint on every spot, from the spot source', () => {
+    expect(SPOT_FOOTPRINT_LAYER.id).toBe(SPOT_FOOTPRINT_LAYER_ID);
+    expect(SPOT_FOOTPRINT_LAYER_ID).toBe('spots-footprint');
+    expect(SPOT_FOOTPRINT_LAYER.type).toBe('symbol');
+    expect(SPOT_FOOTPRINT_LAYER.source).toBe(SPOT_SOURCE_ID);
+    expect(SPOT_FOOTPRINT_LAYER.filter)
+      .withContext('every spot, with or without a photo')
+      .toBeUndefined();
+    expect(layout['icon-image']).toBe(SPOT_FOOTPRINT_IMAGE_ID);
+    expect(
+      (SPOT_FOOTPRINT_LAYER.paint as Record<string, unknown>)['icon-opacity'],
+    ).toBe(0);
+  });
+
+  it('always places a footprint, and keeps every later symbol off it', () => {
+    expect(layout['icon-allow-overlap']).toBeTrue();
+    expect(layout['icon-ignore-placement']).toBeFalse();
+  });
+
+  it('is exactly the footprint square: centred on the dot, no padding', () => {
+    expect(layout['icon-anchor'] ?? 'center').toBe('center');
+    expect(layout['icon-padding']).toBe(0);
+    expect(layout['icon-offset']).toBeUndefined();
+  });
+
+  it('covers the largest resting dot with a 2 px margin', () => {
+    // The demolished ring: a 6 px radius and a 2 px stroke drawn outside it.
+    const demolishedReach = 6 + 2;
+    expect(FOOTPRINT_SIZE_PX).toBe(2 * (demolishedReach + 2));
+  });
+
+  it('is drawn from a transparent square the size of the footprint', () => {
+    const image = spotFootprintImage();
+    expect(image.width).toBe(FOOTPRINT_SIZE_PX);
+    expect(image.height).toBe(FOOTPRINT_SIZE_PX);
+    expect(image.data.length).toBe(FOOTPRINT_SIZE_PX * FOOTPRINT_SIZE_PX * 4);
+    expect(image.data.every((channel) => channel === 0)).toBeTrue();
   });
 });

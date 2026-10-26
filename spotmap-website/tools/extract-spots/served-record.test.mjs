@@ -1,6 +1,6 @@
 /**
- * Tests for the served record: the one shape both the bundled snapshot (promote.mjs) and the
- * live database (tools/sync-supabase) carry for a spot.
+ * Tests for the served record: the one shape the sync writes into the database for a spot, and
+ * so the shape city_spots() and the bundled snapshots carry.
  */
 import { strict as assert } from 'node:assert';
 import { test } from 'node:test';

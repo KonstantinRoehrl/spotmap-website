@@ -1,16 +1,16 @@
 import { HttpClient, provideHttpClient } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
-import { SUPPORTED_CITIES } from '../enums/config';
+import { SUPPORTED_CITIES } from '../map/supported-cities';
 import { CityEnum } from '../enums/map-enum';
 import { SpotCollection, SpotStatus } from './spot';
 
 const STATUSES: SpotStatus[] = ['active', 'demolished'];
 
 /**
- * Every city's served dataset, `public/spots/<city>.geojson`, is promoted from data/spots/ by
- * tools/extract-spots/promote.mjs. Each one loads the way SpotsService loads it and holds what
- * SpotMapComponent and SpotPopupComponent rely on. Photos are object keys of the city's own photos, never URLs.
+ * Every city's served dataset, `public/spots/<city>.geojson`, is exported from the database by
+ * `npm run snapshot:supabase`. Each one loads the way SpotsService loads it and holds what
+ * SpotsService and SpotMapComponent rely on. Photos are object keys of the city's own photos, never URLs.
  */
 describe('served spot datasets', () => {
   for (const city of Object.keys(SUPPORTED_CITIES) as CityEnum[]) {

@@ -5,9 +5,8 @@
         <a
           class="phosphor-bloom"
           [routerLink]="link.url"
-          routerLinkActive="active"
-          [routerLinkActiveOptions]="{ exact: true }"
-          appGlitchText
+          [class.active]="isActive(link)"
+          [appGlitchText]="link.name"
           appPointerBloom
         >
           <span class="nav-icon me-1" aria-hidden="true">{{ link.icon }}</span>

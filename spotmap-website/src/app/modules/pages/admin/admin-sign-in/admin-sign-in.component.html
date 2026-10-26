@@ -1,0 +1,189 @@
+<section class="signin">
+  <header class="signin-header">
+    <span class="signin-brand">&gt; SPOTMAP ADMIN</span>
+  </header>
+
+  <div class="steps">
+    @switch (step()) {
+      @case ('checking') {
+        <div
+          class="step"
+          animate.leave="step--leaving"
+          data-testid="step-checking"
+        >
+          <div class="card">
+            <p class="dim">Checking the session…</p>
+          </div>
+        </div>
+      }
+      @case ('email') {
+        <form
+          class="step"
+          animate.leave="step--leaving"
+          data-testid="step-email"
+          (submit)="send($event)"
+        >
+          <div class="card">
+            <h1 class="step-title" tabindex="-1" #stepHeading>Sign in</h1>
+            <p class="dim">
+              Maintainers only. We email a link and a 6-digit code; either
+              works.
+            </p>
+            @if (linkFailed()) {
+              <p class="error" role="alert" data-testid="link-error">
+                That sign-in link has expired or was already used — enter the
+                code from the same email, or send a new one.
+              </p>
+            }
+            <label class="field-label" for="sign-in-email">Email</label>
+            <input
+              #emailInput
+              id="sign-in-email"
+              class="field"
+              type="email"
+              name="email"
+              autocomplete="email"
+              required
+              data-testid="email-input"
+              [value]="email()"
+              [attr.aria-invalid]="error() ? 'true' : null"
+              [attr.aria-describedby]="error() ? 'sign-in-error' : null"
+              (input)="email.set(emailInput.value)"
+            />
+          </div>
+          <div class="dock">
+            <button
+              type="submit"
+              class="action action--primary phosphor-bloom"
+              appPointerBloom
+              data-testid="send-button"
+              [disabled]="busy() !== null"
+            >
+              {{ busy() === 'sending' ? 'Sending…' : 'Send link and code' }}
+            </button>
+          </div>
+        </form>
+      }
+      @case ('code') {
+        <form
+          class="step"
+          animate.leave="step--leaving"
+          data-testid="step-code"
+          (submit)="verify($event)"
+        >
+          <div class="card">
+            <h1 class="step-title" tabindex="-1" #stepHeading>
+              Enter the code
+            </h1>
+            <p class="dim">Sent to {{ email() }}</p>
+            <label class="field-label" for="sign-in-code">Code</label>
+            <input
+              #codeInput
+              id="sign-in-code"
+              class="field field--code"
+              type="text"
+              name="code"
+              inputmode="numeric"
+              autocomplete="one-time-code"
+              maxlength="6"
+              pattern="[0-9]{6}"
+              required
+              data-testid="code-input"
+              [value]="code()"
+              [attr.aria-invalid]="error() ? 'true' : null"
+              [attr.aria-describedby]="error() ? 'sign-in-error' : null"
+              (input)="onCodeInput(codeInput)"
+            />
+            <div class="actions">
+              <button
+                type="button"
+                class="action phosphor-bloom"
+                appPointerBloom
+                data-testid="resend-button"
+                [disabled]="busy() !== null || resendIn() > 0"
+                (click)="send()"
+              >
+                @if (resendIn() > 0) {
+                  Send a new code ({{ resendIn() }} s)
+                } @else {
+                  Send a new code
+                }
+              </button>
+              <button
+                type="button"
+                class="action phosphor-bloom"
+                appPointerBloom
+                data-testid="change-email-button"
+                [disabled]="busy() !== null"
+                (click)="useAnotherEmail()"
+              >
+                Use another email
+              </button>
+            </div>
+          </div>
+          <div class="dock">
+            <button
+              type="submit"
+              class="action action--primary phosphor-bloom"
+              appPointerBloom
+              data-testid="verify-button"
+              [disabled]="busy() !== null || !codeComplete()"
+            >
+              {{ busy() === 'verifying' ? 'Signing in…' : 'Sign in' }}
+            </button>
+          </div>
+        </form>
+      }
+      @case ('denied') {
+        <div
+          class="step"
+          animate.leave="step--leaving"
+          data-testid="step-denied"
+        >
+          <div class="card">
+            <h1 class="step-title" tabindex="-1" #stepHeading>
+              Not a maintainer
+            </h1>
+            <p class="dim">
+              {{ signedInEmail() }} is signed in, but this account is not a
+              maintainer.
+            </p>
+          </div>
+          <div class="dock">
+            <button
+              type="button"
+              class="action action--primary phosphor-bloom"
+              appPointerBloom
+              data-testid="sign-out-button"
+              [disabled]="busy() !== null"
+              (click)="signOut()"
+            >
+              {{ busy() === 'signing-out' ? 'Signing out…' : 'Sign out' }}
+            </button>
+          </div>
+        </div>
+      }
+    }
+  </div>
+
+  @if (error(); as failure) {
+    <p
+      id="sign-in-error"
+      class="error"
+      role="alert"
+      data-testid="sign-in-error"
+      animate.leave="error--leaving"
+    >
+      {{ failure.message }}
+    </p>
+  }
+
+  <p
+    class="dim status"
+    role="status"
+    aria-live="polite"
+    data-testid="sign-in-status"
+  >
+    {{ status() }}
+  </p>
+</section>

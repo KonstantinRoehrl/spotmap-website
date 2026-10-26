@@ -1,8 +1,9 @@
 /**
- * The sync_spots() payload (supabase/migrations/20261016000000_spots_and_photos.sql): every
- * city's spots as rows, built through the served-record builder so the database carries exactly
- * what the bundled snapshot carries, plus what only the database keeps — the city, the dataset
- * order, the coordinates and the lossless source records.
+ * The sync_insert_spots() payload (supabase/migrations/20261018000100_insert_only_sync.sql):
+ * every city's spots as rows in registry, then dataset order, built through the served-record
+ * builder so a spot starts out in the database exactly as the extraction serves it, plus what only
+ * the database keeps — the city, the coordinates and the lossless source records. The database
+ * gives each inserted spot its city's next sort order, so the rows carry none.
  */
 import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
@@ -28,12 +29,12 @@ export async function loadDatasets({ spotsDir, cities }) {
 }
 
 /**
- * One sync_spots() row.
+ * One spot row of the payload, as sync_insert_spots() takes it and planInserts()
+ * (insert-plan.mjs) plans it.
  *
  * @typedef {object} SyncSpot
  * @property {string} id
  * @property {string} city
- * @property {number} sort_order the feature's index in its city's dataset
  * @property {string} name
  * @property {'active' | 'demolished'} status
  * @property {number} lng
@@ -45,18 +46,18 @@ export async function loadDatasets({ spotsDir, cities }) {
 
 /**
  * Builds the payload. Spot ids must be unique across every city — the database keys spots by id
- * alone, so a collision would overwrite one city's spot with another's — and a collision fails
+ * alone, so the second of two spots sharing an id would never be inserted — and a collision fails
  * the sync instead.
  *
  * @param {{ city: string, collection: { features: object[] } }[]} datasets
- * @returns {{ cities: string[], spots: SyncSpot[] }}
+ * @returns {{ cities: string[], spots: SyncSpot[] }} `spots` in registry, then dataset order
  * @throws {Error} naming a repeated spot id and where it appears
  */
 export function buildPayload(datasets) {
   const cityOf = new Map();
   const spots = [];
   for (const { city, collection } of datasets) {
-    collection.features.forEach(({ geometry, properties }, sortOrder) => {
+    for (const { geometry, properties } of collection.features) {
       const seenIn = cityOf.get(properties.id);
       if (seenIn !== undefined) {
         throw new Error(
@@ -71,7 +72,6 @@ export function buildPayload(datasets) {
       spots.push({
         id,
         city,
-        sort_order: sortOrder,
         name,
         status,
         lng,
@@ -80,7 +80,7 @@ export function buildPayload(datasets) {
         sources: properties.sources,
         photos,
       });
-    });
+    }
   }
   return { cities: datasets.map(({ city }) => city), spots };
 }

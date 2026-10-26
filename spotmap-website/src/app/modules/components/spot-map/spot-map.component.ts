@@ -1,61 +1,72 @@
 import {
-  ApplicationRef,
   ChangeDetectionStrategy,
   Component,
-  ComponentRef,
-  createComponent,
+  computed,
   DestroyRef,
   effect,
   ElementRef,
-  EnvironmentInjector,
   inject,
   input,
+  NgZone,
   output,
+  signal,
   untracked,
   viewChild,
 } from '@angular/core';
 import type {
   Map as MapLibreMap,
-  MapLayerMouseEvent,
+  MapGeoJSONFeature,
   MapMouseEvent,
-  Popup as MapLibrePopup,
 } from 'maplibre-gl';
 import { filter, lastValueFrom, Subject, takeUntil, tap } from 'rxjs';
-import { CityEnum, MapFailureReason } from '../../../models/enums/map-enum';
-import { SpotCollection, SpotFeature } from '../../../models/spots/spot';
+import { CityEnum } from '../../../models/enums/map-enum';
+import { SpotListCollection } from '../../../models/spots/spot';
+import type { ViewBounds } from '../../../models/spots/spots-in-view';
 import {
-  SpotsLoaded,
-  SpotsLoadEvent,
+  SpotListLoaded,
+  SpotListLoadEvent,
   SpotsService,
 } from '../../../services/spots.service';
+import { photoUrl, SPOTMAP_BACKEND } from '../../../services/spotmap-backend';
 import { prefersReducedMotion } from '../../../utils/prefers-reduced-motion';
-import {
-  SPOT_POPUP_FRAME_CLASS,
-  SpotPopupComponent,
-} from '../spot-popup/spot-popup.component';
 import { demMaxzoomFor, type ElevationTiles } from './elevation';
-import type { MapLoadEvent } from '../map-container/map-load-progress';
+import {
+  NO_INSETS,
+  type AttributionCorner,
+  type MapFocus,
+  type MapInsets,
+} from '../../../models/map/map-camera';
+import type { MapFailureReason } from '../../../models/map/map-failure-reason';
+import type { MapLoadEvent } from '../../../models/map/map-load-event';
 import { framingBounds } from './fit-bounds';
-import { startLockOn } from './lock-on-pulse';
+import { ELEVATION_LOADER, MAP_FACTORY } from './map-factory.token';
 import {
-  ELEVATION_LOADER,
-  MAP_FACTORY,
-  POPUP_FACTORY,
-} from './map-factory.token';
+  FLAG_REACH_PX,
+  isOnPinImageBody,
+  isOnRaisedFlag,
+  PhotoPins,
+} from './photo-pins';
+import { type PointerHold, trackPointerHold } from './pointer-hold';
 import {
-  type Box,
-  fitBoxWithin,
-  fitPopup,
-  GALLERY_HEIGHT_VAR,
-  type PopupAnchor,
-  type PopupFit,
-  popupFrame,
-  POPUP_FIT_MARGIN_PX,
-  POPUP_MAX_HEIGHT_VAR,
-  type ScreenPoint,
-} from './popup-fit';
-import { dismissPopup, POPUP_PENDING_CLASS, revealPopup } from './popup-motion';
-import { SPOT_HIT_LAYER_ID, SPOT_LAYERS, SPOT_SOURCE_ID } from './spot-layers';
+  boundsOfRect,
+  type CameraFrame,
+  sameFrame,
+  SelectionCamera,
+  uncoveredRect,
+} from './selection-camera';
+import { type FlagView, SelectionFlag } from './selection-flag';
+import {
+  PHOTO_PIN_LAYERS,
+  PHOTO_PIN_TARGET_LAYER_IDS,
+  PIN_TARGET_LAYER_IDS,
+  SPOT_FOOTPRINT_IMAGE_ID,
+  SPOT_FOOTPRINT_LAYER,
+  SPOT_LAYERS,
+  SPOT_PHOTO_LAYER_ID,
+  SPOT_SOURCE_ID,
+  spotFootprintImage,
+} from './spot-layers';
+import { SpotSelection } from './spot-selection';
 import {
   BASEMAP_SOURCE_ID,
   buildElevationAdditions,
@@ -76,80 +87,33 @@ const FIT_MAX_ZOOM = 16;
  */
 const NARROW_MAP_MAX_WIDTH_PX = 640;
 
-/** How long the pan that brings an opening popup into view takes. */
-const PAN_DURATION_MS = 300;
-
-/** Reduced motion shortens the pan, never to an instant jump: a cut would lose the visitor's place. */
-const PAN_REDUCED_DURATION_MS = 200;
-
-/** The pan's ease: fast off the mark, settling gently onto the framed popup. */
-const easeOutCubic = (t: number) => 1 - (1 - t) ** 3;
-
-/** A popup on screen or about to rise: MapLibre's popup, the component in it, its spot and side. */
-interface OpenPopup {
-  readonly popup: MapLibrePopup;
-  readonly ref: ComponentRef<SpotPopupComponent>;
-  readonly spot: SpotFeature;
-  readonly anchor: PopupAnchor;
-  /**
-   * Whether the fit has been applied. A popup added while the camera is still moving is not
-   * fitted until it settles, and until then a resize has nothing to re-fit.
-   */
-  fitted: boolean;
-  /**
-   * The popup's width as the last fit measured it. A width-cap ease starts from the width the fit
-   * saw, so a `transitionend` that finds the same width has nothing new to re-measure.
-   */
-  fittedWidth: number;
-}
-
 /**
- * The MapLibre handlers a visitor moves the map through. Each reports itself active from the
- * moment a finger or button goes down or the wheel starts, before the camera has moved.
- *
- * The keyboard handler is left out: it never reports itself active (`KeyboardHandler.isActive`
- * returns a flag nothing sets, maplibre-gl-dev.mjs:21517), so an arrow key cannot be told from
- * no input. Its ease replaces a pan this component has just started instead, which loses nothing:
- * the popup is revealed when the key's ease ends.
+ * A map whose uncovered part — what the page's covered strips leave of it — is shorter than this
+ * has its attribution collapsed to the info button, on the same two moments as the width rule.
+ * The expanded credits on a wide map are 124 px tall; about twice that, rounded to 240 px, leaves a
+ * selected pin room beside them, where a shorter strip has the panel fill it and hide the pin, its
+ * ring and its flag.
  */
-const GESTURE_HANDLERS = [
-  'dragPan',
-  'touchZoomRotate',
-  'scrollZoom',
-  'doubleClickZoom',
-  'boxZoom',
-] as const;
-
-/**
- * Whether a MapLibre gesture handler is active. MapLibre stops a running ease the instant a
- * gesture handler turns active (`HandlerManager.handleEvent`, maplibre-gl-dev.mjs:22392) - firing
- * that ease's `moveend` synchronously, with `isMoving()` already false and no `movestart` of the
- * gesture yet - so this is the only way to tell that `moveend` from an ease running to its end.
- *
- * It is not enough to know a finger is down: `Map.resize()` on an idle map stops the camera, which
- * resets every handler (`:24950-24953`, `:23384`, `:24095`) while the finger stays where it is.
- * {@link SpotMapComponent} therefore pairs this with the pointers it tracks itself.
- */
-function isGestureActive(map: MapLibreMap): boolean {
-  return GESTURE_HANDLERS.some((name) => map[name].isActive());
-}
+const MIN_UNCOVERED_HEIGHT_FOR_CREDITS_PX = 240;
 
 /**
  * Whether a MapLibre `error` means a source the style cannot do without never came up — the one
  * failure this map can never paint through. Both fields are read off the payload, since neither
  * is declared on maplibre-gl's public `ErrorEvent`:
  *
- * - `sourceId` is attached to every event bubbling out of a source's tile manager
- *   (maplibre-gl-dev.mjs:15165-15169), so an error fired on the style itself — `Source layer …
- *   does not exist` at `:14888` — carries none, and a map that can still paint is left alone.
- * - `tile` is attached only when a single tile failed (`:6422`; a 404 fires nothing at all,
- *   `:6423`). A glyph range is fetched while a tile is parsed, so it arrives the same way.
- * - a source that did come up fired `data`/`metadata` first (`:2871`) — the success branch the
- *   failing path at `:2877-2881` skips — so a source still awaiting metadata never loaded.
+ * - `sourceId` is attached to every event bubbling out of a source's tile manager (the
+ *   evented-parent data `Style` gives each `TileManager`), so an error fired on the style itself
+ *   — `Source layer … does not exist` from `Style._validateLayer` — carries none, and a map that
+ *   can still paint is left alone.
+ * - `tile` is attached only when a single tile failed (`TileManager._loadTile`'s catch; a 404
+ *   fires nothing at all). A glyph range is fetched while a tile is parsed, so it arrives the
+ *   same way.
+ * - a source that did come up fired `data`/`metadata` first (`VectorTileSource.load`) — the
+ *   success branch its catch skips — so a source still awaiting metadata never loaded.
  *
  * `map.isStyleLoaded()` is no use here: it already reports `true` by the time a source error
- * reaches this handler, because the tile manager's own `error` listener (`:6359-6360`)
- * short-circuits `TileManager.loaded()` (`:6391`) and with it `Style.loaded()` (`:14890-14894`).
+ * reaches this handler, because the tile manager's own `error` listener sets `_sourceErrored`,
+ * which short-circuits `TileManager.loaded()` and with it `Style.loaded()`.
  */
 function namesAnUnusableSource(
   event: unknown,
@@ -164,9 +128,83 @@ function namesAnUnusableSource(
 }
 
 /**
- * Draws a city's spots on a MapLibre map, and owns opening, fitting and closing the popup of the
- * tapped spot: fitted into the visible map, panned into view and animated in and out. The container
- * owns the loading and failure chrome.
+ * The view reported for a build whose map will never paint: the whole world, which holds every
+ * spot. With no map there is nothing out of view, and the page lists a city's spots only once it
+ * knows a view.
+ */
+const WHOLE_WORLD: ViewBounds = {
+  west: -180,
+  south: -90,
+  east: 180,
+  north: 90,
+};
+
+/**
+ * The tooltip card's outer width, in px, padding and border included: the `.spot-map__tooltip-card`
+ * width in the stylesheet, which sets `border-box` itself so the figure holds without the global
+ * reset.
+ */
+const TOOLTIP_WIDTH_PX = 132;
+
+/** The gap, in px, between the pin and its tooltip card: the card's offset in the stylesheet. */
+const TOOLTIP_PIN_GAP_PX = 16;
+
+/** The clear space, in px, the tooltip keeps from the map's edges. */
+const TOOLTIP_EDGE_GAP_PX = 8;
+
+/** The tallest a card with a cover photo gets, in px: 4:3 photo plus a three-line name. */
+const TOOLTIP_PHOTO_CARD_HEIGHT_PX = 156;
+
+/** The tallest a name-only plate gets, in px: a three-line name. */
+const TOOLTIP_PLATE_HEIGHT_PX = 60;
+
+/** What the hover tooltip shows, and where: the hovered pin's canvas position. */
+interface SpotTooltip {
+  /**
+   * What identifies the card, for the template to track it by: the hovered spot's id, so a move to
+   * another pin crossfades. Under reduced motion, where a card cannot slide to the other side of its
+   * pin, the side joins it, so a flip fades the old card out and a new one in instead of cutting.
+   */
+  readonly key: string;
+  /** The hovered spot's id. */
+  readonly id: string;
+  /** The spot's name, the tooltip's text. */
+  readonly name: string;
+  /** The cover's thumbnail URL, or `null` for a name-only plate. */
+  readonly photo: string | null;
+  /** The pin's canvas x, in px. */
+  readonly x: number;
+  /** The pin's canvas y, in px. */
+  readonly y: number;
+  /** Whether the card sits below the pin because there is no room above it. */
+  readonly below: boolean;
+  /** How far the card slides sideways to stay inside the map, in px. */
+  readonly shift: number;
+}
+
+/** The spot id a rendered pin feature carries: its promoted feature id, else its `id` property. */
+function spotIdOf(feature: MapGeoJSONFeature | undefined): string | undefined {
+  const id = feature?.id ?? feature?.properties?.['id'];
+  return id === undefined ? undefined : String(id);
+}
+
+/** Whether the visitor's pointer can hover: a tap on a touch screen must leave no hover behind. */
+function hasHoverPointer(): boolean {
+  return (
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(hover: hover)').matches
+  );
+}
+
+/**
+ * Draws a city's spots on a MapLibre map, reports the loaded spots, pin taps and taps on empty
+ * map, and shows the selection its `selectedId` input names — the URL's, which is the selection's
+ * one source. The container owns the loading and failure chrome. With a photo host it
+ * frames each spot's first photo on its pin where there is room, and raises the selected one's out
+ * of its pin as an amber flag drawn over the map ({@link SelectionFlag}); a hovered pin lights and
+ * shows a tooltip.
+ *
+ * MapLibre internals named in this file were read in maplibre-gl 6.15.0.
  */
 @Component({
   selector: 'app-spot-map',
@@ -174,6 +212,9 @@ function namesAnUnusableSource(
   templateUrl: './spot-map.component.html',
   styleUrl: './spot-map.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '[class.spot-map--attribution-top]': "attributionCorner() === 'top-right'",
+  },
 })
 export class SpotMapComponent {
   /** The city whose spots are drawn; any change rebuilds the map on that city. */
@@ -181,6 +222,29 @@ export class SpotMapComponent {
 
   /** Bumped by the container on RETRY; any change rebuilds the map from scratch. */
   retryToken = input.required<number>();
+
+  /**
+   * The spot the URL has open, or `null`. Shown as the selected pin once the pins are drawn; a
+   * change never rebuilds the map.
+   */
+  selectedId = input<string | null>(null);
+  /**
+   * How much of the map's edges the page's own UI covers, in px — a phone's sheet along the
+   * bottom. The visible bounds and the selected pin's framing leave those strips out.
+   */
+  coveredInsets = input<MapInsets>(NO_INSETS);
+  /**
+   * Where the next build opens instead of the city's framing — a cold `/spot/<id>` link's spot.
+   * Read once per build, as the build starts; a later change waits for the next city switch.
+   */
+  openOn = input<MapFocus | null>(null);
+  /**
+   * The corner the attribution sits in. `top-right` on the sheet layout, which covers the bottom
+   * edge: the credit is a licence condition and must stay visible.
+   */
+  attributionCorner = input<AttributionCorner>('bottom-right');
+  /** The spot a pointer or its list row hovers, or `null`: its pin lights and its tooltip shows. */
+  hoveredId = input<string | null>(null);
 
   /** The pins are on the painted map — the end of DRAW. */
   ready = output<void>();
@@ -191,24 +255,47 @@ export class SpotMapComponent {
    * completion is `ready`.
    */
   loadEvent = output<MapLoadEvent>();
+  /**
+   * The current build's spots in the list shape, as soon as they arrive and before the map
+   * paints; never from a build a city switch, a retry or destruction has replaced.
+   */
+  spotsLoaded = output<SpotListCollection>();
+  /**
+   * A pin was tapped: its spot id. Selecting is the page's call — it navigates, and the URL comes
+   * back as `selectedId` — so a tap alone selects nothing.
+   */
+  spotClick = output<string>();
+  /** A tap on the map that hit no pin, which closes an open spot. */
+  emptyClick = output<void>();
+  /**
+   * The bounds of the uncovered part of the map, on paint, on every move (at most once a frame)
+   * and whenever the covered strips change; never from a build that has been replaced. A build
+   * whose map gives up after its spots are out, or can never be drawn, reports the whole world
+   * once instead, so the page lists every spot beside the failure chrome.
+   */
+  boundsChange = output<ViewBounds>();
+  /** The pin under a hovering pointer, or `null` once it leaves; only from pointers that hover. */
+  pinHover = output<string | null>();
 
   private readonly canvasHost =
     viewChild.required<ElementRef<HTMLDivElement>>('canvasHost');
   private readonly spots = inject(SpotsService);
   private readonly mapFactory = inject(MAP_FACTORY);
-  private readonly popupFactory = inject(POPUP_FACTORY);
   private readonly loadElevation = inject(ELEVATION_LOADER);
-  private readonly environment = inject(EnvironmentInjector);
-  private readonly applicationRef = inject(ApplicationRef);
+  /** Where the photos come from; with no photo host there are no photo pins or tooltip photos. */
+  private readonly backend = inject(SPOTMAP_BACKEND);
+  /** Runs the selection flag's timers outside the zone, so a landing flag never holds `whenStable`. */
+  private readonly zone = inject(NgZone);
 
   private map?: MapLibreMap;
 
   /**
-   * Whether the map was last measured at or under {@link NARROW_MAP_MAX_WIDTH_PX}, so a resize
-   * collapses the attribution on the way down to a phone width and never again while the visitor
-   * has it open there.
+   * Whether the map was last measured too cramped to hold the expanded credits — at or under
+   * {@link NARROW_MAP_MAX_WIDTH_PX} wide, or with an uncovered part under
+   * {@link MIN_UNCOVERED_HEIGHT_FOR_CREDITS_PX} tall — so a resize collapses the attribution on
+   * the way in and never again while the visitor has it open there.
    */
-  private mapIsNarrow = false;
+  private mapIsCramped = false;
 
   /**
    * Latched the moment the map either paints or gives up, so one map can never report both
@@ -216,37 +303,48 @@ export class SpotMapComponent {
    */
   private outcome: 'pending' | 'painted' | 'failed' = 'pending';
 
-  /** The popup that belongs to the selection, if any — one spot at a time. */
-  private open?: OpenPopup;
-  /** Popups playing their close animation; teardown removes them at once. */
-  private readonly closing = new Set<OpenPopup>();
-  /** The newest tap's component while its popup chunk loads; a later tap supersedes it. */
-  private pendingRef?: ComponentRef<SpotPopupComponent>;
-  /** The animation frame a coalesced resize re-fit waits on. */
-  private refitFrame?: number;
   /**
-   * The pointers currently down on the map's canvas container, by pointer id. Kept apart from
-   * MapLibre's gesture handlers, which a resize resets under a resting finger: this is the fact
-   * that a visitor holds the map, and it ends only when the pointer does.
+   * Whether the current build has reported its spots. A map that fails after that, or a build that
+   * never gets one, can no longer report a view of its own, so the whole world is reported in its
+   * place. Every teardown resets it, because the next build reports its own spots.
    */
-  private readonly heldPointers = new Set<number>();
-  /** Removes the pointer listeners of the current map; set while a map is attached. */
-  private stopTrackingPointers?: () => void;
-  /** Disconnects the observer on the attribution control; set while a painted map is attached. */
-  private stopWatchingAttribution?: () => void;
+  private spotsReported = false;
+
+  /** The visitor's hold on the current map; set while a map is attached. */
+  private pointerHold?: PointerHold;
+  /** The selected pin of the current build; set once its pins are drawn. */
+  private selection?: SpotSelection;
+  /** Keeps the current build's selected pin in view; set once its pins are drawn. */
+  private camera?: SelectionCamera;
+  /** The current build's spots, for a selected id's coordinates; set once its pins are drawn. */
+  private collection?: SpotListCollection;
   /**
-   * The `moveend` listener that may fit or reveal the pending popup. Only the newest one acts, so
-   * a pan that interrupts the one a popup waits on can take over its reveal, and a superseded or
-   * torn-down popup never acts.
+   * The frame the selection was last kept in view in. A change detection that hands over an equal
+   * but new `coveredInsets` object must not re-centre a map the visitor has panned since.
    */
-  private armedReveal?: () => void;
-  /** The selected pin's spot id, whose `selected` feature state is set. */
-  private selectedId?: string;
+  private framedFor?: CameraFrame;
+  /** The animation frame the next bounds report and the tooltip's and flag's positions wait on. */
+  private boundsFrame?: number;
+  /** The current build's photo pin images; set once its pins are drawn, with a photo host only. */
+  private photoPins?: PhotoPins;
+  /** The current build's selection flag; set once its pins are drawn, with a photo host only. */
+  private selectionFlag?: SelectionFlag;
+  /** The flags drawn over the map: the selected spot's, and one still falling back into its pin. */
+  protected readonly flags = signal<readonly FlagView[]>([]);
+  /** The pin whose `hovered` feature state is set on the current map. */
+  private hoveredOnMap: string | null = null;
+  /** The pin last reported under the pointer, so a pointer moving over one pin reports it once. */
+  private pinUnderPointer: string | null = null;
+  /** The hover tooltip, or `null` while none shows. */
+  private readonly tooltip = signal<SpotTooltip | null>(null);
   /**
-   * Stops the selected pin's lock-on pulse and puts its ring to rest; set while a pin is
-   * selected.
+   * The tooltip as a list of at most one, so the template can key its card by spot id: the card
+   * leaving and the next one arriving fade past each other instead of one card jumping pins.
    */
-  private cancelLockOn?: () => void;
+  protected readonly tooltips = computed(() => {
+    const tip = this.tooltip();
+    return tip ? [tip] : [];
+  });
 
   /**
    * Bumped by every teardown. A build whose await resolves against a stale generation lost its
@@ -259,7 +357,11 @@ export class SpotMapComponent {
   private readonly superseded = new Subject<void>();
 
   constructor() {
-    inject(DestroyRef).onDestroy(() => this.teardown());
+    inject(DestroyRef).onDestroy(() => {
+      // A destroyed component's outputs are closed, so teardown has no hover left to report.
+      this.pinUnderPointer = null;
+      this.teardown();
+    });
 
     // The container reuses this instance across city selections and retries, so both inputs
     // re-arm the renderer: drop the old map (releasing its WebGL context) and rebuild.
@@ -271,15 +373,45 @@ export class SpotMapComponent {
         void this.build(city);
       });
     });
+
+    // The URL owns the selection and the page the covered strips. Before the pins are drawn
+    // there is nothing to select or frame; `load` applies whatever the inputs say then.
+    effect(() => {
+      this.selectedId();
+      this.coveredInsets();
+      untracked(() => {
+        this.followSelection();
+        this.scheduleBounds();
+        this.updateTooltip();
+      });
+    });
+
+    // A hovered pin or list row lights its pin and shows its tooltip, once the pins are drawn.
+    effect(() => {
+      this.hoveredId();
+      untracked(() => {
+        this.showHover();
+        this.updateTooltip();
+      });
+    });
   }
 
+  /**
+   * Builds the map for `city`: fetches its spots, reports them, constructs a map already framed
+   * on them — or on the spot a cold link opened — then attaches it and wires its listeners. Every
+   * await re-checks the generation, so a build that lost its race to a teardown drops its result
+   * instead of attaching it.
+   */
   private async build(city: CityEnum): Promise<void> {
     const generation = this.generation;
+    // Read now, while it belongs to the city this build is for.
+    const focus = this.openOn();
 
     // Probed before anything is fetched: a browser without WebGL can never draw this map,
     // and the container withholds RETRY for `unsupported`.
     if (!this.hasWebGl()) {
       this.fail('unsupported', generation);
+      await this.listWithoutMap(city, generation);
       return;
     }
 
@@ -292,18 +424,9 @@ export class SpotMapComponent {
     const demMaxzoom = demMaxzoomFor(city);
     void this.loadElevation(demMaxzoom);
 
-    let collection: SpotCollection;
+    let collection: SpotListCollection;
     try {
-      const loaded = await lastValueFrom(
-        this.spots.loadSpots(city).pipe(
-          tap((event) => this.reportSpots(event, generation)),
-          filter((event): event is SpotsLoaded => event.type === 'done'),
-          // A city switch or retry has no use for this request any more: ending it frees the
-          // connection and the live query's deadline timer instead of leaving them to run out.
-          takeUntil(this.superseded),
-        ),
-      );
-      collection = loaded.collection;
+      collection = await this.loadCollection(city, generation);
     } catch {
       this.fail('unreachable', generation);
       return;
@@ -319,13 +442,23 @@ export class SpotMapComponent {
       this.fail('unreachable', generation);
       return;
     }
+    this.announceSpots(collection);
 
     // The map is built already framed on the city: MapLibre applies `bounds` in its constructor
-    // with no animation (maplibre-gl-dev.mjs:24156), so its first paint is the framed city and
-    // no opening camera move follows it.
-    const bounds = framingBounds(
-      collection.features.map((feature) => feature.geometry.coordinates),
-    );
+    // with no animation (`fitBounds` at `duration: 0`), so its first paint is the framed city and
+    // no opening camera move follows it. A cold link opens on its spot instead, and MapLibre
+    // applies `center` and `zoom` in its constructor the same way.
+    const camera = focus
+      ? { center: focus.center, zoom: focus.zoom }
+      : {
+          bounds:
+            framingBounds(
+              collection.features.map(
+                (feature) => feature.geometry.coordinates,
+              ),
+            ) ?? undefined,
+          fitBoundsOptions: { padding: FIT_PADDING_PX, maxZoom: FIT_MAX_ZOOM },
+        };
 
     const style = buildTerminalStyle();
     // The basemap owes the map its metadata — the TileJSON — before anything can be drawn from
@@ -338,8 +471,7 @@ export class SpotMapComponent {
       map = await this.mapFactory({
         container: this.canvasHost().nativeElement,
         style,
-        bounds: bounds ?? undefined,
-        fitBoundsOptions: { padding: FIT_PADDING_PX, maxZoom: FIT_MAX_ZOOM },
+        ...camera,
         // Attribution is a licence condition of the OSM-derived tiles, never optional.
         attributionControl: { compact: true },
       });
@@ -362,33 +494,115 @@ export class SpotMapComponent {
       map.remove();
       return;
     }
-    this.map = map;
-    this.trackPointers(map);
-    this.reportLoad({ kind: 'renderer-ready' }, generation);
+    this.attachMap(map, generation);
+    this.wireLoadTelemetry(
+      map,
+      collection,
+      generation,
+      sourcesAwaitingMetadata,
+      demMaxzoom,
+    );
+    this.wireInteractions(map, generation);
+  }
 
-    // A style passed as an object is loaded a frame after construction
-    // (maplibre-gl-dev.mjs:14802-14809), so this listener still hears it.
-    map.on('style.load', () => {
-      this.reportLoad({ kind: 'style-loaded' }, generation);
-    });
+  /**
+   * Fetches the city's spots in the list shape, reporting each loading milestone. A city switch or
+   * retry has no use for the request any more: ending it frees the connection and the live query's
+   * deadline timer instead of leaving them to run out.
+   */
+  private async loadCollection(
+    city: CityEnum,
+    generation: number,
+  ): Promise<SpotListCollection> {
+    const loaded = await lastValueFrom(
+      this.spots.loadSpotList(city).pipe(
+        tap((event) => this.reportSpots(event, generation)),
+        filter((event): event is SpotListLoaded => event.type === 'done'),
+        takeUntil(this.superseded),
+      ),
+    );
+    return loaded.collection;
+  }
+
+  /**
+   * Still reports the spots of a build whose map can never be drawn, so the list beside the
+   * container's failure chrome works. A failed request leaves the list empty: the chrome already
+   * says why the page has no map.
+   */
+  private async listWithoutMap(
+    city: CityEnum,
+    generation: number,
+  ): Promise<void> {
+    try {
+      const collection = await this.loadCollection(city, generation);
+      if (generation === this.generation) {
+        this.announceSpots(collection);
+      }
+    } catch {
+      // Nothing more to report: the failure is already out.
+    }
+  }
+
+  /**
+   * Reports the build's spots to the page. A build whose map has already given up reports the
+   * whole world as its view alongside: it never will paint, so no view of its own will follow.
+   */
+  private announceSpots(collection: SpotListCollection): void {
+    this.spotsLoaded.emit(collection);
+    this.spotsReported = true;
+    if (this.outcome === 'failed') {
+      this.boundsChange.emit(WHOLE_WORLD);
+    }
+  }
+
+  /**
+   * Takes on the map a build has just been handed: tracks the visitor's hold on it, reports the
+   * renderer ready and locks the map flat and north-up. Both locks are synchronous and land
+   * before the first frame, so they may run ahead of the listeners.
+   */
+  private attachMap(map: MapLibreMap, generation: number): void {
+    this.map = map;
+    this.pointerHold = trackPointerHold(map);
+    this.reportLoad({ kind: 'renderer-ready' }, generation);
 
     // Rotation and pitch are off: the map stays flat and north-up whatever the gesture. Four
     // handlers can move those two degrees of freedom and each needs its own switch — MapLibre
-    // wires them separately (maplibre-gl-dev.mjs:22512-22561) and skips only the ones reporting
-    // `isEnabled() === false` (`:22363`). `dragRotate.disable()` reaches the mouse trio alone
-    // (`:22064-22068`) and `touchZoomRotate.disableRotation()` the two-finger twist alone
-    // (`:22188-22191`), which leaves the two-finger tilt and Shift+Arrow live by default
-    // (`:23927-23930`). Keyboard pan and zoom stay: `disableRotation()` zeroes only the bearing
-    // and pitch steps (`:21529-21531`), and arrow keys are the only pointer-free way to move.
+    // wires them separately (`HandlerManager._addDefaultHandlers`) and `handleEvent` skips only
+    // the ones reporting `isEnabled() === false`. `dragRotate.disable()` reaches the mouse
+    // rotate/pitch/roll trio alone and `touchZoomRotate.disableRotation()` the two-finger twist
+    // alone, which leaves the two-finger tilt and Shift+Arrow live by default (the map's
+    // `touchPitch` and `keyboard` options default to on). Keyboard pan and zoom stay:
+    // `KeyboardHandler.disableRotation()` zeroes only the bearing and pitch steps, and arrow keys
+    // are the only pointer-free way to move.
     map.dragRotate.disable();
     map.touchZoomRotate.disableRotation();
     map.touchPitch.disable();
     map.keyboard.disableRotation();
+  }
+
+  /**
+   * Reports every MapLibre milestone of this build up to the paint, fails the build when an error
+   * names a source the map cannot paint without, and on `load` draws the pins, shows the URL's
+   * selection, emits `ready` once the pins are on screen, collapses the attribution and adds the
+   * relief.
+   */
+  private wireLoadTelemetry(
+    map: MapLibreMap,
+    collection: SpotListCollection,
+    generation: number,
+    sourcesAwaitingMetadata: Set<string>,
+    demMaxzoom: number,
+  ): void {
+    // A style passed as an object is loaded a frame after construction (`Style.loadJSON` waits a
+    // frame before `_load`), so this listener still hears it.
+    map.on('style.load', () => {
+      this.reportLoad({ kind: 'style-loaded' }, generation);
+    });
 
     // Basemap tiles only, and only until the paint: relief tiles must never hold the reveal. A
     // tile request fires `sourcedataloading` with its tile only on a cache miss, a loaded tile
     // `sourcedata` with its tile, and an aborted one `sourcedataabort`; a 404 fires nothing
-    // (maplibre-gl-dev.mjs:6776, :6501, :6431, :6422-6423).
+    // (`TileManager._addTile`, `_tileLoaded`, `_abortTile` and `_loadTile`).
     let tilesRequested = 0;
     let tilesLoaded = 0;
     const countsAsBasemapTile = (event: { sourceId: string; tile?: unknown }) =>
@@ -436,10 +650,9 @@ export class SpotMapComponent {
         return;
       }
       // Attaching this listener took MapLibre's own logging away: `Evented.fire` writes an
-      // error to the console only while nothing listens for it
-      // (maplibre-gl-shared-dev.mjs:3149, :3163). Both outcomes below need it back — a fatal
-      // one shows the user four words, and a map that paints on without its glyphs shows
-      // nothing at all.
+      // error to the console only while nothing listens for it. Both outcomes below need it
+      // back — a fatal one shows the user four words, and a map that paints on without its
+      // glyphs shows nothing at all.
       console.error(event.error);
       if (namesAnUnusableSource(event, sourcesAwaitingMetadata)) {
         this.fail('unreachable', generation);
@@ -452,7 +665,45 @@ export class SpotMapComponent {
       }
       this.outcome = 'painted';
       this.reportLoad({ kind: 'painted' }, generation);
+      // The resolver must be in place before the layers that ask it for images.
+      if (this.backend.photoBaseUrl) {
+        this.photoPins = new PhotoPins(
+          map,
+          collection,
+          this.backend.photoBaseUrl,
+        );
+        this.photoPins.install();
+      }
       this.drawSpots(map, collection);
+      // Feature state needs the spot source, so the selection starts here. One already in the URL
+      // — a shared link opened cold, or a rebuild — is no tap: it shows without the pulse, and the
+      // camera seats it in the middle of the uncovered part without animation.
+      this.collection = collection;
+      this.selection = new SpotSelection(map);
+      if (this.photoPins) {
+        // Its signal write still schedules the render from outside the zone.
+        this.selectionFlag = new SelectionFlag(
+          map,
+          (views) => this.flags.set(views),
+          (run, ms) => this.zone.runOutsideAngular(() => setTimeout(run, ms)),
+        );
+      }
+      this.camera = new SelectionCamera(
+        map,
+        () => this.pointerHold?.isHeld() ?? false,
+      );
+      const id = this.selectedId();
+      this.selection.show(id, { pulse: false });
+      this.showFlag(id, false);
+      const frame = this.cameraFrame();
+      this.framedFor = frame;
+      const pin = id === null ? null : this.coordinatesOf(id);
+      if (pin) {
+        this.camera.place(pin, frame);
+      }
+      this.emitBounds();
+      this.showHover();
+      this.updateTooltip();
       // The pins are drawn on the first frame rendered once their source has loaded. MapLibre's
       // `idle` would also wait for every DEM tile, and relief must never hold the reveal.
       const pinsDrawn = () => {
@@ -467,569 +718,390 @@ export class SpotMapComponent {
         this.ready.emit();
       };
       map.on('render', pinsDrawn);
-      this.mapIsNarrow = this.isNarrow();
-      this.collapseAttributionOnNarrowMap(this.mapIsNarrow);
-      this.watchAttributionSize(map, generation);
+      this.mapIsCramped = this.isCramped();
+      this.collapseAttributionOnCrampedMap(this.mapIsCramped);
       // Only now: `load` waits on every visible source's tiles, so terrain in the opening style
       // would hold the pins back behind the slowest DEM tile.
       // A missing terrain library resolves `null` — the loader never rejects — and leaves the map
       // flat.
       void this.addElevation(map, this.loadElevation(demMaxzoom), generation);
     });
+  }
 
-    // A phone turned from landscape to portrait narrows a map that opened wide, and MapLibre
-    // only re-collapses its compact attribution on a drag, so the narrowing is caught here.
+  /**
+   * Wires the visitor-facing listeners: the attribution collapse when the map becomes cramped, a
+   * pin tap and a tap on empty map reported to the page, and the pointer cursor and hover over a
+   * pin, a photo frame or the raised flag.
+   */
+  private wireInteractions(map: MapLibreMap, generation: number): void {
+    // A phone turned from landscape to portrait narrows a map that opened wide, and a sheet that
+    // grows can leave a wide map's uncovered strip short; MapLibre only re-collapses its compact
+    // attribution on a drag, so both are caught here.
     map.on('resize', () => {
       if (generation !== this.generation || this.outcome !== 'painted') {
         return;
       }
-      const narrow = this.isNarrow();
-      this.collapseAttributionOnNarrowMap(narrow && !this.mapIsNarrow);
-      this.mapIsNarrow = narrow;
-      this.scheduleRefit(map, generation);
+      const cramped = this.isCramped();
+      this.collapseAttributionOnCrampedMap(cramped && !this.mapIsCramped);
+      this.mapIsCramped = cramped;
+      this.scheduleBounds();
     });
 
-    map.on('click', SPOT_HIT_LAYER_ID, (event: MapLayerMouseEvent) => {
-      void this.openPopup(map, collection, event, generation);
-    });
-
-    // MapLibre's own close-on-click is off because it removes the popup at once; this closes it
-    // with the animation instead.
-    map.on('click', (event: MapMouseEvent) => {
-      if (generation !== this.generation || this.open === undefined) {
-        return;
-      }
-      // A pin's own click handler is taking this one: switching, not closing.
-      if (
-        map.queryRenderedFeatures(event.point, { layers: [SPOT_HIT_LAYER_ID] })
-          .length > 0
-      ) {
-        return;
-      }
-      this.closePopup();
-    });
-
-    // A pointer over a pin should say it can be tapped; the hit layer is the 22 px thumb target.
-    map.on('mouseenter', SPOT_HIT_LAYER_ID, () => {
-      map.getCanvas().style.cursor = 'pointer';
-    });
-    map.on('mouseleave', SPOT_HIT_LAYER_ID, () => {
-      map.getCanvas().style.cursor = '';
-    });
-  }
-
-  /**
-   * Opens one popup for the tapped pin, carrying a {@link SpotPopupComponent}. The open popup
-   * starts its close first, so a tap while another popup is open replaces it instead of leaving a
-   * second component alive on the map. MapLibre builds no close button: the component draws its own
-   * and asks through `closeRequested`.
-   */
-  private openPopup(
-    map: MapLibreMap,
-    collection: SpotCollection,
-    event: MapLayerMouseEvent,
-    generation: number,
-  ): void {
-    // The rendered feature only carries the id; the loaded collection is where the typed spot —
-    // photo list included — actually lives.
-    const tappedId = event.features?.[0]?.id;
-    const spot = collection.features.find(
-      (feature) => feature.properties.id === String(tappedId),
-    );
-    if (!spot) {
-      return;
-    }
-
-    this.closePopup();
-    const id = spot.properties.id;
-    map.setFeatureState({ source: SPOT_SOURCE_ID, id }, { selected: true });
-    this.selectedId = id;
-    this.cancelLockOn = startLockOn(map, id, {
-      reducedMotion: prefersReducedMotion(),
-    });
-
-    const ref = this.createContent(spot);
-    this.pendingRef = ref;
-    void this.showPopup(map, spot, ref, generation);
-  }
-
-  /** Builds the popup's component for `spot`, attached and rendered, wired to close its popup. */
-  private createContent(spot: SpotFeature): ComponentRef<SpotPopupComponent> {
-    const ref = createComponent(SpotPopupComponent, {
-      environmentInjector: this.environment,
-    });
-    ref.setInput('spot', spot);
-    // The popup draws its own close button; the subscription ends with the component.
-    ref.instance.closeRequested.subscribe(() => {
-      if (this.open?.ref === ref) {
-        this.closePopup();
-      }
-    });
-    // Built outside any template, so its view has to be attached by hand: without that nothing
-    // would ever re-render the gallery's photo after an arrow is pressed.
-    this.applicationRef.attachView(ref.hostView);
-    ref.changeDetectorRef.detectChanges();
-    return ref;
-  }
-
-  /**
-   * Creates the popup for `ref` hidden, adds it to the map and fits it once the camera holds still.
-   * The side and width cap it is created with come from where the pin is now; the fit itself is
-   * done against the camera as it is when the popup is ready, because the map may move while
-   * maplibre-gl loads. A tap or a teardown that overtook it while loading throws it away.
-   */
-  private async showPopup(
-    map: MapLibreMap,
-    spot: SpotFeature,
-    ref: ComponentRef<SpotPopupComponent>,
-    generation: number,
-    visitorHeldMap = false,
-  ): Promise<void> {
-    const frame = popupFrame(
-      this.fitBox(),
-      map.project(spot.geometry.coordinates),
-    );
-
-    let popup: MapLibrePopup;
-    try {
-      popup = await this.popupFactory({
-        anchor: frame.anchor,
-        closeButton: false,
-        closeOnClick: false,
-        maxWidth: `${frame.maxWidth}px`,
-        className: `${SPOT_POPUP_FRAME_CLASS} ${POPUP_PENDING_CLASS}`,
-      });
-    } catch {
-      // The popup's maplibre-gl chunk never arrived. Left alone this would show an amber pin
-      // with nothing beside it, so the tap is unwound: the view released, the pin dropped.
-      if (this.pendingRef === ref) {
-        this.pendingRef = undefined;
-        this.deselect();
-      }
-      destroyRef(ref);
-      return;
-    }
-    if (generation !== this.generation || this.pendingRef !== ref) {
-      popup.remove();
-      destroyRef(ref);
-      return;
-    }
-
-    this.pendingRef = undefined;
-    popup
-      .setLngLat(spot.geometry.coordinates)
-      .setDOMContent(ref.location.nativeElement)
-      .addTo(map);
-    const open: OpenPopup = {
-      popup,
-      ref,
-      spot,
-      anchor: frame.anchor,
-      fitted: false,
-      fittedWidth: 0,
-    };
-    this.open = open;
-    // The width cap eases on a re-fit and the next fit must measure where it settled, not partway.
-    // An ease that ends on the width the fit measured, because the content was narrower than both
-    // caps, has nothing to re-measure.
-    popup.getElement().addEventListener('transitionend', (event) => {
-      if (
-        event.propertyName === 'max-width' &&
-        this.open === open &&
-        popup.getElement().offsetWidth !== open.fittedWidth
-      ) {
-        this.scheduleRefit(map, generation);
-      }
-    });
-    this.fitWhenSettled(map, open, visitorHeldMap);
-  }
-
-  /**
-   * Fits and reveals `open` once the camera holds still. A camera still moving — the pan of a
-   * popup opened a moment ago, a drag, a fling, a zoom — is about to leave the position the pin
-   * has now, so the popup waits hidden for the move's `moveend` and is fitted against the camera
-   * that is left. Whatever moves the camera again before then is waited out the same way.
-   *
-   * A visitor with hold of the map wins: the popup is fitted and revealed where the map is, never
-   * panned. That is also what a grab during the wait looks like - it stops the ease being waited
-   * on, which fires its `moveend` before the drag has moved the camera - and a pan then would take
-   * the drag away from the visitor's finger. A wheel grab is seen the same way, but its zoom keeps
-   * the camera moving, so the wait goes on past it; `visitorHeldMap` carries what an earlier check
-   * saw into the fit that finally runs, once the gesture has let go.
-   */
-  private fitWhenSettled(
-    map: MapLibreMap,
-    open: OpenPopup,
-    visitorHeldMap = false,
-  ): void {
-    this.armedReveal = undefined;
-    const held = visitorHeldMap || this.isHeld(map);
-    if (!map.isMoving()) {
-      const fit = this.fitToCamera(map, open, held);
-      if (fit) {
-        this.panThenReveal(map, open, held ? [0, 0] : fit.panBy);
-      }
-      return;
-    }
-    const onSettle = () => {
-      if (this.armedReveal !== onSettle) {
-        return;
-      }
-      this.armedReveal = undefined;
-      if (this.open === open) {
-        this.fitWhenSettled(map, open, held);
-      }
-    };
-    this.armedReveal = onSettle;
-    map.once('moveend', onSettle);
-  }
-
-  /**
-   * Fits `open` against the camera as it is now: the width cap, then the measured fit. Returns
-   * the fit, or `undefined` when its side ran out of room and it was swapped for a fresh popup on
-   * the other side (MapLibre has no public anchor setter), which fits itself the same way and
-   * inherits `visitorHeldMap`.
-   */
-  private fitToCamera(
-    map: MapLibreMap,
-    open: OpenPopup,
-    visitorHeldMap = false,
-  ): PopupFit | undefined {
-    const box = this.fitBox();
-    const pin = map.project(open.spot.geometry.coordinates);
-    open.popup.setMaxWidth(`${popupFrame(box, pin).maxWidth}px`);
-    const fit = this.applyFit(open, box, pin, open.anchor);
-    open.fitted = true;
-    if (fit.anchor === open.anchor) {
-      return fit;
-    }
-    this.closePopup({ keepSelection: true });
-    const ref = this.createContent(open.spot);
-    this.pendingRef = ref;
-    void this.showPopup(map, open.spot, ref, this.generation, visitorHeldMap);
-    return undefined;
-  }
-
-  /**
-   * Measures the popup as it laid out and applies the fit: the height cap and the gallery's
-   * height go on the container as CSS variables, and the component learns whether its body
-   * scrolls. On a re-fit `keepAnchor` holds the side the popup opened on while it still has room.
-   */
-  private applyFit(
-    open: OpenPopup,
-    box: Box,
-    pin: ScreenPoint,
-    keepAnchor?: PopupAnchor,
-  ): PopupFit {
-    const { gallery, body } = open.ref.instance.naturalHeights();
-    const element = open.popup.getElement();
-    open.fittedWidth = element.offsetWidth;
-    const content = element.querySelector<HTMLElement>(
-      '.maplibregl-popup-content',
-    );
-    // The frame's padding and border sit around the component, inside the capped content box.
-    const chrome =
-      (content?.offsetHeight ?? 0) -
-      (open.ref.location.nativeElement as HTMLElement).offsetHeight;
-    const fit = fitPopup({
-      box,
-      pin,
-      width: open.fittedWidth,
-      naturalGalleryHeight: gallery,
-      naturalBodyHeight: body + chrome,
-      keepAnchor,
-    });
-    element.style.setProperty(POPUP_MAX_HEIGHT_VAR, `${fit.maxHeight}px`);
-    if (gallery > 0) {
-      element.style.setProperty(GALLERY_HEIGHT_VAR, `${fit.galleryHeight}px`);
-    }
-    open.ref.setInput('scrolls', fit.scrolls);
-    open.ref.changeDetectorRef.detectChanges();
-    return fit;
-  }
-
-  /**
-   * Reveals the popup once it is in view: at once when it already is, otherwise after the pan
-   * settles. A visitor grabbing the map stops the ease, which fires `moveend` too, so the popup
-   * opens where the map now is and is not panned again.
-   */
-  private panThenReveal(
-    map: MapLibreMap,
-    open: OpenPopup,
-    panBy: [number, number],
-  ): void {
-    if (panBy[0] === 0 && panBy[1] === 0) {
-      this.reveal(open);
-      return;
-    }
-    this.panRevealing(map, open, panBy);
-  }
-
-  /**
-   * Pans by `panBy` and reveals `open` when that pan settles. The listener is armed only after the
-   * pan has started: a `panBy` that stops a still-running ease fires that ease's `moveend`
-   * synchronously, and that one must not reveal `open`. A pan that has already ended by the time
-   * `panBy` returns fired its own `moveend` too, so the popup is revealed at once instead.
-   */
-  private panRevealing(
-    map: MapLibreMap,
-    open: OpenPopup,
-    panBy: [number, number],
-  ): void {
-    this.armedReveal = undefined;
-    this.pan(map, panBy);
-    if (map.isMoving()) {
-      this.revealOnSettle(map, open);
-    } else {
-      this.reveal(open);
-    }
-  }
-
-  /** Reveals `open` on the next `moveend`, unless a newer pan has taken the reveal over. */
-  private revealOnSettle(map: MapLibreMap, open: OpenPopup): void {
-    const reveal = () => {
-      if (this.armedReveal === reveal) {
-        this.armedReveal = undefined;
-        this.reveal(open);
-      }
-    };
-    this.armedReveal = reveal;
-    map.once('moveend', reveal);
-  }
-
-  /** Shows `open` with its animation, if it is still the open popup and not shown yet. */
-  private reveal(open: OpenPopup): void {
-    if (this.open === open && isPending(open)) {
-      revealPopup(open.popup.getElement(), prefersReducedMotion());
-    }
-  }
-
-  /**
-   * Eases the camera by `panBy`, shortened under reduced motion. `essential` because MapLibre
-   * otherwise turns every ease into an instant jump under reduced motion, and the shortened ease
-   * here already is the reduced-motion version.
-   */
-  private pan(map: MapLibreMap, panBy: [number, number]): void {
-    map.panBy(panBy, {
-      duration: prefersReducedMotion()
-        ? PAN_REDUCED_DURATION_MS
-        : PAN_DURATION_MS,
-      easing: easeOutCubic,
-      essential: true,
-    });
-  }
-
-  /**
-   * Closes the open popup with its animation and removes it once that has played. The pin's
-   * selection and lock-on drop at once, unless `keepSelection` — a popup swapping sides keeps its
-   * pin selected.
-   */
-  private closePopup({ keepSelection = false } = {}): void {
-    const open = this.open;
-    this.open = undefined;
-    if (!keepSelection) {
-      this.deselect();
-    }
-    if (!open) {
-      return;
-    }
-    this.closing.add(open);
-    void dismissPopup(open.popup.getElement(), prefersReducedMotion()).then(
-      () => this.discard(open),
-    );
-  }
-
-  /**
-   * Removes a popup from the map and destroys the component inside it. One popup is created per
-   * pin tap, so anything left behind here leaks on every tap (QC6).
-   */
-  private discard(open: OpenPopup): void {
-    this.closing.delete(open);
-    open.popup.remove();
-    destroyRef(open.ref);
-  }
-
-  /**
-   * Removes every popup — open, closing or still loading — at once, without animating, and drops
-   * the selection. The canvas host is reused across builds, so a popup left playing its close would
-   * sit on the next city's map.
-   */
-  private removePopupsNow(): void {
-    const open = this.open;
-    this.open = undefined;
-    if (open) {
-      this.discard(open);
-    }
-    for (const closing of [...this.closing]) {
-      this.discard(closing);
-    }
-    if (this.pendingRef) {
-      destroyRef(this.pendingRef);
-      this.pendingRef = undefined;
-    }
-    this.armedReveal = undefined;
-    this.deselect();
-    if (this.refitFrame !== undefined) {
-      cancelAnimationFrame(this.refitFrame);
-      this.refitFrame = undefined;
-    }
-  }
-
-  /** Stops the lock-on pulse and drops the selected pin's feature state. */
-  private deselect(): void {
-    this.cancelLockOn?.();
-    this.cancelLockOn = undefined;
-
-    const id = this.selectedId;
-    this.selectedId = undefined;
-    if (id !== undefined) {
-      this.map?.removeFeatureState({ source: SPOT_SOURCE_ID, id }, 'selected');
-    }
-  }
-
-  /** Re-fits the open popup on the next animation frame, once however many resizes arrive. */
-  private scheduleRefit(map: MapLibreMap, generation: number): void {
-    if (this.refitFrame !== undefined) {
-      return;
-    }
-    this.refitFrame = requestAnimationFrame(() => {
-      this.refitFrame = undefined;
+    map.on('move', () => {
       if (generation === this.generation) {
-        this.refit(map);
+        this.scheduleBounds();
+      }
+    });
+
+    // One feature query serves the tap, the cursor and the hover: it asks about every layer a
+    // pointer can hit, so the photo frames take them as the dot does, and a tap on any of them is
+    // never mistaken for a tap on empty map. The raised flag stands over the map and hides what
+    // lies under it, so a point on it is the selected spot's before anything is asked.
+    map.on('click', (event: MapMouseEvent) => {
+      if (generation !== this.generation || this.outcome !== 'painted') {
+        return;
+      }
+      const flagged = this.flagUnder(map, event.point);
+      if (flagged !== null) {
+        this.spotClick.emit(flagged);
+        return;
+      }
+      const hits = this.pinsAt(map, event);
+      if (hits.length === 0) {
+        this.emptyClick.emit();
+        return;
+      }
+      const id = this.spotUnder(map, event.point, hits);
+      if (id !== undefined) {
+        this.spotClick.emit(id);
+      }
+    });
+
+    // A pointer over a pin should say it can be tapped, and hover is reported only from a pointer
+    // that can hover, so a tap leaves no tooltip behind.
+    map.on('mousemove', (event: MapMouseEvent) => {
+      if (generation !== this.generation || this.outcome !== 'painted') {
+        return;
+      }
+      const id =
+        this.flagUnder(map, event.point) ??
+        this.spotUnder(map, event.point, this.pinsAt(map, event)) ??
+        null;
+      map.getCanvas().style.cursor = id === null ? '' : 'pointer';
+      if (hasHoverPointer()) {
+        this.reportPinHover(id);
+      }
+    });
+    map.on('mouseout', () => {
+      map.getCanvas().style.cursor = '';
+      if (generation === this.generation) {
+        this.reportPinHover(null);
       }
     });
   }
 
+  /** The pin features under the pointer, topmost first: dots, and photo frames if drawn. */
+  private pinsAt(map: MapLibreMap, event: MapMouseEvent): MapGeoJSONFeature[] {
+    return map.queryRenderedFeatures(event.point, {
+      layers: [
+        ...(this.photoPins ? PHOTO_PIN_TARGET_LAYER_IDS : PIN_TARGET_LAYER_IDS),
+      ],
+    });
+  }
+
   /**
-   * Fits the open popup to the resized map. On the same side its caps change and the map pans any
-   * part pushed out back into view; when that side ran out of room the popup is swapped for one on
-   * the other side, the old one fading out as the new one rises. A popup still waiting for the
-   * camera to settle is fitted then, against the resized map.
-   *
-   * A visitor with hold of the map wins here too: the caps and the side are re-fitted, but nothing
-   * pans, since a pan would take the drag from their finger. The popup is not panned in once they
-   * let go either; a pending popup still reveals when the pan it waits on ends.
+   * The spot the pointer at `point` is on, out of the pin `hits` under it (topmost first), or
+   * `undefined` for none. MapLibre answers a photo frame with its whole image box, whose
+   * foot is transparent, so the topmost hit alone would send a pointer on a dot showing through that
+   * foot to the frame's spot. Instead the opaque body of a frame wins, topmost first, and
+   * anywhere else the nearest pin to the pointer does: a dot sits on its own spot's coordinates.
    */
-  private refit(map: MapLibreMap): void {
-    const open = this.open;
-    if (!open?.fitted) {
-      return;
+  private spotUnder(
+    map: MapLibreMap,
+    point: { x: number; y: number },
+    hits: MapGeoJSONFeature[],
+  ): string | undefined {
+    const pins = hits.flatMap((hit) => {
+      const id = spotIdOf(hit);
+      const coordinates = id === undefined ? null : this.coordinatesOf(id);
+      return id === undefined
+        ? []
+        : [
+            {
+              id,
+              framed: hit.layer?.id === SPOT_PHOTO_LAYER_ID,
+              at: coordinates ? map.project(coordinates) : null,
+            },
+          ];
+    });
+    const onBody = pins.find(
+      (pin) => pin.framed && pin.at && isOnPinImageBody(pin.at, point),
+    );
+    if (onBody) {
+      return onBody.id;
     }
-    const held = this.isHeld(map);
-    const fit = this.fitToCamera(map, open, held);
-    if (!held && fit && (fit.panBy[0] !== 0 || fit.panBy[1] !== 0)) {
-      // This pan stops the one a pending popup waits on, so its reveal moves to this pan's end.
-      if (isPending(open)) {
-        this.panRevealing(map, open, fit.panBy);
-      } else {
-        this.pan(map, fit.panBy);
+    let nearest = pins[0];
+    let nearestDistance = Infinity;
+    for (const pin of pins) {
+      const distance = pin.at
+        ? Math.hypot(pin.at.x - point.x, pin.at.y - point.y)
+        : Infinity;
+      if (distance < nearestDistance) {
+        nearest = pin;
+        nearestDistance = distance;
       }
     }
+    return nearest?.id;
   }
 
   /**
-   * The box a popup must fit in, in canvas-host pixels: the map frame intersected with the visual
-   * viewport, so a frame scrolled partly off screen or under a phone's on-screen keyboard counts
-   * only its visible part, less the strip along the bottom the attribution control occupies.
+   * Shows the URL's selection and keeps its pin in view: a spot opened, switched to or reframed
+   * has its pin eased into view when it is not already there. A close moves nothing; the map stays
+   * where the visitor has it. Nothing happens before the pins are drawn.
    */
-  private fitBox(): Box {
-    const visual = window.visualViewport;
-    const viewport: Box = visual
-      ? {
-          left: visual.offsetLeft,
-          top: visual.offsetTop,
-          right: visual.offsetLeft + visual.width,
-          bottom: visual.offsetTop + visual.height,
-        }
-      : { left: 0, top: 0, right: innerWidth, bottom: innerHeight };
-    const host = this.canvasHost().nativeElement.getBoundingClientRect();
-    return fitBoxWithin(
-      host,
-      viewport,
-      POPUP_FIT_MARGIN_PX,
-      this.attributionStripHeight(host),
-    );
-  }
-
-  /**
-   * How much of the map's bottom edge the attribution control covers, measured as it is laid out
-   * now: the open credits bar on a wide map, the info button on a narrow one, nothing when the
-   * control is absent or hidden. It is a licence condition and stays where it is, so popups are
-   * fitted around it instead.
-   */
-  private attributionStripHeight(host: DOMRect): number {
-    const attribution = this.attributionControl()?.getBoundingClientRect();
-    if (!attribution || attribution.width === 0 || attribution.height === 0) {
-      return 0;
+  private followSelection(): void {
+    const { selection, camera } = this;
+    if (!selection || !camera) {
+      return;
     }
-    return Math.max(0, host.bottom - attribution.top);
+    const id = this.selectedId();
+    const previous = selection.selectedId;
+    const frame = this.cameraFrame();
+    const reframed =
+      this.framedFor === undefined || !sameFrame(this.framedFor, frame);
+    this.framedFor = frame;
+    selection.show(id, { pulse: true });
+    this.showFlag(id, true);
+    if (id === null) {
+      return;
+    }
+    const pin = this.coordinatesOf(id);
+    if (pin && (previous !== id || reframed)) {
+      camera.keepInView(pin, frame);
+    }
   }
 
-  /** MapLibre's attribution control inside the canvas host, if it is there. */
-  private attributionControl(): HTMLElement | null {
-    return this.canvasHost().nativeElement.querySelector<HTMLElement>(
-      '.maplibregl-ctrl-attrib',
-    );
-  }
-
-  /**
-   * Whether the visitor has hold of the map: a pointer is down on it, or a MapLibre gesture
-   * handler is active. The pointer alone would miss a wheel zoom and the handler alone a resize,
-   * which resets the handlers under a finger that has not moved.
-   */
-  private isHeld(map: MapLibreMap): boolean {
-    return this.heldPointers.size > 0 || isGestureActive(map);
-  }
-
-  /**
-   * Tracks the pointers down on `map`'s canvas container until the component lets the map go. Their
-   * ends are heard on the window, in the capture phase: a mouse button let go away from the map
-   * ends on whatever is under it, and a touch the browser takes over for a scroll ends in
-   * `pointercancel`. A context menu or a lost window focus may swallow the end altogether, so
-   * both let go of every pointer rather than leave the map held for good.
-   */
-  private trackPointers(map: MapLibreMap): void {
-    const container = map.getCanvasContainer();
-    const down = (event: PointerEvent) =>
-      this.heldPointers.add(event.pointerId);
-    const up = (event: PointerEvent) =>
-      this.heldPointers.delete(event.pointerId);
-    const releaseAll = () => this.heldPointers.clear();
-    container.addEventListener('pointerdown', down);
-    container.addEventListener('contextmenu', releaseAll);
-    window.addEventListener('pointerup', up, true);
-    window.addEventListener('pointercancel', up, true);
-    window.addEventListener('blur', releaseAll);
-    this.stopTrackingPointers = () => {
-      container.removeEventListener('pointerdown', down);
-      container.removeEventListener('contextmenu', releaseAll);
-      window.removeEventListener('pointerup', up, true);
-      window.removeEventListener('pointercancel', up, true);
-      window.removeEventListener('blur', releaseAll);
-      this.heldPointers.clear();
+  /** The canvas host's size with the page's covered strips and the flag's reach, as the camera reads it. */
+  private cameraFrame(): CameraFrame {
+    const host = this.canvasHost().nativeElement;
+    return {
+      width: host.clientWidth,
+      height: host.clientHeight,
+      insets: this.coveredInsets(),
+      headroom: this.flagReach(),
     };
   }
 
+  /** How far above its pin the selected spot's flag reaches, or 0 when it flies none. */
+  private flagReach(): number {
+    return this.photoPins && this.hasCover(this.selectedId())
+      ? FLAG_REACH_PX
+      : 0;
+  }
+
   /**
-   * Re-fits the open popup whenever the attribution control changes size - expanded, collapsed, or
-   * collapsed again by a narrowing - since its strip is part of the fit. The observer reports once
-   * as it starts watching, which is no change and is skipped.
+   * Flies the selected spot's photo as the flag, or lowers it: `animate` for a selection the
+   * visitor made, not for one a build opened with. A spot without a photo flies none, and a map
+   * without a photo host has no flag at all.
    */
-  private watchAttributionSize(map: MapLibreMap, generation: number): void {
-    const attribution = this.attributionControl();
-    if (!attribution) {
+  private showFlag(id: string | null, animate: boolean): void {
+    const flag = this.selectionFlag;
+    const base = this.backend.photoBaseUrl;
+    if (!flag) {
       return;
     }
-    let started = false;
-    const observer = new ResizeObserver(() => {
-      if (!started) {
-        started = true;
-        return;
-      }
-      this.scheduleRefit(map, generation);
+    const spot =
+      id === null
+        ? undefined
+        : this.collection?.features.find(
+            (feature) => feature.properties.id === id,
+          );
+    const cover = spot?.properties.cover;
+    flag.show(
+      spot && cover && base
+        ? {
+            id: spot.properties.id,
+            photo: photoUrl(base, cover, 'thumb'),
+            demolished: spot.properties.status === 'demolished',
+            coordinates: spot.geometry.coordinates,
+          }
+        : null,
+      { animate, reduced: prefersReducedMotion() },
+    );
+  }
+
+  /**
+   * The selected spot when `point` is on its raised flag's photo, else `null`. The flag stands over
+   * the map, so whatever MapLibre finds under it, neighbouring dots and photo pins included, is
+   * hidden by it.
+   */
+  private flagUnder(
+    map: MapLibreMap,
+    point: { x: number; y: number },
+  ): string | null {
+    const raised = this.flags().find(
+      (flag) => flag.phase === 'rising' || flag.phase === 'raised',
+    );
+    const coordinates = raised ? this.coordinatesOf(raised.id) : null;
+    return raised &&
+      coordinates &&
+      isOnRaisedFlag(map.project(coordinates), point)
+      ? raised.id
+      : null;
+  }
+  /** Where the current build draws the spot `id`, or `null` for a spot it does not hold. */
+  private coordinatesOf(id: string): [number, number] | null {
+    return (
+      this.collection?.features.find((feature) => feature.properties.id === id)
+        ?.geometry.coordinates ?? null
+    );
+  }
+
+  /** Reports the bounds, and moves the tooltip and the flag, on the next animation frame, once however many moves ask for it. */
+  private scheduleBounds(): void {
+    if (
+      this.boundsFrame !== undefined ||
+      !this.map ||
+      this.outcome !== 'painted'
+    ) {
+      return;
+    }
+    this.boundsFrame = requestAnimationFrame(() => {
+      this.boundsFrame = undefined;
+      this.emitBounds();
+      this.updateTooltip();
+      this.selectionFlag?.reposition();
     });
-    observer.observe(attribution);
-    this.stopWatchingAttribution = () => observer.disconnect();
+  }
+
+  /** Whether the current build's spot `id` has a photo. */
+  private hasCover(id: string | null): boolean {
+    return (
+      id !== null &&
+      (this.collection?.features.find((feature) => feature.properties.id === id)
+        ?.properties.cover ?? null) !== null
+    );
+  }
+
+  /** Moves the `hovered` feature state to the pin `hoveredId` names, once the pins are drawn. */
+  private showHover(): void {
+    const map = this.map;
+    const id = this.hoveredId();
+    if (!map || !this.selection || id === this.hoveredOnMap) {
+      return;
+    }
+    if (this.hoveredOnMap !== null) {
+      map.removeFeatureState(
+        { source: SPOT_SOURCE_ID, id: this.hoveredOnMap },
+        'hovered',
+      );
+    }
+    if (id !== null) {
+      map.setFeatureState({ source: SPOT_SOURCE_ID, id }, { hovered: true });
+    }
+    this.hoveredOnMap = id;
+  }
+
+  /** Reports the pin under the pointer when it changes. */
+  private reportPinHover(id: string | null): void {
+    if (id !== this.pinUnderPointer) {
+      this.pinUnderPointer = id;
+      this.pinHover.emit(id);
+    }
+  }
+
+  /**
+   * Shows the tooltip above the hovered pin — below it near the top edge, and kept inside the map
+   * sideways — never for the selected one, whose detail is open; or hides it. Repositioned once a
+   * frame while the map moves.
+   */
+  private updateTooltip(): void {
+    const map = this.map;
+    const id = this.hoveredId();
+    const spot =
+      !map || !this.selection || id === null || id === this.selectedId()
+        ? undefined
+        : this.collection?.features.find(
+            (feature) => feature.properties.id === id,
+          );
+    if (!map || !spot) {
+      if (this.tooltip() !== null) {
+        this.tooltip.set(null);
+      }
+      return;
+    }
+    const { x, y } = map.project(spot.geometry.coordinates);
+    const base = this.backend.photoBaseUrl;
+    const cover = spot.properties.cover;
+    const photo = base && cover ? photoUrl(base, cover, 'thumb') : null;
+    // The card is centred on the pin, above it. Near an edge it slides back inside the map, and
+    // with no room above it flips below the pin.
+    const reach = TOOLTIP_WIDTH_PX / 2 + TOOLTIP_EDGE_GAP_PX;
+    const { clientWidth } = this.canvasHost().nativeElement;
+    const centre = Math.min(
+      Math.max(x, reach),
+      Math.max(reach, clientWidth - reach),
+    );
+    const height = photo
+      ? TOOLTIP_PHOTO_CARD_HEIGHT_PX
+      : TOOLTIP_PLATE_HEIGHT_PX;
+    const below = y - TOOLTIP_PIN_GAP_PX - height < TOOLTIP_EDGE_GAP_PX;
+    this.tooltip.set({
+      key:
+        below && prefersReducedMotion()
+          ? `${spot.properties.id}:below`
+          : spot.properties.id,
+      id: spot.properties.id,
+      name: spot.properties.name,
+      photo,
+      x,
+      y,
+      below,
+      shift: centre - x,
+    });
+  }
+
+  /** Reports the uncovered part of the painted map's bounds. */
+  private emitBounds(): void {
+    const map = this.map;
+    if (!map || this.outcome !== 'painted') {
+      return;
+    }
+    const { width, height, insets } = this.cameraFrame();
+    this.boundsChange.emit(
+      boundsOfRect(map, uncoveredRect(width, height, insets)),
+    );
+  }
+
+  /**
+   * Forgets the current build's camera, spots and frame and cancels its pending bounds report, so
+   * nothing from a released map reaches the build that replaces it.
+   */
+  private releaseCamera(): void {
+    this.camera = undefined;
+    this.collection = undefined;
+    this.framedFor = undefined;
+    if (this.boundsFrame !== undefined) {
+      cancelAnimationFrame(this.boundsFrame);
+      this.boundsFrame = undefined;
+    }
+  }
+
+  /**
+   * Lets go of the current build's photo pins — their listeners, frames and pending fetches — and
+   * its selection flag — its timers and render listener — and forgets its hover, tooltip and
+   * flags. Called before the map is removed.
+   */
+  private releaseHover(): void {
+    this.photoPins?.dispose();
+    this.photoPins = undefined;
+    this.selectionFlag?.dispose();
+    this.selectionFlag = undefined;
+    this.flags.set([]);
+    this.hoveredOnMap = null;
+    // The removed map never fires `mouseleave`, so the page is told the hover is gone here.
+    this.reportPinHover(null);
+    this.tooltip.set(null);
   }
 
   /**
@@ -1042,14 +1114,27 @@ export class SpotMapComponent {
       return;
     }
     this.outcome = 'failed';
-    this.removePopupsNow();
+    this.selection?.dispose();
+    this.selection = undefined;
+    this.releaseCamera();
+    this.releaseHover();
     this.map?.remove();
     this.map = undefined;
     this.failed.emit(reason);
+    // A list the page already holds waits on a view the failed map can no longer report; the spots
+    // of a build still fetching are given theirs as they arrive (see `announceSpots`).
+    if (this.spotsReported) {
+      this.boundsChange.emit(WHOLE_WORLD);
+    }
   }
 
-  /** Adds the spot source and its pins. */
-  private drawSpots(map: MapLibreMap, collection: SpotCollection): void {
+  /**
+   * Adds the spot source, in the list shape, its pins, with a photo host the photo pins,
+   * and the dot footprints last. On top, the footprints are placed first, so every photo pin and
+   * basemap label placed after them keeps off the dots. They go on every map: without a photo host
+   * they still keep the labels clear.
+   */
+  private drawSpots(map: MapLibreMap, collection: SpotListCollection): void {
     map.addSource(SPOT_SOURCE_ID, {
       type: 'geojson',
       data: collection,
@@ -1059,10 +1144,19 @@ export class SpotMapComponent {
     for (const layer of SPOT_LAYERS) {
       map.addLayer(layer);
     }
+    if (this.photoPins) {
+      for (const layer of PHOTO_PIN_LAYERS) {
+        map.addLayer(layer);
+      }
+    }
+    map.addImage(SPOT_FOOTPRINT_IMAGE_ID, spotFootprintImage(), {
+      pixelRatio: 1,
+    });
+    map.addLayer(SPOT_FOOTPRINT_LAYER);
   }
 
   /** Reports one spot-load milestone as the matching load event. */
-  private reportSpots(event: SpotsLoadEvent, generation: number): void {
+  private reportSpots(event: SpotListLoadEvent, generation: number): void {
     const kinds = {
       sent: 'spots-sent',
       headers: 'spots-headers',
@@ -1079,21 +1173,29 @@ export class SpotMapComponent {
     }
   }
 
-  /** Whether the map's canvas host is at or under {@link NARROW_MAP_MAX_WIDTH_PX} wide. */
-  private isNarrow(): boolean {
+  /**
+   * Whether the map is too cramped for the expanded credits: its canvas host is at or under
+   * {@link NARROW_MAP_MAX_WIDTH_PX} wide, or the part of it the covered strips leave open is under
+   * {@link MIN_UNCOVERED_HEIGHT_FOR_CREDITS_PX} tall. The height is read off the same camera frame
+   * the bounds report uses.
+   */
+  private isCramped(): boolean {
+    const { width, height, insets } = this.cameraFrame();
+    const uncovered = uncoveredRect(width, height, insets);
     return (
-      this.canvasHost().nativeElement.offsetWidth <= NARROW_MAP_MAX_WIDTH_PX
+      this.canvasHost().nativeElement.offsetWidth <= NARROW_MAP_MAX_WIDTH_PX ||
+      uncovered.bottom - uncovered.top < MIN_UNCOVERED_HEIGHT_FOR_CREDITS_PX
     );
   }
 
   /**
    * Collapses the attribution control to its info button when `collapse` is set. MapLibre opens
    * it on a map of any width and only collapses it on the first drag, which on a phone leaves the
-   * credits over half the map until the visitor happens to pan. This is the same collapse the
-   * drag makes — the credits stay one tap away — and the control is the library's, so its CSS
-   * class is the only handle there is.
+   * credits over half the map, and on a short uncovered strip over the selected pin, until the
+   * visitor happens to pan. This is the same collapse the drag makes — the credits stay one tap
+   * away — and the control is the library's, so its CSS class is the only handle there is.
    */
-  private collapseAttributionOnNarrowMap(collapse: boolean): void {
+  private collapseAttributionOnCrampedMap(collapse: boolean): void {
     if (!collapse) {
       return;
     }
@@ -1137,10 +1239,9 @@ export class SpotMapComponent {
    * Whether this browser can draw the map at all. `webgl2` and nothing else: maplibre-gl v6
    * requests exactly that one context in `Map._setupPainter()` and throws
    * `GPUInitializationError` — "WebGL2 is required to display this map" — when it comes back
-   * null (maplibre-gl-dev.mjs:27022-27023), which the `Map` constructor rethrows
-   * (`:24123-24128`). A WebGL1 fallback here would wave through the very browsers the
-   * renderer cannot run on — iOS 14, older Android WebViews — and they would reach the
-   * factory only to have it throw.
+   * null, which the `Map` constructor rethrows after cleaning up its container. A WebGL1
+   * fallback here would wave through the very browsers the renderer cannot run on — iOS 14,
+   * older Android WebViews — and they would reach the factory only to have it throw.
    *
    * The probe's own context is handed straight back: this runs on every build, and the browser
    * caps how many contexts may be alive (QC6).
@@ -1157,24 +1258,15 @@ export class SpotMapComponent {
     this.generation += 1;
     this.superseded.next();
     this.outcome = 'pending';
-    this.removePopupsNow();
-    this.stopTrackingPointers?.();
-    this.stopTrackingPointers = undefined;
-    this.stopWatchingAttribution?.();
-    this.stopWatchingAttribution = undefined;
+    this.spotsReported = false;
+    // Before the map goes: a running pulse puts its ring to rest on the live style.
+    this.selection?.dispose();
+    this.selection = undefined;
+    this.pointerHold?.stop();
+    this.pointerHold = undefined;
+    this.releaseCamera();
+    this.releaseHover();
     this.map?.remove();
     this.map = undefined;
-  }
-}
-
-/** Whether the popup is still hidden, waiting for its pan to settle before it rises. */
-function isPending(open: OpenPopup): boolean {
-  return open.popup.getElement().classList.contains(POPUP_PENDING_CLASS);
-}
-
-/** Destroys a popup's component unless something already has. */
-function destroyRef(ref: ComponentRef<SpotPopupComponent>): void {
-  if (!ref.hostView.destroyed) {
-    ref.destroy();
   }
 }

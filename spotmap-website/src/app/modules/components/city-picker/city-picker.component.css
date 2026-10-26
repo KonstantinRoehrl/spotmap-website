@@ -1,0 +1,6 @@
+/* A block, so the field fills whatever width its host is given (the page sets it). The select's
+   colours, panel and option looks live globally in src/theme.scss: the panel is a CDK overlay at
+   the document root, out of reach of this component's scoped styles. */
+:host {
+  display: block;
+}
