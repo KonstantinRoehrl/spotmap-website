@@ -467,7 +467,7 @@ describe('MapComponent', () => {
 
       showSpot('a', ALPHA);
       fixture.detectChanges();
-      const back = toolbar.querySelector('.spot-column__back')!;
+      const back = toolbar.querySelector('app-overview-back button')!;
       expect(gaps(back.closest('.spot-column__count-content')!))
         .withContext('detail state cell')
         .toEqual(expected);
@@ -518,31 +518,43 @@ describe('MapComponent', () => {
       expect(count()).toContain('> 1 SPOT IN VIEW');
     });
 
-    it('turns the count into a 32 px back plate with a 44 px target while a spot is open', () => {
+    it('turns the count into the < OVERVIEW plate, 32 px drawn and 44 px to the touch, while a spot is open', () => {
       store.shownSpots.set([ALPHA, BETA]);
       showSpot('a', ALPHA);
       const host = create();
 
       const back = host.querySelector<HTMLButtonElement>(
-        '.spot-column__toolbar button',
+        '.spot-column__toolbar app-overview-back button',
       )!;
-      expect(back.textContent!.trim()).toBe('‹ 2 IN VIEW');
-      // The visible words (the count) lead the name, then what a tap does.
+      expect(back.textContent!.trim()).toBe('< OVERVIEW');
       expect(back.getAttribute('aria-label')).toBe(
-        '2 in view, back to the list',
+        'Overview, back to the list',
       );
       expect(back.classList).toContain('phosphor-bloom--plate');
       expect(back.getBoundingClientRect().height).toBe(32);
       const hit = getComputedStyle(back, '::after');
       expect([hit.position, hit.top, hit.bottom]).toEqual([
         'absolute',
-        '-6px',
-        '-6px',
+        '-7px',
+        '-7px',
       ]);
 
       back.click();
       expect(store.close).toHaveBeenCalledTimes(1);
       expect(host.querySelector('app-spot-detail')).not.toBeNull();
+    });
+
+    it('words the back plate the same whether or not the count is known', () => {
+      showSpot('a', ALPHA);
+      const host = create();
+      const back = () =>
+        host.querySelector<HTMLButtonElement>(
+          '.spot-column__toolbar app-overview-back button',
+        )!;
+      expect(back().textContent!.trim()).toBe('< OVERVIEW');
+      store.shownSpots.set([ALPHA, BETA]);
+      fixture.detectChanges();
+      expect(back().textContent!.trim()).toBe('< OVERVIEW');
     });
 
     it('crossfades the count and the back button in one shared cell instead of cutting', () => {
@@ -555,7 +567,7 @@ describe('MapComponent', () => {
       // Specs run with animations off, so the fade-out is shown by the class the leave applies.
       for (const [selector, open] of [
         ['.spot-column__count-line', false],
-        ['.spot-column__back', true],
+        ['app-overview-back', true],
       ] as const) {
         if (open) {
           showSpot('a', ALPHA);
@@ -569,14 +581,6 @@ describe('MapComponent', () => {
         content.classList.add('spot-column__count-content--leaving');
         expect(getComputedStyle(content).opacity).toBe('0');
       }
-    });
-
-    it('words the back button without a number while the count is unknown', () => {
-      showSpot('a', ALPHA);
-      const host = create();
-
-      const back = host.querySelector<HTMLButtonElement>('.spot-column__back')!;
-      expect(back.textContent!.trim()).toBe('‹ IN VIEW');
     });
   });
 
@@ -958,7 +962,11 @@ describe('MapComponent', () => {
       store.shownSpots.set([ALPHA, BETA]);
       showSpot('a', ALPHA);
       const host = create();
-      host.querySelector<HTMLButtonElement>('.spot-column__back')!.focus();
+      host
+        .querySelector<HTMLButtonElement>(
+          '.spot-column__toolbar app-overview-back button',
+        )!
+        .focus();
 
       closeSpot();
 
@@ -972,7 +980,11 @@ describe('MapComponent', () => {
       store.returnFocusTo.set('b');
       showSpot('b', BETA);
       const host = create();
-      host.querySelector<HTMLButtonElement>('.spot-column__back')!.focus();
+      host
+        .querySelector<HTMLButtonElement>(
+          '.spot-column__toolbar app-overview-back button',
+        )!
+        .focus();
 
       closeSpot();
 

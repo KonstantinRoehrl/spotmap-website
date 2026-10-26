@@ -211,7 +211,7 @@
   pointer-events: none;
 }
 
-/* The count line and the back button share the cell and crossfade, like the sheet's head. */
+/* The count line and the back plate share the cell and crossfade, like the sheet's head. */
 .spot-column__count-content {
   grid-area: 1 / 1;
   display: flex;
@@ -244,25 +244,6 @@
 
 .spot-column__order {
   color: var(--color-phosphor-dim);
-}
-
-/* A 32 px plate in the 32 px row. Its ::after reaches 6 px above and below, so the target is
-   44 px; the shared bloom keeps ::before for its light, and `phosphor-bloom` positions the
-   button. */
-.spot-column__back {
-  box-sizing: border-box;
-  height: 32px;
-  padding: 0 12px;
-  font-family: var(--font-mono);
-  font-size: 0.8125rem;
-  letter-spacing: 0.08em;
-  cursor: pointer;
-}
-
-.spot-column__back::after {
-  content: '';
-  position: absolute;
-  inset: -6px 0;
 }
 
 /* Under 1024 px: the sheet inside the window, on its left, right and bottom edges, over the map. */

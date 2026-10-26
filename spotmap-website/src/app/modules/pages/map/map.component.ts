@@ -21,6 +21,7 @@ import { prefersReducedMotion } from '../../../utils/prefers-reduced-motion';
 import { AsciiAnimationTextComponent } from '../../components/ascii-animation-text/ascii-animation-text.component';
 import { CityPickerComponent } from '../../components/city-picker/city-picker.component';
 import { MapContainerComponent } from '../../components/map-container/map-container.component';
+import { OverviewBackComponent } from '../../components/overview-back/overview-back.component';
 import {
   clearColumnShare,
   columnWidthFor,
@@ -38,7 +39,6 @@ import {
   SheetModel,
   sheetHeight,
 } from '../../components/spot-sheet/spot-sheet-state';
-import { PointerBloomDirective } from '../../directives/pointer-bloom.directive';
 import { SpotBrowserStore } from './spot-browser.store';
 import {
   bannerSlotWidth,
@@ -60,11 +60,11 @@ export const WIDE_LAYOUT_QUERY = '(min-width: 1024px)';
 export const PHONE_LAYOUT_QUERY = '(max-width: 768px)';
 
 /**
- * What an open spot is made of, on the controls that close it: the detail, the column's back
- * button and the sheet's detail head. Focus inside any of them is about to be removed with them.
+ * What an open spot is made of, on the controls that close it: the detail, the back plate and the
+ * sheet's detail head. Focus inside any of them is about to be removed with them.
  */
 const OPEN_SPOT_CONTROLS =
-  'app-spot-detail, .spot-column__back, .spot-sheet__head-content--detail';
+  'app-spot-detail, app-overview-back, .spot-sheet__head-content--detail';
 
 /** How long the count must hold still before the live region reads it, so a pan does not chatter. */
 export const COUNT_ANNOUNCE_DEBOUNCE_MS = 800;
@@ -116,7 +116,7 @@ interface FrameSize {
     CityPickerComponent,
     MapContainerComponent,
     NgTemplateOutlet,
-    PointerBloomDirective,
+    OverviewBackComponent,
     SplitHandleComponent,
     SpotDetailComponent,
     SpotListComponent,
@@ -251,12 +251,6 @@ export class MapComponent {
       return '> LOADING SPOTS…';
     }
     return `> ${count} ${count === 1 ? 'SPOT' : 'SPOTS'} IN VIEW`;
-  });
-
-  /** The column's back button in detail mode: the frozen list's count, once it is known. */
-  protected readonly backLabel = computed(() => {
-    const count = this.count();
-    return count === null ? '‹ IN VIEW' : `‹ ${count} IN VIEW`;
   });
 
   /**
@@ -394,7 +388,7 @@ export class MapComponent {
     this.topbarLine.set(line);
   }
 
-  /** The sheet's `‹ … IN VIEW`: back to the list, closing the spot. */
+  /** The sheet's < OVERVIEW plate: back to the list, closing the spot. */
   protected onSheetBack(): void {
     this.feedSheet('back');
     this.closeSpot();

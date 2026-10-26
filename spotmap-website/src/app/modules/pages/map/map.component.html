@@ -91,19 +91,7 @@
                 class="spot-column__count-content"
                 animate.leave="spot-column__count-content--leaving"
               >
-                <!-- The name starts with the visible words, then says what a tap does. -->
-                <button
-                  type="button"
-                  class="spot-column__back phosphor-bloom phosphor-bloom--plate"
-                  appPointerBloom
-                  [attr.aria-label]="
-                    (count() === null ? 'In view' : count() + ' in view') +
-                    ', back to the list'
-                  "
-                  (click)="store.close()"
-                >
-                  {{ backLabel() }}
-                </button>
+                <app-overview-back (back)="store.close()" />
               </div>
             } @else {
               <div
