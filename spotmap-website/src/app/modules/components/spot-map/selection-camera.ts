@@ -173,9 +173,10 @@ export class SelectionCamera {
   ) {}
 
   /**
-   * A spot opened, switched to or reframed: eases the pin into the uncovered rectangle's middle, but only when it is not already in view:
-   * outside the rectangle less the margin, or with its flag cut off at the top. A pin the visitor can
-   * already see keeps the camera still, on a phone as on a wide screen.
+   * A spot opened, switched to or reframed: eases the pin into the uncovered rectangle's middle,
+   * but only when it is not already in view: outside the rectangle less the margin, or with its
+   * flag cut off at the top. A pin the visitor can already see keeps the camera still, on a phone
+   * as on a wide screen.
    */
   keepInView(pin: [number, number], frame: CameraFrame): void {
     if (this.isHeld() || this.inView(pin, frame)) {

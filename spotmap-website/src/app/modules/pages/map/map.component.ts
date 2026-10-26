@@ -101,10 +101,9 @@ interface FrameSize {
  * with its toolbar and the list or the open spot. From 769 to 1023 px the same header row sits
  * over a window whose bottom sheet (peek / list / detail, never more than half of it) holds that
  * pane. On a phone a top bar carries them instead as two fixed rows, the banner over the picker,
- * neither sized by the line playing or the city chosen. The page
- * owns which layout is on screen and so what the map is told is covered, how wide the column is,
- * and where keyboard focus goes when an open spot closes; everything else is the
- * {@link SpotBrowserStore}'s.
+ * neither sized by the line playing or the city chosen. The page owns which layout is on screen and
+ * so what the map is told is covered, how wide the column is, and where keyboard focus goes when an
+ * open spot closes; everything else is the {@link SpotBrowserStore}'s.
  */
 @Component({
   selector: 'app-map',

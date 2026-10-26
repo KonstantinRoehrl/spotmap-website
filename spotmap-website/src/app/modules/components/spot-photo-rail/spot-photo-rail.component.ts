@@ -15,11 +15,11 @@ import { AsciiRainComponent } from '../ascii-rain/ascii-rain.component';
 /**
  * A spot's photos as a horizontal rail of 4:3 frames in the detail, 8 px apart, each as wide as the
  * detail says (`--rail-photo-width`, set by the photo group that holds the rail, which the reserved
- * loading frame shares; the host must sit inside such a group). The rail bleeds to the edges of the panel it sits in
- * while it scrolls and snaps each photo to the panel's 16 px inset; a finger, a trackpad or
- * Shift + wheel scroll it, natively. Each photo is a button that asks for the photo viewer
- * (`open`), and {@link photoButton} hands that button to the viewer to grow out of and return
- * focus to.
+ * loading frame shares; the host must sit inside such a group). The rail bleeds to the edges of the
+ * panel it sits in while it scrolls and snaps each photo to the panel's 16 px inset; a finger, a
+ * trackpad or Shift + wheel scroll it, natively. Each photo is a button that asks for the photo
+ * viewer (`open`), and {@link photoButton} hands that button to the viewer to grow out of and
+ * return focus to.
  *
  * Each frame loads like the gallery's slide: a small block of rain until its photo arrives, then a
  * crossfade; a photo already in the browser's cache shows at once; a photo that fails shows the

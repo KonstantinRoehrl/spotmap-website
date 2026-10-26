@@ -90,9 +90,9 @@ const NARROW_MAP_MAX_WIDTH_PX = 640;
 /**
  * A map whose uncovered part — what the page's covered strips leave of it — is shorter than this
  * has its attribution collapsed to the info button, on the same two moments as the width rule.
- * The expanded credits on a wide map are 124 px tall; twice that leaves a selected pin room
- * beside them, where a shorter strip has the panel fill it and hide the pin, its ring and its
- * flag.
+ * The expanded credits on a wide map are 124 px tall; about twice that, rounded to 240 px, leaves a
+ * selected pin room beside them, where a shorter strip has the panel fill it and hide the pin, its
+ * ring and its flag.
  */
 const MIN_UNCOVERED_HEIGHT_FOR_CREDITS_PX = 240;
 
@@ -677,7 +677,7 @@ export class SpotMapComponent {
       this.drawSpots(map, collection);
       // Feature state needs the spot source, so the selection starts here. One already in the URL
       // — a shared link opened cold, or a rebuild — is no tap: it shows without the pulse, and the
-      // camera jumps it into the middle of the uncovered part, saving no view to go back to.
+      // camera seats it in the middle of the uncovered part without animation.
       this.collection = collection;
       this.selection = new SpotSelection(map);
       if (this.photoPins) {
@@ -729,8 +729,9 @@ export class SpotMapComponent {
   }
 
   /**
-   * Wires the visitor-facing listeners: the attribution collapse when the map becomes cramped, a pin tap
-   * and a tap on empty map reported to the page, and the pointer cursor and hover over a pin, a photo frame or the raised flag.
+   * Wires the visitor-facing listeners: the attribution collapse when the map becomes cramped, a
+   * pin tap and a tap on empty map reported to the page, and the pointer cursor and hover over a
+   * pin, a photo frame or the raised flag.
    */
   private wireInteractions(map: MapLibreMap, generation: number): void {
     // A phone turned from landscape to portrait narrows a map that opened wide, and a sheet that
@@ -1191,9 +1192,8 @@ export class SpotMapComponent {
    * Collapses the attribution control to its info button when `collapse` is set. MapLibre opens
    * it on a map of any width and only collapses it on the first drag, which on a phone leaves the
    * credits over half the map, and on a short uncovered strip over the selected pin, until the
-   * visitor happens to pan. This is the same collapse the
-   * drag makes — the credits stay one tap away — and the control is the library's, so its CSS
-   * class is the only handle there is.
+   * visitor happens to pan. This is the same collapse the drag makes — the credits stay one tap
+   * away — and the control is the library's, so its CSS class is the only handle there is.
    */
   private collapseAttributionOnCrampedMap(collapse: boolean): void {
     if (!collapse) {

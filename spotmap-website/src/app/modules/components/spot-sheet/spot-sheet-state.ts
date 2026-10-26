@@ -14,9 +14,9 @@ export interface SheetModel {
 export const INITIAL_SHEET: SheetModel = { state: 'peek', resting: 'peek' };
 
 /**
- * What can move the sheet: a tap on its head, a spot opening, the head's back (‹) or close (✕),
- * the detail closing without the sheet (Back, a city change), a tap on empty map, or a spot link
- * that names no spot (the list opens to show the not-found line).
+ * What can move the sheet: a tap on its head, a spot opening, the head's `< OVERVIEW` back plate or
+ * close (✕), the detail closing without the sheet (Back, a city change), a tap on empty map, or a
+ * spot link that names no spot (the list opens to show the not-found line).
  */
 export type SheetEvent =
   | 'head'
