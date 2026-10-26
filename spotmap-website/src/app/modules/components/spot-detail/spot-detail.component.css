@@ -15,32 +15,40 @@
   color: var(--color-phosphor);
 }
 
-/* The rail and its rights line: one group, 8 px apart. */
+/* The rail and its rights line: one group, 8 px apart. It is also the size source for every rail
+   photo and for the frame reserved before the rail exists: a photo is 46 % of this group's width
+   (the detail's content width, inside the 16 px inset), so it scales continuously as the column is
+   dragged, the window resized or the device rotated, with no steps. Never narrower than 120 px, and
+   never wider than the ceiling: 240 px in the sheet, 320 px in the wide column, the sharpest the
+   thumbnail shows on a 2x screen. `cqw` resolves where the property is used, i.e. against this
+   container, for the rail's photos and the reserved frame alike. */
 .spot-detail__photos {
+  --rail-photo-max: 240px;
+  --rail-photo-width: clamp(120px, 46cqw, var(--rail-photo-max));
   display: flex;
   flex-direction: column;
   gap: 8px;
+  container-type: inline-size;
 }
 
-/* The rail's first frame (spot-photo-rail.component.css), held while the file loads: the same
-   4:3 border box at the rail's height, border and radius, so the rail replaces it without moving
-   anything below. It sits at the start of its column rather than stretching across it, which
-   would override the 4:3 ratio. */
+@media (min-width: 1024px) {
+  .spot-detail__photos {
+    --rail-photo-max: 320px;
+  }
+}
+
+/* The rail's first frame (spot-photo-rail.component.css), held while the file loads: the same 4:3
+   border box at the rail's size, border and radius, so the rail replaces it without moving
+   anything below. It sits at the start of its column rather than stretching across it. */
 .spot-detail__reserved {
   align-self: flex-start;
   box-sizing: border-box;
-  height: 112px;
-  aspect-ratio: 4 / 3;
+  width: var(--rail-photo-width);
+  height: calc(var(--rail-photo-width) * 0.75);
   overflow: hidden;
   background: var(--color-surface);
   border: 1px solid var(--color-line);
   border-radius: var(--radius-md);
-}
-
-@media (min-width: 1024px) {
-  .spot-detail__reserved {
-    height: 132px;
-  }
 }
 
 .spot-detail__cover {

@@ -5,11 +5,13 @@
   margin-inline: -16px;
 }
 
-/* 112 px frames in the phone's sheet; 132 px in the wide column (WIDE_LAYOUT_QUERY's width). */
+/* One row of photo frames, as tall as one frame. Their size is not decided here: the detail's photo
+   group owns it (--rail-photo-width in spot-detail.component.css), so the reserved loading frame
+   and every photo take the same figure. */
 .rail {
   display: flex;
   gap: 8px;
-  height: 112px;
+  height: calc(var(--rail-photo-width) * 0.75);
   padding-inline: 16px;
   overflow-x: auto;
   overflow-y: hidden;
@@ -23,20 +25,14 @@
   display: none;
 }
 
-@media (min-width: 1024px) {
-  .rail {
-    height: 132px;
-  }
-}
-
 /* One 4:3 frame: the bloom's rest border is the 1 px `line` frame, so hover and focus light it
    like any other bloom control; the inset bloom keeps the ring inside the clipping rail. */
 .rail__photo {
   position: relative;
   flex: none;
   box-sizing: border-box;
+  width: var(--rail-photo-width);
   height: 100%;
-  aspect-ratio: 4 / 3;
   padding: 0;
   border-width: 1px;
   border-style: solid;

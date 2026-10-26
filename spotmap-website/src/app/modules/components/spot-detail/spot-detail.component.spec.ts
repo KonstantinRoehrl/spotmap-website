@@ -483,20 +483,65 @@ describe('SpotDetailComponent', () => {
     expect(find('.spot-detail__actions')).toBeNull();
   });
 
-  it('reserves the rail’s first frame exactly, so the rail and the name land without a jump', () => {
-    create(loading());
-    const reserved = rect('.spot-detail__reserved');
-    const nameTop = rect('.spot-detail__name').top;
-    const height = window.matchMedia('(min-width: 1024px)').matches ? 132 : 112;
-    expect(reserved.height).toBe(height);
-    expect(reserved.width).toBeCloseTo((height * 4) / 3, 0);
-    expect(reserved.left).toBe(host().getBoundingClientRect().left + 16);
-    show(loaded());
-    const frame = rail()!.photoButton(0)!.getBoundingClientRect();
-    expect(frame.top).toBe(reserved.top);
-    expect(frame.left).toBe(reserved.left);
-    expect(frame.height).toBe(reserved.height);
-    expect(rect('.spot-detail__name').top).toBe(nameTop);
+  /** The widest a rail photo may be here: 320 px from 1024 px wide, 240 px below. */
+  const railCap = () =>
+    window.matchMedia('(min-width: 1024px)').matches ? 320 : 240;
+
+  /** The expected rail photo width for a detail host `hostWidth` px wide. */
+  const railPhotoWidth = (hostWidth: number) =>
+    Math.min(Math.max(0.46 * (hostWidth - 32), 120), railCap());
+
+  for (const hostWidth of [288, 384, 520, 900]) {
+    it(`sizes the rail’s photos at 46 % of the content, within the floor and the cap, at a ${hostWidth} px detail`, () => {
+      create(loaded(), { hostStyle: `display:block;width:${hostWidth}px` });
+      const width = railPhotoWidth(hostWidth);
+      const frame = rail()!.photoButton(0)!.getBoundingClientRect();
+      expect(frame.width).toBeCloseTo(width, 0);
+      expect(frame.height).toBeCloseTo(width * 0.75, 0);
+    });
+
+    it(`reserves exactly the rail’s first frame at a ${hostWidth} px detail, so nothing moves when the file arrives`, () => {
+      create(loading(), { hostStyle: `display:block;width:${hostWidth}px` });
+      const reserved = rect('.spot-detail__reserved');
+      const nameTop = rect('.spot-detail__name').top;
+      expect(reserved.width).toBeCloseTo(railPhotoWidth(hostWidth), 0);
+      expect(reserved.height).toBeCloseTo(railPhotoWidth(hostWidth) * 0.75, 0);
+      expect(reserved.left).toBe(host().getBoundingClientRect().left + 16);
+      show(loaded());
+      const frame = rail()!.photoButton(0)!.getBoundingClientRect();
+      expect(frame.top).toBe(reserved.top);
+      expect(frame.left).toBe(reserved.left);
+      expect(frame.width).toBe(reserved.width);
+      expect(frame.height).toBe(reserved.height);
+      expect(rect('.spot-detail__name').top).toBe(nameTop);
+    });
+  }
+
+  it('keeps a lone photo the size its neighbours would have, left-aligned and unstretched', () => {
+    create(loaded(detail({ photos: ['vienna/a-1-1.webp'] })), {
+      hostStyle: 'display:block;width:520px',
+    });
+    const frames = Array.from(
+      host().querySelectorAll<HTMLElement>('.rail__photo'),
+    );
+    expect(frames.length).toBe(1);
+    const first = frames[0].getBoundingClientRect();
+    expect(first.left).toBe(host().getBoundingClientRect().left + 16);
+    expect(first.width).toBeCloseTo(railPhotoWidth(520), 0);
+  });
+
+  it('scales continuously as the detail is widened, in no steps', () => {
+    create(loaded(), { hostStyle: 'display:block;width:384px' });
+    const widths: number[] = [];
+    for (let hostWidth = 384; hostWidth <= 520; hostWidth += 8) {
+      host().style.width = `${hostWidth}px`;
+      widths.push(rail()!.photoButton(0)!.getBoundingClientRect().width);
+    }
+    for (let i = 1; i < widths.length; i += 1) {
+      expect(widths[i] - widths[i - 1])
+        .withContext(`step ${i}`)
+        .toBeCloseTo(0.46 * 8, 0);
+    }
   });
 
   it('reserves no photo room for a preview without photos', () => {

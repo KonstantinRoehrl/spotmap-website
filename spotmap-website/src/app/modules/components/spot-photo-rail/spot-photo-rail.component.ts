@@ -13,8 +13,9 @@ import { PointerBloomDirective } from '../../directives/pointer-bloom.directive'
 import { AsciiRainComponent } from '../ascii-rain/ascii-rain.component';
 
 /**
- * A spot's photos as a horizontal rail of 4:3 frames in the detail, 8 px apart: 112 px tall in the
- * phone's sheet, 132 px in the wide column. The rail bleeds to the edges of the panel it sits in
+ * A spot's photos as a horizontal rail of 4:3 frames in the detail, 8 px apart, each as wide as the
+ * detail says (`--rail-photo-width`, set by the photo group that holds the rail, which the reserved
+ * loading frame shares; the host must sit inside such a group). The rail bleeds to the edges of the panel it sits in
  * while it scrolls and snaps each photo to the panel's 16 px inset; a finger, a trackpad or
  * Shift + wheel scroll it, natively. Each photo is a button that asks for the photo viewer
  * (`open`), and {@link photoButton} hands that button to the viewer to grow out of and return

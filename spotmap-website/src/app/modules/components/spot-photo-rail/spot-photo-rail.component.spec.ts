@@ -6,7 +6,10 @@ import { SpotPhotoRailComponent } from './spot-photo-rail.component';
 @Component({
   imports: [SpotPhotoRailComponent],
   template: `
-    <div class="panel" style="display:block;width:320px;padding:16px">
+    <div
+      class="panel"
+      style="display:block;width:320px;padding:16px;--rail-photo-width:160px"
+    >
       <app-spot-photo-rail
         [photos]="photos()"
         spotName="Hbf Curb"
@@ -165,12 +168,11 @@ describe('SpotPhotoRailComponent', () => {
     expect(buttons()[2].querySelector('img')).not.toBeNull();
   });
 
-  it('draws 4:3 frames 8 px apart, at the rail height for the layout', () => {
+  it('draws 4:3 frames 8 px apart, as wide as the size source says', () => {
     create();
-    const height = window.matchMedia('(min-width: 1024px)').matches ? 132 : 112;
     const [first, second] = buttons().map((b) => b.getBoundingClientRect());
-    expect(first.height).toBe(height);
-    expect(first.width).toBeCloseTo((height * 4) / 3, 0);
+    expect(first.width).toBe(160);
+    expect(first.height).toBe(120);
     expect(second.left - first.right).toBeCloseTo(8, 1);
     const style = getComputedStyle(buttons()[0]);
     expect(style.borderTopWidth).toBe('1px');
