@@ -752,6 +752,11 @@ describe('MapComponent', () => {
       const BAR_PADDING = 16;
       /** The phone widths the bar has to work at, from the narrowest to a large phone. */
       const PHONE_WIDTHS = [320, 360, 390];
+      /**
+       * The limit for a spec that renders the bar once per city: it grows with the city list and
+       * with how slowly a CI runner paints, so Jasmine's 5 s default cuts it off mid-loop.
+       */
+      const PER_CITY_SPEC_TIMEOUT_MS = 30_000;
 
       /** The label the closed select shows for `entry`. */
       const labelOf = (entry: MapItem) =>
@@ -842,7 +847,7 @@ describe('MapComponent', () => {
           );
         }
         expect(widths.size).withContext('row widths per city').toBe(1);
-      });
+      }, PER_CITY_SPEC_TIMEOUT_MS);
 
       for (const width of PHONE_WIDTHS) {
         it(`offers every banner line at ${width} px, the longest house line included`, async () => {
@@ -893,7 +898,7 @@ describe('MapComponent', () => {
         expect(
           parseFloat(getComputedStyle(value).fontSize),
         ).toBeGreaterThanOrEqual(12);
-      });
+      }, PER_CITY_SPEC_TIMEOUT_MS);
     });
   });
 
