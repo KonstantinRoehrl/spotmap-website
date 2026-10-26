@@ -25,8 +25,8 @@ const MEASURE_REFERENCE_PX = 100;
  * set (or immediately when the user prefers reduced motion or there is nothing
  * to type). Announces each message through `lineStart` just before it is typed.
  * By default the line is fitted to its container and sits between two dot
- * gutters; the map page's banners set it at a fixed size without gutters and
- * size their slot to the line instead.
+ * gutters; the map page's banners set it at a fixed size without gutters,
+ * on a row of their own.
  */
 @Component({
   selector: 'app-ascii-animation-text',
@@ -57,7 +57,7 @@ export class AsciiAnimationTextComponent implements AfterViewInit, OnDestroy {
   loop = input<boolean>(false);
   /**
    * A fixed size for the line, px. Set, the line is set at that size and never fitted to its
-   * container: the map page sizes the banner's slot to the line instead (`topbar-banner.ts`).
+   * container: the map page fixes the banner's size instead.
    */
   fixedFontSize = input<number | null>(null);
   /**
@@ -70,7 +70,7 @@ export class AsciiAnimationTextComponent implements AfterViewInit, OnDestroy {
   animationFinished = output<void>();
   /**
    * The message about to be typed, emitted before its first character; under reduced motion, once,
-   * the static final line. The map page's top bar widens the banner's slot to it ahead of the typing.
+   * the static final line.
    */
   lineStart = output<string>();
 

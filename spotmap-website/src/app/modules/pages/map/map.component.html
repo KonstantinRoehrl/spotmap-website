@@ -10,19 +10,16 @@
       @for (lines of [topbarMessages()]; track lines.join('|')) {
         <app-ascii-animation-text
           class="map-topbar__banner"
-          [style.width.px]="topbarSlotWidth()"
           [messages]="lines"
           [fixedFontSize]="topbarBannerFontPx"
           [dotGutters]="false"
           [waitFrames]="40"
           [animationSpeed]="45"
           [loop]="true"
-          (lineStart)="onTopbarLine($event)"
         />
       }
       <app-city-picker
         class="map-topbar__picker"
-        [style.min-width.px]="pickerMinWidth()"
         [selected]="store.city()"
         (citySelected)="store.selectCity($event)"
       />

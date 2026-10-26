@@ -61,54 +61,33 @@
   width: calc(2rem + 12px + var(--city-label-glyphs) * 0.6 * 0.8125rem);
 }
 
-/* Phone (T3): the banner and the city select in one row, 16 px round it, the top below the
-   safe-area inset. Its bottom padding is the gutter above the window. */
+/* Phone: two fixed rows, the banner over the city select, 16 px round them, the top below the
+   safe-area inset. Its bottom padding is the gutter above the window. Neither row's width or height
+   depends on the line playing or the city chosen, so nothing in the bar ever resizes or reflows. */
 .map-topbar {
   flex: none;
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 8px;
   padding: calc(16px + env(safe-area-inset-top)) 16px 16px;
 }
 
-/* As wide as the line it is playing (the page sets the width from the banner's own line start)
-   and easing to the next line's width. It may shrink below that, so the picker's minimum always
-   wins; the page already keeps the width inside the room the picker leaves. The reduced-motion
-   net drops the width ease: the slot then changes at once while the line still types in. */
+/* Row one: the banner across the whole content width, in a fixed 24 px row. */
 .map-topbar__banner {
   display: block;
-  flex: 0 1 auto;
-  min-width: 0;
-  height: 40px;
+  height: 24px;
   overflow: hidden;
-  transition: width 330ms var(--ease-out-expo);
 }
 
-/* The rest of the row, never narrower than its label needs (the page sets that minimum, which
-   counts 12 px of side padding and a 12 px arrow area, so the field is given exactly those). 40 px
-   tall through Material's own field tokens, at the header picker's 7 px padding; the floating CITY
-   label sits in the bar's 16 px top padding. */
+/* Row two: the city select across the whole content width, 40 px tall through Material's own field
+   tokens at the header picker's 7 px padding. Its floating CITY label rides the 8 px gap above it,
+   over the banner row's empty strip under its text. */
 .map-topbar__picker {
   --mat-select-trigger-text-size: 0.8125rem;
   --mat-select-trigger-text-tracking: 0;
   --mat-form-field-container-height: 40px;
   --mat-form-field-container-vertical-padding: 7px;
-  flex: 1 1 0;
-}
-
-.map-topbar__picker
-  ::ng-deep
-  .mat-mdc-text-field-wrapper.mdc-text-field--outlined {
-  padding-inline: 12px;
-}
-
-/* The arrow's area is exactly the 12 px pickerMinWidth() counts (Material's 10 px arrow, right
-   aligned), so the field's real minimum is the one the page keeps it at. */
-.map-topbar__picker ::ng-deep .mat-mdc-select-arrow-wrapper {
-  box-sizing: border-box;
-  width: 12px;
-  flex: none;
-  justify-content: flex-end;
+  display: block;
 }
 
 /* The window fills the rest of the page inside the gutter, the bottom edge included. */

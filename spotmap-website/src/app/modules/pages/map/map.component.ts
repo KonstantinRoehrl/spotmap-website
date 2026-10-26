@@ -41,13 +41,10 @@ import {
 } from '../../components/spot-sheet/spot-sheet-state';
 import { SpotBrowserStore } from './spot-browser.store';
 import {
-  bannerSlotWidth,
   fittingBannerLines,
   HEADER_BANNER_FONT_PX,
-  pickerMinWidth,
   RESTING_BANNER_LINE,
   TOPBAR_BANNER_FONT_PX,
-  TOPBAR_GAP_PX,
 } from './topbar-banner';
 
 /** The width the page switches from the sheet to the map + column layout at. */
@@ -103,8 +100,8 @@ interface FrameSize {
  * window holds the map, a split handle that resizes it against the spot column, and the column
  * with its toolbar and the list or the open spot. From 769 to 1023 px the same header row sits
  * over a window whose bottom sheet (peek / list / detail, never more than half of it) holds that
- * pane. On a phone a top bar carries the banner and the picker instead, the banner's slot widening
- * to whatever line it plays while the picker gives up room down to its label's width. The page
+ * pane. On a phone a top bar carries them instead as two fixed rows, the banner over the picker,
+ * neither sized by the line playing or the city chosen. The page
  * owns which layout is on screen and so what the map is told is covered, how wide the column is,
  * and where keyboard focus goes when an open spot closes; everything else is the
  * {@link SpotBrowserStore}'s.
@@ -166,27 +163,13 @@ export class MapComponent {
   /** The top bar's banner size: the Display tier's small size. */
   protected readonly topbarBannerFontPx = TOPBAR_BANNER_FONT_PX;
 
-  /** The top bar's width inside its padding, measured; 0 until it has been. */
+  /** The top bar's width inside its padding, measured: the banner row's width. 0 until measured. */
   private readonly topbarWidth = signal(0);
-
-  /** The line the top bar's banner is playing, or about to: what its slot is as wide as. */
-  private readonly topbarLine = signal(RESTING_BANNER_LINE);
-
-  /** The city as the closed picker shows it, `<city> · <country code>`. */
-  private readonly pickerLabel = computed(() => {
-    const city = this.store.city();
-    return `${city.city} · ${city.countryCode}`;
-  });
-
-  /** The narrowest the top bar's picker may get: its label unclipped, the arrow and its padding. */
-  protected readonly pickerMinWidth = computed(() =>
-    pickerMinWidth(this.pickerLabel()),
-  );
 
   /**
    * The top bar banner's lines: the resting `SPOTMAP` first, then the city's line and the house
-   * voice, less every line that could not fit beside the picker's minimum at the bar's width.
-   * Before the bar is measured, and should nothing fit, the resting line alone.
+   * voice, less every line wider than the bar's banner row. Before the bar is measured, and should
+   * nothing fit, the resting line alone.
    */
   protected readonly topbarMessages = computed(() => {
     const width = this.topbarWidth();
@@ -195,22 +178,10 @@ export class MapComponent {
         ? fittingBannerLines(
             [RESTING_BANNER_LINE, ...this.bannerMessages()],
             width,
-            this.pickerLabel(),
           )
         : [];
     return lines.length > 0 ? lines : [RESTING_BANNER_LINE];
   });
-
-  /**
-   * The top bar banner's slot: as wide as the line it is playing, never so wide that the picker
-   * would have to narrow past its label.
-   */
-  protected readonly topbarSlotWidth = computed(() =>
-    Math.min(
-      bannerSlotWidth(this.topbarLine(), TOPBAR_BANNER_FONT_PX),
-      Math.max(this.topbarWidth() - TOPBAR_GAP_PX - this.pickerMinWidth(), 0),
-    ),
-  );
 
   /** The sheet's height and where it returns to; drives the layouts under 1024 px only. */
   protected readonly sheet = signal<SheetModel>(
@@ -381,11 +352,6 @@ export class MapComponent {
   /** Moves the sheet by one event of its state machine. */
   protected feedSheet(event: SheetEvent): void {
     this.sheet.update((model) => nextSheet(model, event));
-  }
-
-  /** The top bar's banner is about to type `line`: its slot widens or narrows to it. */
-  protected onTopbarLine(line: string): void {
-    this.topbarLine.set(line);
   }
 
   /** The sheet's < OVERVIEW plate: back to the list, closing the spot. */

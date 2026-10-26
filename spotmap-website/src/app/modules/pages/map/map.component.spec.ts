@@ -1,7 +1,7 @@
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { Component, input, output, signal } from '@angular/core';
+import { Component, input, signal } from '@angular/core';
 import {
   ComponentFixture,
   discardPeriodicTasks,
@@ -44,12 +44,10 @@ import {
   WIDE_LAYOUT_QUERY,
 } from './map.component';
 import {
-  bannerSlotWidth,
+  bannerLineWidth,
   HEADER_BANNER_FONT_PX,
-  pickerMinWidth,
   RESTING_BANNER_LINE,
   TOPBAR_BANNER_FONT_PX,
-  TOPBAR_GAP_PX,
 } from './topbar-banner';
 import { SpotBrowserStore } from './spot-browser.store';
 
@@ -70,7 +68,6 @@ class StubBannerComponent {
   readonly centered = input(false);
   readonly fixedFontSize = input<number | null>(null);
   readonly dotGutters = input(true);
-  readonly lineStart = output<string>();
 }
 
 function listFeature(id: string, name: string): SpotListFeature {
@@ -766,7 +763,7 @@ describe('MapComponent', () => {
           .componentInstance as StubBannerComponent;
       }
 
-      /** The bar's width inside its padding: what the banner and the picker share. */
+      /** The bar's width inside its padding: what each of its two rows spans. */
       function barContentWidth(host: HTMLElement): number {
         return (
           host.querySelector<HTMLElement>('.map-topbar')!.clientWidth -
@@ -807,73 +804,67 @@ describe('MapComponent', () => {
         expect(topbarBanner().dotGutters()).toBeFalse();
       });
 
+      it('stacks a 24 px banner row over a 40 px picker row, 8 px apart, each as wide as the bar’s content', async () => {
+        const host = await createPhone(390);
+        const banner = host.querySelector<HTMLElement>('.map-topbar__banner')!;
+        const picker = host.querySelector<HTMLElement>('.map-topbar__picker')!;
+        const bannerBox = banner.getBoundingClientRect();
+        const pickerBox = picker.getBoundingClientRect();
+        expect(bannerBox.width).toBeCloseTo(barContentWidth(host), 0);
+        expect(bannerBox.height).toBe(24);
+        expect(pickerBox.width).toBeCloseTo(barContentWidth(host), 0);
+        expect(pickerBox.top - bannerBox.bottom).toBeCloseTo(8, 0);
+        expect(
+          host
+            .querySelector<HTMLElement>('.map-topbar')!
+            .getBoundingClientRect().height,
+        ).toBe(104);
+      });
+
+      it('sizes neither row by the line playing or the city chosen', async () => {
+        const host = await createPhone(390);
+        const banner = host.querySelector<HTMLElement>('.map-topbar__banner')!;
+        const picker = host.querySelector<HTMLElement>('.map-topbar__picker')!;
+        expect(banner.style.width).toBe('');
+        expect(picker.style.minWidth).toBe('');
+        const widths = new Set<string>();
+        for (const entry of Object.values(SUPPORTED_CITIES)) {
+          store.city.set(entry);
+          fixture.detectChanges();
+          await nextFrames();
+          fixture.detectChanges();
+          // Queried afresh: the city's own line changes the banner's lines, which recreates it.
+          const row = (selector: string) =>
+            host.querySelector<HTMLElement>(selector)!.getBoundingClientRect()
+              .width;
+          widths.add(
+            `${row('.map-topbar__banner')}/${row('.map-topbar__picker')}`,
+          );
+        }
+        expect(widths.size).withContext('row widths per city').toBe(1);
+      });
+
       for (const width of PHONE_WIDTHS) {
-        it(`offers only the banner lines that fit beside the picker at ${width} px`, async () => {
+        it(`offers every banner line at ${width} px, the longest house line included`, async () => {
           store.city.set(SUPPORTED_CITIES[CityEnum.Bratislava]);
           const host = await createPhone(width);
-          const room =
-            barContentWidth(host) -
-            TOPBAR_GAP_PX -
-            pickerMinWidth(labelOf(SUPPORTED_CITIES[CityEnum.Bratislava]));
-
           const lines = topbarBanner().messages();
-          expect(lines.length).toBeGreaterThan(0);
+          expect(lines).toContain('SUPPORTED BY ROLLTROTTEL-VERBAND');
+          expect(lines).toContain('BRATISLAVA SPOTMAP');
           for (const line of lines) {
-            expect(bannerSlotWidth(line, TOPBAR_BANNER_FONT_PX))
+            expect(bannerLineWidth(line, TOPBAR_BANNER_FONT_PX))
               .withContext(line)
-              .toBeLessThanOrEqual(room);
+              .toBeLessThanOrEqual(barContentWidth(host));
           }
         });
       }
 
-      it('skips the long house lines at 320 px and offers them on a large phone', async () => {
-        store.city.set(SUPPORTED_CITIES[CityEnum.Bratislava]);
-        await createPhone(320);
+      it('skips only the lines wider than the bar, on a screen narrower than the longest line needs', async () => {
+        await createPhone(300);
         expect(topbarBanner().messages()).not.toContain(
           'SUPPORTED BY ROLLTROTTEL-VERBAND',
         );
-
-        fixture.destroy();
-        await createPhone(768);
-        expect(topbarBanner().messages()).toContain(
-          'SUPPORTED BY ROLLTROTTEL-VERBAND',
-        );
-      });
-
-      it('widens the banner’s slot to the line about to play and gives the picker the rest, easing', async () => {
-        const host = await createPhone(390);
-        const banner = host.querySelector<HTMLElement>('.map-topbar__banner')!;
-        const picker = host.querySelector<HTMLElement>('.map-topbar__picker')!;
-        expect(banner.style.width).toBe(
-          `${bannerSlotWidth(RESTING_BANNER_LINE, TOPBAR_BANNER_FONT_PX)}px`,
-        );
-
-        topbarBanner().lineStart.emit('RESPECT THE LOCALS');
-        fixture.detectChanges();
-
-        expect(banner.style.width).toBe(
-          `${bannerSlotWidth('RESPECT THE LOCALS', TOPBAR_BANNER_FONT_PX)}px`,
-        );
-        expect(getComputedStyle(banner).transitionProperty).toContain('width');
-        expect(picker.style.minWidth).toBe(
-          `${pickerMinWidth(labelOf(SUPPORTED_CITIES[CityEnum.Vienna]))}px`,
-        );
-        expect(getComputedStyle(picker).flexGrow).toBe('1');
-      });
-
-      it('never squeezes the picker below its label, whatever line plays', async () => {
-        store.city.set(SUPPORTED_CITIES[CityEnum.Bratislava]);
-        const host = await createPhone(320);
-        const banner = host.querySelector<HTMLElement>('.map-topbar__banner')!;
-
-        topbarBanner().lineStart.emit('SUPPORTED BY ROLLTROTTEL-VERBAND');
-        fixture.detectChanges();
-
-        expect(
-          parseFloat(banner.style.width) +
-            TOPBAR_GAP_PX +
-            pickerMinWidth(labelOf(SUPPORTED_CITIES[CityEnum.Bratislava])),
-        ).toBeLessThanOrEqual(barContentWidth(host));
+        expect(topbarBanner().messages()).toContain(RESTING_BANNER_LINE);
       });
 
       it('shows every city’s label in full at 320 px, with no ellipsis on the chosen city', async () => {
@@ -893,9 +884,6 @@ describe('MapComponent', () => {
           expect(value.scrollWidth)
             .withContext(labelOf(entry))
             .toBeLessThanOrEqual(value.clientWidth);
-          expect(picker.getBoundingClientRect().width)
-            .withContext(labelOf(entry))
-            .toBeGreaterThanOrEqual(pickerMinWidth(labelOf(entry)) - 0.5);
           expect(picker.getBoundingClientRect().right)
             .withContext(labelOf(entry))
             .toBeLessThanOrEqual(

@@ -1,18 +1,18 @@
 import { TestBed } from '@angular/core/testing';
-import { SUPPORTED_CITIES } from '../../../models/map/supported-cities';
 import { AsciiAnimationTextComponent } from '../../components/ascii-animation-text/ascii-animation-text.component';
 import {
-  bannerSlotWidth,
+  bannerLineWidth,
   fittingBannerLines,
   HEADER_BANNER_FONT_PX,
-  pickerMinWidth,
   RESTING_BANNER_LINE,
   TOPBAR_BANNER_FONT_PX,
-  TOPBAR_GAP_PX,
 } from './topbar-banner';
 
 /** A 320 px phone's top bar, inside its 16 px padding. */
 const PHONE_320_CONTENT_PX = 320 - 2 * 16;
+
+/** The longest house line: 33 glyphs with its cursor, 277.2 px at 14 px, so 278. */
+const LONGEST_HOUSE_LINE = 'SUPPORTED BY ROLLTROTTEL-VERBAND';
 
 /** Lines in the page's order: the resting line, the city's, then house-voice lines of each length. */
 const linesFor = (cityLine: string) => [
@@ -28,79 +28,39 @@ describe('the top bar banner', () => {
   it('pins the spec’s sizes', () => {
     expect(TOPBAR_BANNER_FONT_PX).toBe(14);
     expect(HEADER_BANNER_FONT_PX).toBe(20);
-    expect(TOPBAR_GAP_PX).toBe(8);
     expect(RESTING_BANNER_LINE).toBe('SPOTMAP');
   });
 
-  describe('the banner’s slot', () => {
+  describe('a banner line’s width', () => {
     it('is the line and its cursor at 0.6 em a glyph, rounded up to whole pixels', () => {
-      expect(bannerSlotWidth('SPOTMAP', 14)).toBe(68); // 8 × 8.4 = 67.2
-      expect(bannerSlotWidth('LET`S GO PLAZA', 14)).toBe(126); // 15 × 8.4, exact
-      expect(bannerSlotWidth('BRATISLAVA SPOTMAP', 14)).toBe(160); // 19 × 8.4 = 159.6
-      expect(bannerSlotWidth('VIENNA SPOTMAP', 20)).toBe(180); // 15 × 12
-      expect(bannerSlotWidth('', 14)).toBe(9); // the cursor alone
-    });
-  });
-
-  describe('the picker’s minimum', () => {
-    it('is the label at 13 px, the arrow and 12 px each side', () => {
-      expect(pickerMinWidth('Bratislava · SK')).toBe(153); // 117 + 12 + 24
-      expect(pickerMinWidth('Vienna · AT')).toBe(122); // 85.8 + 36 = 121.8
+      expect(bannerLineWidth('SPOTMAP', 14)).toBe(68); // 8 × 8.4 = 67.2
+      expect(bannerLineWidth('LET`S GO PLAZA', 14)).toBe(126); // 15 × 8.4, exact
+      expect(bannerLineWidth('BRATISLAVA SPOTMAP', 14)).toBe(160); // 19 × 8.4 = 159.6
+      expect(bannerLineWidth('VIENNA SPOTMAP', 20)).toBe(180); // 15 × 12
+      expect(bannerLineWidth(LONGEST_HOUSE_LINE, 14)).toBe(278); // 33 × 8.4 = 277.2
+      expect(bannerLineWidth('', 14)).toBe(9); // the cursor alone
     });
   });
 
   describe('which lines fit', () => {
-    it('keeps only the short lines beside Bratislava’s picker on a 320 px phone', () => {
-      // 288 − 8 − 153 leaves 127 px: `LET`S GO PLAZA` (126) is the longest that fits.
-      expect(
-        fittingBannerLines(
-          linesFor('BRATISLAVA SPOTMAP'),
-          PHONE_320_CONTENT_PX,
-          'Bratislava · SK',
-        ),
-      ).toEqual([RESTING_BANNER_LINE, 'LET`S GO PLAZA']);
+    it('keeps every line, the longest house line included, on a 320 px phone', () => {
+      const lines = [...linesFor('BRATISLAVA SPOTMAP'), LONGEST_HOUSE_LINE];
+      expect(fittingBannerLines(lines, PHONE_320_CONTENT_PX)).toEqual(lines);
     });
 
-    it('keeps the city line and more beside Vienna’s shorter picker', () => {
-      // 288 − 8 − 122 leaves 158 px: `ANYONE HAS A PIN?` (152) fits, the 18-glyph line (160) does not.
+    it('drops only the lines wider than a narrower row, keeping the rest in order', () => {
       expect(
         fittingBannerLines(
-          linesFor('VIENNA SPOTMAP'),
-          PHONE_320_CONTENT_PX,
-          'Vienna · AT',
-        ),
-      ).toEqual([
-        RESTING_BANNER_LINE,
-        'VIENNA SPOTMAP',
-        'LET`S GO PLAZA',
-        'ANYONE HAS A PIN?',
-      ]);
-    });
-
-    it('lets the longer lines back in on a wider phone', () => {
-      // A 390 px phone: 358 − 8 − 153 leaves 197 px.
-      expect(
-        fittingBannerLines(
-          linesFor('BRATISLAVA SPOTMAP'),
-          390 - 32,
-          'Bratislava · SK',
+          [...linesFor('BRATISLAVA SPOTMAP'), LONGEST_HOUSE_LINE],
+          268,
         ),
       ).toEqual(linesFor('BRATISLAVA SPOTMAP'));
     });
 
-    it('always keeps the resting line at 320 px, whichever city is chosen', () => {
-      for (const entry of Object.values(SUPPORTED_CITIES)) {
-        const label = `${entry.city} · ${entry.countryCode}`;
-        expect(
-          fittingBannerLines(
-            [RESTING_BANNER_LINE],
-            PHONE_320_CONTENT_PX,
-            label,
-          ),
-        )
-          .withContext(label)
-          .toEqual([RESTING_BANNER_LINE]);
-      }
+    it('keeps nothing when no line fits', () => {
+      expect(fittingBannerLines(linesFor('BRATISLAVA SPOTMAP'), 60)).toEqual(
+        [],
+      );
     });
   });
 
@@ -135,7 +95,7 @@ describe('the top bar banner', () => {
         // draws in the fallback monospace face, which also advances 0.6 em.
         expect(getComputedStyle(pre).fontFamily).toContain('IBM Plex Mono');
         expect(
-          Math.abs(pre.scrollWidth - bannerSlotWidth(line, fontPx)),
+          Math.abs(pre.scrollWidth - bannerLineWidth(line, fontPx)),
         ).toBeLessThanOrEqual(1);
         fixture.destroy();
       });
