@@ -518,6 +518,34 @@ describe('SpotDetailComponent', () => {
     expect(find('.spot-detail__reserved')).toBeNull();
   });
 
+  it('shows the rights line under the reserved frame of a cold link while the file loads', () => {
+    create(loading(null));
+    expect(find('.spot-detail__reserved')).not.toBeNull();
+    expect(text(find('.spot-detail__rights'))).toBe('© all rights reserved');
+    expect(
+      rect('.spot-detail__rights').top - rect('.spot-detail__reserved').bottom,
+    ).toBeCloseTo(8, 0);
+  });
+
+  it('keeps the rights line under the reserved frame of a cold link whose file cannot be loaded', () => {
+    create(failed(null));
+    expect(find('.spot-detail__reserved')).not.toBeNull();
+    expect(text(find('.spot-detail__rights'))).toBe('© all rights reserved');
+  });
+
+  it('keeps the rights line in place as a cold link’s file arrives, and shows it once', () => {
+    create(loading(null));
+    const rightsTop = rect('.spot-detail__rights').top;
+    show(loaded());
+    expect(host().querySelectorAll('.spot-detail__rights').length).toBe(1);
+    expect(rect('.spot-detail__rights').top).toBe(rightsTop);
+  });
+
+  it('shows no rights line for a cold link without a photo host', () => {
+    create(loading(null), { backend: UNCONFIGURED_BACKEND });
+    expect(find('.spot-detail__rights')).toBeNull();
+  });
+
   it('crossfades the full file in', () => {
     create(loaded());
     const facts = getComputedStyle(find('.spot-detail__fade-in')!);
