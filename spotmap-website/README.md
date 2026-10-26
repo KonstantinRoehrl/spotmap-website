@@ -62,7 +62,7 @@ src/
       components/   # nav-bar, map-container, map-loader, spot-map, city-picker,
                     # spot-list, spot-detail, spot-sheet, spot-photo-gallery,
                     # spot-photo-rail, spot-photo-viewer, spot-share, split-handle,
-                    # ascii-rain, ascii-animation-text
+                    # overview-back, ascii-rain, ascii-animation-text
       components/admin/  # satellite-picker (the maintainer tool's satellite pin picker)
       pages/        # home, map (also serves /spot/<id>; its SpotBrowserStore), about (routed)
       pages/admin/  # the maintainer tool: shell, sign-in, create-or-attach, spot list, spot edit (lazy)
