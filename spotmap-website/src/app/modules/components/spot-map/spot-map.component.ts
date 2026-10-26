@@ -854,9 +854,9 @@ export class SpotMapComponent {
   }
 
   /**
-   * Shows the URL's selection and keeps it in view: a spot opened from none saves the view to
-   * return to, a switch or a changed frame keeps the new pin visible, and a close eases back.
-   * Nothing happens before the pins are drawn.
+   * Shows the URL's selection and keeps its pin in view: a spot opened, switched to or reframed
+   * has its pin eased into view when it is not already there. A close moves nothing; the map stays
+   * where the visitor has it. Nothing happens before the pins are drawn.
    */
   private followSelection(): void {
     const { selection, camera } = this;
@@ -872,18 +872,10 @@ export class SpotMapComponent {
     selection.show(id, { pulse: true });
     this.showFlag(id, true);
     if (id === null) {
-      if (previous !== null) {
-        camera.restore();
-      }
       return;
     }
     const pin = this.coordinatesOf(id);
-    if (!pin) {
-      return;
-    }
-    if (previous === null) {
-      camera.open(pin, frame);
-    } else if (previous !== id || reframed) {
+    if (pin && (previous !== id || reframed)) {
       camera.keepInView(pin, frame);
     }
   }

@@ -142,7 +142,7 @@ describe('SelectionCamera', () => {
   it('leaves a phone’s map alone while the pin is already in the strip above the sheet', () => {
     fake.projected = { x: 500, y: 150 };
     camera.keepInView(pin, HALF_SHEET);
-    camera.open([16.4, 48.22], HALF_SHEET);
+    camera.keepInView([16.4, 48.22], HALF_SHEET);
     expect(eases()).toEqual([]);
   });
 
@@ -238,9 +238,7 @@ describe('SelectionCamera', () => {
   it('never moves while the visitor holds the map', () => {
     held = true;
     camera.keepInView(pin, SHEET);
-    camera.open(pin, SHEET);
     camera.place(pin, SHEET);
-    camera.restore();
     expect(eases()).toEqual([]);
   });
 
@@ -265,49 +263,5 @@ describe('SelectionCamera', () => {
     expect(eases()[0]?.options).toEqual(
       jasmine.objectContaining({ center: pin, offset: [0, -150], duration: 0 }),
     );
-  });
-
-  it('saves the view an open starts from and eases back to it on restore', () => {
-    fake.center = { lng: 16.5, lat: 48.3 };
-    fake.zoom = 12;
-    camera.open(pin, SHEET);
-    camera.restore();
-    expect(eases().at(-1)?.options).toEqual(
-      jasmine.objectContaining({
-        center: [16.5, 48.3],
-        zoom: 12,
-        duration: CAMERA_EASE_MS,
-      }),
-    );
-  });
-
-  it('keeps the first saved view across a switch to another spot', () => {
-    fake.center = { lng: 16.5, lat: 48.3 };
-    camera.open(pin, SHEET);
-    camera.open([16.4, 48.22], SHEET);
-    camera.restore();
-    expect(eases().at(-1)?.options.center).toEqual([16.5, 48.3]);
-  });
-
-  it('restores nothing when nothing was saved, and only once', () => {
-    camera.place(pin, SHEET);
-    const placed = eases().length;
-    camera.restore();
-    expect(eases().length)
-      .withContext('a cold open saved no view')
-      .toBe(placed);
-    fake.center = { lng: 16.5, lat: 48.3 };
-    camera.open(pin, SHEET);
-    camera.restore();
-    const restored = eases().length;
-    camera.restore();
-    expect(eases().length).toBe(restored);
-  });
-
-  it('does not ease back to a view the camera never left', () => {
-    fake.projected = { x: 500, y: 300 };
-    camera.open(pin, WIDE);
-    camera.restore();
-    expect(eases()).toEqual([]);
   });
 });

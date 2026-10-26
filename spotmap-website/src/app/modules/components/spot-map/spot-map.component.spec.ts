@@ -1716,19 +1716,35 @@ describe('SpotMapComponent', () => {
       expect(eases().length).toBe(1);
     });
 
-    it('eases back to the view an open started from when the spot closes', async () => {
+    it('leaves the camera where it is when a spot closes, however the camera moved while it was open', async () => {
       requestReducedMotion(false);
       holdAnimationFrames();
       await create({ insets: SHEET_INSETS });
       fake.emit('load');
-      fake.center = { lng: 16.5, lat: 48.3 };
-      fake.zoom = 12;
       select('a');
       select('b');
+      const before = eases().length;
+      // The visitor pans and zooms with the spot open.
+      fake.center = { lng: 16.41, lat: 48.25 };
+      fake.zoom = 14;
       select(null);
-      expect(eases().at(-1)?.options).toEqual(
-        jasmine.objectContaining({ center: [16.5, 48.3], zoom: 12 }),
-      );
+      expect(eases().length)
+        .withContext('closing a spot issues no camera move')
+        .toBe(before);
+    });
+
+    it('leaves a wide map where it is when a spot closes', async () => {
+      requestReducedMotion(false);
+      holdAnimationFrames();
+      await create();
+      fake.emit('load');
+      fake.projected = { x: 500, y: 300 };
+      select('a');
+      fake.center = { lng: 16.41, lat: 48.25 };
+      fake.zoom = 14;
+      const before = eases().length;
+      select(null);
+      expect(eases().length).toBe(before);
     });
 
     it('does not re-centre on a change detection that leaves the frame as it was', async () => {
@@ -1743,7 +1759,7 @@ describe('SpotMapComponent', () => {
       expect(eases().length).toBe(count);
     });
 
-    it('builds a cold-opened map on the spot, jumps the pin into the strip and saves no view', async () => {
+    it('builds a cold-opened map on the spot, jumps the pin into the strip', async () => {
       requestReducedMotion(false);
       holdAnimationFrames();
       await create({

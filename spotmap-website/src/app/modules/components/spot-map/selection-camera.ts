@@ -128,8 +128,6 @@ export function sameFrame(a: CameraFrame, b: CameraFrame): boolean {
 export interface CameraMap {
   project(lngLat: [number, number]): ScreenPoint;
   unproject(point: [number, number]): { lng: number; lat: number };
-  getCenter(): { lng: number; lat: number };
-  getZoom(): number;
   easeTo(options: {
     center: [number, number];
     zoom?: number;
@@ -159,15 +157,12 @@ export function boundsOfRect(
 }
 
 /**
- * Keeps one build's selected pin in view and puts the camera back when the spot closes. The view
- * an open started from is saved once and survives a switch to another spot, so closing returns to
- * where the visitor was browsing: the list is frozen while a detail is open. Nothing
- * moves while the visitor holds the map: a camera ease would take the drag from their finger.
+ * Keeps one build's selected pin in view. It moves the camera for a pin that is not already in
+ * view and for nothing else: closing a spot, like every other way out of one, leaves the map
+ * where the visitor has it. Nothing moves while the visitor holds the map: a camera ease would
+ * take the drag from their finger.
  */
 export class SelectionCamera {
-  /** The view the first open started from; cleared once restored. */
-  private saved?: { readonly center: [number, number]; readonly zoom: number };
-
   /**
    * @param map the build's map
    * @param isHeld whether the visitor has hold of the map (`PointerHold.isHeld`)
@@ -177,17 +172,8 @@ export class SelectionCamera {
     private readonly isHeld: () => boolean,
   ) {}
 
-  /** A spot opened with nothing open before: saves the view, then keeps the pin in view. */
-  open(pin: [number, number], frame: CameraFrame): void {
-    if (!this.saved) {
-      const { lng, lat } = this.map.getCenter();
-      this.saved = { center: [lng, lat], zoom: this.map.getZoom() };
-    }
-    this.keepInView(pin, frame);
-  }
-
   /**
-   * Eases the pin into the uncovered rectangle's middle, but only when it is not already in view:
+   * A spot opened, switched to or reframed: eases the pin into the uncovered rectangle's middle, but only when it is not already in view:
    * outside the rectangle less the margin, or with its flag cut off at the top. A pin the visitor can
    * already see keeps the camera still, on a phone as on a wide screen.
    */
@@ -201,37 +187,13 @@ export class SelectionCamera {
   /**
    * Seats the pin a build opened on in the uncovered rectangle's middle, without animation and
    * whether or not it is in view: a cold link's map is built centred on the spot, which on a phone is
-   * under the sheet's top or behind it. Saves no view: there is none to go back to.
+   * under the sheet's top or behind it.
    */
   place(pin: [number, number], frame: CameraFrame): void {
     if (this.isHeld()) {
       return;
     }
     this.seat(pin, frame, 0);
-  }
-
-  /** The spot closed: eases back to the saved view, if one was saved and the camera left it. */
-  restore(): void {
-    const saved = this.saved;
-    this.saved = undefined;
-    if (!saved || this.isHeld()) {
-      return;
-    }
-    const { lng, lat } = this.map.getCenter();
-    if (
-      lng === saved.center[0] &&
-      lat === saved.center[1] &&
-      this.map.getZoom() === saved.zoom
-    ) {
-      return;
-    }
-    this.map.easeTo({
-      center: saved.center,
-      zoom: saved.zoom,
-      duration: this.easeDuration(),
-      easing: easeOutCubic,
-      essential: true,
-    });
   }
 
   /**
