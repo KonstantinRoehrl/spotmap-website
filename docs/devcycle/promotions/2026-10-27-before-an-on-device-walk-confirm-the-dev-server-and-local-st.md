@@ -1,0 +1,14 @@
+# Before an on-device walk, confirm the dev server and local stack respond and the checklist matches the shipped UI
+- promotion-type: doc-edit
+- cluster-signature: novel:on-device-prerequisites-unready
+- files-touched: docs/devcycle/lessons.md
+- affected-files: docs/devcycle/lessons.md
+- landed: 2026-10-27
+- commit: 
+- plugin-version: 0.28.0
+- sourced-from-memory: false
+- culprit-id: novel:on-device-prerequisites-unready
+- rung: r2
+- audience: repo-devs
+- verify: journal-recurrence
+- aliases: novel:local-stack-not-running

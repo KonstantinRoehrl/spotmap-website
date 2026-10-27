@@ -1,0 +1,14 @@
+# Add a doc comment to every interface, enum, class, component and client you touch
+- promotion-type: doc-edit
+- cluster-signature: novel:missing-doc-comments-on-touched-code
+- files-touched: docs/devcycle/lessons.md
+- affected-files: docs/devcycle/lessons.md
+- landed: 2026-10-27
+- commit: 
+- plugin-version: 0.28.0
+- sourced-from-memory: true
+- culprit-id: novel:missing-doc-comments-on-touched-code
+- rung: r2
+- audience: repo-devs
+- verify: journal-recurrence
+- aliases: 
