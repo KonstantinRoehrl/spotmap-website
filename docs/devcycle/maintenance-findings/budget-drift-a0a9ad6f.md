@@ -1,0 +1,11 @@
+# Three stylesheets are over the 3 kB warn and `anyComponentStyle` error was raised 4 → 10 kB for one outlier
+- finding-kind: maintenance-finding
+- finding-id: budget-drift:a0a9ad6f
+- culprit-kind: budget-drift
+- severity: low
+- confidence: verified
+- affected-files: spotmap-website/angular.json, spotmap-website/src/app/modules/components/spot-map/spot-map.component.css
+- first-seen: 2026-10-29
+- last-seen: 2026-10-29
+- passes: 1
+- verify: 

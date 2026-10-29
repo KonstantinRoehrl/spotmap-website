@@ -1,0 +1,11 @@
+# No `preconnect` to Supabase or the tile hosts, and every spot-list GET pays a CORS preflight on the critical path
+- finding-kind: maintenance-finding
+- finding-id: idle-work:bd24a124
+- culprit-kind: idle-work
+- severity: medium
+- confidence: verified
+- affected-files: spotmap-website/src/index.html, spotmap-website/src/app/services/spots.service.ts
+- first-seen: 2026-10-29
+- last-seen: 2026-10-29
+- passes: 1
+- verify: 

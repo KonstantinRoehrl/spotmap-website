@@ -1,0 +1,11 @@
+# Folder-level dependency cycles and misplaced geometry types recur in the new code
+- finding-kind: maintenance-finding
+- finding-id: dependency-direction:cd14c8f1
+- culprit-kind: dependency-direction
+- severity: low
+- confidence: verified
+- affected-files: spotmap-website/src/app/modules/components/spot-share/spot-share.component.ts, spotmap-website/src/app/modules/components/spot-detail/share-spot.ts, spotmap-website/src/app/modules/components/map-loader/map-loader.component.ts, spotmap-website/src/app/modules/components/map-container/map-load-progress.ts, spotmap-website/src/app/modules/components/spot-map/selection-camera.ts
+- first-seen: 2026-10-29
+- last-seen: 2026-10-29
+- passes: 1
+- verify: 

@@ -1,0 +1,11 @@
+# Spot-by-id lookup has four independent owners, three of them O(n) scans
+- finding-kind: maintenance-finding
+- finding-id: duplicated-concept:855bf9f4
+- culprit-kind: duplicated-concept
+- severity: medium
+- confidence: verified
+- affected-files: spotmap-website/src/app/models/spots/spots-in-view.ts, spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts, spotmap-website/src/app/modules/components/spot-map/photo-pins.ts, spotmap-website/src/app/modules/components/spot-map/selection-flag.ts, spotmap-website/src/app/modules/pages/map/spot-browser.store.ts
+- first-seen: 2026-10-29
+- last-seen: 2026-10-29
+- passes: 1
+- verify: 

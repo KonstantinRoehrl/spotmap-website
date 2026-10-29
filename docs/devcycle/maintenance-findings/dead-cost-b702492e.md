@@ -1,0 +1,11 @@
+# SPA fallback is `404.html`: deep links return HTTP 404
+- finding-kind: maintenance-finding
+- finding-id: dead-cost:b702492e
+- culprit-kind: dead-cost
+- severity: low
+- confidence: suspected
+- affected-files: .github/workflows/deploy-angular.yml
+- first-seen: 2026-10-29
+- last-seen: 2026-10-29
+- passes: 1
+- verify: 

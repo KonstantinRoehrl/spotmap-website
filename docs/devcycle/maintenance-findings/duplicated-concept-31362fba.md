@@ -1,0 +1,11 @@
+# City validation exists twice, and `stored-city.ts` sits in a component folder though only the store uses it
+- finding-kind: maintenance-finding
+- finding-id: duplicated-concept:31362fba
+- culprit-kind: duplicated-concept
+- severity: low
+- confidence: verified
+- affected-files: spotmap-website/src/app/models/map/supported-cities.ts, spotmap-website/src/app/modules/components/city-picker/stored-city.ts, spotmap-website/src/app/modules/pages/map/spot-browser.store.ts
+- first-seen: 2026-10-29
+- last-seen: 2026-10-29
+- passes: 1
+- verify: 

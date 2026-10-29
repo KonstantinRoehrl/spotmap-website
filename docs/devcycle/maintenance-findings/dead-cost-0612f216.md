@@ -1,0 +1,11 @@
+# One identical 47 kB placeholder image is added per spot: ~550 images, ~26 MB
+- finding-kind: maintenance-finding
+- finding-id: dead-cost:0612f216
+- culprit-kind: dead-cost
+- severity: medium
+- confidence: verified
+- affected-files: spotmap-website/src/app/modules/components/spot-map/photo-pins.ts, spotmap-website/src/app/modules/components/spot-map/spot-layers.ts, spotmap-website/src/app/modules/components/spot-map/photo-pins.spec.ts
+- first-seen: 2026-10-29
+- last-seen: 2026-10-29
+- passes: 1
+- verify: 

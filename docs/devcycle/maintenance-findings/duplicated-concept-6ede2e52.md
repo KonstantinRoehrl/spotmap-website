@@ -1,0 +1,11 @@
+# Browser-environment guards are re-implemented per call site (storage ×7, `(hover: hover)` ×2)
+- finding-kind: maintenance-finding
+- finding-id: duplicated-concept:6ede2e52
+- culprit-kind: duplicated-concept
+- severity: low
+- confidence: verified
+- affected-files: spotmap-website/src/app/modules/components/city-picker/stored-city.ts, spotmap-website/src/app/modules/components/split-handle/column-split.ts, spotmap-website/src/app/app.component.ts, spotmap-website/src/app/modules/components/spot-list/spot-list.component.ts
+- first-seen: 2026-10-29
+- last-seen: 2026-10-29
+- passes: 1
+- verify: 

@@ -1,0 +1,11 @@
+# The `map-component` budget has been raised instead of the chunk being split, and the recorded reason is wrong; its warn limit is 90 kB past
+- finding-kind: maintenance-finding
+- finding-id: budget-drift:2ce05859
+- culprit-kind: budget-drift
+- severity: medium
+- confidence: verified
+- affected-files: spotmap-website/angular.json
+- first-seen: 2026-10-29
+- last-seen: 2026-10-29
+- passes: 1
+- verify: 

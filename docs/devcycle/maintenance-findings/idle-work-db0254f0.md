@@ -1,0 +1,11 @@
+# The spot-list RPC carries no cache header, is not memoised per city, and blocks every tile request
+- finding-kind: maintenance-finding
+- finding-id: idle-work:db0254f0
+- culprit-kind: idle-work
+- severity: medium
+- confidence: verified
+- affected-files: spotmap-website/supabase/migrations/20261025000000_spot_list_and_detail.sql, spotmap-website/src/app/services/spots.service.ts
+- first-seen: 2026-10-29
+- last-seen: 2026-10-29
+- passes: 1
+- verify: 

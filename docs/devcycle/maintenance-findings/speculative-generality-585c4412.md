@@ -1,0 +1,11 @@
+# `SpotsService.loadCollection<C>` is a generic with one call site, and two event unions say the same thing
+- finding-kind: maintenance-finding
+- finding-id: speculative-generality:585c4412
+- culprit-kind: speculative-generality
+- severity: low
+- confidence: verified
+- affected-files: spotmap-website/src/app/services/spots.service.ts, spotmap-website/src/app/services/spots.service.spec.ts
+- first-seen: 2026-10-29
+- last-seen: 2026-10-29
+- passes: 1
+- verify: 

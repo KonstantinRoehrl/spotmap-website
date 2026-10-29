@@ -1,0 +1,11 @@
+# Every hover re-runs three template functions for all 551 rows, though one or two rows change
+- finding-kind: maintenance-finding
+- finding-id: cd-churn:76b50933
+- culprit-kind: cd-churn
+- severity: medium
+- confidence: verified
+- affected-files: spotmap-website/src/app/modules/components/spot-list/spot-list.component.ts, spotmap-website/src/app/modules/components/spot-list/spot-list.component.html, spotmap-website/src/app/modules/components/spot-list/spot-list.component.spec.ts
+- first-seen: 2026-10-29
+- last-seen: 2026-10-29
+- passes: 1
+- verify: 
