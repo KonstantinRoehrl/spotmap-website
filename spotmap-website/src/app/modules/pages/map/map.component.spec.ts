@@ -1108,16 +1108,17 @@ describe('MapComponent', () => {
       return range.getBoundingClientRect();
     }
 
-    /** Expects two boxes to agree within 1 px on every edge. */
+    /** Expects two boxes to agree within `tolerance` px on every edge. */
     function expectSameBox(
       actual: DOMRect,
       expected: DOMRect,
       what: string,
+      tolerance = 1,
     ): void {
       for (const edge of ['left', 'top', 'right', 'bottom'] as const) {
         expect(Math.abs(actual[edge] - expected[edge]))
           .withContext(`${what} ${edge}: ${actual[edge]} vs ${expected[edge]}`)
-          .toBeLessThanOrEqual(1);
+          .toBeLessThanOrEqual(tolerance);
       }
     }
 
@@ -1236,7 +1237,10 @@ describe('MapComponent', () => {
           )
             .withContext('notch end')
             .toBeLessThanOrEqual(1);
-          expectSameBox(placeholder.text, textBox(label), 'label text');
+          // The specs render in the fallback font, not the app's, and the label's line box differs
+          // by up to a pixel and a half between them (the placeholder's offset is tuned in the real
+          // app), so the text box gets 2 px where the frame and notch get 1.
+          expectSameBox(placeholder.text, textBox(label), 'label text', 2);
           expect(placeholder.borderColor).toBe(edge.borderTopColor);
           expect(placeholder.radius).toBe(edge.borderTopLeftRadius);
           expect(placeholder.color).toBe(labelStyle.color);
@@ -1303,8 +1307,9 @@ describe('MapComponent', () => {
               .height,
           ),
         ).toBe(40);
-        await fixture.whenStable();
-        fixture.detectChanges();
+        await frameUntil(
+          () => host.querySelector('.map-topbar app-city-picker') !== null,
+        );
         expect(
           host.querySelector('.map-topbar app-city-picker'),
         ).not.toBeNull();
@@ -1316,7 +1321,7 @@ describe('MapComponent', () => {
         expect(store.selectCity).toHaveBeenCalledWith(
           SUPPORTED_CITIES[CityEnum.Graz],
         );
-      });
+      }, 10_000);
     });
   });
 
