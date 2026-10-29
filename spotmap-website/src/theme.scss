@@ -139,10 +139,9 @@ html {
   box-shadow: var(--glow-edge-frame);
 }
 
-// --- Dropdown panel: phosphor edge + CRT blur (bg + shadow are tokens) ---
+// --- Dropdown panel: phosphor edge (bg + shadow are tokens) ---
 .mat-mdc-select-panel {
   border: 1px solid var(--color-phosphor-deep);
-  backdrop-filter: blur(10px);
 }
 
 // --- Panel corners: Material hard-codes 4px on `div.mat-mdc-select-panel`, flat on the side
