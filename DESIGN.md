@@ -263,6 +263,7 @@ This system has **no conventional shadows.** Depth is carried entirely by **phos
 ### Inputs / Fields (the city select)
 - **Style:** phosphor text on `surface`, 1px phosphor-deep border, 6px radius (`{rounded.md}`). Replaces the current Material Azure prebuilt look entirely — the dropdown **panel** must be `surface` (near-black), never the default white overlay, with phosphor options.
 - **Hover / Focus:** the pointer bloom (centred) on the field; while the panel is open the field keeps the 24px frame halo; label and value rest in the Standard tier and step up to the Display tier (bright mint) while the field is lit.
+- **Loading:** the select's code arrives once the page is idle, after the map has started. Until then an inert frame holds its slot: the same outline and floating label at the same size, with no value and no arrow, which takes no focus, does not light and is hidden from screen readers. The two crossfade in place over 200 ms (`--dur-fast`), still a fade under reduced motion. A layout switch after that shows the select at once.
 - **Selected option:** amber text + `surface-raised` fill (the one place amber marks "current"). Every option, the selected one included, lights with the inset pointer bloom (the panel clips an outer halo) on hover and keyboard highlight; a disabled option does not light, and while the pointer rests on one option the keyboard-highlighted one steps back to rest, so one option is lit at a time.
 - **Error / Disabled:** error border alert-red; disabled uses phosphor-deep, no glow.
 

@@ -71,8 +71,11 @@
                 // was measured when the ceiling was set — maplibre-gl 1.07 MB, map-component
                 // 245.48 kB — so growth warns instead of a round number never being reached.
                 // The map-component ceiling was raised to 360 kB when the photo viewer landed
-                // (measured 356.32 kB): the CDK a11y code its dialog shares with Material stays
-                // in this chunk, and splitting it out is roadmap Phase 21's lazy-load sweep.
+                // (measured 356.32 kB), while the city picker's Material still sat in it. The
+                // picker is now deferred (`@defer` in map.component.html), so Material and
+                // `@angular/forms` load on idle from the city picker's own chunk and the CDK
+                // overlay from a lazy chunk the picker shares with the photo viewer; the chunk
+                // measured 126.39 kB. Lowering its ceilings to match is follow-up work.
                 // `minimumWarning` guards the budget itself: a renamed chunk matches nothing,
                 // reads 0 bytes and would otherwise pass in silence. The worker's copy of
                 // maplibre-gl-shared.mjs is a copied asset, not a bundler output, and budgets

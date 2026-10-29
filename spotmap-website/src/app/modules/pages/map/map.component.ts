@@ -13,6 +13,7 @@ import {
   signal,
   untracked,
   viewChild,
+  viewChildren,
 } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { debounceTime, map } from 'rxjs';
@@ -101,7 +102,7 @@ interface FrameSize {
  * with its toolbar and the list or the open spot. From 769 to 1023 px the same header row sits
  * over a window whose bottom sheet (peek / list / detail, never more than half of it) holds that
  * pane. On a phone a top bar carries them instead as two fixed rows, the banner over the picker,
- * neither sized by the line playing or the city chosen. The page owns which layout is on screen and
+ * neither sized by the line playing or the city chosen. The city picker, and the Material it is built on, loads once the page is idle; an inert frame holds its slot until then. The page owns which layout is on screen and
  * so what the map is told is covered, how wide the column is, and where keyboard focus goes when an
  * open spot closes; everything else is the {@link SpotBrowserStore}'s.
  */
@@ -267,6 +268,18 @@ export class MapComponent {
   private readonly topbar = viewChild<ElementRef<HTMLElement>>('topbar');
 
   /**
+   * The deferred city pickers on screen, found by their template name: naming the picker's class
+   * here would load it, and the Material it is built on, with this page instead of on idle.
+   */
+  private readonly pickers = viewChildren('cityPicker', { read: ElementRef });
+
+  /**
+   * Set once a deferred city picker has rendered, and never cleared: a picker slot built later,
+   * by a layout switch, renders the picker at once instead of a placeholder.
+   */
+  protected readonly pickerLoaded = signal(false);
+
+  /**
    * Set while the sheet's own back or close is closing the spot, so the route change that follows
    * does not also move the sheet back to its resting height. Cleared when a spot is open again,
    * so a close that never reached the route cannot swallow a later one.
@@ -317,6 +330,12 @@ export class MapComponent {
       topbarObserver.disconnect();
       if (bar) {
         topbarObserver.observe(bar);
+      }
+    });
+
+    effect(() => {
+      if (this.pickers().length > 0) {
+        this.pickerLoaded.set(true);
       }
     });
 
