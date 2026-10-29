@@ -4,6 +4,8 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { Component, input, signal } from '@angular/core';
 import {
   ComponentFixture,
+  DeferBlockBehavior,
+  DeferBlockState,
   discardPeriodicTasks,
   fakeAsync,
   TestBed,
@@ -121,6 +123,11 @@ describe('MapComponent', () => {
   let wide: BehaviorSubject<boolean>;
   /** Whether the viewport is at most 768 px wide (the phone top bar), as the breakpoint stub reports it. */
   let phone: BehaviorSubject<boolean>;
+  /**
+   * How the page's deferred city picker renders: by hand (Manual), so a spec decides when it
+   * loads, except where a spec block switches to Playthrough to watch the real triggers.
+   */
+  let deferBehavior = DeferBlockBehavior.Manual;
 
   /** The stub's answer for `query`: the wide or the phone breakpoint; nothing else is asked. */
   function subjectFor(query: string): BehaviorSubject<boolean> {
@@ -139,6 +146,7 @@ describe('MapComponent', () => {
     phone = new BehaviorSubject(false);
     await TestBed.configureTestingModule({
       imports: [MapComponent],
+      deferBlockBehavior: deferBehavior,
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
@@ -218,6 +226,27 @@ describe('MapComponent', () => {
     }
   }
 
+  /** Renders the page's deferred city picker, as the browser does once the page is idle. */
+  async function loadPicker(): Promise<void> {
+    for (const block of await fixture.getDeferBlocks()) {
+      await block.render(DeferBlockState.Complete);
+    }
+    fixture.detectChanges();
+    // The page learns the picker is in from a view query, which its effect reads on the app tick.
+    TestBed.tick();
+    fixture.detectChanges();
+  }
+
+  /** Waits a frame at a time, rendering, until `done()` holds or two seconds have passed. */
+  async function frameUntil(done: () => boolean): Promise<void> {
+    const deadline = performance.now() + 2000;
+    while (!done() && performance.now() < deadline) {
+      await nextFrames();
+      fixture.detectChanges();
+      TestBed.tick();
+    }
+  }
+
   /** Closes the open spot the way the store would: no selection, no detail, and a render. */
   function closeSpot(): void {
     store.selectedId.set(null);
@@ -254,8 +283,9 @@ describe('MapComponent', () => {
         .componentInstance as SplitHandleComponent;
     }
 
-    it('puts the banner and the city picker in a header row above the window', () => {
+    it('puts the banner and the city picker in a header row above the window', async () => {
       const host = create();
+      await loadPicker();
 
       const header = host.querySelector<HTMLElement>('header.map-header');
       expect(header).not.toBeNull();
@@ -285,8 +315,9 @@ describe('MapComponent', () => {
       ).toBe(GUTTER);
     });
 
-    it('sets the header row’s city select 40 px tall', () => {
+    it('sets the header row’s city select 40 px tall', async () => {
       const host = create();
+      await loadPicker();
       const field = host.querySelector<HTMLElement>(
         '.map-header .mat-mdc-text-field-wrapper',
       );
@@ -637,8 +668,9 @@ describe('MapComponent', () => {
       expect(Math.round(sheetHost.getBoundingClientRect().height)).toBe(half);
     });
 
-    it('puts a slim top bar over the map and the sheet under it', () => {
+    it('puts a slim top bar over the map and the sheet under it', async () => {
       const host = create();
+      await loadPicker();
       expect(host.querySelector('.map-topbar app-city-picker')).not.toBeNull();
       expect(host.querySelector('app-spot-sheet app-spot-list')).not.toBeNull();
       expect(host.querySelector('aside.spot-column')).toBeNull();
@@ -787,6 +819,7 @@ describe('MapComponent', () => {
         const host = create(width);
         await nextFrames();
         fixture.detectChanges();
+        await loadPicker();
         return host;
       }
 
@@ -917,8 +950,9 @@ describe('MapComponent', () => {
       phone.next(false);
     });
 
-    it('puts the wide header row over the framed map and the sheet, inside a 16 px gutter', () => {
+    it('puts the wide header row over the framed map and the sheet, inside a 16 px gutter', async () => {
       const host = create(900);
+      await loadPicker();
       expect(host.querySelector('.map-topbar')).toBeNull();
       expect(host.querySelector('aside.spot-column')).toBeNull();
 
@@ -1027,10 +1061,11 @@ describe('MapComponent', () => {
       );
     });
 
-    it('leaves focus where the visitor put it when it was not in the spot', () => {
+    it('leaves focus where the visitor put it when it was not in the spot', async () => {
       store.shownSpots.set([ALPHA, BETA]);
       showSpot('a', ALPHA);
       const host = create();
+      await loadPicker();
       const picker = host.querySelector<HTMLElement>('.map-header mat-select')!;
       picker.focus();
       expect(document.activeElement).toBe(picker);
@@ -1041,10 +1076,264 @@ describe('MapComponent', () => {
     });
   });
 
-  it('shows one city picker in either layout', () => {
+  describe('the deferred city picker', () => {
+    /** The two picker slots: the header row's from 769 px, the top bar's on a phone. */
+    const SITES = [
+      {
+        name: 'the header row',
+        slot: '.map-header__picker',
+        width: 1200,
+        wide: true,
+        phone: false,
+      },
+      {
+        name: 'the top bar',
+        slot: '.map-topbar__picker',
+        width: 390,
+        wide: false,
+        phone: true,
+      },
+    ] as const;
+
+    /** A box's position and size in whole px, for before/after comparisons. */
+    function boxOf(element: Element): string {
+      const { x, y, width, height } = element.getBoundingClientRect();
+      return [x, y, width, height].map((n) => Math.round(n)).join(',');
+    }
+
+    /** The box the text inside `element` paints, transforms included. */
+    function textBox(element: Element): DOMRect {
+      const range = document.createRange();
+      range.selectNodeContents(element);
+      return range.getBoundingClientRect();
+    }
+
+    /** Expects two boxes to agree within 1 px on every edge. */
+    function expectSameBox(
+      actual: DOMRect,
+      expected: DOMRect,
+      what: string,
+    ): void {
+      for (const edge of ['left', 'top', 'right', 'bottom'] as const) {
+        expect(Math.abs(actual[edge] - expected[edge]))
+          .withContext(`${what} ${edge}: ${actual[edge]} vs ${expected[edge]}`)
+          .toBeLessThanOrEqual(1);
+      }
+    }
+
+    for (const site of SITES) {
+      describe(`in ${site.name}`, () => {
+        beforeEach(() => {
+          wide.next(site.wide);
+          phone.next(site.phone);
+        });
+
+        /** The page at this site's width, once the top bar's first measurement has landed. */
+        async function createSite(): Promise<HTMLElement> {
+          const host = create(site.width);
+          await nextFrames();
+          fixture.detectChanges();
+          return host;
+        }
+
+        it('holds the slot with an inert, hidden 40 px placeholder until the picker loads', async () => {
+          const host = await createSite();
+          const slot = host.querySelector<HTMLElement>(site.slot)!;
+          const placeholder =
+            slot.querySelector<HTMLElement>('.city-placeholder');
+          expect(placeholder).not.toBeNull();
+          expect(slot.querySelector('app-city-picker')).toBeNull();
+          expect(placeholder!.getAttribute('aria-hidden')).toBe('true');
+          expect(getComputedStyle(placeholder!).pointerEvents).toBe('none');
+          expect(
+            slot.querySelectorAll(
+              'a, button, input, select, textarea, [tabindex]',
+            ).length,
+          ).toBe(0);
+          expect(placeholder!.textContent!.trim()).toBe('City');
+          expect(Math.round(slot.getBoundingClientRect().height)).toBe(40);
+          expect(slot.classList).toContain('city-slot--arriving');
+        });
+
+        it('swaps the placeholder for the picker without moving or resizing anything', async () => {
+          const host = await createSite();
+          const banner = site.phone
+            ? '.map-topbar__banner'
+            : '.map-header__banner';
+          const watched = [site.slot, banner, '.map-window'];
+          const before = watched.map((selector) =>
+            boxOf(host.querySelector(selector)!),
+          );
+
+          await loadPicker();
+          await nextFrames();
+          fixture.detectChanges();
+
+          expect(
+            watched.map((selector) => boxOf(host.querySelector(selector)!)),
+          ).toEqual(before);
+          expect(
+            host.querySelectorAll(`${site.slot} app-city-picker`).length,
+          ).toBe(1);
+          expect(host.querySelector(site.slot)!.classList).not.toContain(
+            'city-slot--arriving',
+          );
+        });
+
+        it('draws the placeholder as the closed field’s outline, notch and floating label', async () => {
+          const host = await createSite();
+          const slot = host.querySelector<HTMLElement>(site.slot)!;
+          const frame = slot.querySelector<HTMLElement>('.city-placeholder')!;
+          const legend = slot.querySelector<HTMLElement>(
+            '.city-placeholder__label',
+          )!;
+          const frameStyle = getComputedStyle(frame);
+          const legendStyle = getComputedStyle(legend);
+          const placeholder = {
+            frame: frame.getBoundingClientRect(),
+            notch: legend.getBoundingClientRect(),
+            text: textBox(legend),
+            borderColor: frameStyle.borderTopColor,
+            radius: frameStyle.borderTopLeftRadius,
+            color: legendStyle.color,
+            glow: legendStyle.textShadow,
+            font: legendStyle.fontFamily,
+          };
+
+          await loadPicker();
+          await nextFrames();
+          fixture.detectChanges();
+
+          const outline = slot.querySelector<HTMLElement>(
+            '.mdc-notched-outline',
+          )!;
+          const notch = slot.querySelector<HTMLElement>(
+            '.mdc-notched-outline__notch',
+          )!;
+          const trailing = slot.querySelector<HTMLElement>(
+            '.mdc-notched-outline__trailing',
+          )!;
+          const label = slot.querySelector<HTMLElement>(
+            '.mat-mdc-floating-label',
+          )!;
+          const edge = getComputedStyle(
+            slot.querySelector('.mdc-notched-outline__leading')!,
+          );
+          const labelStyle = getComputedStyle(label);
+
+          expectSameBox(
+            placeholder.frame,
+            outline.getBoundingClientRect(),
+            'frame',
+          );
+          expect(
+            Math.abs(
+              placeholder.notch.left - notch.getBoundingClientRect().left,
+            ),
+          )
+            .withContext('notch start')
+            .toBeLessThanOrEqual(1);
+          expect(
+            Math.abs(
+              placeholder.notch.right - trailing.getBoundingClientRect().left,
+            ),
+          )
+            .withContext('notch end')
+            .toBeLessThanOrEqual(1);
+          expectSameBox(placeholder.text, textBox(label), 'label text');
+          expect(placeholder.borderColor).toBe(edge.borderTopColor);
+          expect(placeholder.radius).toBe(edge.borderTopLeftRadius);
+          expect(placeholder.color).toBe(labelStyle.color);
+          expect(placeholder.glow).toBe(labelStyle.textShadow);
+          expect(placeholder.font).toBe(labelStyle.fontFamily);
+        });
+      });
+    }
+
+    it('keeps the placeholder in a layout built before the picker has loaded', () => {
+      const host = create();
+      wide.next(false);
+      phone.next(true);
+      fixture.detectChanges();
+      fixture.detectChanges();
+      expect(
+        host.querySelector('.map-topbar__picker .city-placeholder'),
+      ).not.toBeNull();
+      expect(host.querySelector('app-city-picker')).toBeNull();
+    });
+
+    describe('with its real triggers', () => {
+      beforeAll(() => (deferBehavior = DeferBlockBehavior.Playthrough));
+      afterAll(() => (deferBehavior = DeferBlockBehavior.Manual));
+
+      it('loads once the page is idle, then the placeholder fades out', async () => {
+        const host = create();
+        expect(
+          host.querySelector('.map-header .city-placeholder'),
+        ).not.toBeNull();
+
+        await frameUntil(
+          () => host.querySelector('.map-header app-city-picker') !== null,
+        );
+        expect(
+          host.querySelector('.map-header app-city-picker'),
+        ).not.toBeNull();
+
+        await frameUntil(
+          () => host.querySelector('.city-placeholder') === null,
+        );
+        expect(host.querySelector('.city-placeholder')).toBeNull();
+        expect(host.querySelector('.city-slot--arriving')).toBeNull();
+      });
+
+      it('shows the picker at once, and no placeholder, in a layout built after it has loaded', async () => {
+        const host = create();
+        await frameUntil(
+          () => host.querySelector('.city-placeholder') === null,
+        );
+        expect(
+          host.querySelector('.map-header app-city-picker'),
+        ).not.toBeNull();
+
+        wide.next(false);
+        phone.next(true);
+        fixture.detectChanges();
+        fixture.detectChanges();
+        // No placeholder in the passes that built the bar, and the slot already holds the field's
+        // 40 px; only the picker itself takes a microtask, its code being in already.
+        expect(host.querySelector('.city-placeholder')).toBeNull();
+        expect(
+          host.querySelector('.map-topbar__picker')!.classList,
+        ).not.toContain('city-slot--arriving');
+        expect(
+          Math.round(
+            host.querySelector('.map-topbar__picker')!.getBoundingClientRect()
+              .height,
+          ),
+        ).toBe(40);
+        await fixture.whenStable();
+        fixture.detectChanges();
+        expect(
+          host.querySelector('.map-topbar app-city-picker'),
+        ).not.toBeNull();
+        expect(host.querySelector('.city-placeholder')).toBeNull();
+
+        fixture.debugElement
+          .query(By.directive(CityPickerComponent))
+          .componentInstance.citySelected.emit(SUPPORTED_CITIES[CityEnum.Graz]);
+        expect(store.selectCity).toHaveBeenCalledWith(
+          SUPPORTED_CITIES[CityEnum.Graz],
+        );
+      });
+    });
+  });
+
+  it('shows one city picker in either layout', async () => {
     const host = create();
+    await loadPicker();
     expect(host.querySelectorAll('app-city-picker').length).toBe(1);
     goNarrow();
+    await loadPicker();
     expect(host.querySelectorAll('app-city-picker').length).toBe(1);
   });
 
@@ -1092,12 +1381,13 @@ describe('MapComponent', () => {
     expect(store.setHovered).toHaveBeenCalledWith('b');
   });
 
-  it('feeds the list and the picker into the store', () => {
+  it('feeds the list and the picker into the store', async () => {
     store.shownSpots.set([ALPHA, BETA]);
     store.notice.set('not-found');
     store.returnFocusTo.set('a');
     store.hoveredId.set('b');
     create();
+    await loadPicker();
     const list = fixture.debugElement.query(By.directive(SpotListComponent))
       .componentInstance as SpotListComponent;
     expect(list.spots()).toEqual([ALPHA, BETA]);

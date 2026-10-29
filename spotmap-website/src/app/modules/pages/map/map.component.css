@@ -87,7 +87,65 @@
   --mat-select-trigger-text-tracking: 0;
   --mat-form-field-container-height: 40px;
   --mat-form-field-container-vertical-padding: 7px;
-  display: block;
+}
+
+/* The picker's slot in either bar: the placeholder frame and the picker share one grid cell, so
+   the slot's box is the same with either in it and the swap is a crossfade in place. Its minimum
+   height holds the field's 40 px for the moment a later slot has neither: the picker's code is
+   already in, but the block still takes a microtask to render it. */
+.city-slot {
+  display: grid;
+  min-height: var(--mat-form-field-container-height);
+}
+
+.city-slot > * {
+  grid-area: 1 / 1;
+  min-width: 0;
+}
+
+.city-slot__picker {
+  transition: opacity var(--dur-fast) ease-out;
+}
+
+/* Only the first picker fades in; one a layout switch builds later is simply there. The
+   reduced-motion net keeps the fade. */
+@starting-style {
+  .city-slot--arriving .city-slot__picker {
+    opacity: 0;
+  }
+}
+
+/* The closed field's outline and floating label, with no value or arrow, drawn before Material's
+   own styles exist: the legend cuts the notch the label sits in, as the field's notched outline
+   does. Inert: it ignores the pointer and holds nothing focusable. */
+.city-placeholder {
+  box-sizing: border-box;
+  height: var(--mat-form-field-container-height);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--mat-sys-outline);
+  border-radius: var(--radius-md);
+  pointer-events: none;
+  transition: opacity var(--dur-fast) ease-out;
+}
+
+.city-placeholder__label {
+  margin-inline-start: 11px;
+  padding: 0 4px 0 4px;
+  translate: 0 -6px;
+  font-family: var(--mat-sys-body-large-font);
+  /* The 1rem body-large label at its floating scale of 0.75, written out so the 12px floor guard can read it. */
+  font-size: 0.75rem;
+  font-weight: var(--mat-sys-body-large-weight);
+  letter-spacing: var(--mat-sys-body-large-tracking);
+  line-height: 1;
+  color: var(--mat-sys-on-surface-variant);
+  text-shadow: var(--glow-text-standard);
+}
+
+.city-placeholder--leaving {
+  opacity: 0;
 }
 
 /* The window fills the rest of the page inside the gutter, the bottom edge included. */
