@@ -46,8 +46,14 @@ jobs:
         run: npm run build:pages
         working-directory: spotmap-website
 
-      - name: Add SPA 404 fallback (copy index.html → 404.html)
-        run: cp ./dist/spotmap-website/browser/index.html ./dist/spotmap-website/browser/404.html
+      # Pages serves /map from map.html with a 200 (a map/ folder would 301 to /map/ first).
+      # Paths with no file of their own, such as /spot/<id>, still get 404.html and its 404 status.
+      - name: Copy index.html to 404.html (fallback for any other path) and to map.html, home.html and about.html (so those routes answer 200)
+        working-directory: ./dist/spotmap-website/browser
+        run: |
+          for page in 404 map home about; do
+            cp index.html "$page.html"
+          done
 
       - name: Upload Pages artifact (dist browser/)
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
