@@ -1,0 +1,14 @@
+# Re-verify counts, line numbers and command behavior in a spec, plan or audit against live code before acting on them
+- promotion-type: doc-edit
+- cluster-signature: novel:stale-premise-carried-into-plan
+- files-touched: docs/devcycle/lessons.md
+- affected-files: docs/devcycle/lessons.md
+- landed: 2026-10-27
+- commit: 
+- plugin-version: 0.28.0
+- sourced-from-memory: false
+- culprit-id: novel:stale-premise-carried-into-plan
+- rung: r2
+- audience: repo-devs
+- verify: journal-recurrence
+- aliases: 

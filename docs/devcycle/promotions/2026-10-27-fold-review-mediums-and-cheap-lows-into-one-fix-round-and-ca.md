@@ -1,0 +1,14 @@
+# Fold review mediums and cheap lows into one fix round and carry the rest over, without asking each time
+- promotion-type: doc-edit
+- cluster-signature: novel:fold-mediums-into-fix-round
+- files-touched: ~/.claude/devcycle/learnings/spotmap-website-5e5ebbc7/lessons.md
+- affected-files: ~/.claude/devcycle/learnings/spotmap-website-5e5ebbc7/lessons.md
+- landed: 2026-10-27
+- commit: 
+- plugin-version: 0.28.0
+- sourced-from-memory: false
+- culprit-id: novel:fold-mediums-into-fix-round
+- rung: r2
+- audience: just-me
+- verify: journal-recurrence
+- aliases: 

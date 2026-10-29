@@ -1,0 +1,14 @@
+# Resolve whether a task that overflows a bundle budget raises the budget or splits the chunk
+- promotion-type: contradiction-resolution
+- cluster-signature: novel:budget-raise-vs-split-preference
+- files-touched: docs/devcycle/lessons.md
+- affected-files: docs/devcycle/lessons.md
+- landed: 2026-10-27
+- commit: 
+- plugin-version: 0.28.0
+- sourced-from-memory: true
+- culprit-id: novel:budget-raise-vs-split-preference
+- rung: r2
+- audience: repo-devs
+- verify: journal-recurrence
+- aliases: 

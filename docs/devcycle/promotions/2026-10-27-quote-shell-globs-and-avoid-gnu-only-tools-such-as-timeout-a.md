@@ -1,0 +1,14 @@
+# Quote shell globs and avoid GNU-only tools such as timeout and in-place sed; the shell is zsh on macOS
+- promotion-type: doc-edit
+- cluster-signature: novel:macos-shell-portability
+- files-touched: ~/.claude/devcycle/learnings/spotmap-website-5e5ebbc7/lessons.md, ~/.claude/devcycle/learnings/global/lessons.md
+- affected-files: ~/.claude/devcycle/learnings/spotmap-website-5e5ebbc7/lessons.md, ~/.claude/devcycle/learnings/global/lessons.md
+- landed: 2026-10-27
+- commit: 
+- plugin-version: 0.28.0
+- sourced-from-memory: false
+- culprit-id: novel:macos-shell-portability
+- rung: r2
+- audience: just-me
+- verify: journal-recurrence
+- aliases: 

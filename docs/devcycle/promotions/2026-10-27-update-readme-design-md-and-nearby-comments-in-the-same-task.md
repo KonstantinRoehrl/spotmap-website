@@ -1,0 +1,14 @@
+# Update README, DESIGN.md and nearby comments in the same task that changes the behavior they describe
+- promotion-type: doc-edit
+- cluster-signature: novel:docs-stale-after-behavior-change
+- files-touched: docs/devcycle/lessons.md
+- affected-files: docs/devcycle/lessons.md
+- landed: 2026-10-27
+- commit: 
+- plugin-version: 0.28.0
+- sourced-from-memory: false
+- culprit-id: novel:docs-stale-after-behavior-change
+- rung: r2
+- audience: repo-devs
+- verify: journal-recurrence
+- aliases: novel:readme-stale-gallery

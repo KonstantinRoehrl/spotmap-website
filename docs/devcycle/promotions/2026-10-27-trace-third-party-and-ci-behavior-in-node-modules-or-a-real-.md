@@ -1,0 +1,14 @@
+# Trace third-party and CI behavior in node_modules or a real run before relying on a fake or a local green
+- promotion-type: doc-edit
+- cluster-signature: novel:vendor-semantics-assumed-not-traced
+- files-touched: docs/devcycle/lessons.md
+- affected-files: docs/devcycle/lessons.md
+- landed: 2026-10-27
+- commit: 
+- plugin-version: 0.28.0
+- sourced-from-memory: false
+- culprit-id: novel:vendor-semantics-assumed-not-traced
+- rung: r2
+- audience: repo-devs
+- verify: journal-recurrence
+- aliases: novel:moveend-from-interrupted-pan, novel:reduced-motion-pan-ends-synchronously, novel:cli-email-enable-signup-disables-provider, novel:css-cascade-order-defeats-override
