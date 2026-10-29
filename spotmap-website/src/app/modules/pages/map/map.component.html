@@ -21,10 +21,7 @@
       <!-- The picker, and the Material it is built on, loads once the page is idle, off the map's
            critical path. Until then an inert frame holds its slot, and the two crossfade in one
            grid cell. A slot built after that first load (a layout switch) shows the picker at once. -->
-      <div
-        class="map-topbar__picker city-slot"
-        [class.city-slot--arriving]="!pickerLoaded()"
-      >
+      <div class="map-topbar__picker city-slot">
         @if (!pickerLoaded()) {
           <fieldset
             class="city-placeholder"
@@ -56,10 +53,7 @@
         [loop]="true"
       />
       <!-- Deferred behind a placeholder, as in the top bar. -->
-      <div
-        class="map-header__picker city-slot"
-        [class.city-slot--arriving]="!pickerLoaded()"
-      >
+      <div class="map-header__picker city-slot">
         @if (!pickerLoaded()) {
           <fieldset
             class="city-placeholder"

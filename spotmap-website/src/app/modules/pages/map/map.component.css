@@ -107,10 +107,11 @@
   transition: opacity var(--dur-fast) ease-out;
 }
 
-/* Only the first picker fades in; one a layout switch builds later is simply there. The
-   reduced-motion net keeps the fade. */
+/* Only the first picker fades in. It is inserted while the placeholder it replaces is still in the
+   slot, fading out, so the sibling tells it from one a layout switch builds later, which is simply
+   there. The reduced-motion net keeps the fade. */
 @starting-style {
-  .city-slot--arriving .city-slot__picker {
+  .city-placeholder ~ .city-slot__picker {
     opacity: 0;
   }
 }
@@ -133,7 +134,7 @@
 .city-placeholder__label {
   margin-inline-start: 11px;
   padding: 0 4px 0 4px;
-  translate: 0 -6px;
+  translate: 0 -5px;
   font-family: var(--mat-sys-body-large-font);
   /* The 1rem body-large label at its floating scale of 0.75, written out so the 12px floor guard can read it. */
   font-size: 0.75rem;

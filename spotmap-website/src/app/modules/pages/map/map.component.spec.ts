@@ -1152,7 +1152,6 @@ describe('MapComponent', () => {
           ).toBe(0);
           expect(placeholder!.textContent!.trim()).toBe('City');
           expect(Math.round(slot.getBoundingClientRect().height)).toBe(40);
-          expect(slot.classList).toContain('city-slot--arriving');
         });
 
         it('swaps the placeholder for the picker without moving or resizing anything', async () => {
@@ -1175,9 +1174,6 @@ describe('MapComponent', () => {
           expect(
             host.querySelectorAll(`${site.slot} app-city-picker`).length,
           ).toBe(1);
-          expect(host.querySelector(site.slot)!.classList).not.toContain(
-            'city-slot--arriving',
-          );
         });
 
         it('draws the placeholder as the closed field’s outline, notch and floating label', async () => {
@@ -1283,7 +1279,6 @@ describe('MapComponent', () => {
           () => host.querySelector('.city-placeholder') === null,
         );
         expect(host.querySelector('.city-placeholder')).toBeNull();
-        expect(host.querySelector('.city-slot--arriving')).toBeNull();
       });
 
       it('shows the picker at once, and no placeholder, in a layout built after it has loaded', async () => {
@@ -1302,9 +1297,6 @@ describe('MapComponent', () => {
         // No placeholder in the passes that built the bar, and the slot already holds the field's
         // 40 px; only the picker itself takes a microtask, its code being in already.
         expect(host.querySelector('.city-placeholder')).toBeNull();
-        expect(
-          host.querySelector('.map-topbar__picker')!.classList,
-        ).not.toContain('city-slot--arriving');
         expect(
           Math.round(
             host.querySelector('.map-topbar__picker')!.getBoundingClientRect()
