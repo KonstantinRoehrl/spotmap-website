@@ -1,0 +1,11 @@
+# SpotMapComponent is a 1272-line module with ~13 reasons to change; the god-module the 2026-10-23 pass flagged has come back, larger
+- finding-kind: maintenance-finding
+- finding-id: god-module:65c85a35
+- culprit-kind: god-module
+- severity: high
+- confidence: verified
+- affected-files: spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts, spotmap-website/src/app/modules/components/spot-map/spot-map.component.html, spotmap-website/src/app/modules/components/spot-map/spot-map.component.css, spotmap-website/src/app/modules/components/spot-map/spot-map.component.spec.ts, spotmap-website/src/app/modules/components/spot-map/selection-flag.ts, spotmap-website/src/app/modules/components/spot-map/spot-selection.ts, spotmap-website/src/app/modules/components/spot-map/selection-camera.ts, spotmap-website/src/app/modules/components/spot-map/testing/fake-map.ts
+- first-seen: 2026-10-29
+- last-seen: 2026-10-29
+- passes: 1
+- verify: 

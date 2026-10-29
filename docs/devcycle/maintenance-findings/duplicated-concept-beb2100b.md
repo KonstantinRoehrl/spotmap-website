@@ -1,0 +1,11 @@
+# The glitch glyph set is duplicated and has drifted; the monospace width rule is implemented twice
+- finding-kind: maintenance-finding
+- finding-id: duplicated-concept:beb2100b
+- culprit-kind: duplicated-concept
+- severity: low
+- confidence: verified
+- affected-files: spotmap-website/src/app/modules/components/ascii-animation-text/ascii-animation-text.component.ts, spotmap-website/src/app/modules/directives/glitch-text.directive.ts, spotmap-website/src/app/modules/pages/map/topbar-banner.ts
+- first-seen: 2026-10-29
+- last-seen: 2026-10-29
+- passes: 1
+- verify: 

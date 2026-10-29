@@ -1,0 +1,11 @@
+# All 551 spot rows are rendered at once: ~5k DOM nodes and ~4.4k listeners for ~13 visible rows
+- finding-kind: maintenance-finding
+- finding-id: unbounded-dom:d9f9a94e
+- culprit-kind: unbounded-dom
+- severity: high
+- confidence: verified
+- affected-files: spotmap-website/src/app/modules/components/spot-list/spot-list.component.ts, spotmap-website/src/app/modules/components/spot-list/spot-list.component.html, spotmap-website/src/app/modules/components/spot-list/spot-list.component.css, spotmap-website/src/app/modules/directives/pointer-bloom.directive.ts
+- first-seen: 2026-10-29
+- last-seen: 2026-10-29
+- passes: 1
+- verify: 

@@ -1,0 +1,11 @@
+# The city's spot list is fetched inside the renderer, which needs three compensating mechanisms
+- finding-kind: maintenance-finding
+- finding-id: misplaced-logic:1026e582
+- culprit-kind: misplaced-logic
+- severity: medium
+- confidence: verified
+- affected-files: spotmap-website/src/app/modules/pages/map/spot-browser.store.ts, spotmap-website/src/app/modules/pages/map/map.component.ts, spotmap-website/src/app/modules/components/map-container/map-container.component.ts, spotmap-website/src/app/modules/components/map-container/map-container.component.html, spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts, spotmap-website/src/app/services/spots.service.ts
+- first-seen: 2026-10-29
+- last-seen: 2026-10-29
+- passes: 1
+- verify: 

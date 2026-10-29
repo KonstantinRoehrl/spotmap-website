@@ -1,0 +1,11 @@
+# Fonts are not preloaded (WATCH): the regular weight is discovered only after the stylesheet is parsed
+- finding-kind: maintenance-finding
+- finding-id: asset-bloat:7cb710ed
+- culprit-kind: asset-bloat
+- severity: low
+- confidence: verified
+- affected-files: spotmap-website/src/index.html, spotmap-website/src/styles.css
+- first-seen: 2026-10-29
+- last-seen: 2026-10-29
+- passes: 1
+- verify: 

@@ -1,0 +1,11 @@
+# A photo-pin fade costs ~12 raster + `getImageData` passes per pin; the idle `getImageData` is the tail of late fades
+- finding-kind: maintenance-finding
+- finding-id: idle-work:561c2196
+- culprit-kind: idle-work
+- severity: medium
+- confidence: suspected
+- affected-files: spotmap-website/src/app/modules/components/spot-map/photo-pins.ts, spotmap-website/src/app/modules/components/spot-map/photo-pins.spec.ts
+- first-seen: 2026-10-29
+- last-seen: 2026-10-29
+- passes: 1
+- verify: 

@@ -1,0 +1,11 @@
+# The city picker's Material select pins ~229 kB (65 %) of the `map-component` chunk onto the critical path
+- finding-kind: maintenance-finding
+- finding-id: eager-library-pin:78db94fe
+- culprit-kind: eager-library-pin
+- severity: high
+- confidence: verified
+- affected-files: spotmap-website/src/app/modules/pages/map/map.component.html, spotmap-website/src/app/modules/pages/map/map.component.ts, spotmap-website/src/app/modules/pages/map/map.component.css, spotmap-website/src/app/modules/pages/map/map.component.spec.ts, spotmap-website/src/app/modules/components/city-picker/city-picker.component.ts
+- first-seen: 2026-10-29
+- last-seen: 2026-10-29
+- passes: 1
+- verify: 

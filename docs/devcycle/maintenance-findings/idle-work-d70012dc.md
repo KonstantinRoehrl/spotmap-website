@@ -1,0 +1,11 @@
+# On a cold visit the 3.6 s intro leaves the network idle: maplibre, the contour worker and the spot list start only after it ends
+- finding-kind: maintenance-finding
+- finding-id: idle-work:d70012dc
+- culprit-kind: idle-work
+- severity: medium
+- confidence: verified
+- affected-files: spotmap-website/src/app/app.component.ts, spotmap-website/src/app/modules/components/spot-map/map-factory.ts, spotmap-website/src/app/modules/components/spot-map/map-factory.token.ts
+- first-seen: 2026-10-29
+- last-seen: 2026-10-29
+- passes: 1
+- verify: 

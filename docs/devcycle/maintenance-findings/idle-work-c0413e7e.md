@@ -1,0 +1,11 @@
+# Relief (DEM) tiles start in the same window as the first thumbnail burst
+- finding-kind: maintenance-finding
+- finding-id: idle-work:c0413e7e
+- culprit-kind: idle-work
+- severity: low
+- confidence: suspected
+- affected-files: spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts, spotmap-website/src/app/modules/components/spot-map/elevation.ts
+- first-seen: 2026-10-29
+- last-seen: 2026-10-29
+- passes: 1
+- verify: 

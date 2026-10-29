@@ -1,0 +1,11 @@
+# The photo rail and gallery carry copy-pasted image load-state bookkeeping, failed-placeholder markup and CSS
+- finding-kind: maintenance-finding
+- finding-id: duplicated-concept:e9bfb11f
+- culprit-kind: duplicated-concept
+- severity: medium
+- confidence: verified
+- affected-files: spotmap-website/src/app/modules/components/spot-photo-rail/spot-photo-rail.component.ts, spotmap-website/src/app/modules/components/spot-photo-rail/spot-photo-rail.component.html, spotmap-website/src/app/modules/components/spot-photo-rail/spot-photo-rail.component.css, spotmap-website/src/app/modules/components/spot-photo-gallery/spot-photo-gallery.component.ts, spotmap-website/src/app/modules/components/spot-photo-gallery/spot-photo-gallery.component.html, spotmap-website/src/app/modules/components/spot-photo-gallery/spot-photo-gallery.component.css
+- first-seen: 2026-10-29
+- last-seen: 2026-10-29
+- passes: 1
+- verify: 

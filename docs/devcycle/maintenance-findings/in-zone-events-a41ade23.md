@@ -1,0 +1,11 @@
+# The MapLibre map and every handler it registers run inside the Angular zone
+- finding-kind: maintenance-finding
+- finding-id: in-zone-events:a41ade23
+- culprit-kind: in-zone-events
+- severity: medium
+- confidence: verified
+- affected-files: spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts, spotmap-website/src/app/modules/components/spot-map/spot-map.component.spec.ts, spotmap-website/src/app/modules/components/spot-map/photo-pins.ts, spotmap-website/src/app/modules/components/spot-map/lock-on-pulse.ts
+- first-seen: 2026-10-29
+- last-seen: 2026-10-29
+- passes: 1
+- verify: 

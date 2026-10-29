@@ -1,0 +1,11 @@
+# One 640 px thumbnail rendition feeds 72 px rows, 56 px pins, 88 px flags and 132 px tooltips
+- finding-kind: maintenance-finding
+- finding-id: asset-bloat:07073108
+- culprit-kind: asset-bloat
+- severity: high
+- confidence: verified
+- affected-files: spotmap-website/src/app/services/spotmap-backend.ts, spotmap-website/src/app/services/admin/photo-pipeline/renditions.ts, spotmap-website/src/app/services/admin/admin-repository.ts, spotmap-website/src/app/modules/components/spot-list/spot-list.component.ts, spotmap-website/src/app/modules/components/spot-map/photo-pins.ts, spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts, spotmap-website/tools/sync-supabase/thumbs.mjs
+- first-seen: 2026-10-29
+- last-seen: 2026-10-29
+- passes: 1
+- verify: 

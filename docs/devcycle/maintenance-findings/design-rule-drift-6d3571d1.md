@@ -1,11 +1,11 @@
-# The select panel blurs its backdrop although DESIGN.md forbids frosted glass
+# The select panel blurs its backdrop (persists since 2026-10-23)
 - finding-kind: maintenance-finding
 - finding-id: design-rule-drift:6d3571d1
 - culprit-kind: design-rule-drift
 - severity: low
-- confidence: suspected
+- confidence: verified
 - affected-files: spotmap-website/src/theme.scss, DESIGN.md
 - first-seen: 2026-10-23
-- last-seen: 2026-10-23
-- passes: 1
+- last-seen: 2026-10-29
+- passes: 2
 - verify: 
