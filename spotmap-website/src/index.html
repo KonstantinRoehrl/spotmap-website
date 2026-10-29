@@ -5,6 +5,17 @@
     <title>Spotmap Compendium</title>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Open connections early to the hosts the map loads from, in load order. The Supabase origin
+         duplicates environment.prod.ts, so a project move must update both. It is listed twice
+         because CORS requests (spot list, photo pins) and plain <img> photos use separate connections. -->
+    <link
+      rel="preconnect"
+      href="https://zrxqvlexcycaemaabulv.supabase.co"
+      crossorigin
+    />
+    <link rel="preconnect" href="https://zrxqvlexcycaemaabulv.supabase.co" />
+    <link rel="preconnect" href="https://tiles.openfreemap.org" crossorigin />
+    <link rel="preconnect" href="https://tiles.mapterhorn.com" crossorigin />
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
     <link rel="apple-touch-icon" href="apple-touch-icon.png" />
   </head>
