@@ -104,6 +104,7 @@
           [columnWidth]="columnWidth()"
           [frameWidth]="frameSize().width"
           (widthChange)="onColumnWidth($event)"
+          (widthCommit)="persistColumnShare()"
           (widthReset)="resetColumnWidth()"
         />
         <aside
@@ -111,7 +112,6 @@
           aria-label="Spots"
           [class.spot-column--easing]="columnEasing()"
           [style.width.px]="columnWidth()"
-          (transitionend)="onColumnTransitionEnd($event)"
         >
           <!-- Both variants share one grid cell, so swapping them is a crossfade, not a cut. -->
           <div class="spot-column__toolbar">

@@ -378,6 +378,7 @@ describe('MapComponent', () => {
     it('follows the handle and remembers the new width as a share of the window', () => {
       const host = create();
       handle().widthChange.emit(500);
+      handle().widthCommit.emit();
       fixture.detectChanges();
 
       expect(columnWidth(host)).toBe(500);
@@ -385,6 +386,59 @@ describe('MapComponent', () => {
       expect(
         Number(localStorage.getItem(COLUMN_SHARE_STORAGE_KEY)),
       ).toBeCloseTo(500 / frameWidth(host), 6);
+    });
+
+    it('stores the share once per drag, on its commit, not per move', () => {
+      const host = create();
+      const stored = spyOn(Storage.prototype, 'setItem').and.callThrough();
+      const shareWrites = () =>
+        stored.calls
+          .allArgs()
+          .filter(([key]) => key === COLUMN_SHARE_STORAGE_KEY);
+
+      handle().widthChange.emit(450);
+      handle().widthChange.emit(470);
+      handle().widthChange.emit(500);
+      expect(shareWrites().length).toBe(0);
+
+      handle().widthCommit.emit();
+      expect(shareWrites().length).toBe(1);
+      expect(Number(shareWrites()[0][1])).toBeCloseTo(
+        500 / frameWidth(host),
+        6,
+      );
+    });
+
+    it('stores the share once per key step, through the real handle', () => {
+      create();
+      const stored = spyOn(Storage.prototype, 'setItem').and.callThrough();
+      fixture.nativeElement
+        .querySelector('app-split-handle')
+        .dispatchEvent(
+          new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true }),
+        );
+      expect(
+        stored.calls
+          .allArgs()
+          .filter(([key]) => key === COLUMN_SHARE_STORAGE_KEY).length,
+      ).toBe(1);
+    });
+
+    it('holds no transitionend listener on the column', () => {
+      const listening = spyOn(
+        EventTarget.prototype,
+        'addEventListener',
+      ).and.callThrough();
+      const host = create();
+      const column = host.querySelector('aside.spot-column');
+      expect(
+        listening.calls
+          .all()
+          .filter(
+            (call) =>
+              call.object === column && call.args[0] === 'transitionend',
+          ),
+      ).toEqual([]);
     });
 
     it('keeps the column’s share when the window is resized', async () => {

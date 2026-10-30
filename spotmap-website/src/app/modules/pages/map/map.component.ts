@@ -286,10 +286,7 @@ export class MapComponent {
    */
   private closingFromSheet = false;
 
-  /**
-   * Ends the column's reset ease when no `transitionend` does: none fires when the column was
-   * already at its default width.
-   */
+  /** Ends the column's reset ease, just after the 330 ms the width takes. */
   private columnEaseTimer?: ReturnType<typeof setTimeout>;
 
   /** The page's own element, searched for the controls focus moves between. */
@@ -394,17 +391,23 @@ export class MapComponent {
   }
 
   /**
-   * The handle moved: the column takes the new width, remembered as its share of the window so a
-   * later window size keeps the proportion. The handle has already clamped the width.
+   * The handle moved: the column takes the new width, held as its share of the window so a later
+   * window size keeps the proportion. The handle has already clamped the width.
    */
   protected onColumnWidth(width: number): void {
     const frameWidth = this.frameSize().width;
     if (frameWidth <= 0) {
       return;
     }
-    const share = Math.min(width / frameWidth, 0.5);
-    this.columnShare.set(share);
-    storeColumnShare(share);
+    this.columnShare.set(Math.min(width / frameWidth, 0.5));
+  }
+
+  /** The handle finished moving: the share is written now, not on every move of a drag. */
+  protected persistColumnShare(): void {
+    const share = this.columnShare();
+    if (share !== null) {
+      storeColumnShare(share);
+    }
   }
 
   /**
@@ -423,16 +426,6 @@ export class MapComponent {
       );
     }
     this.columnShare.set(null);
-  }
-
-  /** The column's own width transition ended: the reset ease is over. */
-  protected onColumnTransitionEnd(event: TransitionEvent): void {
-    if (
-      event.target === event.currentTarget &&
-      event.propertyName === 'width'
-    ) {
-      this.stopColumnEase();
-    }
   }
 
   /** Drops the reset ease and its timer, so a drag after it follows the pointer at once. */
