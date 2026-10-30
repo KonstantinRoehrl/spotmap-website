@@ -13,15 +13,6 @@
   gap: 2px;
 }
 
-/* Off-screen rows skip style, layout and paint. 66 px is a one-line row as rendered (the spec reads
-   it back): the 54 px thumb and 6 px of padding above and below. `auto` remembers a row's real height
-   once rendered, which covers a long name that wraps. Nothing in a row paints outside its <li>: the
-   row wears the inset bloom, so the implied paint containment shows nothing. */
-.spot-list__item {
-  content-visibility: auto;
-  contain-intrinsic-block-size: auto 66px;
-}
-
 /* Rows and lines that enter or leave the view fade; A–Z order keeps the rows that stay where they
    are. */
 .spot-list__item,
