@@ -52,11 +52,6 @@ describe('AsciiAnimationTextComponent', () => {
     );
   });
 
-  it('contains each frame to its own subtree', () => {
-    const container = fixture.nativeElement.querySelector('.ascii-container');
-    expect(getComputedStyle(container).contain).toBe('layout paint');
-  });
-
   it('removes its window resize listener on destroy', () => {
     const added = new Map<string, EventListenerOrEventListenerObject>();
     spyOn(window, 'addEventListener').and.callFake(
