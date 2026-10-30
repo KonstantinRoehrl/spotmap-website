@@ -6,9 +6,9 @@
     @if (dotGutters()) {
       <span class="loading-dots"></span>
     }
-    <span class="ascii-line">{{ baseText() }}</span>
+    <span class="ascii-line" #asciiLine></span>
     @if (dotGutters()) {
-      <span class="loading-dots">{{ dots() }}</span>
+      <span class="loading-dots" #trailingDots></span>
     }
   </pre>
 </div>

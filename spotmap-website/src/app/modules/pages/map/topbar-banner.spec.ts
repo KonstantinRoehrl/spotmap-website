@@ -85,7 +85,8 @@ describe('the top bar banner', () => {
         fixture.detectChanges();
         // The widest the line ever draws: whole, with the typing cursor. Set directly and measured
         // before the first animation frame can replace it.
-        fixture.componentInstance.baseText.set(`${line}_`);
+        fixture.nativeElement.querySelector('.ascii-line').textContent =
+          `${line}_`;
         fixture.detectChanges();
 
         const pre = fixture.nativeElement.querySelector(
