@@ -25,7 +25,8 @@ import { prefersReducedMotion } from '../../utils/prefers-reduced-motion';
  *
  * The frame interval runs outside Angular's zone: a frame writes `innerText` directly and changes
  * no bound state, so a zone turn per frame would run change detection for nothing. The hover
- * listeners and the class observer stay in the zone.
+ * listeners and the class observer stay in the zone. A frame that would repeat the text on screen
+ * writes nothing, and while the tab is hidden a frame does nothing.
  */
 @Directive({
   selector: '[appGlitchText]',
@@ -129,7 +130,7 @@ export class GlitchTextDirective implements OnInit, OnDestroy {
 
     this.intervalId = this.zone.runOutsideAngular(() =>
       window.setInterval(() => {
-        if (!this.textNode) return;
+        if (!this.textNode || document.hidden) return;
 
         const chars = this.label().split('');
         const glitched = chars.map((c) =>
@@ -140,7 +141,11 @@ export class GlitchTextDirective implements OnInit, OnDestroy {
             : c,
         );
 
-        this.textNode.innerText = glitched.join('');
+        const scrambled = glitched.join('');
+        // Compared through textContent: reading innerText would force a layout every frame.
+        if (this.textNode.textContent !== scrambled) {
+          this.textNode.innerText = scrambled;
+        }
       }, 80),
     );
   }
