@@ -1,11 +1,18 @@
+import { NgZone, provideZoneChangeDetection } from '@angular/core';
 import {
   ComponentFixture,
+  ComponentFixtureAutoDetect,
   TestBed,
   fakeAsync,
   tick,
 } from '@angular/core/testing';
 
 import { AsciiAnimationTextComponent } from './ascii-animation-text.component';
+
+/** The line the banner currently shows. */
+function lineText(f: ComponentFixture<AsciiAnimationTextComponent>): string {
+  return f.nativeElement.querySelector('.ascii-line').textContent;
+}
 
 describe('AsciiAnimationTextComponent', () => {
   let component: AsciiAnimationTextComponent;
@@ -75,7 +82,7 @@ describe('AsciiAnimationTextComponent', () => {
     expect(f.componentInstance.messages()).toEqual(['HELLO']);
 
     tick(10); // one frame -> first character typed with the trailing caret
-    expect(f.componentInstance.baseText()).toBe('H_');
+    expect(lineText(f)).toBe('H_');
 
     f.destroy(); // clears the interval; no timers left for fakeAsync
   }));
@@ -103,7 +110,7 @@ describe('AsciiAnimationTextComponent', () => {
     f.detectChanges(); // ngAfterViewInit -> startAnimation (reduced-motion branch)
 
     // Final line rendered fully, no per-character interval scheduled.
-    expect(f.componentInstance.baseText()).toBe('OMEGA');
+    expect(lineText(f)).toBe('OMEGA');
     expect(finished).toHaveBeenCalledTimes(1);
 
     f.destroy(); // no timers were created, so nothing to leak
@@ -165,13 +172,13 @@ describe('AsciiAnimationTextComponent', () => {
 
     tick(10); // frame 1: `AB` starts, its first character typed in the same frame
     expect(starts).toEqual(['AB']);
-    expect(f.componentInstance.baseText()).toBe('A_');
+    expect(lineText(f)).toBe('A_');
 
     // `AB` takes 15 frames (2 typed, 1 shown, 1 waited, 10 collapsing, 1 blank) and the next
     // message is picked on frame 15, so frame 16 announces and types `CD`.
     tick(10 * 15);
     expect(starts).toEqual(['AB', 'CD']);
-    expect(f.componentInstance.baseText()).toBe('C_');
+    expect(lineText(f)).toBe('C_');
 
     f.destroy();
   }));
@@ -201,5 +208,133 @@ describe('AsciiAnimationTextComponent', () => {
     };
     expect(announced(['ALPHA', 'OMEGA'])).toEqual(['OMEGA']);
     expect(announced([])).toEqual([]);
+  });
+});
+
+describe('AsciiAnimationTextComponent in the Angular zone', () => {
+  /**
+   * The app's own change-detection mode. TestBed is zoneless by default, where `NgZone` is a no-op
+   * and these guards would pass on any code.
+   */
+  function render(
+    inputs: Record<string, unknown>,
+    providers: unknown[] = [],
+  ): ComponentFixture<AsciiAnimationTextComponent> {
+    TestBed.configureTestingModule({
+      imports: [AsciiAnimationTextComponent],
+      providers: [
+        provideZoneChangeDetection({ eventCoalescing: true }),
+        ...(providers as never[]),
+      ],
+    });
+    const f = TestBed.createComponent(AsciiAnimationTextComponent);
+    for (const [name, value] of Object.entries(inputs)) {
+      f.componentRef.setInput(name, value);
+    }
+    return f;
+  }
+
+  const TYPING = { messages: ['HELLO'], glitchChance: 0, animationSpeed: 10 };
+
+  it('runs its frames outside the Angular zone', fakeAsync(() => {
+    const f = render(TYPING);
+    f.detectChanges();
+    tick(10); // frame 1 announces the line, which does enter the zone, so count from after it
+    let zoneTurns = 0;
+    const subscription = TestBed.inject(NgZone).onMicrotaskEmpty.subscribe(
+      () => zoneTurns++,
+    );
+
+    tick(10 * 3);
+    expect(lineText(f)).toBe('HELL_');
+    expect(zoneTurns).toBe(0);
+
+    subscription.unsubscribe();
+    f.destroy();
+  }));
+
+  it('emits lineStart and animationFinished inside the Angular zone', fakeAsync(() => {
+    const f = render({
+      messages: ['A'],
+      glitchChance: 0,
+      animationSpeed: 10,
+      waitFrames: 0,
+      breakFrames: 0,
+    });
+    const inZone: Record<string, boolean> = {};
+    f.componentInstance.lineStart.subscribe(() => {
+      inZone['lineStart'] = NgZone.isInAngularZone();
+    });
+    f.componentInstance.animationFinished.subscribe(() => {
+      inZone['animationFinished'] = NgZone.isInAngularZone();
+    });
+    f.detectChanges();
+
+    tick(10 * 20);
+    expect(inZone).toEqual({ lineStart: true, animationFinished: true });
+
+    f.destroy();
+  }));
+
+  it('leaves the text node alone when a frame repeats the line', fakeAsync(() => {
+    const f = render({ ...TYPING, messages: ['AB'], waitFrames: 5 });
+    f.detectChanges();
+    tick(10 * 3); // `A_`, `AB_`, then `AB` whole
+    const line = f.nativeElement.querySelector('.ascii-line') as HTMLElement;
+    const node = line.firstChild;
+    expect(line.textContent).toBe('AB');
+
+    tick(10); // a wait frame, with nothing to change
+    expect(line.firstChild).toBe(node);
+
+    f.destroy();
+  }));
+
+  it('holds its place while the tab is hidden, and carries on when it returns', fakeAsync(() => {
+    const hidden = spyOnProperty(document, 'hidden').and.returnValue(true);
+    const f = render(TYPING);
+    const starts: string[] = [];
+    f.componentInstance.lineStart.subscribe((line) => starts.push(line));
+    f.detectChanges();
+
+    tick(10 * 5);
+    expect(lineText(f)).toBe('');
+    expect(starts).toEqual([]);
+
+    hidden.and.returnValue(false);
+    tick(10);
+    expect(lineText(f)).toBe('H_');
+    expect(starts).toEqual(['HELLO']);
+
+    f.destroy();
+  }));
+
+  it('refits on resize without entering the zone from the listener', async () => {
+    const f = render({ messages: ['0123456789'], animationSpeed: 100000 }, [
+      { provide: ComponentFixtureAutoDetect, useValue: true },
+    ]);
+    const host = f.nativeElement as HTMLElement;
+    host.style.display = 'block';
+    host.style.width = '400px';
+    await f.whenStable();
+    const pre = host.querySelector('.ascii-display') as HTMLElement;
+    const fitted = pre.style.fontSize;
+
+    host.style.width = '200px';
+    // onUnstable, not onMicrotaskEmpty: event coalescing defers the latter by a frame, so it would
+    // read 0 even for an in-zone listener. The tick the size change schedules comes later.
+    let zoneEntries = 0;
+    const subscription = TestBed.inject(NgZone).onUnstable.subscribe(
+      () => zoneEntries++,
+    );
+    window.dispatchEvent(new Event('resize'));
+    expect(zoneEntries).toBe(0);
+    subscription.unsubscribe();
+
+    // Never detectChanges() here: only the scheduled tick may render the new size.
+    await f.whenStable();
+    expect(pre.style.fontSize).not.toBe(fitted);
+
+    f.destroy();
   });
 });
