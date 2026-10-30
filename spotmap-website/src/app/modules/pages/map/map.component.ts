@@ -10,6 +10,7 @@ import {
   ElementRef,
   inject,
   Injector,
+  linkedSignal,
   signal,
   untracked,
   viewChild,
@@ -64,6 +65,12 @@ export const PHONE_LAYOUT_QUERY = '(max-width: 768px)';
 const OPEN_SPOT_CONTROLS =
   'app-spot-detail, app-overview-back, .spot-sheet__head-content--detail';
 
+/** The list behind an open spot. A row in it can still be `activeElement` until the browser's focus fixup. */
+const HIDDEN_LIST = 'app-spot-list[inert]';
+
+/** A row the visitor can actually be on: the hidden list's rows do not count. */
+const SHOWN_ROW = 'app-spot-list:not([inert]) a.spot-row';
+
 /** How long the count must hold still before the live region reads it, so a pan does not chatter. */
 export const COUNT_ANNOUNCE_DEBOUNCE_MS = 800;
 
@@ -99,8 +106,8 @@ interface FrameSize {
  * switching never rebuilds the map. The map always sits in one framed window inside the page's
  * gutter. From 1024 px a header row carries the banner and the city picker above it, and the
  * window holds the map, a split handle that resizes it against the spot column, and the column
- * with its toolbar and the list or the open spot. From 769 to 1023 px the same header row sits
- * over a window whose bottom sheet (peek / list / detail, never more than half of it) holds that
+ * with its toolbar and the list or the open spot. The list stays mounted behind an open spot.
+ * From 769 to 1023 px the same header row sits over a window whose bottom sheet (peek / list / detail, never more than half of it) holds that
  * pane. On a phone a top bar carries them instead as two fixed rows, the banner over the picker,
  * neither sized by the line playing or the city chosen. The city picker, and the Material it is built on, loads once the page is idle; an inert frame holds its slot until then. The page owns which layout is on screen and
  * so what the map is told is covered, how wide the column is, and where keyboard focus goes when an
@@ -209,6 +216,40 @@ export class MapComponent {
 
   /** Set while the column eases back to its default width after the handle's reset. */
   protected readonly columnEasing = signal(false);
+
+  /**
+   * Whether the list exists: from the first moment no spot is open. A cold `/spot/<id>` link builds
+   * no list and loads no thumbnails until its first close.
+   */
+  protected readonly listMounted = linkedSignal<boolean, boolean>({
+    source: () => this.store.detail() === null,
+    computation: (closed, previous) => closed || (previous?.value ?? false),
+  });
+
+  /**
+   * Keys the mounted list. A close whose rows differ from those it was showing would collapse the
+   * leaving rows mid-crossfade and land the old offset among different spots, so it builds a new
+   * list instead. Identity is enough: the store keeps the previous array for an equal answer.
+   */
+  protected readonly listKey = linkedSignal<
+    { readonly open: boolean; readonly spots: unknown },
+    number
+  >({
+    source: () => ({
+      open: this.store.detail() !== null,
+      spots: this.store.shownSpots(),
+    }),
+    computation: (now, previous) => {
+      if (!previous) {
+        return 0;
+      }
+      const closedOntoOtherRows =
+        previous.source.open &&
+        !now.open &&
+        now.spots !== previous.source.spots;
+      return closedOntoOtherRows ? previous.value + 1 : previous.value;
+    },
+  });
 
   /** How many spots the list shows, or null while they are still unknown. */
   protected readonly count = computed(
@@ -441,14 +482,16 @@ export class MapComponent {
    * the row that opened the spot if the list put it there, and otherwise moved to a visible head
    * of the list: the column's count line, or the sheet's head. A phone's rows are out of reach
    * while the sheet is at its peek bar, so a ✕ always ends on the sheet's head. Focus the visitor
-   * had put anywhere else is left alone.
+   * had put anywhere else is left alone. A row in the hidden list counts as lost focus: the
+   * browser's fixup may simply not have run yet.
    */
   private restoreFocusAfterClose(): void {
     const active = this.host.ownerDocument.activeElement;
     if (
       active !== null &&
       active !== this.host.ownerDocument.body &&
-      !active.closest(OPEN_SPOT_CONTROLS)
+      !active.closest(OPEN_SPOT_CONTROLS) &&
+      !active.closest(HIDDEN_LIST)
     ) {
       return;
     }
@@ -456,7 +499,7 @@ export class MapComponent {
     afterNextRender(
       {
         read: () => {
-          if (this.host.ownerDocument.activeElement?.closest('a.spot-row')) {
+          if (this.host.ownerDocument.activeElement?.closest(SHOWN_ROW)) {
             return;
           }
           this.host

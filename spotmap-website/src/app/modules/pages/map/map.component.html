@@ -166,26 +166,35 @@
   </p>
 </div>
 
-<!-- The one pane, list or open spot, rendered into the column or the sheet. The detail pads
+<!-- The one pane, rendered into the column or the sheet. The list stays mounted behind an open spot,
+     keeping its rows and scroll; the key rebuilds it only when a close finds different rows. It sits
+     ahead of the detail so Tab from the row that opened a spot lands in the detail. The detail pads
      itself (its photo rail bleeds through that padding); the list gets the page's 8 px. -->
 <ng-template #pane>
+  @if (listMounted()) {
+    @for (key of [listKey()]; track key) {
+      <!-- The leave never runs on an open or close; it fades the list out when the window crosses 1024 px. -->
+      <app-spot-list
+        class="spot-pane__view spot-pane__view--list"
+        [class.spot-pane__view--list-hidden]="store.detail()"
+        animate.leave="spot-pane__view--leaving"
+        [inert]="store.detail() !== null"
+        [attr.aria-hidden]="store.detail() ? 'true' : null"
+        [spots]="store.shownSpots()"
+        [notice]="store.notice()"
+        [highlightedId]="store.hoveredId()"
+        [focusId]="store.detail() ? null : store.returnFocusTo()"
+        (open)="store.open($event, 'list')"
+        (hover)="store.setHovered($event)"
+      />
+    }
+  }
   @if (store.detail(); as view) {
     <app-spot-detail
       class="spot-pane__view"
       animate.leave="spot-pane__view--leaving"
       [view]="view"
       (retry)="store.retryDetail()"
-    />
-  } @else {
-    <app-spot-list
-      class="spot-pane__view spot-pane__view--list"
-      animate.leave="spot-pane__view--leaving"
-      [spots]="store.shownSpots()"
-      [notice]="store.notice()"
-      [highlightedId]="store.hoveredId()"
-      [focusId]="store.returnFocusTo()"
-      (open)="store.open($event, 'list')"
-      (hover)="store.setHovered($event)"
     />
   }
 </ng-template>

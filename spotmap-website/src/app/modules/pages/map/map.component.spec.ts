@@ -1130,6 +1130,167 @@ describe('MapComponent', () => {
     });
   });
 
+  describe('the mounted list', () => {
+    const list = () =>
+      fixture.nativeElement.querySelector(
+        'app-spot-list',
+      ) as HTMLElement | null;
+
+    /** Enough rows to scroll the column. */
+    const MANY = Array.from({ length: 60 }, (_, index) =>
+      listFeature(`s${index}`, `Spot ${index}`),
+    );
+
+    function open(id: string, preview: SpotListFeature): void {
+      showSpot(id, preview);
+      fixture.detectChanges();
+      TestBed.tick();
+      fixture.detectChanges();
+    }
+
+    it('keeps the same list through an open and close when the rows are unchanged', () => {
+      store.shownSpots.set([ALPHA, BETA]);
+      create();
+      const before = list();
+      open('a', ALPHA);
+      expect(list()).toBe(before);
+      closeSpot();
+      expect(list()).toBe(before);
+    });
+
+    it('replaces the list on a close whose rows changed', () => {
+      store.shownSpots.set([ALPHA, BETA]);
+      create();
+      const before = list();
+      open('a', ALPHA);
+      store.selectedId.set(null);
+      store.detail.set(null);
+      store.shownSpots.set([BETA]);
+      fixture.detectChanges();
+      TestBed.tick();
+      expect(list()).not.toBe(before);
+    });
+
+    it('needs no new list when the rows changed while a spot was open', () => {
+      store.shownSpots.set([ALPHA, BETA]);
+      create();
+      const before = list();
+      open('a', ALPHA);
+      store.shownSpots.set(null);
+      fixture.detectChanges();
+      store.shownSpots.set([BETA]);
+      fixture.detectChanges();
+      closeSpot();
+      expect(list()).toBe(before);
+    });
+
+    it('makes the list inert and hidden from screen readers while a spot is open, and neither after', () => {
+      store.shownSpots.set([ALPHA, BETA]);
+      create();
+      expect(list()!.inert).toBeFalse();
+      expect(list()!.getAttribute('aria-hidden')).toBeNull();
+      expect(list()!.classList).not.toContain('spot-pane__view--list-hidden');
+
+      open('a', ALPHA);
+      expect(list()!.inert).toBeTrue();
+      expect(list()!.getAttribute('aria-hidden')).toBe('true');
+      expect(list()!.classList).toContain('spot-pane__view--list-hidden');
+
+      closeSpot();
+      expect(list()!.inert).toBeFalse();
+      expect(list()!.getAttribute('aria-hidden')).toBeNull();
+      expect(list()!.classList).not.toContain('spot-pane__view--list-hidden');
+    });
+
+    it('keeps the list’s scroll position through an open and close when the rows are unchanged', () => {
+      store.shownSpots.set(MANY);
+      create();
+      list()!.scrollTop = 200;
+      expect(list()!.scrollTop).toBe(200);
+      open('s0', MANY[0]);
+      closeSpot();
+      expect(list()!.scrollTop).toBe(200);
+    });
+
+    it('returns focus to the same row on every close: A, close, A, close', () => {
+      store.shownSpots.set([ALPHA, BETA]);
+      create();
+      const rowA = () =>
+        fixture.nativeElement.querySelector('a[data-spot-id="a"]');
+      for (const pass of ['first', 'second']) {
+        store.returnFocusTo.set('a');
+        open('a', ALPHA);
+        fixture.nativeElement
+          .querySelector('.spot-column__toolbar app-overview-back button')
+          .focus();
+        closeSpot();
+        expect(document.activeElement).withContext(pass).toBe(rowA());
+      }
+    });
+
+    it('asks the list to focus nothing while a spot is open', () => {
+      store.shownSpots.set([ALPHA]);
+      store.returnFocusTo.set('a');
+      create();
+      const component = fixture.debugElement.query(
+        By.directive(SpotListComponent),
+      ).componentInstance as SpotListComponent;
+      expect(component.focusId()).toBe('a');
+      open('a', ALPHA);
+      expect(component.focusId()).toBeNull();
+    });
+
+    it('counts a row in the hidden list as lost focus when the spot closes', () => {
+      store.shownSpots.set([ALPHA, BETA]);
+      const host = create();
+      host.querySelector<HTMLElement>('a[data-spot-id="b"]')!.focus();
+      open('a', ALPHA);
+      closeSpot();
+      expect(document.activeElement).toBe(
+        host.querySelector('.spot-column__count-line'),
+      );
+    });
+
+    it('builds no list on a cold link until its first close, then keeps it', () => {
+      store.shownSpots.set([ALPHA]);
+      showSpot('a', ALPHA);
+      const host = create();
+      expect(list()).toBeNull();
+      expect(host.querySelector('img')).toBeNull();
+      closeSpot();
+      const mounted = list();
+      expect(mounted).not.toBeNull();
+      open('a', ALPHA);
+      expect(list()).toBe(mounted);
+    });
+
+    it('keeps the list ahead of the detail, so Tab from the opening row reaches the detail', () => {
+      store.shownSpots.set([ALPHA]);
+      create();
+      open('a', ALPHA);
+      const detail = fixture.nativeElement.querySelector('app-spot-detail');
+      expect(
+        list()!.compareDocumentPosition(detail) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
+    });
+
+    it('leaves toward −8 px, net of the 16 px step that waits out the fade', () => {
+      store.shownSpots.set([ALPHA]);
+      create();
+      open('a', ALPHA);
+      const style = getComputedStyle(list()!);
+      expect(style.transitionProperty).toContain('translate');
+      expect(style.transitionProperty).toContain('transform');
+      expect(style.pointerEvents).toBe('none');
+      list()!
+        .getAnimations()
+        .forEach((animation) => animation.finish());
+      expect(getComputedStyle(list()!).opacity).toBe('0');
+      expect(getComputedStyle(list()!).translate).toBe('16px');
+    });
+  });
+
   describe('the deferred city picker', () => {
     /** The two picker slots: the header row's from 769 px, the top bar's on a phone. */
     const SITES = [

@@ -293,13 +293,15 @@
   z-index: 2;
 }
 
-/* The pane: list and open spot share one grid cell, so they crossfade instead of stacking. */
+/* The pane: list and open spot share one grid cell, so they crossfade instead of stacking. Isolated
+   for the leaving view's z-index below. */
 .spot-pane {
   display: grid;
   flex: 1 1 auto;
   min-height: 0;
   height: 100%;
   overflow: hidden;
+  isolation: isolate;
 }
 
 .spot-pane__view {
@@ -317,6 +319,10 @@
 .spot-pane__view--list {
   box-sizing: border-box;
   padding: 8px;
+  transition:
+    opacity var(--dur-fast) ease-out,
+    transform var(--dur-fast) var(--ease-out-expo),
+    translate var(--dur-fast) var(--ease-out-expo);
 }
 
 /* Arriving views settle 8 px in from the right; the reduced-motion net keeps only the fade. */
@@ -327,8 +333,33 @@
   }
 }
 
+/* Under the view arriving in its place, as when each new view was inserted after the old one. */
 .spot-pane__view--leaving {
+  z-index: -1;
   opacity: 0;
   transform: translateX(-8px);
   pointer-events: none;
+}
+
+/* The mounted list behind an open spot. It leaves toward −8 px but must return from +8 px, which one
+   transition on one property cannot do: `transform` eases out, `translate` waits until the view is
+   invisible and then steps to 16 px, for a net +8 px, and on the way back both ease to zero. No
+   `visibility` step: the reduced-motion net would cut the fade. */
+.spot-pane__view--list-hidden {
+  opacity: 0;
+  transform: translateX(-8px);
+  translate: 16px 0;
+  pointer-events: none;
+  transition:
+    opacity var(--dur-fast) ease-out,
+    transform var(--dur-fast) var(--ease-out-expo),
+    translate 0s linear var(--dur-fast);
+}
+
+/* The net drops both properties from the transition, so they would step at once: fade only. */
+@media (prefers-reduced-motion: reduce) {
+  .spot-pane__view--list-hidden {
+    transform: none;
+    translate: none;
+  }
 }
