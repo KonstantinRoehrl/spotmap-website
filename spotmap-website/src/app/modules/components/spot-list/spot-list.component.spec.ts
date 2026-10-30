@@ -438,6 +438,46 @@ describe('SpotListComponent', () => {
     expect(row('b').classList).not.toContain('is-highlighted');
   });
 
+  it('keeps a lit row lit while it fades out, and lights the row that replaces it', async () => {
+    create(ROWS, { highlightedId: 'b' });
+    const leaving = row('b');
+    const render = () => {
+      fixture.detectChanges();
+      TestBed.tick();
+    };
+    fixture.componentRef.setInput(
+      'spots',
+      ROWS.filter((s) => s.properties.id !== 'b'),
+    );
+    render();
+    expect(leaving.parentElement!.classList).toContain(
+      'spot-list__item--leaving',
+    );
+
+    // The pin's hover moves on while the row is still fading.
+    fixture.componentRef.setInput('highlightedId', 'a');
+    render();
+    expect(leaving.isConnected).toBeTrue();
+    expect(leaving.classList).toContain('is-highlighted');
+
+    fixture.componentRef.setInput('spots', ROWS);
+    fixture.componentRef.setInput('highlightedId', 'b');
+    render();
+    const arrived = rows().find(
+      (link) =>
+        link.dataset['spotId'] === 'b' &&
+        !link.parentElement!.classList.contains('spot-list__item--leaving'),
+    )!;
+    expect(arrived.classList).toContain('is-highlighted');
+    expect(row('a').classList).not.toContain('is-highlighted');
+
+    fixture.componentRef.setInput('highlightedId', null);
+    render();
+    expect(arrived.classList).not.toContain('is-highlighted');
+    await until(() => !leaving.isConnected);
+    expect(leaving.isConnected).toBeFalse();
+  });
+
   it('hangs its listeners on the list and none on a row', () => {
     hoverPointer(true);
     const listening = spyOn(

@@ -79,6 +79,9 @@ export class SpotListComponent {
   /** The photo host's root; empty when unconfigured, which draws every row's NO PHOTO box. */
   private readonly photoBaseUrl = inject(SPOTMAP_BACKEND).photoBaseUrl;
 
+  /** Hangs the hover listeners outside the zone; a hover emit re-enters it. */
+  private readonly zone = inject(NgZone);
+
   /**
    * Whether the pointer can hover, cached once as PointerBloomDirective caches its query: `.matches`
    * stays live. A touch screen fires `mouseover` on a tap, which must not light a pin.
@@ -90,8 +93,6 @@ export class SpotListComponent {
 
   /** The {@link focusId} value focus has already moved to, so each value moves it once. */
   private focusedId: string | null = null;
-
-  private readonly zone = inject(NgZone);
 
   /** The `<ul>`, which comes and goes with the loading and empty states. */
   private readonly rowList = viewChild<ElementRef<HTMLUListElement>>('rowList');
@@ -130,7 +131,10 @@ export class SpotListComponent {
     afterRenderEffect(() => {
       const id = this.highlightedId();
       this.rows();
-      this.litRow?.classList.remove('is-highlighted');
+      // A row fading out keeps its light until it is gone.
+      if (!this.litRow?.closest('.spot-list__item--leaving')) {
+        this.litRow?.classList.remove('is-highlighted');
+      }
       this.litRow =
         id === null
           ? null

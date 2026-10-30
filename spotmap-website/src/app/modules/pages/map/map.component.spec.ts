@@ -1288,6 +1288,9 @@ describe('MapComponent', () => {
         .forEach((animation) => animation.finish());
       expect(getComputedStyle(list()!).opacity).toBe('0');
       expect(getComputedStyle(list()!).translate).toBe('16px');
+      expect(getComputedStyle(list()!).transform).toBe(
+        'matrix(1, 0, 0, 1, -8, 0)',
+      );
     });
   });
 

@@ -173,7 +173,7 @@
 <ng-template #pane>
   @if (listMounted()) {
     @for (key of [listKey()]; track key) {
-      <!-- The leave never runs on an open or close; it fades the list out when the window crosses 1024 px. -->
+      <!-- The leave runs only when a re-keyed close retires the outgoing list or the window crosses 1024 px, never on a plain open or close. -->
       <app-spot-list
         class="spot-pane__view spot-pane__view--list"
         [class.spot-pane__view--list-hidden]="store.detail()"
