@@ -1,4 +1,9 @@
-import { Component, signal } from '@angular/core';
+import {
+  Component,
+  NgZone,
+  provideZoneChangeDetection,
+  signal,
+} from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { SplitHandleComponent } from './split-handle.component';
 
@@ -12,6 +17,7 @@ import { SplitHandleComponent } from './split-handle.component';
         [frameWidth]="1000"
         (widthChange)="widths.push($event)"
         (widthReset)="resets = resets + 1"
+        (widthCommit)="commits = commits + 1"
       />
     </div>
   `,
@@ -20,6 +26,7 @@ class HostComponent {
   readonly width = signal(384);
   readonly widths: number[] = [];
   resets = 0;
+  commits = 0;
 }
 
 describe('SplitHandleComponent', () => {
@@ -147,6 +154,16 @@ describe('SplitHandleComponent', () => {
       expect(fixture.componentInstance.widths).toEqual([]);
     });
 
+    it('commits after a key step that changed the width, and not after one that did not', () => {
+      press('ArrowLeft');
+      expect(fixture.componentInstance.commits).toBe(1);
+      press('Tab');
+      fixture.componentInstance.width.set(500);
+      fixture.detectChanges();
+      press('End');
+      expect(fixture.componentInstance.commits).toBe(1);
+    });
+
     it('leaves every other key to the page', () => {
       expect(press('Tab')).toBeFalse();
       expect(press('Enter')).toBeFalse();
@@ -187,6 +204,30 @@ describe('SplitHandleComponent', () => {
         pointer('pointermove', 500);
         expect(fixture.componentInstance.widths).withContext(end).toEqual([]);
       }
+    });
+
+    it('commits once when a drag that changed the width ends, however it ends', () => {
+      pointer('pointerdown', 600);
+      pointer('pointermove', 560);
+      pointer('pointermove', 540);
+      expect(fixture.componentInstance.commits).toBe(0);
+      pointer('pointerup', 540);
+      pointer('lostpointercapture', 540);
+      pointer('pointercancel', 540);
+      expect(fixture.componentInstance.commits).toBe(1);
+    });
+
+    it('commits nothing for a press that moved nothing', () => {
+      pointer('pointerdown', 600);
+      pointer('pointerup', 600);
+      expect(fixture.componentInstance.commits).toBe(0);
+    });
+
+    it('stops following the pointer once the drag ends', () => {
+      pointer('pointerdown', 600);
+      pointer('pointerup', 600);
+      pointer('pointermove', 500);
+      expect(fixture.componentInstance.widths).toEqual([]);
     });
 
     it('ignores a secondary button and a second pointer', () => {
@@ -256,5 +297,76 @@ describe('SplitHandleComponent', () => {
       pointer('pointerdown', 600);
       expect(handle.classList).toContain('is-dragging');
     });
+  });
+});
+
+describe('SplitHandleComponent in the Angular zone', () => {
+  let fixture: ComponentFixture<HostComponent>;
+  let handle: HTMLElement;
+  let listening: jasmine.Spy;
+  let zoneTurns: number;
+
+  function pointer(type: string, clientX: number): void {
+    handle.dispatchEvent(
+      new PointerEvent(type, {
+        pointerId: 1,
+        button: 0,
+        clientX,
+        bubbles: true,
+      }),
+    );
+  }
+
+  /** The zone reports a turn once its microtasks drain, so a turn is only counted after a macrotask. */
+  function zoneSettled(): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve));
+  }
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [HostComponent],
+      providers: [provideZoneChangeDetection({ eventCoalescing: true })],
+    });
+    listening = spyOn(
+      EventTarget.prototype,
+      'addEventListener',
+    ).and.callThrough();
+    fixture = TestBed.createComponent(HostComponent);
+    fixture.detectChanges();
+    handle = fixture.nativeElement.querySelector('app-split-handle');
+    spyOn(handle, 'setPointerCapture');
+    spyOn(handle, 'hasPointerCapture').and.returnValue(false);
+    zoneTurns = 0;
+    TestBed.inject(NgZone).onMicrotaskEmpty.subscribe(() => zoneTurns++);
+  });
+
+  afterEach(() => fixture.destroy());
+
+  it('does not listen for pointermove until a drag starts', () => {
+    expect(
+      listening.calls
+        .all()
+        .filter((call) => call.object === handle)
+        .map((call) => call.args[0]),
+    ).not.toContain('pointermove');
+  });
+
+  it('costs no zone turn when the pointer hovers over it', async () => {
+    pointer('pointermove', 500);
+    await zoneSettled();
+    expect(zoneTurns).toBe(0);
+  });
+
+  it('enters the zone for a drag move that changes the width, and only for that', async () => {
+    pointer('pointerdown', 600);
+    await zoneSettled();
+    zoneTurns = 0;
+    pointer('pointermove', 600);
+    await zoneSettled();
+    expect(zoneTurns).toBe(0);
+    pointer('pointermove', 560);
+    await zoneSettled();
+    expect(zoneTurns).toBeGreaterThan(0);
+    expect(fixture.componentInstance.widths).toEqual([424]);
   });
 });
