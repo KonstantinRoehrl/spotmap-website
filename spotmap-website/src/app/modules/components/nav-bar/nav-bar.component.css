@@ -26,6 +26,15 @@
   line-height: 1;
 }
 
+/* Each scramble frame invalidates only the label. Paint containment clips at the padding box and
+   the label's glow reaches 6 px past its text, so the padding moves the clip edge past the glow and
+   the margin cancels it, leaving the label's size and position as they were. */
+.nav-text {
+  contain: layout paint;
+  padding: 6px;
+  margin: -6px;
+}
+
 /* The hover / focus / press look is the shared pointer bloom (styles.css). The 1px border is
    transparent until the link is the current page; 9px padding keeps the old 10px box. */
 .nav-bar a {

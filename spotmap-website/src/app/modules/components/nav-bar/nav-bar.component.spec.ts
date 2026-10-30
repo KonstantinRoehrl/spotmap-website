@@ -125,6 +125,17 @@ describe('NavBarComponent', () => {
     }
   });
 
+  it('contains the label to its own subtree, with the clip edge past its 6 px glow', () => {
+    fixture.detectChanges();
+    const label = fixture.nativeElement.querySelector('.nav-text');
+    const style = getComputedStyle(label);
+    expect(style.contain).toBe('layout paint');
+    expect(style.paddingLeft).toBe('6px');
+    expect(style.paddingTop).toBe('6px');
+    expect(style.marginLeft).toBe('-6px');
+    expect(style.marginTop).toBe('-6px');
+  });
+
   it('keeps tracking the pointer after a touch that missed every link', () => {
     fixture.detectChanges();
     const nav = (fixture.nativeElement as HTMLElement).querySelector('nav')!;
