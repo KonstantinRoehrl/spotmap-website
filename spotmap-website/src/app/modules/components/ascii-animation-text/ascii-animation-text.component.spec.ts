@@ -276,16 +276,37 @@ describe('AsciiAnimationTextComponent in the Angular zone', () => {
     f.destroy();
   }));
 
-  it('leaves the text node alone when a frame repeats the line', fakeAsync(() => {
+  it('writes nothing to the line when a frame repeats it', fakeAsync(() => {
     const f = render({ ...TYPING, messages: ['AB'], waitFrames: 5 });
     f.detectChanges();
     tick(10 * 3); // `A_`, `AB_`, then `AB` whole
     const line = f.nativeElement.querySelector('.ascii-line') as HTMLElement;
-    const node = line.firstChild;
     expect(line.textContent).toBe('AB');
 
-    tick(10); // a wait frame, with nothing to change
-    expect(line.firstChild).toBe(node);
+    // Watches for writes, not for the text node: a same-text `textContent` write reuses the node.
+    const writes = new MutationObserver(() => {});
+    writes.observe(line, {
+      characterData: true,
+      childList: true,
+      subtree: true,
+    });
+    tick(10 * 2); // wait frames, with nothing to change
+    expect(writes.takeRecords().length).toBe(0);
+
+    writes.disconnect();
+    f.destroy();
+  }));
+
+  it("shows a line's loading dots in the trailing gutter only", fakeAsync(() => {
+    const f = render({ ...TYPING, messages: ['LOADING...'] });
+    f.detectChanges();
+    tick(10 * 10); // the dots show once the `...` itself is typed, on the tenth frame
+    const [leading, trailing] = f.nativeElement.querySelectorAll(
+      '.loading-dots',
+    ) as NodeListOf<HTMLElement>;
+
+    expect(trailing.textContent).toMatch(/^\.{1,3}$/);
+    expect(leading.textContent).toBe('');
 
     f.destroy();
   }));
