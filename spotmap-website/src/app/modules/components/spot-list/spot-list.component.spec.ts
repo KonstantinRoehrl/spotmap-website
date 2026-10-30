@@ -587,6 +587,16 @@ describe('SpotListComponent', () => {
     expect(getComputedStyle(item).opacity).toBe('0');
   });
 
+  it('skips off-screen rows and reserves the height a row actually renders at', () => {
+    create(ROWS);
+    const item = host().querySelector<HTMLElement>('ul > li')!;
+    const style = getComputedStyle(item);
+    expect(style.contentVisibility).toBe('auto');
+    expect(style.containIntrinsicBlockSize).toBe(
+      `auto ${item.getBoundingClientRect().height}px`,
+    );
+  });
+
   it('sets no text below 12 px', () => {
     create(ROWS, { notice: 'not-found' });
     for (const element of Array.from(host().querySelectorAll('*'))) {
