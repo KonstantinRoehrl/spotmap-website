@@ -2,6 +2,8 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  DestroyRef,
+  DOCUMENT,
   ElementRef,
   inject,
   input,
@@ -97,6 +99,8 @@ export class SplitHandleComponent {
 
   private readonly zone = inject(NgZone);
 
+  private readonly document = inject(DOCUMENT);
+
   /** The drag under way, if any. */
   private drag?: Drag;
 
@@ -122,6 +126,18 @@ export class SplitHandleComponent {
       this.dragChangedWidth = true;
     }
   };
+
+  /**
+   * Attached for a drag's length only: a native drag starting anywhere would cancel the handle's
+   * pointer. The press itself cannot be prevented instead, because it gives the handle its focus.
+   */
+  private readonly cancelNativeDrag = (event: DragEvent): void =>
+    event.preventDefault();
+
+  constructor() {
+    // A handle removed mid-drag sees no pointer end, and would go on cancelling the page's drags.
+    inject(DestroyRef).onDestroy(() => this.allowNativeDrag());
+  }
 
   /** Moves the column by a key, as the window-splitter pattern asks; other keys are the page's. */
   protected onKeydown(event: KeyboardEvent): void {
@@ -164,9 +180,10 @@ export class SplitHandleComponent {
     };
     this.dragging.set(true);
     this.dragChangedWidth = false;
-    this.zone.runOutsideAngular(() =>
-      this.host.addEventListener('pointermove', this.followPointer),
-    );
+    this.zone.runOutsideAngular(() => {
+      this.host.addEventListener('pointermove', this.followPointer);
+      this.document.addEventListener('dragstart', this.cancelNativeDrag, true);
+    });
   }
 
   /** The drag's pointer went up, was cancelled or lost its capture: the drag ends. */
@@ -181,9 +198,14 @@ export class SplitHandleComponent {
     }
     this.dragging.set(false);
     this.host.removeEventListener('pointermove', this.followPointer);
+    this.allowNativeDrag();
     if (this.dragChangedWidth) {
       this.widthCommit.emit();
     }
+  }
+
+  private allowNativeDrag(): void {
+    this.document.removeEventListener('dragstart', this.cancelNativeDrag, true);
   }
 
   /** Reports `width` unless it is the width the column already has; says whether it did. */

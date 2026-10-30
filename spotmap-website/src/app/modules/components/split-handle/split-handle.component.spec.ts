@@ -75,6 +75,23 @@ describe('SplitHandleComponent', () => {
     fixture.detectChanges();
   }
 
+  /**
+   * Starts a native drag on an element outside the handle and says whether it was cancelled. The
+   * element stops the event's propagation, so only a capture-phase listener can reach it.
+   */
+  function nativeDragCancelled(): boolean {
+    const link = document.createElement('a');
+    link.addEventListener('dragstart', (event) => event.stopPropagation());
+    document.body.appendChild(link);
+    const event = new DragEvent('dragstart', {
+      bubbles: true,
+      cancelable: true,
+    });
+    link.dispatchEvent(event);
+    link.remove();
+    return event.defaultPrevented;
+  }
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [HostComponent],
@@ -239,6 +256,31 @@ describe('SplitHandleComponent', () => {
       expect(fixture.componentInstance.widths).toEqual([]);
     });
 
+    it('cancels a native drag that starts elsewhere during a drag, and keeps following the pointer', () => {
+      pointer('pointerdown', 600);
+      expect(nativeDragCancelled()).toBeTrue();
+      pointer('pointermove', 560);
+      expect(handle.classList).toContain('is-dragging');
+      expect(fixture.componentInstance.widths).toEqual([424]);
+    });
+
+    it('leaves native drags alone before a press and after the drag ends, however it ends', () => {
+      expect(nativeDragCancelled()).toBeFalse();
+      for (const end of ['pointerup', 'pointercancel', 'lostpointercapture']) {
+        pointer('pointerdown', 600);
+        expect(nativeDragCancelled()).withContext(end).toBeTrue();
+        pointer(end, 600);
+        expect(nativeDragCancelled()).withContext(end).toBeFalse();
+      }
+    });
+
+    it('leaves native drags alone once the handle is destroyed in the middle of a drag', () => {
+      pointer('pointerdown', 600);
+      expect(nativeDragCancelled()).toBeTrue();
+      fixture.destroy();
+      expect(nativeDragCancelled()).toBeFalse();
+    });
+
     it('resets to the default width on a double-click', () => {
       handle.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
       expect(fixture.componentInstance.resets).toBe(1);
@@ -354,6 +396,20 @@ describe('SplitHandleComponent in the Angular zone', () => {
   it('costs no zone turn when the pointer hovers over it', async () => {
     pointer('pointermove', 500);
     await zoneSettled();
+    expect(zoneTurns).toBe(0);
+  });
+
+  it('costs no zone turn when it cancels a native drag', async () => {
+    pointer('pointerdown', 600);
+    await zoneSettled();
+    zoneTurns = 0;
+    const event = new DragEvent('dragstart', {
+      bubbles: true,
+      cancelable: true,
+    });
+    document.body.dispatchEvent(event);
+    await zoneSettled();
+    expect(event.defaultPrevented).toBeTrue();
     expect(zoneTurns).toBe(0);
   });
 
