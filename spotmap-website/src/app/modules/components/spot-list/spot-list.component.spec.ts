@@ -1,4 +1,5 @@
-import { APP_BASE_HREF } from '@angular/common';
+import { APP_BASE_HREF, LocationStrategy } from '@angular/common';
+import { NgZone, provideZoneChangeDetection } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import type { SpotListFeature, SpotStatus } from '../../../models/spots/spot';
@@ -70,6 +71,13 @@ function painted(token: string): string {
   return value;
 }
 
+/** Fires a bubbling mouse event at `target`, from or to `related`. */
+function mouse(type: string, target: Element, related: Element | null = null) {
+  target.dispatchEvent(
+    new MouseEvent(type, { bubbles: true, relatedTarget: related }),
+  );
+}
+
 describe('SpotListComponent', () => {
   let fixture: ComponentFixture<SpotListComponent>;
   /** Whether the last click reaching the document had been taken by the row handler. */
@@ -121,6 +129,8 @@ describe('SpotListComponent', () => {
       fixture.componentRef.setInput(name, value);
     }
     fixture.detectChanges();
+    // Render hooks run on the app tick, not on a fixture's detectChanges.
+    TestBed.tick();
     return fixture;
   }
 
@@ -365,17 +375,161 @@ describe('SpotListComponent', () => {
     ).toEqual(['b']);
     fixture.componentRef.setInput('highlightedId', null);
     fixture.detectChanges();
+    TestBed.tick();
     expect(host().querySelector('.is-highlighted')).toBeNull();
   });
 
-  it('reports the hovered row on a hover-capable pointer', () => {
+  it('changes one row’s class on a hover and derives no row again', () => {
+    create(ROWS, { highlightedId: 'a' });
+    const derive = spyOn(
+      TestBed.inject(LocationStrategy),
+      'prepareExternalUrl',
+    ).and.callThrough();
+    const changes = new MutationObserver(() => undefined);
+    changes.observe(host(), {
+      attributes: true,
+      attributeFilter: ['class'],
+      subtree: true,
+    });
+
+    fixture.componentRef.setInput('highlightedId', 'b');
+    fixture.detectChanges();
+    TestBed.tick();
+
+    expect(
+      changes
+        .takeRecords()
+        .map((record) => (record.target as HTMLElement).dataset['spotId']),
+    ).toEqual(['a', 'b']);
+    expect(derive).not.toHaveBeenCalled();
+    changes.disconnect();
+  });
+
+  it('derives each row once per list change', () => {
+    const strategy = jasmine.createSpyObj<LocationStrategy>(
+      'LocationStrategy',
+      ['prepareExternalUrl'],
+    );
+    strategy.prepareExternalUrl.and.callFake((path: string) => path);
+    TestBed.configureTestingModule({
+      providers: [{ provide: LocationStrategy, useValue: strategy }],
+    });
+    create(ROWS);
+    expect(strategy.prepareExternalUrl).toHaveBeenCalledTimes(ROWS.length);
+    fixture.componentRef.setInput('notice', 'not-found');
+    fixture.detectChanges();
+    expect(strategy.prepareExternalUrl).toHaveBeenCalledTimes(ROWS.length);
+  });
+
+  it('lights a row that arrives after its pin was hovered', () => {
+    create(null, { highlightedId: 'b' });
+    fixture.componentRef.setInput('spots', ROWS);
+    fixture.detectChanges();
+    TestBed.tick();
+    expect(row('b').classList).toContain('is-highlighted');
+  });
+
+  it('does not light a row on its way out', () => {
+    create(ROWS);
+    row('b').parentElement!.classList.add('spot-list__item--leaving');
+    fixture.componentRef.setInput('highlightedId', 'b');
+    fixture.detectChanges();
+    TestBed.tick();
+    expect(row('b').classList).not.toContain('is-highlighted');
+  });
+
+  it('hangs its listeners on the list and none on a row', () => {
+    hoverPointer(true);
+    const listening = spyOn(
+      EventTarget.prototype,
+      'addEventListener',
+    ).and.callThrough();
+    create(ROWS);
+    const list = host().querySelector('ul')!;
+    const calls = listening.calls.all();
+    expect(
+      calls
+        .filter((call) => call.object === list)
+        .map((call) => call.args[0])
+        .sort(),
+    ).toEqual([
+      'click',
+      'mouseout',
+      'mouseover',
+      'pointerdown',
+      'pointermove',
+      'pointerout',
+      'touchstart',
+    ]);
+    expect(
+      calls.filter(
+        (call) =>
+          call.object instanceof Element &&
+          call.object.closest('ul') !== null &&
+          call.object !== list,
+      ),
+    ).toEqual([]);
+  });
+
+  it('does nothing for a click off any row', () => {
+    create(ROWS);
+    const opened: string[] = [];
+    fixture.componentInstance.open.subscribe((id) => opened.push(id));
+    click(host().querySelector('ul')!);
+    expect(opened).toEqual([]);
+    expect(lastClickPrevented).toBeFalse();
+  });
+
+  it('opens a row from a click on something inside it', () => {
+    create(ROWS);
+    const opened: string[] = [];
+    fixture.componentInstance.open.subscribe((id) => opened.push(id));
+    click(row('a').querySelector<HTMLElement>('.spot-row__name')!);
+    expect(opened).toEqual(['a']);
+  });
+
+  it('reports the hovered row on a hover-capable pointer, as enter and leave would', () => {
     hoverPointer(true);
     create(ROWS);
     const hovered: (string | null)[] = [];
     fixture.componentInstance.hover.subscribe((id) => hovered.push(id));
-    row('a').dispatchEvent(new MouseEvent('mouseenter'));
-    row('a').dispatchEvent(new MouseEvent('mouseleave'));
-    expect(hovered).toEqual(['a', null]);
+    const name = row('a').querySelector('.spot-row__name')!;
+
+    mouse('mouseover', row('a'));
+    // Moving inside a row crosses its children: no enter, no leave.
+    mouse('mouseout', row('a'), name);
+    mouse('mouseover', name, row('a'));
+    expect(hovered).toEqual(['a']);
+
+    // To the adjacent row: null, then its id.
+    mouse('mouseout', name, row('b'));
+    mouse('mouseover', row('b'), name);
+    expect(hovered).toEqual(['a', null, 'b']);
+
+    // Onto the gap between rows, and on out of the list: one null.
+    mouse('mouseout', row('b'), host().querySelector('ul'));
+    mouse('mouseover', host().querySelector('ul')!, row('b'));
+    expect(hovered).toEqual(['a', null, 'b', null]);
+  });
+
+  it('reports a stationary pointer again when the list comes back under it', () => {
+    hoverPointer(true);
+    create(ROWS);
+    const hovered: (string | null)[] = [];
+    fixture.componentInstance.hover.subscribe((id) => hovered.push(id));
+    mouse('mouseover', row('a'));
+    fixture.componentRef.setInput('spots', null);
+    fixture.detectChanges();
+    TestBed.tick();
+    fixture.componentRef.setInput('spots', ROWS);
+    fixture.detectChanges();
+    TestBed.tick();
+    // The outgoing list may still be fading out ahead of the new one: take the last match.
+    const fresh = Array.from(
+      host().querySelectorAll('a[data-spot-id="a"]'),
+    ).pop()!;
+    mouse('mouseover', fresh);
+    expect(hovered).toEqual(['a', 'a']);
   });
 
   it('reports no hover on a touch screen', () => {
@@ -383,9 +537,22 @@ describe('SpotListComponent', () => {
     create(ROWS);
     const hovered: (string | null)[] = [];
     fixture.componentInstance.hover.subscribe((id) => hovered.push(id));
-    row('a').dispatchEvent(new MouseEvent('mouseenter'));
-    row('a').dispatchEvent(new MouseEvent('mouseleave'));
+    mouse('mouseover', row('a'));
+    mouse('mouseout', row('a'));
     expect(hovered).toEqual([]);
+  });
+
+  it('removes its hover listeners when the list goes to its loading line', () => {
+    hoverPointer(true);
+    create(ROWS);
+    const list = host().querySelector('ul')!;
+    const removed = spyOn(list, 'removeEventListener').and.callThrough();
+    fixture.componentRef.setInput('spots', null);
+    fixture.detectChanges();
+    TestBed.tick();
+    expect(removed.calls.allArgs().map(([type]) => type)).toEqual(
+      jasmine.arrayContaining(['mouseover', 'mouseout']),
+    );
   });
 
   it('focuses the row a closed detail was opened from, once', async () => {
@@ -430,5 +597,50 @@ describe('SpotListComponent', () => {
         .withContext(element.className)
         .toBeGreaterThanOrEqual(12);
     }
+  });
+});
+
+describe('SpotListComponent in the Angular zone', () => {
+  it('watches hover outside the zone and emits inside it', async () => {
+    spyOn(window, 'matchMedia').and.callFake(
+      (query: string) =>
+        ({
+          matches: query.includes('hover: hover'),
+          media: query,
+        }) as MediaQueryList,
+    );
+    TestBed.configureTestingModule({
+      imports: [SpotListComponent],
+      providers: [
+        provideZoneChangeDetection({ eventCoalescing: true }),
+        { provide: SPOTMAP_BACKEND, useValue: BACKEND },
+      ],
+    });
+    const f = TestBed.createComponent(SpotListComponent);
+    f.componentRef.setInput('spots', ROWS);
+    f.detectChanges();
+    TestBed.tick();
+    const list = f.nativeElement.querySelector('ul') as HTMLElement;
+    const inZone: boolean[] = [];
+    f.componentInstance.hover.subscribe(() =>
+      inZone.push(NgZone.isInAngularZone()),
+    );
+    let zoneTurns = 0;
+    const subscription = TestBed.inject(NgZone).onMicrotaskEmpty.subscribe(
+      () => zoneTurns++,
+    );
+
+    list.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+    // Event coalescing delays an in-zone turn until a frame or timeout, so wait past it.
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    expect(zoneTurns).toBe(0);
+
+    list
+      .querySelector('a[data-spot-id="a"]')!
+      .dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+    expect(inZone).toEqual([true]);
+
+    subscription.unsubscribe();
+    f.destroy();
   });
 });

@@ -13,15 +13,15 @@
   </div>
 }
 
-@let rows = spots();
-@if (rows === null) {
+@let list = rows();
+@if (list === null) {
   <p
     class="spot-list__line spot-list__line--dim"
     animate.leave="spot-list__line--leaving"
   >
     &gt; LOADING SPOTS…
   </p>
-} @else if (rows.length === 0) {
+} @else if (list.length === 0) {
   <p
     class="spot-list__line spot-list__line--lit"
     animate.leave="spot-list__line--leaving"
@@ -35,20 +35,21 @@
     pan around or zoom out. the city’s bigger than this.
   </p>
 } @else {
-  <ul class="spot-list" role="list">
-    @for (spot of rows; track spot.properties.id) {
+  <ul
+    #rowList
+    class="spot-list"
+    role="list"
+    appPointerBloomRows="a.spot-row"
+    (click)="onListClick($event)"
+  >
+    @for (row of list; track row.id) {
       <li class="spot-list__item" animate.leave="spot-list__item--leaving">
         <a
           class="spot-row phosphor-bloom phosphor-bloom--inset"
-          appPointerBloom
-          [class.is-highlighted]="spot.properties.id === highlightedId()"
-          [attr.data-spot-id]="spot.properties.id"
-          [href]="hrefFor(spot.properties.id)"
-          (click)="onRowClick($event, spot.properties.id)"
-          (mouseenter)="onRowHover(spot.properties.id)"
-          (mouseleave)="onRowHover(null)"
+          [attr.data-spot-id]="row.id"
+          [href]="row.href"
         >
-          @if (thumbnailFor(spot); as src) {
+          @if (row.thumbnail; as src) {
             <img
               class="spot-row__thumb"
               [src]="src"
@@ -64,8 +65,8 @@
             >
           }
           <span class="spot-row__text">
-            <span class="spot-row__name">{{ spot.properties.name }}</span>
-            <span class="spot-row__meta">{{ metaFor(spot) }}</span>
+            <span class="spot-row__name">{{ row.name }}</span>
+            <span class="spot-row__meta">{{ row.meta }}</span>
           </span>
         </a>
       </li>
