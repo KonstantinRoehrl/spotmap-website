@@ -1,5 +1,3 @@
-import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CityEnum } from '../../../models/enums/map-enum';
 import {
@@ -135,8 +133,6 @@ describe('SpotMapComponent', () => {
     await TestBed.configureTestingModule({
       imports: [SpotMapComponent],
       providers: [
-        provideHttpClient(),
-        provideHttpClientTesting(),
         { provide: MAP_FACTORY, useValue: mapFactory },
         { provide: SPOTMAP_BACKEND, useFactory: () => backend },
         {
@@ -924,8 +920,14 @@ describe('SpotMapComponent', () => {
     it('frames the map on the spots in its constructor', async () => {
       createWith(null);
       await giveSpots(LIST);
-      const options = mapFactory.calls.mostRecent().args[0];
-      expect(options.bounds).toBeDefined();
+      expect(mapFactory.calls.mostRecent().args[0].bounds).toEqual([
+        [16.37, 48.2],
+        [16.4, 48.22],
+      ]);
+      fake.emit('load');
+      expect(fake.cameraMoves)
+        .withContext('no camera move follows the first paint')
+        .toEqual([]);
     });
 
     it('stays unbuilt on an unsupported browser when the spots arrive', async () => {

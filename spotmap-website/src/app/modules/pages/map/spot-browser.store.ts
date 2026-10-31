@@ -81,6 +81,11 @@ interface DetailAnswer {
  * pushed, or replaces a link that was opened cold with `/map`. A cold link holds the map back
  * (`mapCity` null) until the spot's detail names its city, so the remembered city is never built
  * only to be replaced.
+ *
+ * The store also owns the city's spot-list load: it records the load's milestones
+ * ({@link listEvents}) and its failure ({@link listFailed}), reloads it on a retry
+ * ({@link reloadList}, counted by {@link listAttempt}), hands the map the list to build from
+ * ({@link mapSpots}), and lists everything when the map gives up ({@link mapGaveUp}).
  */
 @Injectable()
 export class SpotBrowserStore {
