@@ -21,13 +21,14 @@ import type {
 import { filter, lastValueFrom, Subject, takeUntil, tap } from 'rxjs';
 import { CityEnum } from '../../../models/enums/map-enum';
 import { SpotListCollection } from '../../../models/spots/spot';
-import type { ViewBounds } from '../../../models/spots/spots-in-view';
+import { type SpotIndex, spotIndexOf } from '../../../models/spots/spot-index';
 import {
   SpotListLoaded,
   SpotListLoadEvent,
   SpotsService,
 } from '../../../services/spots.service';
-import { photoUrl, SPOTMAP_BACKEND } from '../../../services/spotmap-backend';
+import { SpotPhotos } from '../../../services/spot-photos.service';
+import { canHover } from '../../../utils/input-capabilities';
 import { prefersReducedMotion } from '../../../utils/prefers-reduced-motion';
 import { demMaxzoomFor, type ElevationTiles } from './elevation';
 import {
@@ -35,6 +36,7 @@ import {
   type AttributionCorner,
   type MapFocus,
   type MapInsets,
+  type ViewBounds,
 } from '../../../models/map/map-camera';
 import type { MapFailureReason } from '../../../models/map/map-failure-reason';
 import type { MapLoadEvent } from '../../../models/map/map-load-event';
@@ -188,14 +190,6 @@ function spotIdOf(feature: MapGeoJSONFeature | undefined): string | undefined {
   return id === undefined ? undefined : String(id);
 }
 
-/** Whether the visitor's pointer can hover: a tap on a touch screen must leave no hover behind. */
-function hasHoverPointer(): boolean {
-  return (
-    typeof window.matchMedia === 'function' &&
-    window.matchMedia('(hover: hover)').matches
-  );
-}
-
 /**
  * Draws a city's spots on a MapLibre map, reports the loaded spots, pin taps and taps on empty
  * map, and shows the selection its `selectedId` input names — the URL's, which is the selection's
@@ -283,7 +277,7 @@ export class SpotMapComponent {
   private readonly mapFactory = inject(MAP_FACTORY);
   private readonly loadElevation = inject(ELEVATION_LOADER);
   /** Where the photos come from; with no photo host there are no photo pins or tooltip photos. */
-  private readonly backend = inject(SPOTMAP_BACKEND);
+  private readonly spotPhotos = inject(SpotPhotos);
   /** Runs the selection flag's timers outside the zone, so a landing flag never holds `whenStable`. */
   private readonly zone = inject(NgZone);
 
@@ -316,8 +310,8 @@ export class SpotMapComponent {
   private selection?: SpotSelection;
   /** Keeps the current build's selected pin in view; set once its pins are drawn. */
   private camera?: SelectionCamera;
-  /** The current build's spots, for a selected id's coordinates; set once its pins are drawn. */
-  private collection?: SpotListCollection;
+  /** The current build's spots by id, for a selected id's coordinates; set once its pins are drawn. */
+  private spotIndex?: SpotIndex;
   /**
    * The frame the selection was last kept in view in. A change detection that hands over an equal
    * but new `coveredInsets` object must not re-centre a map the visitor has panned since.
@@ -665,20 +659,17 @@ export class SpotMapComponent {
       }
       this.outcome = 'painted';
       this.reportLoad({ kind: 'painted' }, generation);
+      const spotIndex = spotIndexOf(collection);
       // The resolver must be in place before the layers that ask it for images.
-      if (this.backend.photoBaseUrl) {
-        this.photoPins = new PhotoPins(
-          map,
-          collection,
-          this.backend.photoBaseUrl,
-        );
+      if (this.spotPhotos.enabled) {
+        this.photoPins = new PhotoPins(map, spotIndex, this.spotPhotos);
         this.photoPins.install();
       }
       this.drawSpots(map, collection);
       // Feature state needs the spot source, so the selection starts here. One already in the URL
       // — a shared link opened cold, or a rebuild — is no tap: it shows without the pulse, and the
       // camera seats it in the middle of the uncovered part without animation.
-      this.collection = collection;
+      this.spotIndex = spotIndex;
       this.selection = new SpotSelection(map);
       if (this.photoPins) {
         // Its signal write still schedules the render from outside the zone.
@@ -788,7 +779,7 @@ export class SpotMapComponent {
         this.spotUnder(map, event.point, this.pinsAt(map, event)) ??
         null;
       map.getCanvas().style.cursor = id === null ? '' : 'pointer';
-      if (hasHoverPointer()) {
+      if (canHover()) {
         this.reportPinHover(id);
       }
     });
@@ -906,22 +897,16 @@ export class SpotMapComponent {
    */
   private showFlag(id: string | null, animate: boolean): void {
     const flag = this.selectionFlag;
-    const base = this.backend.photoBaseUrl;
     if (!flag) {
       return;
     }
-    const spot =
-      id === null
-        ? undefined
-        : this.collection?.features.find(
-            (feature) => feature.properties.id === id,
-          );
-    const cover = spot?.properties.cover;
+    const spot = id === null ? undefined : this.spotIndex?.get(id);
+    const photo = this.spotPhotos.coverThumb(spot?.properties);
     flag.show(
-      spot && cover && base
+      spot && photo
         ? {
             id: spot.properties.id,
-            photo: photoUrl(base, cover, 'thumb'),
+            photo,
             demolished: spot.properties.status === 'demolished',
             coordinates: spot.geometry.coordinates,
           }
@@ -951,10 +936,7 @@ export class SpotMapComponent {
   }
   /** Where the current build draws the spot `id`, or `null` for a spot it does not hold. */
   private coordinatesOf(id: string): [number, number] | null {
-    return (
-      this.collection?.features.find((feature) => feature.properties.id === id)
-        ?.geometry.coordinates ?? null
-    );
+    return this.spotIndex?.get(id)?.geometry.coordinates ?? null;
   }
 
   /** Reports the bounds, and moves the tooltip and the flag, on the next animation frame, once however many moves ask for it. */
@@ -978,8 +960,7 @@ export class SpotMapComponent {
   private hasCover(id: string | null): boolean {
     return (
       id !== null &&
-      (this.collection?.features.find((feature) => feature.properties.id === id)
-        ?.properties.cover ?? null) !== null
+      (this.spotIndex?.get(id)?.properties.cover ?? null) !== null
     );
   }
 
@@ -1021,9 +1002,7 @@ export class SpotMapComponent {
     const spot =
       !map || !this.selection || id === null || id === this.selectedId()
         ? undefined
-        : this.collection?.features.find(
-            (feature) => feature.properties.id === id,
-          );
+        : this.spotIndex?.get(id);
     if (!map || !spot) {
       if (this.tooltip() !== null) {
         this.tooltip.set(null);
@@ -1031,9 +1010,7 @@ export class SpotMapComponent {
       return;
     }
     const { x, y } = map.project(spot.geometry.coordinates);
-    const base = this.backend.photoBaseUrl;
-    const cover = spot.properties.cover;
-    const photo = base && cover ? photoUrl(base, cover, 'thumb') : null;
+    const photo = this.spotPhotos.coverThumb(spot.properties);
     // The card is centred on the pin, above it. Near an edge it slides back inside the map, and
     // with no room above it flips below the pin.
     const reach = TOOLTIP_WIDTH_PX / 2 + TOOLTIP_EDGE_GAP_PX;
@@ -1079,7 +1056,7 @@ export class SpotMapComponent {
    */
   private releaseCamera(): void {
     this.camera = undefined;
-    this.collection = undefined;
+    this.spotIndex = undefined;
     this.framedFor = undefined;
     if (this.boundsFrame !== undefined) {
       cancelAnimationFrame(this.boundsFrame);

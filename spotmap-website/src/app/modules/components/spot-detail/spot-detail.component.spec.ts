@@ -20,7 +20,7 @@ import {
 import type { PhotoViewerRequest } from '../spot-photo-viewer/spot-photo-viewer';
 import { SpotShareComponent } from '../spot-share/spot-share.component';
 import { directionsUrl } from './directions';
-import { SHARE_NAVIGATOR, ShareNavigator } from './share-spot';
+import { SHARE_NAVIGATOR, ShareNavigator } from '../spot-share/share-spot';
 import { SpotDetailComponent } from './spot-detail.component';
 
 /** A backend with a photo host, so the rail and covers render. */

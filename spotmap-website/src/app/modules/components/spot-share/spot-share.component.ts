@@ -22,7 +22,7 @@ import {
   SHARE_NAVIGATOR,
   shareSpot,
   spotLink,
-} from '../spot-detail/share-spot';
+} from './share-spot';
 import {
   MENU_GAP_PX,
   type MenuPlacement,

@@ -92,29 +92,9 @@
   opacity: 0;
 }
 
-/* The gallery's failure voice, in the frame the photo would have filled. */
+/* Places the failure voice in the frame the photo would have filled. */
 .rail__failed {
   position: absolute;
   inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
   padding: 8px;
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  letter-spacing: 0.08em;
-  text-align: center;
-  color: var(--color-phosphor);
-}
-
-/* Only the SIGNAL LOST line takes the Standard tier; the dim line beside it stays unlit. */
-.rail__failed-line--lost {
-  text-shadow: var(--glow-text-standard);
-}
-
-.rail__failed-line--dim {
-  color: var(--color-phosphor-dim);
-  text-shadow: none;
 }

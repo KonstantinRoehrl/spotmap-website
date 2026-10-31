@@ -7,7 +7,7 @@ import {
   tick,
 } from '@angular/core/testing';
 
-import { SHARE_NAVIGATOR, ShareNavigator } from '../spot-detail/share-spot';
+import { SHARE_NAVIGATOR, ShareNavigator } from './share-spot';
 import { SHARE_FEEDBACK_MS, SpotShareComponent } from './spot-share.component';
 
 /** A navigator with no share sheet whose clipboard answers with `writeText`. */

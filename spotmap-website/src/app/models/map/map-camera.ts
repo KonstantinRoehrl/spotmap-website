@@ -34,3 +34,25 @@ export type AttributionCorner = 'bottom-right' | 'top-right';
  * room to show, and the same cap the city framing never zooms past.
  */
 export const SPOT_FOCUS_ZOOM = 16;
+
+/** A view's edges in degrees, as the map reports its uncovered part: west/east longitudes, south/north latitudes. */
+export interface ViewBounds {
+  readonly west: number;
+  readonly south: number;
+  readonly east: number;
+  readonly north: number;
+}
+
+/** A rectangle on the map canvas, in canvas pixels from its top-left corner. */
+export interface ScreenRect {
+  readonly left: number;
+  readonly top: number;
+  readonly right: number;
+  readonly bottom: number;
+}
+
+/** A point on the map canvas, in canvas pixels. */
+export interface ScreenPoint {
+  readonly x: number;
+  readonly y: number;
+}

@@ -1,13 +1,6 @@
 import { Observable, of } from 'rxjs';
+import type { ViewBounds } from '../map/map-camera';
 import { SpotListCollection, SpotListFeature } from './spot';
-
-/** A view's edges in degrees, as the map reports its uncovered part: west/east longitudes, south/north latitudes. */
-export interface ViewBounds {
-  readonly west: number;
-  readonly south: number;
-  readonly east: number;
-  readonly north: number;
-}
 
 /**
  * The one question the list, its count and the sheet ask: which spots lie inside these bounds,

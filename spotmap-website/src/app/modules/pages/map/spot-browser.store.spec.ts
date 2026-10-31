@@ -8,20 +8,22 @@ import { RouterTestingHarness } from '@angular/router/testing';
 import { Subject } from 'rxjs';
 
 import { CityEnum } from '../../../models/enums/map-enum';
-import { SPOT_FOCUS_ZOOM } from '../../../models/map/map-camera';
+import {
+  SPOT_FOCUS_ZOOM,
+  type ViewBounds,
+} from '../../../models/map/map-camera';
 import { SUPPORTED_CITIES } from '../../../models/map/supported-cities';
 import type {
   SpotDetail,
   SpotListCollection,
   SpotListFeature,
 } from '../../../models/spots/spot';
-import type { ViewBounds } from '../../../models/spots/spots-in-view';
 import {
   SpotDetailResult,
   SpotsService,
 } from '../../../services/spots.service';
 import { matchMapPage } from '../../../utils/map-page-path';
-import { USER_CITY_STORAGE_KEY } from '../../components/city-picker/stored-city';
+import { USER_CITY_STORAGE_KEY } from './stored-city';
 import { DOCUMENT_TITLE_SUFFIX, SpotBrowserStore } from './spot-browser.store';
 
 /** The map page as the router sees it: one routed component that provides the store. */
@@ -707,6 +709,28 @@ describe('SpotBrowserStore', () => {
         status: 'loading',
         id: 'b',
         preview: BETA,
+      });
+    });
+
+    it('stays what the frozen list showed when the list changes before a retry', async () => {
+      await openViennaMap();
+      store.open('a', 'pin');
+      await settle();
+      failLoad('a');
+      store.setList({
+        type: 'FeatureCollection',
+        features: [
+          BETA,
+          listFeature('a', 'Alpha Bank, renamed', [16.37, 48.2]),
+        ],
+      });
+
+      store.retryDetail();
+
+      expect(store.detail()).toEqual({
+        status: 'loading',
+        id: 'a',
+        preview: ALPHA,
       });
     });
 

@@ -15,7 +15,6 @@ import {
   type ProcessedPhoto,
 } from '../../../../services/admin/photo-pipeline/photo-pipeline';
 import {
-  photoUrl,
   SPOTMAP_BACKEND,
   type SpotmapBackend,
 } from '../../../../services/spotmap-backend';
@@ -337,7 +336,10 @@ describe('SpotEditComponent', () => {
       item.querySelector('img')!.getAttribute('src'),
     );
     expect(sources).toEqual(
-      [A, B, C].map((key) => photoUrl(BACKEND.photoBaseUrl, key, 'thumb')),
+      [A, B, C].map(
+        (key) =>
+          `https://project.test/storage/v1/object/public/spot-photos/thumb/${key}`,
+      ),
     );
   });
 

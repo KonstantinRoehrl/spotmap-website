@@ -1,21 +1,11 @@
-import type { MapInsets } from '../../../models/map/map-camera';
-import type { ViewBounds } from '../../../models/spots/spots-in-view';
+import type {
+  MapInsets,
+  ScreenPoint,
+  ScreenRect,
+  ViewBounds,
+} from '../../../models/map/map-camera';
 import { prefersReducedMotion } from '../../../utils/prefers-reduced-motion';
 import { SELECTED_RING_RADIUS } from './spot-layers';
-
-/** A rectangle on the map canvas, in canvas pixels from its top-left corner. */
-export interface ScreenRect {
-  readonly left: number;
-  readonly top: number;
-  readonly right: number;
-  readonly bottom: number;
-}
-
-/** A point on the map canvas, in canvas pixels. */
-export interface ScreenPoint {
-  readonly x: number;
-  readonly y: number;
-}
 
 /**
  * What the camera keeps a selected pin visible in: the canvas size, the strips the page's own UI

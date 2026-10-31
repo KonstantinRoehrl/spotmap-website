@@ -14,7 +14,7 @@ import {
   viewChild,
 } from '@angular/core';
 import type { SpotDetailView } from '../../../models/spots/spot-detail-view';
-import { photoUrl, SPOTMAP_BACKEND } from '../../../services/spotmap-backend';
+import { SpotPhotos } from '../../../services/spot-photos.service';
 import { PointerBloomDirective } from '../../directives/pointer-bloom.directive';
 import { SpotPhotoRailComponent } from '../spot-photo-rail/spot-photo-rail.component';
 import { PHOTO_VIEWER_LOADER } from '../spot-photo-viewer/photo-viewer-loader';
@@ -73,8 +73,7 @@ export class SpotDetailComponent {
   /** RETRY was pressed on a file that could not be loaded; the page loads it again. */
   retry = output<void>();
 
-  /** Where photos are served from; empty when no photo host is configured. */
-  private readonly photoBaseUrl = inject(SPOTMAP_BACKEND).photoBaseUrl;
+  private readonly spotPhotos = inject(SpotPhotos);
   /** Loads the photo viewer, which opens a rail photo; see {@link PHOTO_VIEWER_LOADER}. */
   private readonly loadViewer = inject(PHOTO_VIEWER_LOADER);
 
@@ -124,24 +123,15 @@ export class SpotDetailComponent {
     () => this.spot()?.name ?? this.preview()?.properties.name ?? null,
   );
 
-  /** The loaded spot's photo keys; none without photos or a photo host. */
-  private readonly photoKeys = computed(() => {
-    const spot = this.spot();
-    return spot && this.photoBaseUrl ? spot.photos : [];
-  });
-
-  /** Thumbnail URLs of the loaded spot's photos, the rail's frames; empty without photos or a photo host. */
-  protected readonly thumbnails = computed(() =>
-    this.photoKeys().map((key) => photoUrl(this.photoBaseUrl, key, 'thumb')),
+  /** The loaded spot's photo URLs, the rail's frames and the viewer's slides; empty without photos or a photo host. */
+  protected readonly photoUrls = computed(() =>
+    this.spotPhotos.set(this.spot()?.photos ?? []),
   );
 
   /** The preview's cover thumbnail, shown in the reserved frame while the file loads. */
-  protected readonly previewCover = computed(() => {
-    const cover = this.preview()?.properties.cover;
-    return cover && this.photoBaseUrl
-      ? photoUrl(this.photoBaseUrl, cover, 'thumb')
-      : null;
-  });
+  protected readonly previewCover = computed(() =>
+    this.spotPhotos.coverThumb(this.preview()?.properties),
+  );
 
   /**
    * Whether a detail whose file is not in holds the rail's first frame, while it loads and after
@@ -151,7 +141,7 @@ export class SpotDetailComponent {
    */
   protected readonly reservesRail = computed(() => {
     const view = this.view();
-    if (view.status === 'loaded' || !this.photoBaseUrl) {
+    if (view.status === 'loaded' || !this.spotPhotos.enabled) {
       return false;
     }
     return view.preview ? view.preview.properties.photoCount > 0 : true;
@@ -227,12 +217,11 @@ export class SpotDetailComponent {
     }
     this.closeViewer();
     const generation = this.viewerGeneration;
+    const { thumbs, fulls } = this.photoUrls();
     const request = {
       spotName: spot.name,
-      thumbs: this.thumbnails(),
-      fulls: this.photoKeys().map((key) =>
-        photoUrl(this.photoBaseUrl, key, 'full'),
-      ),
+      thumbs,
+      fulls,
       index,
       originOf: (photo: number) => rail.photoButton(photo),
     };

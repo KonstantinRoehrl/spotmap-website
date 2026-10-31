@@ -21,28 +21,29 @@ import {
 } from 'rxjs';
 import { MapItem } from '../../../models/enums/interfaces/map-item-interface';
 import { CityEnum } from '../../../models/enums/map-enum';
-import { MapFocus, SPOT_FOCUS_ZOOM } from '../../../models/map/map-camera';
-import { SUPPORTED_CITIES } from '../../../models/map/supported-cities';
+import {
+  MapFocus,
+  SPOT_FOCUS_ZOOM,
+  ViewBounds,
+} from '../../../models/map/map-camera';
+import { parseCity } from '../../../models/map/supported-cities';
 import type {
   SpotDetail,
   SpotListCollection,
   SpotListFeature,
 } from '../../../models/spots/spot';
 import type { SpotDetailView } from '../../../models/spots/spot-detail-view';
+import { type SpotIndex, spotIndexOf } from '../../../models/spots/spot-index';
 import {
   LoadedSpotsInView,
   SpotsInView,
-  ViewBounds,
 } from '../../../models/spots/spots-in-view';
 import {
   SpotDetailResult,
   SpotsService,
 } from '../../../services/spots.service';
 import { SPOT_ID_PARAM } from '../../../utils/map-page-path';
-import {
-  readStoredCity,
-  storeCity,
-} from '../../components/city-picker/stored-city';
+import { readStoredCity, storeCity } from './stored-city';
 
 /** Follows an open spot's name in the document title: `ALPHA BANK · SPOTMAP`. */
 export const DOCUMENT_TITLE_SUFFIX = ' · SPOTMAP';
@@ -148,11 +149,10 @@ export class SpotBrowserStore {
   /** The loaded city's in-view answer; null until its list has arrived. */
   private inView: SpotsInView | null = null;
   /**
-   * All of the loaded city's spots in the list shape, in view or not; empty until the list has
-   * arrived. A spot's preview is read from here, not asked of {@link inView}, which may answer
-   * later (Phase 11).
+   * All of the loaded city's spots by id, in view or not; null until the list has arrived. A
+   * spot's preview is read from here, not asked of {@link inView}, which may answer later (Phase 11).
    */
-  private loadedSpots: readonly SpotListFeature[] = [];
+  private spotIndex: SpotIndex | null = null;
   /** The map's visible bounds; null until it has reported them. */
   private bounds: ViewBounds | null = null;
   /** Asks the in-view source again, for the current list and bounds. */
@@ -234,7 +234,7 @@ export class SpotBrowserStore {
 
   /** The map's list of the city's spots, as it arrived for the current build. */
   setList(collection: SpotListCollection): void {
-    this.loadedSpots = collection.features;
+    this.spotIndex = spotIndexOf(collection);
     this.inView = new LoadedSpotsInView(collection);
     this.viewQueries.next();
   }
@@ -359,8 +359,7 @@ export class SpotBrowserStore {
       this.showRememberedMapIfHeld();
       return;
     }
-    const city =
-      result.type === 'found' ? supportedCity(result.spot.city) : null;
+    const city = result.type === 'found' ? parseCity(result.spot.city) : null;
     if (result.type === 'not-found' || city === null) {
       this.onNotFound();
       return;
@@ -397,18 +396,24 @@ export class SpotBrowserStore {
     storeCity(city.city);
     this.openOnState.set(focus);
     this.inView = null;
-    this.loadedSpots = [];
+    this.spotIndex = null;
     this.bounds = null;
     this.frozenSpots.set(null);
     this.hoveredIdState.set(null);
     this.viewQueries.next();
   }
 
-  /** The loaded city's feature for `id`, whether or not it is in view or in the list shown. */
+  /**
+   * The loaded city's feature for `id`, whether or not it is in view. The frozen list is asked
+   * first: a RETRY can answer from another source without clearing it, so the two can hold different
+   * data for one id, and the preview must stay what the visitor saw. The live list needs no scan,
+   * being derived from the current load and so holding the index's own objects.
+   */
   private inViewFeature(id: string): SpotListFeature | null {
-    const isSpot = (feature: SpotListFeature) => feature.properties.id === id;
     return (
-      this.shownSpots()?.find(isSpot) ?? this.loadedSpots.find(isSpot) ?? null
+      this.frozenSpots()?.find((feature) => feature.properties.id === id) ??
+      this.spotIndex?.get(id) ??
+      null
     );
   }
 
@@ -455,16 +460,6 @@ function sameSpots(
       a.length === b.length &&
       a.every((spot, index) => spot === b[index]))
   );
-}
-
-/**
- * The picker's entry for a city slug, or null for one the app has no map for. `Object.hasOwn`, so
- * a slug such as `constructor` cannot reach an `Object.prototype` member.
- */
-function supportedCity(slug: string): MapItem | null {
-  return Object.hasOwn(SUPPORTED_CITIES, slug)
-    ? SUPPORTED_CITIES[slug as CityEnum]
-    : null;
 }
 
 /** Where a map built for `spot`'s city opens: on the spot, close enough for its photo pin. */

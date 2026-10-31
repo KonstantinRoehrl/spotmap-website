@@ -28,10 +28,7 @@ import {
   PhotoPipeline,
   type ProcessedPhoto,
 } from '../../../../services/admin/photo-pipeline/photo-pipeline';
-import {
-  photoUrl,
-  SPOTMAP_BACKEND,
-} from '../../../../services/spotmap-backend';
+import { SpotPhotos } from '../../../../services/spot-photos.service';
 import {
   PICKER_CITY_ZOOM,
   PICKER_DETAIL_ZOOM,
@@ -117,7 +114,7 @@ export class CreateOrAttachComponent {
   private readonly pipeline = inject(PhotoPipeline);
   private readonly repository = inject(AdminRepository);
   private readonly imagery = inject(IMAGERY_CONFIG);
-  private readonly backend = inject(SPOTMAP_BACKEND);
+  private readonly spotPhotos = inject(SpotPhotos);
   private readonly injector = inject(Injector);
   private readonly stepHeading =
     viewChild<ElementRef<HTMLElement>>('stepHeading');
@@ -238,13 +235,9 @@ export class CreateOrAttachComponent {
   protected readonly failure = signal<Failure | null>(null);
 
   /** The saved spot's thumbnail URLs; none without a photo host. */
-  protected readonly savedThumbs = computed(() => {
-    const spot = this.saved();
-    const base = this.backend.photoBaseUrl;
-    return spot && base
-      ? spot.photos.map((key) => photoUrl(base, key, 'thumb'))
-      : [];
-  });
+  protected readonly savedThumbs = computed(
+    () => this.spotPhotos.set(this.saved()?.photos ?? []).thumbs,
+  );
 
   /** What the polite live region says about the step on screen. */
   protected readonly announcement = computed(() => {

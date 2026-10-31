@@ -12,7 +12,8 @@ import {
   viewChild,
 } from '@angular/core';
 import type { SpotListFeature } from '../../../models/spots/spot';
-import { photoUrl, SPOTMAP_BACKEND } from '../../../services/spotmap-backend';
+import { SpotPhotos } from '../../../services/spot-photos.service';
+import { canHover } from '../../../utils/input-capabilities';
 import { PointerBloomRowsDirective } from '../../directives/pointer-bloom.directive';
 
 /** One row as the template draws it, derived once per list change. */
@@ -76,20 +77,10 @@ export class SpotListComponent {
   /** Prefixes the row links with the app's base href. */
   private readonly locationStrategy = inject(LocationStrategy);
 
-  /** The photo host's root; empty when unconfigured, which draws every row's NO PHOTO box. */
-  private readonly photoBaseUrl = inject(SPOTMAP_BACKEND).photoBaseUrl;
+  private readonly spotPhotos = inject(SpotPhotos);
 
   /** Hangs the hover listeners outside the zone; a hover emit re-enters it. */
   private readonly zone = inject(NgZone);
-
-  /**
-   * Whether the pointer can hover, cached once as PointerBloomDirective caches its query: `.matches`
-   * stays live. A touch screen fires `mouseover` on a tap, which must not light a pin.
-   */
-  private readonly hoverPointer =
-    typeof window !== 'undefined' && typeof window.matchMedia === 'function'
-      ? window.matchMedia('(hover: hover)')
-      : null;
 
   /** The {@link focusId} value focus has already moved to, so each value moves it once. */
   private focusedId: string | null = null;
@@ -204,13 +195,13 @@ export class SpotListComponent {
 
   /** Reports the hover on a hover-capable pointer only, back in the zone the page's state lives in. */
   private reportHover(id: string | null): void {
-    if (this.hoverPointer?.matches) {
+    if (canHover()) {
       this.zone.run(() => this.hover.emit(id));
     }
   }
 
   private toRow(spot: SpotListFeature): SpotListRow {
-    const { id, name, cover, photoCount, status } = spot.properties;
+    const { id, name, photoCount, status } = spot.properties;
     const photos =
       photoCount === 0
         ? 'NO PHOTOS'
@@ -223,10 +214,7 @@ export class SpotListComponent {
       href: this.locationStrategy.prepareExternalUrl(
         `/spot/${encodeURIComponent(id)}`,
       ),
-      thumbnail:
-        cover && this.photoBaseUrl
-          ? photoUrl(this.photoBaseUrl, cover, 'thumb')
-          : null,
+      thumbnail: this.spotPhotos.coverThumb(spot.properties),
       meta: status === 'demolished' ? `DEMOLISHED · ${photos}` : photos,
     };
   }

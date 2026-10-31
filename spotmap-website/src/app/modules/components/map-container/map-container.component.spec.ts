@@ -9,12 +9,15 @@ import {
 import { By } from '@angular/platform-browser';
 
 import { CityEnum } from '../../../models/enums/map-enum';
+import type { ViewBounds } from '../../../models/map/map-camera';
 import { SpotListCollection } from '../../../models/spots/spot';
-import type { ViewBounds } from '../../../models/spots/spots-in-view';
 import { ELEVATION_LOADER, MAP_FACTORY } from '../spot-map/map-factory.token';
 import { MapLoaderComponent } from '../map-loader/map-loader.component';
 import { SpotMapComponent } from '../spot-map/spot-map.component';
-import { INITIAL_MAP_LOAD_STATE, MapLoadState } from './map-load-progress';
+import {
+  INITIAL_MAP_LOAD_STATE,
+  MapLoadState,
+} from '../map-loader/map-load-progress';
 import type { MapFailureReason } from '../../../models/map/map-failure-reason';
 import type { MapLoadEvent } from '../../../models/map/map-load-event';
 import {
