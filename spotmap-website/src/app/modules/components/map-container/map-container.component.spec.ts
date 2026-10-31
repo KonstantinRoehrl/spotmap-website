@@ -1,5 +1,4 @@
-import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { Component } from '@angular/core';
 import {
   ComponentFixture,
   TestBed,
@@ -9,11 +8,7 @@ import {
 import { By } from '@angular/platform-browser';
 
 import { CityEnum } from '../../../models/enums/map-enum';
-import type { ViewBounds } from '../../../models/map/map-camera';
-import { SpotListCollection } from '../../../models/spots/spot';
-import { ELEVATION_LOADER, MAP_FACTORY } from '../spot-map/map-factory.token';
 import { MapLoaderComponent } from '../map-loader/map-loader.component';
-import { SpotMapComponent } from '../spot-map/spot-map.component';
 import {
   INITIAL_MAP_LOAD_STATE,
   MapLoadState,
@@ -25,38 +20,11 @@ import {
   MapContainerComponent,
 } from './map-container.component';
 
-/**
- * SpotMapComponent injects the maplibre map factory and the elevation loader the moment it is
- * constructed. These tests never let it call any of them (the spot request below is never
- * flushed), so a never-resolving stub is enough — and providing them keeps the ESM-only
- * maplibre-gl and maplibre-contour out of the karma bundle, which is why neither
- * token carries a default (map-factory.token.ts).
- */
-const neverResolves = () => new Promise<never>(() => {});
-
 describe('MapContainerComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [MapContainerComponent],
-      providers: [
-        provideHttpClient(),
-        provideHttpClientTesting(),
-        { provide: MAP_FACTORY, useValue: neverResolves },
-        { provide: ELEVATION_LOADER, useValue: neverResolves },
-      ],
     }).compileComponents();
-
-    // Headless Chrome hands out no WebGL context, so the map would fail as `unsupported` the
-    // moment it renders; fake its support probe (as spot-map.component.spec.ts does) so it waits
-    // on the never-flushed spot request instead.
-    spyOn(HTMLCanvasElement.prototype, 'getContext').and.returnValue({
-      getExtension: () => null,
-    } as unknown as WebGL2RenderingContext);
-
-    // The container owns the state machine, not the map. Blank the MapLibre renderer's
-    // template so no WebGL context is built here; its own markup is covered by
-    // spot-map.component.spec.ts.
-    TestBed.overrideComponent(SpotMapComponent, { set: { template: '' } });
   });
 
   /** Create + bind the required input. Pass `render` to also run change detection. */
@@ -72,7 +40,7 @@ describe('MapContainerComponent', () => {
     return fixture;
   }
 
-  // The state signals and renderer callbacks are protected; reach them through a
+  // The state signals and the RETRY handler are protected; reach them through a
   // cast in tests only.
   const failure = (c: MapContainerComponent) =>
     (
@@ -81,16 +49,13 @@ describe('MapContainerComponent', () => {
   const errorShown = (c: MapContainerComponent) => failure(c) !== null;
   const mapShown = (c: MapContainerComponent) =>
     (c as unknown as { mapReady: () => boolean }).mapReady();
-  const rendererReady = (c: MapContainerComponent) =>
-    (c as unknown as { onRendererReady: () => void }).onRendererReady();
+  const rendererReady = (c: MapContainerComponent) => c.onReady();
   const rendererFailed = (c: MapContainerComponent, reason: MapFailureReason) =>
-    (
-      c as unknown as { onRendererFailed: (reason: MapFailureReason) => void }
-    ).onRendererFailed(reason);
+    c.onFailed(reason);
   const applyEvent = (c: MapContainerComponent, event: MapLoadEvent) =>
-    (
-      c as unknown as { onLoadEvent: (event: MapLoadEvent) => void }
-    ).onLoadEvent(event);
+    c.report(event);
+  const clickRetry = (c: MapContainerComponent) =>
+    (c as unknown as { onRetryClick: () => void }).onRetryClick();
   const barFinished = (c: MapContainerComponent) =>
     (c as unknown as { onBarFinished: () => void }).onBarFinished();
   const loadState = (c: MapContainerComponent) =>
@@ -143,67 +108,6 @@ describe('MapContainerComponent', () => {
         .getPropertyValue('--dur-crossfade')
         .trim(),
     ).toBe('300ms');
-    fixture.destroy();
-  });
-
-  it('renders the maplibre map for vienna', () => {
-    const fixture = create(true, CityEnum.Vienna);
-    expect(fixture.nativeElement.querySelector('app-spot-map')).toBeTruthy();
-    fixture.destroy();
-  });
-
-  it('hands the camera inputs to the map and re-emits its bounds', () => {
-    const fixture = create(true);
-    const insets = { top: 0, right: 0, bottom: 300, left: 0 };
-    const focus = { center: [16.37, 48.2] as [number, number], zoom: 16 };
-    fixture.componentRef.setInput('coveredInsets', insets);
-    fixture.componentRef.setInput('openOn', focus);
-    fixture.componentRef.setInput('attributionCorner', 'top-right');
-    fixture.detectChanges();
-    const map = fixture.debugElement.query(By.directive(SpotMapComponent))
-      .componentInstance as SpotMapComponent;
-    expect(map.coveredInsets()).toBe(insets);
-    expect(map.openOn()).toBe(focus);
-    expect(map.attributionCorner()).toBe('top-right');
-    const bounds: ViewBounds[] = [];
-    fixture.componentInstance.boundsChange.subscribe((b) => bounds.push(b));
-    const box = { west: 1, south: 2, east: 3, north: 4 };
-    map.boundsChange.emit(box);
-    expect(bounds).toEqual([box]);
-    fixture.destroy();
-  });
-
-  it('hands the selection to the map and re-emits what the map reports', () => {
-    const fixture = create(true);
-    fixture.componentRef.setInput('selectedId', 'a');
-    fixture.detectChanges();
-    const map = fixture.debugElement.query(By.directive(SpotMapComponent))
-      .componentInstance as SpotMapComponent;
-    expect(map.selectedId()).toBe('a');
-
-    const clicks: string[] = [];
-    const lists: SpotListCollection[] = [];
-    const empty = jasmine.createSpy('emptyClick');
-    fixture.componentInstance.spotClick.subscribe((id) => clicks.push(id));
-    fixture.componentInstance.spotsLoaded.subscribe((c) => lists.push(c));
-    fixture.componentInstance.emptyClick.subscribe(empty);
-    const list: SpotListCollection = {
-      type: 'FeatureCollection',
-      features: [],
-    };
-    map.spotClick.emit('b');
-    map.spotsLoaded.emit(list);
-    map.emptyClick.emit();
-    expect(clicks).toEqual(['b']);
-    expect(lists).toEqual([list]);
-    expect(empty).toHaveBeenCalledTimes(1);
-    fixture.destroy();
-  });
-
-  it('renders the maplibre map for graz, which used to embed google my maps', () => {
-    const fixture = create(true, CityEnum.Graz);
-    expect(fixture.nativeElement.querySelector('app-spot-map')).toBeTruthy();
-    expect(fixture.nativeElement.querySelector('iframe')).toBeNull();
     fixture.destroy();
   });
 
@@ -292,7 +196,7 @@ describe('MapContainerComponent', () => {
     );
 
     rendererFailed(fixture.componentInstance, 'unreachable');
-    fixture.componentInstance.retry();
+    clickRetry(fixture.componentInstance);
     fixture.detectChanges();
     expect(statusOf(fixture).textContent?.trim()).toBe(
       'Loading spots for Graz',
@@ -395,7 +299,7 @@ describe('MapContainerComponent', () => {
     tick(LOAD_TIMEOUT_MS);
     expect(errorShown(c)).toBe(true);
 
-    c.retry();
+    clickRetry(c);
     expect(errorShown(c)).toBe(false);
     expect(mapShown(c)).toBe(false);
     expect(loadState(c)).toEqual(INITIAL_MAP_LOAD_STATE);
@@ -478,18 +382,76 @@ describe('MapContainerComponent', () => {
     fixture.destroy();
   });
 
-  it('hands the hovered spot to the map and re-emits the pin under the pointer', () => {
-    const fixture = create(true);
-    fixture.componentRef.setInput('hoveredId', 'a');
+  /** A frame around projected content, as the page uses it. */
+  @Component({
+    imports: [MapContainerComponent],
+    template: `<app-map-container [city]="city"
+      ><p class="projected">the map</p></app-map-container
+    >`,
+  })
+  class FrameHostComponent {
+    city = CityEnum.Vienna;
+  }
+
+  it('renders what is projected into it inside the fading frame', () => {
+    const fixture = TestBed.createComponent(FrameHostComponent);
     fixture.detectChanges();
-    const map = fixture.debugElement.query(By.directive(SpotMapComponent))
-      .componentInstance as SpotMapComponent;
-    expect(map.hoveredId()).toBe('a');
-    const hovers: (string | null)[] = [];
-    fixture.componentInstance.pinHover.subscribe((id) => hovers.push(id));
-    map.pinHover.emit('b');
-    map.pinHover.emit(null);
-    expect(hovers).toEqual(['b', null]);
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('.map-frame .projected')).not.toBeNull();
+    fixture.destroy();
+  });
+
+  it('folds the store’s milestones and then the map’s events, in that order', () => {
+    const fixture = create();
+    fixture.componentRef.setInput('spotEvents', [
+      { kind: 'spots-sent' },
+      { kind: 'spots-fallback' },
+      { kind: 'spots-sent' },
+      { kind: 'spots-done' },
+    ]);
+    fixture.detectChanges();
+    applyEvent(fixture.componentInstance, { kind: 'renderer-ready' });
+    const state = loadState(fixture.componentInstance);
+    expect(state.step).toBe('map');
+    expect(state.fallback).toBeTrue();
+    fixture.destroy();
+  });
+
+  it('shows the failure for a failed list and stops the watchdog', fakeAsync(() => {
+    const fixture = create(true);
+    fixture.componentRef.setInput('listFailed', true);
+    fixture.detectChanges();
+    expect(failure(fixture.componentInstance)).toBe('unreachable');
+    fixture.componentRef.setInput('listFailed', false);
+    fixture.detectChanges();
+    tick(LOAD_TIMEOUT_MS);
+    expect(failure(fixture.componentInstance))
+      .withContext('the watchdog stood down when the list failed')
+      .toBeNull();
+    fixture.destroy();
+  }));
+
+  it('prefers the map’s unsupported over a failed list, so RETRY stays withheld', () => {
+    const fixture = create(true);
+    rendererFailed(fixture.componentInstance, 'unsupported');
+    fixture.componentRef.setInput('listFailed', true);
+    fixture.detectChanges();
+    expect(failure(fixture.componentInstance)).toBe('unsupported');
+    expect(fixture.nativeElement.querySelector('.map-error__retry')).toBeNull();
+    fixture.destroy();
+  });
+
+  it('emits retry and resets its own load on a RETRY click', () => {
+    const fixture = create(true);
+    const retried = jasmine.createSpy('retry');
+    fixture.componentInstance.retry.subscribe(retried);
+    applyEvent(fixture.componentInstance, { kind: 'painted' });
+    rendererFailed(fixture.componentInstance, 'unreachable');
+    fixture.detectChanges();
+    fixture.nativeElement.querySelector('.map-error__retry').click();
+    expect(retried).toHaveBeenCalledTimes(1);
+    expect(errorShown(fixture.componentInstance)).toBeFalse();
+    expect(loadState(fixture.componentInstance).progress).toBe(0);
     fixture.destroy();
   });
 });

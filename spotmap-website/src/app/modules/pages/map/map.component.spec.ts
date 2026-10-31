@@ -16,9 +16,13 @@ import { BehaviorSubject, map } from 'rxjs';
 
 import { CityEnum } from '../../../models/enums/map-enum';
 import { MapFocus, NO_INSETS } from '../../../models/map/map-camera';
+import type { MapLoadEvent } from '../../../models/map/map-load-event';
 import { SUPPORTED_CITIES } from '../../../models/map/supported-cities';
 import type { MapItem } from '../../../models/enums/interfaces/map-item-interface';
-import type { SpotListFeature } from '../../../models/spots/spot';
+import type {
+  SpotListCollection,
+  SpotListFeature,
+} from '../../../models/spots/spot';
 import type { SpotDetailView } from '../../../models/spots/spot-detail-view';
 import { AsciiAnimationTextComponent } from '../../components/ascii-animation-text/ascii-animation-text.component';
 import { CityPickerComponent } from '../../components/city-picker/city-picker.component';
@@ -101,6 +105,10 @@ function fakeStore() {
     openOn: signal<MapFocus | null>(null),
     selectedId: signal<string | null>(null),
     shownSpots: signal<readonly SpotListFeature[] | null>(null),
+    mapSpots: signal<SpotListCollection | null>(null),
+    listEvents: signal<readonly MapLoadEvent[]>([]),
+    listFailed: signal(false),
+    listAttempt: signal(0),
     detail: signal<SpotDetailView | null>(null),
     notice: signal<'not-found' | null>(null),
     hoveredId: signal<string | null>(null),
@@ -113,6 +121,8 @@ function fakeStore() {
     retryDetail: jasmine.createSpy('retryDetail'),
     setHovered: jasmine.createSpy('setHovered'),
     dismissNotice: jasmine.createSpy('dismissNotice'),
+    mapGaveUp: jasmine.createSpy('mapGaveUp'),
+    reloadList: jasmine.createSpy('reloadList'),
   };
 }
 
@@ -194,6 +204,12 @@ describe('MapComponent', () => {
   function container(): MapContainerComponent {
     return fixture.debugElement.query(By.directive(MapContainerComponent))
       .componentInstance as MapContainerComponent;
+  }
+
+  /** The map the page projects into its frame. */
+  function spotMap(): SpotMapComponent {
+    return fixture.debugElement.query(By.directive(SpotMapComponent))
+      .componentInstance as SpotMapComponent;
   }
 
   function sheet(): SpotSheetComponent {
@@ -358,8 +374,8 @@ describe('MapComponent', () => {
 
     it('covers none of the framed map and keeps the credits bottom right', () => {
       create();
-      expect(container().coveredInsets()).toEqual(NO_INSETS);
-      expect(container().attributionCorner()).toBe('bottom-right');
+      expect(spotMap().coveredInsets()).toEqual(NO_INSETS);
+      expect(spotMap().attributionCorner()).toBe('bottom-right');
     });
 
     it('opens the column at its default width while no share is remembered', () => {
@@ -710,12 +726,12 @@ describe('MapComponent', () => {
       sheet().headTap.emit();
       fixture.detectChanges();
       expect(sheet().state()).toBe('list');
-      expect(container().coveredInsets().bottom).toBe(half);
+      expect(spotMap().coveredInsets().bottom).toBe(half);
 
       showSpot('a', ALPHA);
       fixture.detectChanges();
       expect(sheet().state()).toBe('detail');
-      expect(container().coveredInsets().bottom).toBe(half);
+      expect(spotMap().coveredInsets().bottom).toBe(half);
       // The sheet eases its height (330 ms); settle it to read where it comes to rest.
       const sheetHost = host.querySelector<HTMLElement>('app-spot-sheet')!;
       sheetHost.getAnimations().forEach((animation) => animation.finish());
@@ -732,11 +748,11 @@ describe('MapComponent', () => {
 
     it('tells the map the sheet covers its bottom, and keeps the credits top right', () => {
       const host = create();
-      expect(container().coveredInsets()).toEqual({
+      expect(spotMap().coveredInsets()).toEqual({
         ...NO_INSETS,
         bottom: sheetHeight('peek', frameHeight(host)),
       });
-      expect(container().attributionCorner()).toBe('top-right');
+      expect(spotMap().attributionCorner()).toBe('top-right');
     });
 
     it('opens the list from the sheet head and covers more of the map', () => {
@@ -745,7 +761,7 @@ describe('MapComponent', () => {
       fixture.detectChanges();
 
       expect(sheet().state()).toBe('list');
-      expect(container().coveredInsets().bottom).toBe(
+      expect(spotMap().coveredInsets().bottom).toBe(
         sheetHeight('list', frameHeight(host)),
       );
     });
@@ -802,7 +818,7 @@ describe('MapComponent', () => {
       store.detail.set({ status: 'loading', id: 'a', preview: ALPHA });
       create();
 
-      container().emptyClick.emit();
+      spotMap().emptyClick.emit();
       fixture.detectChanges();
       expect(store.close).toHaveBeenCalledTimes(1);
       expect(sheet().state()).toBe('peek');
@@ -810,7 +826,7 @@ describe('MapComponent', () => {
 
     it('ignores a tap on empty map while no spot is open', () => {
       create();
-      container().emptyClick.emit();
+      spotMap().emptyClick.emit();
       expect(store.close).not.toHaveBeenCalled();
     });
 
@@ -1036,11 +1052,11 @@ describe('MapComponent', () => {
 
     it('covers the framed map by the sheet and keeps the credits top right', () => {
       const host = create(900);
-      expect(container().coveredInsets()).toEqual({
+      expect(spotMap().coveredInsets()).toEqual({
         ...NO_INSETS,
         bottom: sheetHeight('peek', frameHeight(host)),
       });
-      expect(container().attributionCorner()).toBe('top-right');
+      expect(spotMap().attributionCorner()).toBe('top-right');
     });
   });
 
@@ -1554,9 +1570,9 @@ describe('MapComponent', () => {
 
   it('keeps the same map across the breakpoint, so a resize never rebuilds it', () => {
     create();
-    const before = container();
+    const before = spotMap();
     goNarrow();
-    expect(container()).toBe(before);
+    expect(spotMap()).toBe(before);
   });
 
   it('builds no map while a shared link is still finding its city', () => {
@@ -1573,9 +1589,10 @@ describe('MapComponent', () => {
     store.openOn.set(focus);
     create();
     expect(container().city()).toBe(CityEnum.Vienna);
-    expect(container().selectedId()).toBe('a');
-    expect(container().hoveredId()).toBe('b');
-    expect(container().openOn()).toEqual(focus);
+    expect(spotMap().city()).toBe(CityEnum.Vienna);
+    expect(spotMap().selectedId()).toBe('a');
+    expect(spotMap().hoveredId()).toBe('b');
+    expect(spotMap().openOn()).toEqual(focus);
   });
 
   it('feeds what the map reports into the store', () => {
@@ -1585,15 +1602,47 @@ describe('MapComponent', () => {
       features: [ALPHA],
     };
     const bounds = { west: 16, south: 48, east: 17, north: 49 };
-    container().spotsLoaded.emit(collection);
-    container().boundsChange.emit(bounds);
-    container().spotClick.emit('a');
-    container().pinHover.emit('b');
+    spotMap().spotsLoaded.emit(collection);
+    spotMap().boundsChange.emit(bounds);
+    spotMap().spotClick.emit('a');
+    spotMap().pinHover.emit('b');
 
     expect(store.setList).toHaveBeenCalledWith(collection);
     expect(store.setBounds).toHaveBeenCalledWith(bounds);
     expect(store.open).toHaveBeenCalledWith('a', 'pin');
     expect(store.setHovered).toHaveBeenCalledWith('b');
+  });
+
+  it('tells both the frame and the store when the map gives up', () => {
+    create();
+    store.mapGaveUp.calls.reset();
+    const onFailed = spyOn(container(), 'onFailed');
+    spotMap().failed.emit('unreachable');
+    expect(onFailed).toHaveBeenCalledOnceWith('unreachable');
+    expect(store.mapGaveUp).toHaveBeenCalledTimes(1);
+  });
+
+  it('hands the map’s load events to the frame and the frame’s retry to the store', () => {
+    create();
+    const report = spyOn(container(), 'report');
+    const onReady = spyOn(container(), 'onReady');
+    spotMap().loadEvent.emit({ kind: 'painted' });
+    spotMap().ready.emit();
+    container().retry.emit();
+    expect(report).toHaveBeenCalledOnceWith({ kind: 'painted' });
+    expect(onReady).toHaveBeenCalledTimes(1);
+    expect(store.reloadList).toHaveBeenCalledTimes(1);
+  });
+
+  it('binds the store’s load to the frame and its attempt to the map', () => {
+    const events = [{ kind: 'spots-sent' }] as const;
+    store.listEvents.set(events);
+    store.listFailed.set(true);
+    store.listAttempt.set(3);
+    create();
+    expect(container().spotEvents()).toBe(events);
+    expect(container().listFailed()).toBeTrue();
+    expect(spotMap().retryToken()).toBe(3);
   });
 
   it('feeds the list and the picker into the store', async () => {

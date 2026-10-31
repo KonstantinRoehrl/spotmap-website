@@ -2,25 +2,12 @@
   class="map-container w-full h-full relative"
   [attr.aria-busy]="!mapReady() && failureReason() === null"
 >
-  <app-spot-map
+  <div
     class="map-frame w-full h-full block"
     [style.opacity]="mapReady() ? 1 : 0"
-    [city]="city()"
-    [retryToken]="retryToken()"
-    (loadEvent)="onLoadEvent($event)"
-    (ready)="onRendererReady()"
-    (failed)="onRendererFailed($event)"
-    [selectedId]="selectedId()"
-    [coveredInsets]="coveredInsets()"
-    [openOn]="openOn()"
-    [attributionCorner]="attributionCorner()"
-    (boundsChange)="boundsChange.emit($event)"
-    (spotsLoaded)="spotsLoaded.emit($event)"
-    (spotClick)="spotClick.emit($event)"
-    (emptyClick)="emptyClick.emit()"
-    [hoveredId]="hoveredId()"
-    (pinHover)="pinHover.emit($event)"
-  ></app-spot-map>
+  >
+    <ng-content />
+  </div>
 
   <!-- Outside every @if and empty at first, so the region exists before the first announcement. -->
   <p class="sr-only" role="status" aria-live="polite">{{ announcement() }}</p>
@@ -58,7 +45,7 @@
           type="button"
           class="map-error__retry phosphor-bloom"
           appPointerBloom
-          (click)="retry()"
+          (click)="onRetryClick()"
         >
           &gt; RETRY
         </button>
