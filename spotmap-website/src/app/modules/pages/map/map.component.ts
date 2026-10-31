@@ -75,9 +75,9 @@ interface FrameSize {
  * fixed rows, the banner over the picker, neither sized by the line playing or the city chosen. The
  * city picker, and the Material it is built on, loads once the page is idle; an inert frame holds
  * its slot until then. The page owns which layout is on screen and so what the map is told is
- * covered, and where keyboard focus goes when an open spot closes; the column's width is the
- * {@link ColumnSplitState}'s, the sheet's height the {@link SheetController}'s, and everything else
- * the {@link SpotBrowserStore}'s.
+ * covered, and where keyboard focus goes when an open spot closes. The banner is
+ * {@link MapBannerComponent}'s, the column's width {@link ColumnSplitState}'s, the sheet's height
+ * {@link SheetController}'s, and everything else the {@link SpotBrowserStore}'s.
  */
 @Component({
   selector: 'app-map',

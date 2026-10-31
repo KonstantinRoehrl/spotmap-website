@@ -1554,8 +1554,7 @@ describe('MapComponent', () => {
         phone.next(true);
         fixture.detectChanges();
         fixture.detectChanges();
-        // No placeholder in the passes that built the bar, and the slot already holds the field's
-        // 40 px; only the picker itself takes a microtask, its code being in already.
+        // No placeholder in the passes that built the bar, and the slot holds the field's 40 px.
         expect(host.querySelector('.city-placeholder')).toBeNull();
         expect(
           Math.round(

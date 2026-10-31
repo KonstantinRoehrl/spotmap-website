@@ -82,8 +82,7 @@
 
 /* The picker's slot in either bar: the placeholder frame and the picker share one grid cell, so
    the slot's box is the same with either in it and the swap is a crossfade in place. Its minimum
-   height holds the field's 40 px for the moment a later slot has neither: the picker's code is
-   already in, but the block still takes a microtask to render it. */
+   height holds the field's 40 px should the slot ever hold neither. */
 .city-slot {
   display: grid;
   min-height: var(--mat-form-field-container-height);

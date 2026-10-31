@@ -10,27 +10,8 @@
         variant="topbar"
         [city]="store.city().city"
       />
-      <!-- The picker, and the Material it is built on, loads once the page is idle, off the map's
-           critical path. Until then an inert frame holds its slot, and the two crossfade in one
-           grid cell. A slot built after that first load (a layout switch) shows the picker at once. -->
       <div class="map-topbar__picker city-slot">
-        @if (!pickerLoaded()) {
-          <fieldset
-            class="city-placeholder"
-            aria-hidden="true"
-            animate.leave="city-placeholder--leaving"
-          >
-            <legend class="city-placeholder__label">City</legend>
-          </fieldset>
-        }
-        @defer (on idle; when pickerLoaded(); prefetch on idle) {
-          <app-city-picker
-            #cityPicker
-            class="city-slot__picker"
-            [selected]="store.city()"
-            (citySelected)="store.selectCity($event)"
-          />
-        }
+        <ng-container [ngTemplateOutlet]="citySlot" />
       </div>
     </header>
   } @else {
@@ -40,25 +21,8 @@
         variant="header"
         [city]="store.city().city"
       />
-      <!-- Deferred behind a placeholder, as in the top bar. -->
       <div class="map-header__picker city-slot">
-        @if (!pickerLoaded()) {
-          <fieldset
-            class="city-placeholder"
-            aria-hidden="true"
-            animate.leave="city-placeholder--leaving"
-          >
-            <legend class="city-placeholder__label">City</legend>
-          </fieldset>
-        }
-        @defer (on idle; when pickerLoaded(); prefetch on idle) {
-          <app-city-picker
-            #cityPicker
-            class="city-slot__picker"
-            [selected]="store.city()"
-            (citySelected)="store.selectCity($event)"
-          />
-        }
+        <ng-container [ngTemplateOutlet]="citySlot" />
       </div>
     </header>
   }
@@ -166,6 +130,30 @@
     {{ noticeAnnouncement() }}
   </p>
 </div>
+
+<!-- The city slot, rendered into whichever header exists. The picker, and the Material it is built
+     on, loads once the page is idle, off the map's critical path. Until then an inert frame holds
+     its slot, and the two crossfade in one grid cell. A slot built after that first load (a layout
+     switch) shows the picker at once. -->
+<ng-template #citySlot>
+  @if (!pickerLoaded()) {
+    <fieldset
+      class="city-placeholder"
+      aria-hidden="true"
+      animate.leave="city-placeholder--leaving"
+    >
+      <legend class="city-placeholder__label">City</legend>
+    </fieldset>
+  }
+  @defer (on idle; when pickerLoaded(); prefetch on idle) {
+    <app-city-picker
+      #cityPicker
+      class="city-slot__picker"
+      [selected]="store.city()"
+      (citySelected)="store.selectCity($event)"
+    />
+  }
+</ng-template>
 
 <!-- The one pane, rendered into the column or the sheet. The list stays mounted behind an open spot,
      keeping its rows and scroll; the key rebuilds it only when a close finds different rows. It sits
