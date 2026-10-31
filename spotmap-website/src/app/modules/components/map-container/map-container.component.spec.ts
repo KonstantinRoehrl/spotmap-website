@@ -282,13 +282,67 @@ describe('MapContainerComponent', () => {
     fixture.destroy();
   }));
 
-  it('ignores load events while the failure is shown', () => {
+  it('folds load events behind a failure without changing the chrome', () => {
     const fixture = create(true);
-    const c = fixture.componentInstance;
-    const before = loadState(c);
-    rendererFailed(c, 'unreachable');
-    applyEvent(c, { kind: 'spots-done' });
-    expect(loadState(c)).toEqual(before);
+    rendererFailed(fixture.componentInstance, 'unreachable');
+    fixture.detectChanges();
+    applyEvent(fixture.componentInstance, { kind: 'spots-done' });
+    applyEvent(fixture.componentInstance, { kind: 'painted' });
+    fixture.detectChanges();
+    expect(errorShown(fixture.componentInstance)).toBeTrue();
+    expect(mapShown(fixture.componentInstance)).toBeFalse();
+    expect(loadState(fixture.componentInstance).step).toBe('draw');
+    expect(fixture.nativeElement.querySelector('app-map-loader')).toBeNull();
+    fixture.destroy();
+  });
+
+  it('replaces SIGNAL LOST with the map when its pins arrive after the watchdog', fakeAsync(() => {
+    const fixture = create(true);
+    tick(LOAD_TIMEOUT_MS);
+    fixture.detectChanges();
+    expect(errorShown(fixture.componentInstance)).toBeTrue();
+    applyEvent(fixture.componentInstance, { kind: 'painted' });
+    rendererReady(fixture.componentInstance);
+    fixture.detectChanges();
+    expect(errorShown(fixture.componentInstance)).toBeFalse();
+    expect(mapShown(fixture.componentInstance)).toBeTrue();
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('app-map-loader'))
+      .withContext('no loader in between')
+      .toBeNull();
+    expect(
+      host.querySelector('.map-container')!.getAttribute('aria-busy'),
+    ).toBe('false');
+    expect(statusOf(fixture).textContent).toBe('');
+    fixture.destroy();
+  }));
+
+  it('keeps SIGNAL LOST through a late paint until the pins are drawn', fakeAsync(() => {
+    const fixture = create(true);
+    tick(LOAD_TIMEOUT_MS);
+    applyEvent(fixture.componentInstance, { kind: 'painted' });
+    fixture.detectChanges();
+    expect(errorShown(fixture.componentInstance)).toBeTrue();
+    expect(mapShown(fixture.componentInstance)).toBeFalse();
+    fixture.destroy();
+  }));
+
+  it('keeps the renderer’s reason when it fails after the watchdog', fakeAsync(() => {
+    const fixture = create(true);
+    tick(LOAD_TIMEOUT_MS);
+    rendererFailed(fixture.componentInstance, 'unsupported');
+    expect(failure(fixture.componentInstance)).toBe('unsupported');
+    fixture.destroy();
+  }));
+
+  it('runs a normal load through the bar, not the late path', () => {
+    const fixture = create(true);
+    applyEvent(fixture.componentInstance, { kind: 'painted' });
+    rendererReady(fixture.componentInstance);
+    fixture.detectChanges();
+    expect(mapShown(fixture.componentInstance))
+      .withContext('only the bar finishing reveals a healthy load')
+      .toBeFalse();
     fixture.destroy();
   });
 

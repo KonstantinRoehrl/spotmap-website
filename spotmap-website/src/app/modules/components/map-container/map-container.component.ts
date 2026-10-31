@@ -32,7 +32,8 @@ function cityName(city: string): string {
 /**
  * Frames the map the page projects into it and owns its loading progress, watchdog, failure and
  * retry state. The loader shows the real load events, the store's and the map's, and the frame
- * reveals the map once the bar has finished.
+ * reveals the map once the bar has finished. A map that paints after the watchdog has shown its
+ * failure replaces it, with no RETRY.
  */
 @Component({
   selector: 'app-map-container',
@@ -139,20 +140,27 @@ export class MapContainerComponent {
     });
   }
 
-  /** A real loading event from the map; advances the loader. Ignored while a failure is shown. */
+  /**
+   * A real loading event from the map; advances the loader. Keeps folding behind a failure, as a map
+   * the watchdog gave up on may still arrive.
+   */
   report(event: MapLoadEvent): void {
-    if (this.failureReason() !== null) {
-      return;
-    }
     if (event.kind === 'painted') {
       this.painted = true;
     }
     this.mapEvents.update((events) => [...events, event]);
   }
 
-  /** The map has drawn its pins; the loader's bar runs to 100 %. */
+  /**
+   * The map has drawn its pins; the loader's bar runs to 100 %. With a failure showing there is no
+   * bar to finish: only the watchdog can have given up on a map that still drew, so it replaces
+   * that screen. Waiting for the pins, not the paint, means it never appears without them.
+   */
   onReady(): void {
     this.report({ kind: 'pins-drawn' });
+    if (this.failureReason() !== null) {
+      this.reveal();
+    }
   }
 
   /** The loader's bar has finished its ease to 100 %: the cue to reveal the map. */
