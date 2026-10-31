@@ -8,14 +8,16 @@ import { RouterTestingHarness } from '@angular/router/testing';
 import { Subject } from 'rxjs';
 
 import { CityEnum } from '../../../models/enums/map-enum';
-import { SPOT_FOCUS_ZOOM } from '../../../models/map/map-camera';
+import {
+  SPOT_FOCUS_ZOOM,
+  type ViewBounds,
+} from '../../../models/map/map-camera';
 import { SUPPORTED_CITIES } from '../../../models/map/supported-cities';
 import type {
   SpotDetail,
   SpotListCollection,
   SpotListFeature,
 } from '../../../models/spots/spot';
-import type { ViewBounds } from '../../../models/spots/spots-in-view';
 import {
   SpotDetailResult,
   SpotsService,

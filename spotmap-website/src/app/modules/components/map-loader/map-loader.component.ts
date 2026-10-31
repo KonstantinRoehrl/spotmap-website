@@ -15,7 +15,7 @@ import {
   MapLoadState,
   MapLoadStep,
   STEP_ORDER,
-} from '../map-container/map-load-progress';
+} from './map-load-progress';
 
 /** Lines in one scramble strip: the 12 `steps()` frames plus the line the strip comes to rest on. */
 const SCRAMBLE_LINES = 13;

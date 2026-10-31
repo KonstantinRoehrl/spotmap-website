@@ -16,9 +16,9 @@ import {
   type AttributionCorner,
   type MapFocus,
   type MapInsets,
+  type ViewBounds,
 } from '../../../models/map/map-camera';
 import { SpotListCollection } from '../../../models/spots/spot';
-import type { ViewBounds } from '../../../models/spots/spots-in-view';
 import { PointerBloomDirective } from '../../directives/pointer-bloom.directive';
 import { MapLoaderComponent } from '../map-loader/map-loader.component';
 import { SpotMapComponent } from '../spot-map/spot-map.component';
@@ -26,7 +26,7 @@ import {
   INITIAL_MAP_LOAD_STATE,
   MapLoadProgress,
   MapLoadState,
-} from './map-load-progress';
+} from '../map-loader/map-load-progress';
 import type { MapFailureReason } from '../../../models/map/map-failure-reason';
 import type { MapLoadEvent } from '../../../models/map/map-load-event';
 

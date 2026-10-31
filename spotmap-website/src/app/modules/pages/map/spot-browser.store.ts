@@ -21,7 +21,11 @@ import {
 } from 'rxjs';
 import { MapItem } from '../../../models/enums/interfaces/map-item-interface';
 import { CityEnum } from '../../../models/enums/map-enum';
-import { MapFocus, SPOT_FOCUS_ZOOM } from '../../../models/map/map-camera';
+import {
+  MapFocus,
+  SPOT_FOCUS_ZOOM,
+  ViewBounds,
+} from '../../../models/map/map-camera';
 import { SUPPORTED_CITIES } from '../../../models/map/supported-cities';
 import type {
   SpotDetail,
@@ -32,7 +36,6 @@ import type { SpotDetailView } from '../../../models/spots/spot-detail-view';
 import {
   LoadedSpotsInView,
   SpotsInView,
-  ViewBounds,
 } from '../../../models/spots/spots-in-view';
 import {
   SpotDetailResult,

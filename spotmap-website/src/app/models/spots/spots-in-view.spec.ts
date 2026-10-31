@@ -1,10 +1,7 @@
 import { firstValueFrom } from 'rxjs';
+import type { ViewBounds } from '../map/map-camera';
 import { SpotListCollection, SpotListFeature } from './spot';
-import {
-  compareSpotNames,
-  LoadedSpotsInView,
-  ViewBounds,
-} from './spots-in-view';
+import { compareSpotNames, LoadedSpotsInView } from './spots-in-view';
 
 /** A list-shape spot named `name` at `[lng, lat]`. */
 function spot(

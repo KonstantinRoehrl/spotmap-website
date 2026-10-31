@@ -21,7 +21,6 @@ import type {
 import { filter, lastValueFrom, Subject, takeUntil, tap } from 'rxjs';
 import { CityEnum } from '../../../models/enums/map-enum';
 import { SpotListCollection } from '../../../models/spots/spot';
-import type { ViewBounds } from '../../../models/spots/spots-in-view';
 import {
   SpotListLoaded,
   SpotListLoadEvent,
@@ -35,6 +34,7 @@ import {
   type AttributionCorner,
   type MapFocus,
   type MapInsets,
+  type ViewBounds,
 } from '../../../models/map/map-camera';
 import type { MapFailureReason } from '../../../models/map/map-failure-reason';
 import type { MapLoadEvent } from '../../../models/map/map-load-event';

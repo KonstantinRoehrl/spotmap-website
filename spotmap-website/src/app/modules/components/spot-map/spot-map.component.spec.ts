@@ -13,11 +13,11 @@ import {
   type AttributionCorner,
   type MapFocus,
   type MapInsets,
+  type ViewBounds,
   NO_INSETS,
 } from '../../../models/map/map-camera';
 import type { MapLoadEvent } from '../../../models/map/map-load-event';
 import { SpotListCollection } from '../../../models/spots/spot';
-import type { ViewBounds } from '../../../models/spots/spots-in-view';
 import {
   FLAG_REACH_PX,
   PIN_IMAGE_HEIGHT,
