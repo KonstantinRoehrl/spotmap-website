@@ -1,0 +1,11 @@
+# The photo URL / thumbnail / "no photo host" rule is applied independently at 6 sites, and the rendition sizes live only in a comment
+- finding-kind: maintenance-finding
+- finding-id: duplicated-concept:c802dbfa
+- culprit-kind: duplicated-concept
+- severity: medium
+- confidence: verified
+- affected-files: spotmap-website/src/app/services/spotmap-backend.ts, spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts, spotmap-website/src/app/modules/components/spot-map/photo-pins.ts, spotmap-website/src/app/modules/components/spot-detail/spot-detail.component.ts, spotmap-website/src/app/modules/components/spot-list/spot-list.component.ts, spotmap-website/src/app/modules/components/spot-photo-viewer/spot-photo-viewer.ts, spotmap-website/src/app/modules/components/spot-photo-gallery/spot-photo-gallery.component.ts
+- first-seen: 2026-10-29
+- last-seen: 2026-10-29
+- passes: 1
+- verify: 

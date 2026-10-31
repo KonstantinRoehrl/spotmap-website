@@ -240,6 +240,63 @@ describe('GlitchTextDirective', () => {
     expect(disconnectSpy).toHaveBeenCalled();
   });
 
+  describe('skipping work', () => {
+    it('leaves the text node alone when a frame repeats the scramble', fakeAsync(() => {
+      const fixture = render(PLAIN_LINK);
+      link(fixture).dispatchEvent(new MouseEvent('mouseenter'));
+      tick(FRAME);
+      const node = navText(fixture).firstChild;
+
+      tick(FRAME); // Math.random is pinned, so the same '### ##' again
+      expect(navText(fixture).firstChild).toBe(node);
+
+      fixture.destroy();
+    }));
+
+    it('writes a frame that changes the text', fakeAsync(() => {
+      const fixture = render(PLAIN_LINK);
+      link(fixture).dispatchEvent(new MouseEvent('mouseenter'));
+      tick(FRAME);
+      const node = navText(fixture).firstChild;
+
+      random.and.returnValue(0.1499);
+      tick(FRAME);
+      expect(navText(fixture).firstChild).not.toBe(node);
+      expect(navText(fixture).innerText).toBe('%%% %%');
+
+      fixture.destroy();
+    }));
+
+    it('still writes the first scramble after a restore', fakeAsync(() => {
+      const fixture = render(PLAIN_LINK);
+      link(fixture).dispatchEvent(new MouseEvent('mouseenter'));
+      tick(FRAME);
+      link(fixture).dispatchEvent(new MouseEvent('mouseleave'));
+      expect(navText(fixture).innerText).toBe(LABEL);
+
+      link(fixture).dispatchEvent(new MouseEvent('mouseenter'));
+      tick(FRAME);
+      expect(navText(fixture).innerText).toBe('### ##');
+
+      fixture.destroy();
+    }));
+
+    it('writes nothing while the tab is hidden, and scrambles again when it returns', fakeAsync(() => {
+      const hidden = spyOnProperty(document, 'hidden').and.returnValue(true);
+      const fixture = render(PLAIN_LINK);
+      link(fixture).dispatchEvent(new MouseEvent('mouseenter'));
+
+      tick(FRAME * 3);
+      expect(navText(fixture).innerText).toBe(LABEL);
+
+      hidden.and.returnValue(false);
+      tick(FRAME);
+      expect(navText(fixture).innerText).toBe('### ##');
+
+      fixture.destroy();
+    }));
+  });
+
   describe('under reduced motion', () => {
     beforeEach(() => {
       spyOn(window, 'matchMedia').and.callFake(

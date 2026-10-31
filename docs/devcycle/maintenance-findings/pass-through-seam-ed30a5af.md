@@ -1,0 +1,11 @@
+# `map-container` passes 5 inputs and 5 outputs straight through to `spot-map`, a seam left over from the two-renderer era
+- finding-kind: maintenance-finding
+- finding-id: pass-through-seam:ed30a5af
+- culprit-kind: pass-through-seam
+- severity: medium
+- confidence: verified
+- affected-files: spotmap-website/src/app/modules/components/map-container/map-container.component.ts, spotmap-website/src/app/modules/components/map-container/map-container.component.html, spotmap-website/src/app/modules/components/map-container/map-container.component.css, spotmap-website/src/app/modules/components/map-container/map-container.component.spec.ts, spotmap-website/src/app/modules/pages/map/map.component.html, spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts
+- first-seen: 2026-10-29
+- last-seen: 2026-10-29
+- passes: 1
+- verify: 

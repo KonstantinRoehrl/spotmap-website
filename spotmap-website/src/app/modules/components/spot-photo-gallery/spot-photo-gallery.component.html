@@ -14,18 +14,10 @@
        whether or not it was already loaded. -->
   @for (slideUrl of [current()]; track slideUrl) {
     @if (currentFailed()) {
-      <div
+      <app-spot-photo-failed
         class="gallery__placeholder"
-        role="img"
-        [attr.aria-label]="placeholderLabel()"
-      >
-        <span class="gallery__placeholder-line gallery__placeholder-line--lost"
-          >&gt; SIGNAL LOST</span
-        >&ngsp;<span
-          class="gallery__placeholder-line gallery__placeholder-line--dim"
-          >PHOTO UNREACHABLE</span
-        >
-      </div>
+        [label]="placeholderLabel()"
+      />
     } @else {
       <img
         #photo
@@ -35,8 +27,8 @@
         [alt]="altText()"
         loading="lazy"
         decoding="async"
-        (load)="onImageLoad($event)"
-        (error)="onImageError($event)"
+        (load)="images.onLoad($event)"
+        (error)="images.onError($event)"
         (transitionend)="onFadeEnd($event)"
       />
     }
@@ -52,8 +44,8 @@
         [src]="currentFull()"
         alt=""
         decoding="async"
-        (load)="onImageLoad($event)"
-        (error)="onImageError($event)"
+        (load)="images.onLoad($event)"
+        (error)="images.onError($event)"
         (transitionend)="onFadeEnd($event)"
       />
     }

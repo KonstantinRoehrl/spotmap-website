@@ -1,0 +1,11 @@
+# The share menu listens to every document `pointerdown` in the zone for as long as a spot is open
+- finding-kind: maintenance-finding
+- finding-id: in-zone-listener:d10710c5
+- culprit-kind: in-zone-listener
+- severity: low
+- confidence: verified
+- affected-files: spotmap-website/src/app/modules/components/spot-share/spot-share.component.ts
+- first-seen: 2026-10-29
+- last-seen: 2026-10-29
+- passes: 1
+- verify: 

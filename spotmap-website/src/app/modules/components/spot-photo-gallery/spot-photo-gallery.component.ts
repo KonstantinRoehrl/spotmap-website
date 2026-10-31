@@ -13,6 +13,8 @@ import {
 } from '@angular/core';
 import { PointerBloomDirective } from '../../directives/pointer-bloom.directive';
 import { AsciiRainComponent } from '../ascii-rain/ascii-rain.component';
+import { ImageLoadTracker } from '../spot-photo-load/image-load-tracker';
+import { SpotPhotoFailedComponent } from '../spot-photo-load/spot-photo-failed.component';
 
 /** Minimum horizontal travel that counts as a swipe rather than a tap, in CSS pixels. */
 const SWIPE_THRESHOLD_PX = 40;
@@ -34,7 +36,11 @@ const SWIPE_THRESHOLD_PX = 40;
  */
 @Component({
   selector: 'app-spot-photo-gallery',
-  imports: [AsciiRainComponent, PointerBloomDirective],
+  imports: [
+    AsciiRainComponent,
+    PointerBloomDirective,
+    SpotPhotoFailedComponent,
+  ],
   templateUrl: './spot-photo-gallery.component.html',
   styleUrl: './spot-photo-gallery.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -76,16 +82,8 @@ export class SpotPhotoGalleryComponent {
     () => `${this.spotName()}, photo ${this.slide() + 1} of ${this.count()}`,
   );
 
-  /** The URLs whose image failed to load. */
-  private readonly failed = signal<ReadonlySet<string>>(new Set());
-  /** The URLs whose image has loaded. */
-  private readonly loaded = signal<ReadonlySet<string>>(new Set());
-  /**
-   * The URLs whose image was already complete when the first slide rendered; those show without
-   * a crossfade. Per URL, so a photo that loads later still crossfades in. Emptied by the first
-   * step, since a photo stepped to always has the one stepped from to fade over.
-   */
-  private readonly instantUrls = signal<ReadonlySet<string>>(new Set());
+  /** The load state of the gallery's images. */
+  protected readonly images = new ImageLoadTracker();
   /**
    * The photo the last step left, still drawn beneath the incoming one until that has faded in,
    * or `null` when there is none. At most this one extra layer exists, so rapid stepping never
@@ -95,17 +93,17 @@ export class SpotPhotoGalleryComponent {
 
   /** True once the slide's thumb has loaded. */
   protected readonly thumbLoaded = computed(() =>
-    this.loaded().has(this.current()),
+    this.images.loaded().has(this.current()),
   );
   /** True once the slide's full-size photo has loaded; it then covers the thumb. */
   protected readonly fullLoaded = computed(() => {
     const full = this.currentFull();
-    return full !== null && this.loaded().has(full);
+    return full !== null && this.images.loaded().has(full);
   });
   /** Whether the slide's full-size photo is drawn at all: there is one and it has not failed. */
   protected readonly showsFull = computed(() => {
     const full = this.currentFull();
-    return full !== null && !this.failed().has(full);
+    return full !== null && !this.images.failed().has(full);
   });
   /** True once either of the slide's photos has loaded; until then it shows the rain. */
   protected readonly currentLoaded = computed(
@@ -113,7 +111,7 @@ export class SpotPhotoGalleryComponent {
   );
   /** True while the slide's thumb is broken and no full-size photo has loaded over it. */
   protected readonly currentFailed = computed(
-    () => this.failed().has(this.current()) && !this.fullLoaded(),
+    () => this.images.failed().has(this.current()) && !this.fullLoaded(),
   );
   /**
    * Whether the rain shows: the slide has nothing loaded yet and has not failed. It shows over
@@ -129,12 +127,12 @@ export class SpotPhotoGalleryComponent {
   );
   /** True while the slide's thumb was complete on the first render and so shows without a crossfade. */
   protected readonly currentInstant = computed(() =>
-    this.instantUrls().has(this.current()),
+    this.images.instant().has(this.current()),
   );
   /** True while the slide's full-size photo was complete on the first render and so shows without a crossfade. */
   protected readonly fullInstant = computed(() => {
     const full = this.currentFull();
-    return full !== null && this.instantUrls().has(full);
+    return full !== null && this.images.instant().has(full);
   });
 
   /** The slide's thumb element, absent while the slide shows the failure placeholder. */
@@ -173,7 +171,7 @@ export class SpotPhotoGalleryComponent {
         this.lastShown = { thumb, full };
         if (previous !== null && previous.thumb !== thumb) {
           this.hasStepped = true;
-          this.instantUrls.set(new Set());
+          this.images.clearInstant();
           this.noteCached(thumb);
           if (full !== null) {
             this.noteCached(full);
@@ -193,8 +191,9 @@ export class SpotPhotoGalleryComponent {
     afterRenderEffect(() => {
       this.current();
       this.currentFull();
-      this.noteComplete(this.photo()?.nativeElement);
-      this.noteComplete(this.full()?.nativeElement);
+      const instant = !this.hasStepped;
+      this.images.noteComplete(this.photo()?.nativeElement, { instant });
+      this.images.noteComplete(this.full()?.nativeElement, { instant });
     });
   }
 
@@ -206,25 +205,6 @@ export class SpotPhotoGalleryComponent {
   /** Shows the previous photo, wrapping to the last. */
   previous(): void {
     this.index.set((this.slide() - 1 + this.count()) % this.count());
-  }
-
-  /**
-   * Marks the URL the failing image was showing, read from the element rather than from
-   * `index`, so a late error from a slide already swiped past fails that slide, not this one.
-   */
-  protected onImageError(event: Event): void {
-    const src = (event.target as HTMLImageElement).getAttribute('src');
-    if (src !== null) {
-      this.failed.update((failed) => new Set(failed).add(src));
-    }
-  }
-
-  /** Marks the URL the image element was showing, for the same reason as {@link onImageError}. */
-  protected onImageLoad(event: Event): void {
-    const src = (event.target as HTMLImageElement).getAttribute('src');
-    if (src !== null) {
-      this.markLoaded(src);
-    }
   }
 
   /**
@@ -264,7 +244,7 @@ export class SpotPhotoGalleryComponent {
     thumb: string;
     full: string | null;
   }): string | null {
-    const loaded = this.loaded();
+    const loaded = this.images.loaded();
     if (slide.full !== null && loaded.has(slide.full)) {
       return slide.full;
     }
@@ -276,38 +256,13 @@ export class SpotPhotoGalleryComponent {
    * be asked. A detached image is complete at once for a cached URL.
    */
   private noteCached(url: string): void {
-    if (this.loaded().has(url)) {
+    if (this.images.loaded().has(url)) {
       return;
     }
     const probe = new Image();
     probe.src = url;
     if (probe.complete && probe.naturalWidth > 0) {
-      this.markLoaded(url);
+      this.images.markLoaded(url);
     }
-  }
-
-  /**
-   * Marks an image that was complete when it rendered as loaded, and, until the first step, as
-   * shown without a fade.
-   */
-  private noteComplete(image: HTMLImageElement | undefined): void {
-    const src = image?.getAttribute('src');
-    if (
-      image &&
-      src &&
-      image.complete &&
-      image.naturalWidth > 0 &&
-      !this.loaded().has(src)
-    ) {
-      if (!this.hasStepped) {
-        this.instantUrls.update((urls) => new Set(urls).add(src));
-      }
-      this.markLoaded(src);
-    }
-  }
-
-  /** Remembers a loaded URL, so swiping back to its slide never shows the rain again. */
-  private markLoaded(src: string): void {
-    this.loaded.update((loaded) => new Set(loaded).add(src));
   }
 }

@@ -1,11 +1,11 @@
-# After the 15 s watchdog shows SIGNAL LOST, a map that then paints is discarded and the user must retry
+# After the 15 s watchdog shows SIGNAL LOST, a map that then paints stays hidden until RETRY (persists)
 - finding-kind: maintenance-finding
 - finding-id: late-paint-discarded:e809096e
 - culprit-kind: late-paint-discarded
 - severity: low
 - confidence: verified
-- affected-files: spotmap-website/src/app/modules/components/map-container/map-container.component.ts
+- affected-files: spotmap-website/src/app/modules/components/map-container/map-container.component.ts, spotmap-website/src/app/modules/components/map-container/map-container.component.html, spotmap-website/src/app/modules/components/map-container/map-container.component.spec.ts
 - first-seen: 2026-10-23
-- last-seen: 2026-10-23
-- passes: 1
+- last-seen: 2026-10-29
+- passes: 2
 - verify: 

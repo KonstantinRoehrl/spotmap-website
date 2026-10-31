@@ -1,0 +1,11 @@
+# `maplibre-gl.css` (71.5 kB raw, 10.2 kB gzip) is in the global styles bundle every page downloads
+- finding-kind: maintenance-finding
+- finding-id: eager-library-pin:d747bc59
+- culprit-kind: eager-library-pin
+- severity: low
+- confidence: suspected
+- affected-files: spotmap-website/angular.json, spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts
+- first-seen: 2026-10-29
+- last-seen: 2026-10-29
+- passes: 1
+- verify: 

@@ -1,9 +1,9 @@
 import { BreakpointObserver } from '@angular/cdk/layout';
-import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { Component, input, signal } from '@angular/core';
+import { Component, input, linkedSignal, signal } from '@angular/core';
 import {
   ComponentFixture,
+  DeferBlockBehavior,
+  DeferBlockState,
   discardPeriodicTasks,
   fakeAsync,
   TestBed,
@@ -14,12 +14,17 @@ import { BehaviorSubject, map } from 'rxjs';
 
 import { CityEnum } from '../../../models/enums/map-enum';
 import { MapFocus, NO_INSETS } from '../../../models/map/map-camera';
+import type { MapLoadEvent } from '../../../models/map/map-load-event';
 import { SUPPORTED_CITIES } from '../../../models/map/supported-cities';
 import type { MapItem } from '../../../models/enums/interfaces/map-item-interface';
-import type { SpotListFeature } from '../../../models/spots/spot';
+import type {
+  SpotListCollection,
+  SpotListFeature,
+} from '../../../models/spots/spot';
 import type { SpotDetailView } from '../../../models/spots/spot-detail-view';
 import { AsciiAnimationTextComponent } from '../../components/ascii-animation-text/ascii-animation-text.component';
 import { CityPickerComponent } from '../../components/city-picker/city-picker.component';
+import { MapBannerComponent } from '../../components/map-banner/map-banner.component';
 import { MapContainerComponent } from '../../components/map-container/map-container.component';
 import {
   ELEVATION_LOADER,
@@ -36,8 +41,8 @@ import {
 } from '../../components/split-handle/column-split';
 import { SplitHandleComponent } from '../../components/split-handle/split-handle.component';
 import { sheetHeight } from '../../components/spot-sheet/spot-sheet-state';
+import { COLUMN_RESET_EASE_MS } from './column-split-state';
 import {
-  COLUMN_RESET_EASE_MS,
   COUNT_ANNOUNCE_DEBOUNCE_MS,
   MapComponent,
   PHONE_LAYOUT_QUERY,
@@ -48,8 +53,8 @@ import {
   HEADER_BANNER_FONT_PX,
   RESTING_BANNER_LINE,
   TOPBAR_BANNER_FONT_PX,
-} from './topbar-banner';
-import { SpotBrowserStore } from './spot-browser.store';
+} from '../../components/map-banner/topbar-banner';
+import { SpotBrowserStore, type SelectionEvent } from './spot-browser.store';
 
 /**
  * The map factories and the elevation loader are injected the moment SpotMapComponent is built;
@@ -93,24 +98,50 @@ function painted(property: string, token: string): string {
 
 /** A store the specs drive by hand: every state a writable signal, every action a spy. */
 function fakeStore() {
+  const selectedId = signal<string | null>(null);
   return {
     city: signal(SUPPORTED_CITIES[CityEnum.Vienna]),
     mapCity: signal<CityEnum | null>(CityEnum.Vienna),
     openOn: signal<MapFocus | null>(null),
-    selectedId: signal<string | null>(null),
+    selectedId,
+    /**
+     * Derived, so a spec keeps driving the page through `selectedId`: the value it holds when first
+     * read is a cold link's, and no change.
+     */
+    selectionEvent: linkedSignal<string | null, SelectionEvent | null>({
+      source: selectedId,
+      computation: (id, previous) => {
+        if (!previous || previous.source === id) {
+          return previous?.value ?? null;
+        }
+        return {
+          kind:
+            id === null
+              ? 'closed'
+              : previous.source === null
+                ? 'opened'
+                : 'switched',
+        };
+      },
+    }),
     shownSpots: signal<readonly SpotListFeature[] | null>(null),
+    mapSpots: signal<SpotListCollection | null>(null),
+    listEvents: signal<readonly MapLoadEvent[]>([]),
+    listFailed: signal(false),
+    listAttempt: signal(0),
     detail: signal<SpotDetailView | null>(null),
     notice: signal<'not-found' | null>(null),
     hoveredId: signal<string | null>(null),
     returnFocusTo: signal<string | null>(null),
     selectCity: jasmine.createSpy('selectCity'),
-    setList: jasmine.createSpy('setList'),
     setBounds: jasmine.createSpy('setBounds'),
     open: jasmine.createSpy('open'),
     close: jasmine.createSpy('close'),
     retryDetail: jasmine.createSpy('retryDetail'),
     setHovered: jasmine.createSpy('setHovered'),
     dismissNotice: jasmine.createSpy('dismissNotice'),
+    mapGaveUp: jasmine.createSpy('mapGaveUp'),
+    reloadList: jasmine.createSpy('reloadList'),
   };
 }
 
@@ -121,6 +152,11 @@ describe('MapComponent', () => {
   let wide: BehaviorSubject<boolean>;
   /** Whether the viewport is at most 768 px wide (the phone top bar), as the breakpoint stub reports it. */
   let phone: BehaviorSubject<boolean>;
+  /**
+   * How the page's deferred city picker renders: by hand (Manual), so a spec decides when it
+   * loads, except where a spec block switches to Playthrough to watch the real triggers.
+   */
+  let deferBehavior = DeferBlockBehavior.Manual;
 
   /** The stub's answer for `query`: the wide or the phone breakpoint; nothing else is asked. */
   function subjectFor(query: string): BehaviorSubject<boolean> {
@@ -139,9 +175,8 @@ describe('MapComponent', () => {
     phone = new BehaviorSubject(false);
     await TestBed.configureTestingModule({
       imports: [MapComponent],
+      deferBlockBehavior: deferBehavior,
       providers: [
-        provideHttpClient(),
-        provideHttpClientTesting(),
         { provide: MAP_FACTORY, useValue: neverResolves },
         { provide: ELEVATION_LOADER, useValue: neverResolves },
         {
@@ -164,7 +199,7 @@ describe('MapComponent', () => {
     TestBed.overrideComponent(MapComponent, {
       set: { providers: [{ provide: SpotBrowserStore, useValue: store }] },
     });
-    TestBed.overrideComponent(MapComponent, {
+    TestBed.overrideComponent(MapBannerComponent, {
       remove: { imports: [AsciiAnimationTextComponent] },
       add: { imports: [StubBannerComponent] },
     });
@@ -186,6 +221,12 @@ describe('MapComponent', () => {
   function container(): MapContainerComponent {
     return fixture.debugElement.query(By.directive(MapContainerComponent))
       .componentInstance as MapContainerComponent;
+  }
+
+  /** The map the page projects into its frame. */
+  function spotMap(): SpotMapComponent {
+    return fixture.debugElement.query(By.directive(SpotMapComponent))
+      .componentInstance as SpotMapComponent;
   }
 
   function sheet(): SpotSheetComponent {
@@ -215,6 +256,27 @@ describe('MapComponent', () => {
       await new Promise<void>((resolve) =>
         requestAnimationFrame(() => resolve()),
       );
+    }
+  }
+
+  /** Renders the page's deferred city picker, as the browser does once the page is idle. */
+  async function loadPicker(): Promise<void> {
+    for (const block of await fixture.getDeferBlocks()) {
+      await block.render(DeferBlockState.Complete);
+    }
+    fixture.detectChanges();
+    // The page learns the picker is in from a view query, which its effect reads on the app tick.
+    TestBed.tick();
+    fixture.detectChanges();
+  }
+
+  /** Waits a frame at a time, rendering, until `done()` holds or two seconds have passed. */
+  async function frameUntil(done: () => boolean): Promise<void> {
+    const deadline = performance.now() + 2000;
+    while (!done() && performance.now() < deadline) {
+      await nextFrames();
+      fixture.detectChanges();
+      TestBed.tick();
     }
   }
 
@@ -254,8 +316,9 @@ describe('MapComponent', () => {
         .componentInstance as SplitHandleComponent;
     }
 
-    it('puts the banner and the city picker in a header row above the window', () => {
+    it('puts the banner and the city picker in a header row above the window', async () => {
       const host = create();
+      await loadPicker();
 
       const header = host.querySelector<HTMLElement>('header.map-header');
       expect(header).not.toBeNull();
@@ -267,7 +330,9 @@ describe('MapComponent', () => {
 
       const banner = fixture.debugElement.query(By.css('.map-header__banner'));
       expect(banner).not.toBeNull();
-      const stub = banner?.componentInstance as StubBannerComponent;
+      const stub = fixture.debugElement.query(
+        By.css('.map-header__banner app-ascii-animation-text'),
+      ).componentInstance as StubBannerComponent;
       expect(stub.fixedFontSize()).toBe(HEADER_BANNER_FONT_PX);
       expect(stub.dotGutters()).toBeFalse();
       expect(stub.messages()[0]).toBe('VIENNA SPOTMAP');
@@ -285,8 +350,9 @@ describe('MapComponent', () => {
       ).toBe(GUTTER);
     });
 
-    it('sets the header row’s city select 40 px tall', () => {
+    it('sets the header row’s city select 40 px tall', async () => {
       const host = create();
+      await loadPicker();
       const field = host.querySelector<HTMLElement>(
         '.map-header .mat-mdc-text-field-wrapper',
       );
@@ -327,8 +393,8 @@ describe('MapComponent', () => {
 
     it('covers none of the framed map and keeps the credits bottom right', () => {
       create();
-      expect(container().coveredInsets()).toEqual(NO_INSETS);
-      expect(container().attributionCorner()).toBe('bottom-right');
+      expect(spotMap().coveredInsets()).toEqual(NO_INSETS);
+      expect(spotMap().attributionCorner()).toBe('bottom-right');
     });
 
     it('opens the column at its default width while no share is remembered', () => {
@@ -347,6 +413,7 @@ describe('MapComponent', () => {
     it('follows the handle and remembers the new width as a share of the window', () => {
       const host = create();
       handle().widthChange.emit(500);
+      handle().widthCommit.emit();
       fixture.detectChanges();
 
       expect(columnWidth(host)).toBe(500);
@@ -354,6 +421,59 @@ describe('MapComponent', () => {
       expect(
         Number(localStorage.getItem(COLUMN_SHARE_STORAGE_KEY)),
       ).toBeCloseTo(500 / frameWidth(host), 6);
+    });
+
+    it('stores the share once per drag, on its commit, not per move', () => {
+      const host = create();
+      const stored = spyOn(Storage.prototype, 'setItem').and.callThrough();
+      const shareWrites = () =>
+        stored.calls
+          .allArgs()
+          .filter(([key]) => key === COLUMN_SHARE_STORAGE_KEY);
+
+      handle().widthChange.emit(450);
+      handle().widthChange.emit(470);
+      handle().widthChange.emit(500);
+      expect(shareWrites().length).toBe(0);
+
+      handle().widthCommit.emit();
+      expect(shareWrites().length).toBe(1);
+      expect(Number(shareWrites()[0][1])).toBeCloseTo(
+        500 / frameWidth(host),
+        6,
+      );
+    });
+
+    it('stores the share once per key step, through the real handle', () => {
+      create();
+      const stored = spyOn(Storage.prototype, 'setItem').and.callThrough();
+      fixture.nativeElement
+        .querySelector('app-split-handle')
+        .dispatchEvent(
+          new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true }),
+        );
+      expect(
+        stored.calls
+          .allArgs()
+          .filter(([key]) => key === COLUMN_SHARE_STORAGE_KEY).length,
+      ).toBe(1);
+    });
+
+    it('holds no transitionend listener on the column', () => {
+      const listening = spyOn(
+        EventTarget.prototype,
+        'addEventListener',
+      ).and.callThrough();
+      const host = create();
+      const column = host.querySelector('aside.spot-column');
+      expect(
+        listening.calls
+          .all()
+          .filter(
+            (call) =>
+              call.object === column && call.args[0] === 'transitionend',
+          ),
+      ).toEqual([]);
     });
 
     it('keeps the column’s share when the window is resized', async () => {
@@ -625,20 +745,21 @@ describe('MapComponent', () => {
       sheet().headTap.emit();
       fixture.detectChanges();
       expect(sheet().state()).toBe('list');
-      expect(container().coveredInsets().bottom).toBe(half);
+      expect(spotMap().coveredInsets().bottom).toBe(half);
 
       showSpot('a', ALPHA);
       fixture.detectChanges();
       expect(sheet().state()).toBe('detail');
-      expect(container().coveredInsets().bottom).toBe(half);
+      expect(spotMap().coveredInsets().bottom).toBe(half);
       // The sheet eases its height (330 ms); settle it to read where it comes to rest.
       const sheetHost = host.querySelector<HTMLElement>('app-spot-sheet')!;
       sheetHost.getAnimations().forEach((animation) => animation.finish());
       expect(Math.round(sheetHost.getBoundingClientRect().height)).toBe(half);
     });
 
-    it('puts a slim top bar over the map and the sheet under it', () => {
+    it('puts a slim top bar over the map and the sheet under it', async () => {
       const host = create();
+      await loadPicker();
       expect(host.querySelector('.map-topbar app-city-picker')).not.toBeNull();
       expect(host.querySelector('app-spot-sheet app-spot-list')).not.toBeNull();
       expect(host.querySelector('aside.spot-column')).toBeNull();
@@ -646,11 +767,11 @@ describe('MapComponent', () => {
 
     it('tells the map the sheet covers its bottom, and keeps the credits top right', () => {
       const host = create();
-      expect(container().coveredInsets()).toEqual({
+      expect(spotMap().coveredInsets()).toEqual({
         ...NO_INSETS,
         bottom: sheetHeight('peek', frameHeight(host)),
       });
-      expect(container().attributionCorner()).toBe('top-right');
+      expect(spotMap().attributionCorner()).toBe('top-right');
     });
 
     it('opens the list from the sheet head and covers more of the map', () => {
@@ -659,7 +780,7 @@ describe('MapComponent', () => {
       fixture.detectChanges();
 
       expect(sheet().state()).toBe('list');
-      expect(container().coveredInsets().bottom).toBe(
+      expect(spotMap().coveredInsets().bottom).toBe(
         sheetHeight('list', frameHeight(host)),
       );
     });
@@ -716,7 +837,7 @@ describe('MapComponent', () => {
       store.detail.set({ status: 'loading', id: 'a', preview: ALPHA });
       create();
 
-      container().emptyClick.emit();
+      spotMap().emptyClick.emit();
       fixture.detectChanges();
       expect(store.close).toHaveBeenCalledTimes(1);
       expect(sheet().state()).toBe('peek');
@@ -724,7 +845,7 @@ describe('MapComponent', () => {
 
     it('ignores a tap on empty map while no spot is open', () => {
       create();
-      container().emptyClick.emit();
+      spotMap().emptyClick.emit();
       expect(store.close).not.toHaveBeenCalled();
     });
 
@@ -770,8 +891,9 @@ describe('MapComponent', () => {
 
       /** The banner in the top bar. */
       function topbarBanner(): StubBannerComponent {
-        return fixture.debugElement.query(By.css('.map-topbar__banner'))
-          .componentInstance as StubBannerComponent;
+        return fixture.debugElement.query(
+          By.css('.map-topbar__banner app-ascii-animation-text'),
+        ).componentInstance as StubBannerComponent;
       }
 
       /** The bar's width inside its padding: what each of its two rows spans. */
@@ -787,6 +909,7 @@ describe('MapComponent', () => {
         const host = create(width);
         await nextFrames();
         fixture.detectChanges();
+        await loadPicker();
         return host;
       }
 
@@ -844,7 +967,7 @@ describe('MapComponent', () => {
           fixture.detectChanges();
           await nextFrames();
           fixture.detectChanges();
-          // Queried afresh: the city's own line changes the banner's lines, which recreates it.
+          // Queried afresh each time: the city's own line changes the lines the banner plays.
           const row = (selector: string) =>
             host.querySelector<HTMLElement>(selector)!.getBoundingClientRect()
               .width;
@@ -917,14 +1040,17 @@ describe('MapComponent', () => {
       phone.next(false);
     });
 
-    it('puts the wide header row over the framed map and the sheet, inside a 16 px gutter', () => {
+    it('puts the wide header row over the framed map and the sheet, inside a 16 px gutter', async () => {
       const host = create(900);
+      await loadPicker();
       expect(host.querySelector('.map-topbar')).toBeNull();
       expect(host.querySelector('aside.spot-column')).toBeNull();
 
       const banner = fixture.debugElement.query(By.css('.map-header__banner'));
       expect(banner).not.toBeNull();
-      const stub = banner.componentInstance as StubBannerComponent;
+      const stub = fixture.debugElement.query(
+        By.css('.map-header__banner app-ascii-animation-text'),
+      ).componentInstance as StubBannerComponent;
       expect(stub.fixedFontSize()).toBe(HEADER_BANNER_FONT_PX);
       expect(stub.dotGutters()).toBeFalse();
       expect(stub.messages()[0]).toBe('VIENNA SPOTMAP');
@@ -948,11 +1074,11 @@ describe('MapComponent', () => {
 
     it('covers the framed map by the sheet and keeps the credits top right', () => {
       const host = create(900);
-      expect(container().coveredInsets()).toEqual({
+      expect(spotMap().coveredInsets()).toEqual({
         ...NO_INSETS,
         bottom: sheetHeight('peek', frameHeight(host)),
       });
-      expect(container().attributionCorner()).toBe('top-right');
+      expect(spotMap().attributionCorner()).toBe('top-right');
     });
   });
 
@@ -1027,10 +1153,11 @@ describe('MapComponent', () => {
       );
     });
 
-    it('leaves focus where the visitor put it when it was not in the spot', () => {
+    it('leaves focus where the visitor put it when it was not in the spot', async () => {
       store.shownSpots.set([ALPHA, BETA]);
       showSpot('a', ALPHA);
       const host = create();
+      await loadPicker();
       const picker = host.querySelector<HTMLElement>('.map-header mat-select')!;
       picker.focus();
       expect(document.activeElement).toBe(picker);
@@ -1041,18 +1168,432 @@ describe('MapComponent', () => {
     });
   });
 
-  it('shows one city picker in either layout', () => {
+  describe('the mounted list', () => {
+    const list = () =>
+      fixture.nativeElement.querySelector(
+        'app-spot-list',
+      ) as HTMLElement | null;
+
+    /** Enough rows to scroll the column. */
+    const MANY = Array.from({ length: 60 }, (_, index) =>
+      listFeature(`s${index}`, `Spot ${index}`),
+    );
+
+    function open(id: string, preview: SpotListFeature): void {
+      showSpot(id, preview);
+      fixture.detectChanges();
+      TestBed.tick();
+      fixture.detectChanges();
+    }
+
+    it('keeps the same list through an open and close when the rows are unchanged', () => {
+      store.shownSpots.set([ALPHA, BETA]);
+      create();
+      const before = list();
+      open('a', ALPHA);
+      expect(list()).toBe(before);
+      closeSpot();
+      expect(list()).toBe(before);
+    });
+
+    it('replaces the list on a close whose rows changed', () => {
+      store.shownSpots.set([ALPHA, BETA]);
+      create();
+      const before = list();
+      open('a', ALPHA);
+      store.selectedId.set(null);
+      store.detail.set(null);
+      store.shownSpots.set([BETA]);
+      fixture.detectChanges();
+      TestBed.tick();
+      expect(list()).not.toBe(before);
+    });
+
+    it('needs no new list when the rows changed while a spot was open', () => {
+      store.shownSpots.set([ALPHA, BETA]);
+      create();
+      const before = list();
+      open('a', ALPHA);
+      store.shownSpots.set(null);
+      fixture.detectChanges();
+      store.shownSpots.set([BETA]);
+      fixture.detectChanges();
+      closeSpot();
+      expect(list()).toBe(before);
+    });
+
+    it('makes the list inert and hidden from screen readers while a spot is open, and neither after', () => {
+      store.shownSpots.set([ALPHA, BETA]);
+      create();
+      expect(list()!.inert).toBeFalse();
+      expect(list()!.getAttribute('aria-hidden')).toBeNull();
+      expect(list()!.classList).not.toContain('spot-pane__view--list-hidden');
+
+      open('a', ALPHA);
+      expect(list()!.inert).toBeTrue();
+      expect(list()!.getAttribute('aria-hidden')).toBe('true');
+      expect(list()!.classList).toContain('spot-pane__view--list-hidden');
+
+      closeSpot();
+      expect(list()!.inert).toBeFalse();
+      expect(list()!.getAttribute('aria-hidden')).toBeNull();
+      expect(list()!.classList).not.toContain('spot-pane__view--list-hidden');
+    });
+
+    it('keeps the list’s scroll position through an open and close when the rows are unchanged', () => {
+      store.shownSpots.set(MANY);
+      create();
+      list()!.scrollTop = 200;
+      expect(list()!.scrollTop).toBe(200);
+      open('s0', MANY[0]);
+      closeSpot();
+      expect(list()!.scrollTop).toBe(200);
+    });
+
+    it('returns focus to the same row on every close: A, close, A, close', () => {
+      store.shownSpots.set([ALPHA, BETA]);
+      create();
+      const rowA = () =>
+        fixture.nativeElement.querySelector('a[data-spot-id="a"]');
+      for (const pass of ['first', 'second']) {
+        store.returnFocusTo.set('a');
+        open('a', ALPHA);
+        fixture.nativeElement
+          .querySelector('.spot-column__toolbar app-overview-back button')
+          .focus();
+        closeSpot();
+        expect(document.activeElement).withContext(pass).toBe(rowA());
+      }
+    });
+
+    it('asks the list to focus nothing while a spot is open', () => {
+      store.shownSpots.set([ALPHA]);
+      store.returnFocusTo.set('a');
+      create();
+      const component = fixture.debugElement.query(
+        By.directive(SpotListComponent),
+      ).componentInstance as SpotListComponent;
+      expect(component.focusId()).toBe('a');
+      open('a', ALPHA);
+      expect(component.focusId()).toBeNull();
+    });
+
+    it('counts a row in the hidden list as lost focus when the spot closes', () => {
+      store.shownSpots.set([ALPHA, BETA]);
+      const host = create();
+      host.querySelector<HTMLElement>('a[data-spot-id="b"]')!.focus();
+      open('a', ALPHA);
+      closeSpot();
+      expect(document.activeElement).toBe(
+        host.querySelector('.spot-column__count-line'),
+      );
+    });
+
+    it('builds no list on a cold link until its first close, then keeps it', () => {
+      store.shownSpots.set([ALPHA]);
+      showSpot('a', ALPHA);
+      const host = create();
+      expect(list()).toBeNull();
+      expect(host.querySelector('img')).toBeNull();
+      closeSpot();
+      const mounted = list();
+      expect(mounted).not.toBeNull();
+      open('a', ALPHA);
+      expect(list()).toBe(mounted);
+    });
+
+    it('keeps the list ahead of the detail, so Tab from the opening row reaches the detail', () => {
+      store.shownSpots.set([ALPHA]);
+      create();
+      open('a', ALPHA);
+      const detail = fixture.nativeElement.querySelector('app-spot-detail');
+      expect(
+        list()!.compareDocumentPosition(detail) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
+    });
+
+    it('leaves toward −8 px, net of the 16 px step that waits out the fade', () => {
+      store.shownSpots.set([ALPHA]);
+      create();
+      open('a', ALPHA);
+      const style = getComputedStyle(list()!);
+      expect(style.transitionProperty).toContain('translate');
+      expect(style.transitionProperty).toContain('transform');
+      expect(style.pointerEvents).toBe('none');
+      list()!
+        .getAnimations()
+        .forEach((animation) => animation.finish());
+      expect(getComputedStyle(list()!).opacity).toBe('0');
+      expect(getComputedStyle(list()!).translate).toBe('16px');
+      expect(getComputedStyle(list()!).transform).toBe(
+        'matrix(1, 0, 0, 1, -8, 0)',
+      );
+    });
+  });
+
+  describe('the deferred city picker', () => {
+    /** The two picker slots: the header row's from 769 px, the top bar's on a phone. */
+    const SITES = [
+      {
+        name: 'the header row',
+        slot: '.map-header__picker',
+        width: 1200,
+        wide: true,
+        phone: false,
+      },
+      {
+        name: 'the top bar',
+        slot: '.map-topbar__picker',
+        width: 390,
+        wide: false,
+        phone: true,
+      },
+    ] as const;
+
+    /** A box's position and size in whole px, for before/after comparisons. */
+    function boxOf(element: Element): string {
+      const { x, y, width, height } = element.getBoundingClientRect();
+      return [x, y, width, height].map((n) => Math.round(n)).join(',');
+    }
+
+    /** The box the text inside `element` paints, transforms included. */
+    function textBox(element: Element): DOMRect {
+      const range = document.createRange();
+      range.selectNodeContents(element);
+      return range.getBoundingClientRect();
+    }
+
+    /** Expects two boxes to agree within `tolerance` px on every edge. */
+    function expectSameBox(
+      actual: DOMRect,
+      expected: DOMRect,
+      what: string,
+      tolerance = 1,
+    ): void {
+      for (const edge of ['left', 'top', 'right', 'bottom'] as const) {
+        expect(Math.abs(actual[edge] - expected[edge]))
+          .withContext(`${what} ${edge}: ${actual[edge]} vs ${expected[edge]}`)
+          .toBeLessThanOrEqual(tolerance);
+      }
+    }
+
+    for (const site of SITES) {
+      describe(`in ${site.name}`, () => {
+        beforeEach(() => {
+          wide.next(site.wide);
+          phone.next(site.phone);
+        });
+
+        /** The page at this site's width, once the top bar's first measurement has landed. */
+        async function createSite(): Promise<HTMLElement> {
+          const host = create(site.width);
+          await nextFrames();
+          fixture.detectChanges();
+          return host;
+        }
+
+        it('holds the slot with an inert, hidden 40 px placeholder until the picker loads', async () => {
+          const host = await createSite();
+          const slot = host.querySelector<HTMLElement>(site.slot)!;
+          const placeholder =
+            slot.querySelector<HTMLElement>('.city-placeholder');
+          expect(placeholder).not.toBeNull();
+          expect(slot.querySelector('app-city-picker')).toBeNull();
+          expect(placeholder!.getAttribute('aria-hidden')).toBe('true');
+          expect(getComputedStyle(placeholder!).pointerEvents).toBe('none');
+          expect(
+            slot.querySelectorAll(
+              'a, button, input, select, textarea, [tabindex]',
+            ).length,
+          ).toBe(0);
+          expect(placeholder!.textContent!.trim()).toBe('City');
+          expect(Math.round(slot.getBoundingClientRect().height)).toBe(40);
+        });
+
+        it('swaps the placeholder for the picker without moving or resizing anything', async () => {
+          const host = await createSite();
+          const banner = site.phone
+            ? '.map-topbar__banner'
+            : '.map-header__banner';
+          const watched = [site.slot, banner, '.map-window'];
+          const before = watched.map((selector) =>
+            boxOf(host.querySelector(selector)!),
+          );
+
+          await loadPicker();
+          await nextFrames();
+          fixture.detectChanges();
+
+          expect(
+            watched.map((selector) => boxOf(host.querySelector(selector)!)),
+          ).toEqual(before);
+          expect(
+            host.querySelectorAll(`${site.slot} app-city-picker`).length,
+          ).toBe(1);
+        });
+
+        it('draws the placeholder as the closed field’s outline, notch and floating label', async () => {
+          const host = await createSite();
+          const slot = host.querySelector<HTMLElement>(site.slot)!;
+          const frame = slot.querySelector<HTMLElement>('.city-placeholder')!;
+          const legend = slot.querySelector<HTMLElement>(
+            '.city-placeholder__label',
+          )!;
+          const frameStyle = getComputedStyle(frame);
+          const legendStyle = getComputedStyle(legend);
+          const placeholder = {
+            frame: frame.getBoundingClientRect(),
+            notch: legend.getBoundingClientRect(),
+            text: textBox(legend),
+            borderColor: frameStyle.borderTopColor,
+            radius: frameStyle.borderTopLeftRadius,
+            color: legendStyle.color,
+            glow: legendStyle.textShadow,
+            font: legendStyle.fontFamily,
+          };
+
+          await loadPicker();
+          await nextFrames();
+          fixture.detectChanges();
+
+          const outline = slot.querySelector<HTMLElement>(
+            '.mdc-notched-outline',
+          )!;
+          const notch = slot.querySelector<HTMLElement>(
+            '.mdc-notched-outline__notch',
+          )!;
+          const trailing = slot.querySelector<HTMLElement>(
+            '.mdc-notched-outline__trailing',
+          )!;
+          const label = slot.querySelector<HTMLElement>(
+            '.mat-mdc-floating-label',
+          )!;
+          const edge = getComputedStyle(
+            slot.querySelector('.mdc-notched-outline__leading')!,
+          );
+          const labelStyle = getComputedStyle(label);
+
+          expectSameBox(
+            placeholder.frame,
+            outline.getBoundingClientRect(),
+            'frame',
+          );
+          expect(
+            Math.abs(
+              placeholder.notch.left - notch.getBoundingClientRect().left,
+            ),
+          )
+            .withContext('notch start')
+            .toBeLessThanOrEqual(1);
+          expect(
+            Math.abs(
+              placeholder.notch.right - trailing.getBoundingClientRect().left,
+            ),
+          )
+            .withContext('notch end')
+            .toBeLessThanOrEqual(1);
+          // The specs render in the fallback font, not the app's, and the label's line box differs
+          // by up to a pixel and a half between them (the placeholder's offset is tuned in the real
+          // app), so the text box gets 2 px where the frame and notch get 1.
+          expectSameBox(placeholder.text, textBox(label), 'label text', 2);
+          expect(placeholder.borderColor).toBe(edge.borderTopColor);
+          expect(placeholder.radius).toBe(edge.borderTopLeftRadius);
+          expect(placeholder.color).toBe(labelStyle.color);
+          expect(placeholder.glow).toBe(labelStyle.textShadow);
+          expect(placeholder.font).toBe(labelStyle.fontFamily);
+        });
+      });
+    }
+
+    it('keeps the placeholder in a layout built before the picker has loaded', () => {
+      const host = create();
+      wide.next(false);
+      phone.next(true);
+      fixture.detectChanges();
+      fixture.detectChanges();
+      expect(
+        host.querySelector('.map-topbar__picker .city-placeholder'),
+      ).not.toBeNull();
+      expect(host.querySelector('app-city-picker')).toBeNull();
+    });
+
+    describe('with its real triggers', () => {
+      beforeAll(() => (deferBehavior = DeferBlockBehavior.Playthrough));
+      afterAll(() => (deferBehavior = DeferBlockBehavior.Manual));
+
+      it('loads once the page is idle, then the placeholder fades out', async () => {
+        const host = create();
+        expect(
+          host.querySelector('.map-header .city-placeholder'),
+        ).not.toBeNull();
+
+        await frameUntil(
+          () => host.querySelector('.map-header app-city-picker') !== null,
+        );
+        expect(
+          host.querySelector('.map-header app-city-picker'),
+        ).not.toBeNull();
+
+        await frameUntil(
+          () => host.querySelector('.city-placeholder') === null,
+        );
+        expect(host.querySelector('.city-placeholder')).toBeNull();
+      });
+
+      it('shows the picker at once, and no placeholder, in a layout built after it has loaded', async () => {
+        const host = create();
+        await frameUntil(
+          () => host.querySelector('.city-placeholder') === null,
+        );
+        expect(
+          host.querySelector('.map-header app-city-picker'),
+        ).not.toBeNull();
+
+        wide.next(false);
+        phone.next(true);
+        fixture.detectChanges();
+        fixture.detectChanges();
+        // No placeholder in the passes that built the bar, and the slot holds the field's 40 px.
+        expect(host.querySelector('.city-placeholder')).toBeNull();
+        expect(
+          Math.round(
+            host.querySelector('.map-topbar__picker')!.getBoundingClientRect()
+              .height,
+          ),
+        ).toBe(40);
+        await frameUntil(
+          () => host.querySelector('.map-topbar app-city-picker') !== null,
+        );
+        expect(
+          host.querySelector('.map-topbar app-city-picker'),
+        ).not.toBeNull();
+        expect(host.querySelector('.city-placeholder')).toBeNull();
+
+        fixture.debugElement
+          .query(By.directive(CityPickerComponent))
+          .componentInstance.citySelected.emit(SUPPORTED_CITIES[CityEnum.Graz]);
+        expect(store.selectCity).toHaveBeenCalledWith(
+          SUPPORTED_CITIES[CityEnum.Graz],
+        );
+      }, 10_000);
+    });
+  });
+
+  it('shows one city picker in either layout', async () => {
     const host = create();
+    await loadPicker();
     expect(host.querySelectorAll('app-city-picker').length).toBe(1);
     goNarrow();
+    await loadPicker();
     expect(host.querySelectorAll('app-city-picker').length).toBe(1);
   });
 
   it('keeps the same map across the breakpoint, so a resize never rebuilds it', () => {
     create();
-    const before = container();
+    const before = spotMap();
     goNarrow();
-    expect(container()).toBe(before);
+    expect(spotMap()).toBe(before);
   });
 
   it('builds no map while a shared link is still finding its city', () => {
@@ -1069,35 +1610,70 @@ describe('MapComponent', () => {
     store.openOn.set(focus);
     create();
     expect(container().city()).toBe(CityEnum.Vienna);
-    expect(container().selectedId()).toBe('a');
-    expect(container().hoveredId()).toBe('b');
-    expect(container().openOn()).toEqual(focus);
+    expect(spotMap().city()).toBe(CityEnum.Vienna);
+    expect(spotMap().selectedId()).toBe('a');
+    expect(spotMap().hoveredId()).toBe('b');
+    expect(spotMap().openOn()).toEqual(focus);
+  });
+
+  it('hands the store’s list to the map', () => {
+    const list = { type: 'FeatureCollection' as const, features: [ALPHA] };
+    store.mapSpots.set(list);
+    create();
+    expect(spotMap().spots()).toBe(list);
   });
 
   it('feeds what the map reports into the store', () => {
     create();
-    const collection = {
-      type: 'FeatureCollection' as const,
-      features: [ALPHA],
-    };
     const bounds = { west: 16, south: 48, east: 17, north: 49 };
-    container().spotsLoaded.emit(collection);
-    container().boundsChange.emit(bounds);
-    container().spotClick.emit('a');
-    container().pinHover.emit('b');
+    spotMap().boundsChange.emit(bounds);
+    spotMap().spotClick.emit('a');
+    spotMap().pinHover.emit('b');
 
-    expect(store.setList).toHaveBeenCalledWith(collection);
     expect(store.setBounds).toHaveBeenCalledWith(bounds);
     expect(store.open).toHaveBeenCalledWith('a', 'pin');
     expect(store.setHovered).toHaveBeenCalledWith('b');
   });
 
-  it('feeds the list and the picker into the store', () => {
+  it('tells both the frame and the store when the map gives up', () => {
+    create();
+    store.mapGaveUp.calls.reset();
+    const onFailed = spyOn(container(), 'onFailed');
+    spotMap().failed.emit('unreachable');
+    expect(onFailed).toHaveBeenCalledOnceWith('unreachable');
+    expect(store.mapGaveUp).toHaveBeenCalledTimes(1);
+  });
+
+  it('hands the map’s load events to the frame and the frame’s retry to the store', () => {
+    create();
+    const report = spyOn(container(), 'report');
+    const onReady = spyOn(container(), 'onReady');
+    spotMap().loadEvent.emit({ kind: 'painted' });
+    spotMap().ready.emit();
+    container().retry.emit();
+    expect(report).toHaveBeenCalledOnceWith({ kind: 'painted' });
+    expect(onReady).toHaveBeenCalledTimes(1);
+    expect(store.reloadList).toHaveBeenCalledTimes(1);
+  });
+
+  it('binds the store’s load to the frame and its attempt to the map', () => {
+    const events = [{ kind: 'spots-sent' }] as const;
+    store.listEvents.set(events);
+    store.listFailed.set(true);
+    store.listAttempt.set(3);
+    create();
+    expect(container().spotEvents()).toBe(events);
+    expect(container().listFailed()).toBeTrue();
+    expect(spotMap().retryToken()).toBe(3);
+  });
+
+  it('feeds the list and the picker into the store', async () => {
     store.shownSpots.set([ALPHA, BETA]);
     store.notice.set('not-found');
     store.returnFocusTo.set('a');
     store.hoveredId.set('b');
     create();
+    await loadPicker();
     const list = fixture.debugElement.query(By.directive(SpotListComponent))
       .componentInstance as SpotListComponent;
     expect(list.spots()).toEqual([ALPHA, BETA]);

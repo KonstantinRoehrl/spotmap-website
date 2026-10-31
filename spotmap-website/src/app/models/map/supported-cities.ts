@@ -99,3 +99,14 @@ export const SUPPORTED_CITIES: Record<CityEnum, MapItem> = {
     countryCode: CountryCodeEnum.Spain,
   },
 };
+
+/**
+ * The city's entry for a slug, or null for one the app has no map for. `Object.hasOwn`, so
+ * `constructor` cannot reach an `Object.prototype` member. The answer is the `SUPPORTED_CITIES`
+ * entry itself, so the picker's `mat-select` matches it by reference.
+ */
+export function parseCity(slug: string): MapItem | null {
+  return Object.hasOwn(SUPPORTED_CITIES, slug)
+    ? SUPPORTED_CITIES[slug as CityEnum]
+    : null;
+}

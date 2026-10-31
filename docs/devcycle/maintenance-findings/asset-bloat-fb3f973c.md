@@ -1,0 +1,11 @@
+# The favicon is a 1.34 MB uncompressed PNG, the largest asset on every cold load
+- finding-kind: maintenance-finding
+- finding-id: asset-bloat:fb3f973c
+- culprit-kind: asset-bloat
+- severity: high
+- confidence: verified
+- affected-files: spotmap-website/src/index.html, spotmap-website/public/icon.png, spotmap-website/public/icon2.png, spotmap-website/public/icon3.png, spotmap-website/public/favicon.ico
+- first-seen: 2026-10-29
+- last-seen: 2026-10-29
+- passes: 1
+- verify: 

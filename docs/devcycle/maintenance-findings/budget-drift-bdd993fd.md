@@ -1,0 +1,11 @@
+# The `maplibre-gl` bundle budget is already 886 B over its warn
+- finding-kind: maintenance-finding
+- finding-id: budget-drift:bdd993fd
+- culprit-kind: budget-drift
+- severity: low
+- confidence: verified
+- affected-files: spotmap-website/angular.json
+- first-seen: 2026-10-29
+- last-seen: 2026-10-29
+- passes: 1
+- verify: 

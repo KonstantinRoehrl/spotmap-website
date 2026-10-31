@@ -1,0 +1,14 @@
+# Reserve bundle-budget headroom in plans, lazy-load heavy UI first, and raise angular.json budgets only with approval
+- promotion-type: doc-edit
+- cluster-signature: novel:bundle-budget-not-planned
+- files-touched: docs/devcycle/lessons.md
+- affected-files: docs/devcycle/lessons.md
+- landed: 2026-10-27
+- commit: 
+- plugin-version: 0.28.0
+- sourced-from-memory: true
+- culprit-id: novel:bundle-budget-not-planned
+- rung: r2
+- audience: repo-devs
+- verify: journal-recurrence
+- aliases: novel:map-chunk-budget-exhausted

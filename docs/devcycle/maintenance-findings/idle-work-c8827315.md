@@ -1,0 +1,11 @@
+# No route preloading: `/home` → `/map` and the photo viewer pay a full waterfall on click
+- finding-kind: maintenance-finding
+- finding-id: idle-work:c8827315
+- culprit-kind: idle-work
+- severity: low
+- confidence: verified
+- affected-files: spotmap-website/src/app/app.config.ts, spotmap-website/src/app/app.routes.ts
+- first-seen: 2026-10-29
+- last-seen: 2026-10-29
+- passes: 1
+- verify: 

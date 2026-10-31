@@ -1,0 +1,11 @@
+# Cropped photo tiles are kept after their fade and never used again
+- finding-kind: maintenance-finding
+- finding-id: dead-cost:e145c4f9
+- culprit-kind: dead-cost
+- severity: low
+- confidence: verified
+- affected-files: spotmap-website/src/app/modules/components/spot-map/photo-pins.ts
+- first-seen: 2026-10-29
+- last-seen: 2026-10-29
+- passes: 1
+- verify: 

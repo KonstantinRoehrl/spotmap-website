@@ -4,7 +4,7 @@ import {
   AsciiRainComponent,
   RAIN_CHARACTERS,
 } from '../ascii-rain/ascii-rain.component';
-import { MapLoadState } from '../map-container/map-load-progress';
+import { MapLoadState } from './map-load-progress';
 import { MapLoaderComponent } from './map-loader.component';
 
 describe('MapLoaderComponent', () => {

@@ -23,7 +23,8 @@ Notes:
   spot source registry and per-city reports (`spotmap-website/data/spots/sources.json`
   and `*.report.json`; graphify does not ingest the `.geojson` files), and the real
   docs (`DESIGN.md`, `PRODUCT.md`, `README.md`,
-  the tracked notes under `docs/devcycle/maintenance-findings/`, `public/icon*.png`).
+  the tracked notes under `docs/devcycle/maintenance-findings/`, the icon master
+  `spotmap-website/design-assets/icon-master.png` and its `public/` renditions).
   It excludes process scaffolding (`.superpowers/`, `.claude/`, `.impeccable/`,
   `.devcycle/`), planning artifacts (`docs/superpowers/`), local audits
   (`docs/audits/`), per-session on-device notes, the bundled snapshots

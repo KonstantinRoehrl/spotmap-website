@@ -1,0 +1,11 @@
+# The `initial` error ceiling (1 MB, Angular's default) is 2.2× the real size and has never fired
+- finding-kind: maintenance-finding
+- finding-id: budget-drift:1f845524
+- culprit-kind: budget-drift
+- severity: medium
+- confidence: verified
+- affected-files: spotmap-website/angular.json
+- first-seen: 2026-10-29
+- last-seen: 2026-10-29
+- passes: 1
+- verify: 

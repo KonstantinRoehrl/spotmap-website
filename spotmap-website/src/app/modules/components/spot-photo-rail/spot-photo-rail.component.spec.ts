@@ -168,6 +168,35 @@ describe('SpotPhotoRailComponent', () => {
     expect(buttons()[2].querySelector('img')).not.toBeNull();
   });
 
+  it('draws a failed photo as the failure voice, filling its frame', () => {
+    create();
+    images()[0].dispatchEvent(new Event('error'));
+    fixture.detectChanges();
+    const frame = buttons()[0];
+    const failed = frame.querySelector<HTMLElement>('.rail__failed')!;
+    const style = getComputedStyle(failed);
+    expect(style.position).toBe('absolute');
+    expect(style.display).toBe('flex');
+    expect(style.flexDirection).toBe('column');
+    expect(style.alignItems).toBe('center');
+    expect(style.justifyContent).toBe('center');
+    expect(style.rowGap).toBe('4px');
+    expect(style.padding).toBe('8px');
+    expect(style.fontSize).toBe('12px');
+    expect(style.letterSpacing).toBe('0.96px');
+    expect(style.textAlign).toBe('center');
+    expect(style.color).toBe(painted('var(--color-phosphor)'));
+    expect(failed.offsetWidth).toBe(frame.clientWidth);
+    expect(failed.offsetHeight).toBe(frame.clientHeight);
+    expect(failed.getAttribute('aria-hidden')).toBe('true');
+    const [lost, dim] = Array.from(failed.children);
+    expect(getComputedStyle(lost).textShadow).not.toBe('none');
+    expect(getComputedStyle(dim).color).toBe(
+      painted('var(--color-phosphor-dim)'),
+    );
+    expect(getComputedStyle(dim).textShadow).toBe('none');
+  });
+
   it('draws 4:3 frames 8 px apart, as wide as the size source says', () => {
     create();
     const [first, second] = buttons().map((b) => b.getBoundingClientRect());

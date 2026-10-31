@@ -1,0 +1,11 @@
+# A timer is re-armed on every rendered frame, and hover hit-testing allocates `matchMedia` per `mousemove`
+- finding-kind: maintenance-finding
+- finding-id: idle-work:0843319b
+- culprit-kind: idle-work
+- severity: low
+- confidence: verified
+- affected-files: spotmap-website/src/app/modules/components/spot-map/photo-pins.ts, spotmap-website/src/app/modules/components/spot-map/spot-map.component.ts
+- first-seen: 2026-10-29
+- last-seen: 2026-10-29
+- passes: 1
+- verify: 

@@ -1,23 +1,15 @@
-import { provideHttpClient } from '@angular/common/http';
-import {
-  HttpTestingController,
-  provideHttpClientTesting,
-  TestRequest,
-} from '@angular/common/http/testing';
-import { provideLocationMocks } from '@angular/common/testing';
-import { createEnvironmentInjector, EnvironmentInjector } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
 import { CityEnum } from '../../../models/enums/map-enum';
 import {
   type AttributionCorner,
   type MapFocus,
   type MapInsets,
+  type ViewBounds,
   NO_INSETS,
 } from '../../../models/map/map-camera';
 import type { MapLoadEvent } from '../../../models/map/map-load-event';
-import { SpotListCollection } from '../../../models/spots/spot';
-import type { ViewBounds } from '../../../models/spots/spots-in-view';
+import { SpotCollection, SpotListCollection } from '../../../models/spots/spot';
+import { toListCollection } from '../../../models/spots/spot-shapes';
 import {
   FLAG_REACH_PX,
   PIN_IMAGE_HEIGHT,
@@ -28,7 +20,6 @@ import {
 } from './photo-pins';
 import { FLAG_FADE_MS, FLAG_MOTION_MS, SYMBOL_FADE_MS } from './selection-flag';
 import { SELECTED_PIN_REACH_PX } from './selection-camera';
-import { SpotBrowserStore } from '../../pages/map/spot-browser.store';
 import type { ElevationTiles } from './elevation';
 import { ELEVATION_LOADER, MAP_FACTORY } from './map-factory.token';
 import {
@@ -75,6 +66,9 @@ const ELEVATION_LAYERS = [
   { id: 'contour-label', beforeId: 'water-label' },
 ];
 
+/** {@link COLLECTION} in the list shape, as the store hands it to the map. */
+const LIST = toListCollection(COLLECTION as unknown as SpotCollection);
+
 /** What the browser resolves a design token to for a property, so assertions compare painted output. */
 function painted(property: 'border-radius', token: string): string {
   const probe = document.createElement('span');
@@ -107,7 +101,6 @@ function loadMapLibreAttributionRules(): HTMLStyleElement {
 describe('SpotMapComponent', () => {
   let fixture: ComponentFixture<SpotMapComponent>;
   let fake: FakeMap;
-  let httpMock: HttpTestingController;
   let getContext: jasmine.Spy;
   let loseContext: jasmine.Spy;
   let mapFactory: jasmine.Spy;
@@ -140,8 +133,6 @@ describe('SpotMapComponent', () => {
     await TestBed.configureTestingModule({
       imports: [SpotMapComponent],
       providers: [
-        provideHttpClient(),
-        provideHttpClientTesting(),
         { provide: MAP_FACTORY, useValue: mapFactory },
         { provide: SPOTMAP_BACKEND, useFactory: () => backend },
         {
@@ -150,19 +141,18 @@ describe('SpotMapComponent', () => {
         },
       ],
     }).compileComponents();
-    httpMock = TestBed.inject(HttpTestingController);
   });
 
   async function create({
     city = CityEnum.Vienna,
-    collection = COLLECTION,
+    collection = LIST,
     selectedId = null,
     insets = NO_INSETS,
     openOn = null as MapFocus | null,
     attributionCorner = 'bottom-right' as AttributionCorner,
   }: {
     city?: CityEnum;
-    collection?: object;
+    collection?: SpotListCollection;
     selectedId?: string | null;
     insets?: MapInsets;
     openOn?: MapFocus | null;
@@ -174,12 +164,12 @@ describe('SpotMapComponent', () => {
       'display:block;width:1000px;height:600px;position:relative';
     fixture.componentRef.setInput('city', city);
     fixture.componentRef.setInput('retryToken', 0);
+    fixture.componentRef.setInput('spots', collection);
     fixture.componentRef.setInput('selectedId', selectedId);
     fixture.componentRef.setInput('coveredInsets', insets);
     fixture.componentRef.setInput('openOn', openOn);
     fixture.componentRef.setInput('attributionCorner', attributionCorner);
     fixture.detectChanges();
-    httpMock.expectOne(`spots/${city}.geojson`).flush(collection);
     await fixture.whenStable();
     fixture.detectChanges();
     return fixture.componentInstance;
@@ -191,12 +181,14 @@ describe('SpotMapComponent', () => {
     fixture.detectChanges();
   }
 
-  /** Re-arms the renderer the way the container's RETRY does, on a fresh map. */
+  /** Re-arms the renderer the way the store's reload does: the spots go, then the new list comes. */
   async function retry(token: number) {
     fake = new FakeMap();
+    fixture.componentRef.setInput('spots', null);
     fixture.componentRef.setInput('retryToken', token);
     fixture.detectChanges();
-    httpMock.expectOne('spots/vienna.geojson').flush(COLLECTION);
+    fixture.componentRef.setInput('spots', LIST);
+    fixture.detectChanges();
     await fixture.whenStable();
   }
 
@@ -340,7 +332,7 @@ describe('SpotMapComponent', () => {
       properties: { id, name: id, status: 'active', photos: [] },
     });
     await create({
-      collection: {
+      collection: toListCollection({
         type: 'FeatureCollection',
         features: [
           spot('a', 16.37, 48.2),
@@ -349,7 +341,7 @@ describe('SpotMapComponent', () => {
           // Melk, ~75 km west of Vienna: the sort of stray the framing must not stretch for.
           spot('stray', 15.33, 48.23),
         ],
-      },
+      } as unknown as SpotCollection),
     });
     expect(mapFactory.calls.mostRecent().args[0].bounds).toEqual([
       [16.35, 48.19],
@@ -762,6 +754,7 @@ describe('SpotMapComponent', () => {
     fixture = TestBed.createComponent(SpotMapComponent);
     fixture.componentRef.setInput('city', CityEnum.Vienna);
     fixture.componentRef.setInput('retryToken', 0);
+    fixture.componentRef.setInput('spots', LIST);
     const failed = jasmine.createSpy('failed');
     fixture.componentInstance.failed.subscribe(failed);
     fixture.detectChanges();
@@ -770,108 +763,13 @@ describe('SpotMapComponent', () => {
     expect(mapFactory).not.toHaveBeenCalled();
   });
 
-  it('still reports the spot list on a browser without WebGL, so the list works beside the failure chrome', async () => {
-    getContext.and.returnValue(null);
-    fixture = TestBed.createComponent(SpotMapComponent);
-    fixture.componentRef.setInput('city', CityEnum.Vienna);
-    fixture.componentRef.setInput('retryToken', 0);
+  it('reports no failure from a late error after the paint', async () => {
+    const c = await create();
     const failed = jasmine.createSpy('failed');
-    const loaded: SpotListCollection[] = [];
-    const events: MapLoadEvent[] = [];
-    fixture.componentInstance.failed.subscribe(failed);
-    fixture.componentInstance.spotsLoaded.subscribe((c) => loaded.push(c));
-    fixture.componentInstance.loadEvent.subscribe((e) => events.push(e));
-    fixture.detectChanges();
-    await fixture.whenStable();
-    expect(failed)
-      .withContext('no waiting on the network')
-      .toHaveBeenCalledWith('unsupported');
-    const requests = httpMock.match('spots/vienna.geojson');
-    expect(requests.length).toBe(1);
-    requests[0]?.flush(COLLECTION);
-    // Lets the spot list's promise chain settle: `whenStable()` does not wait for it.
-    await new Promise((resolve) => setTimeout(resolve));
-    expect(loaded.length).toBe(1);
-    expect(loaded[0]?.features.map((f) => f.properties.id)).toEqual(['a', 'b']);
-    expect(events.map((e) => e.kind)).toContain('spots-done');
-    expect(mapFactory).not.toHaveBeenCalled();
-  });
-
-  describe('the spot list beside a map that cannot paint', () => {
-    /** Both spots of {@link COLLECTION}, A–Z, as the list shows them. */
-    const ALL_SPOT_IDS = ['a', 'b'];
-
-    let pageInjector: EnvironmentInjector;
-
-    afterEach(() => pageInjector.destroy());
-
-    /**
-     * Wires `component` to a page store the way the map page's template does — `spotsLoaded` into
-     * `setList`, `boundsChange` into `setBounds` — so a spec reads what a visitor's list would show.
-     */
-    function listOf(component: SpotMapComponent): () => string[] | null {
-      pageInjector = createEnvironmentInjector(
-        [provideRouter([]), provideLocationMocks(), SpotBrowserStore],
-        TestBed.inject(EnvironmentInjector),
-      );
-      const store = pageInjector.get(SpotBrowserStore);
-      component.spotsLoaded.subscribe((list) => store.setList(list));
-      component.boundsChange.subscribe((bounds) => store.setBounds(bounds));
-      return () =>
-        store.shownSpots()?.map((spot) => spot.properties.id) ?? null;
-    }
-
-    /** Starts a build the spec has wired to a store, with its spots request unanswered. */
-    function startBuild() {
-      fixture = TestBed.createComponent(SpotMapComponent);
-      fixture.componentRef.setInput('city', CityEnum.Vienna);
-      fixture.componentRef.setInput('retryToken', 0);
-      const shown = listOf(fixture.componentInstance);
-      fixture.detectChanges();
-      return shown;
-    }
-
-    /** Answers the unanswered spots request and lets the build's promise chain settle. */
-    async function answerSpots() {
-      httpMock.expectOne('spots/vienna.geojson').flush(COLLECTION);
-      await fixture.whenStable();
-      await new Promise((resolve) => setTimeout(resolve));
-    }
-
-    it('lists every spot when the browser has no WebGL, as no spot is out of view of a map that is not there', async () => {
-      getContext.and.returnValue(null);
-      const shown = startBuild();
-      await answerSpots();
-      expect(shown()).toEqual(ALL_SPOT_IDS);
-    });
-
-    it('lists every spot when the map is refused after the spots arrived', async () => {
-      spyOn(console, 'error');
-      mapFactory.and.callFake(() => Promise.reject(new Error('no context')));
-      const shown = startBuild();
-      await answerSpots();
-      expect(shown()).toEqual(ALL_SPOT_IDS);
-    });
-
-    it('lists every spot when the basemap dies before the map paints', async () => {
-      const shown = startBuild();
-      await answerSpots();
-      expect(shown()).withContext('no view known yet').toBeNull();
-      fake.failBasemapSource();
-      expect(shown()).toEqual(ALL_SPOT_IDS);
-    });
-
-    it('keeps the list a painted map shows when a late error names a dead source', async () => {
-      const shown = startBuild();
-      await answerSpots();
-      fake.emit('load');
-      const inView = shown();
-      expect(inView)
-        .withContext('the fake map’s view holds no spot')
-        .toEqual([]);
-      fake.failBasemapSource();
-      expect(shown()).toEqual(inView);
-    });
+    c.failed.subscribe(failed);
+    fake.emit('load');
+    fake.failBasemapSource();
+    expect(failed).not.toHaveBeenCalled();
   });
 
   it('fails as unsupported on a browser whose WebGL stops at version 1', async () => {
@@ -891,6 +789,7 @@ describe('SpotMapComponent', () => {
     fixture = TestBed.createComponent(SpotMapComponent);
     fixture.componentRef.setInput('city', CityEnum.Vienna);
     fixture.componentRef.setInput('retryToken', 0);
+    fixture.componentRef.setInput('spots', LIST);
     const failed = jasmine.createSpy('failed');
     fixture.componentInstance.failed.subscribe(failed);
     fixture.detectChanges();
@@ -902,18 +801,18 @@ describe('SpotMapComponent', () => {
   it('reports a map whose renderer never arrives as unreachable', async () => {
     // The lazy maplibre-gl chunk failing to load: after a redeploy a client holding a cached
     // index.html asks for a hashed chunk that is gone, so `import('maplibre-gl')` rejects and
-    // the factory rejects with it. Unreported, the container hears nothing at all and sits on
-    // the spinner until its own 15 s watchdog guesses.
+    // the factory rejects with it. Unreported, the page hears nothing at all and its frame sits on
+    // the spinner until the frame's own 15 s watchdog guesses.
     mapFactory.and.callFake(() =>
       Promise.reject(new Error('map chunk failed to load')),
     );
     fixture = TestBed.createComponent(SpotMapComponent);
     fixture.componentRef.setInput('city', CityEnum.Vienna);
     fixture.componentRef.setInput('retryToken', 0);
+    fixture.componentRef.setInput('spots', LIST);
     const failed = jasmine.createSpy('failed');
     fixture.componentInstance.failed.subscribe(failed);
     fixture.detectChanges();
-    httpMock.expectOne('spots/vienna.geojson').flush(COLLECTION);
     await fixture.whenStable();
     expect(failed).toHaveBeenCalledWith('unreachable');
   });
@@ -930,9 +829,9 @@ describe('SpotMapComponent', () => {
     fixture = TestBed.createComponent(SpotMapComponent);
     fixture.componentRef.setInput('city', CityEnum.Vienna);
     fixture.componentRef.setInput('retryToken', 0);
+    fixture.componentRef.setInput('spots', LIST);
     const logged = spyOn(console, 'error');
     fixture.detectChanges();
-    httpMock.expectOne('spots/vienna.geojson').flush(COLLECTION);
     await fixture.whenStable();
     expect(logged).toHaveBeenCalled();
     expect(logged.calls.mostRecent().args.join(' ')).toContain(
@@ -952,41 +851,12 @@ describe('SpotMapComponent', () => {
     fixture = TestBed.createComponent(SpotMapComponent);
     fixture.componentRef.setInput('city', CityEnum.Vienna);
     fixture.componentRef.setInput('retryToken', 0);
+    fixture.componentRef.setInput('spots', LIST);
     const failed = jasmine.createSpy('failed');
     fixture.componentInstance.failed.subscribe(failed);
     fixture.detectChanges();
-    httpMock.expectOne('spots/vienna.geojson').flush(COLLECTION);
     await fixture.whenStable();
     expect(failed).toHaveBeenCalledWith('unreachable');
-  });
-
-  it('reports a spot fetch failure as unreachable', async () => {
-    fixture = TestBed.createComponent(SpotMapComponent);
-    fixture.componentRef.setInput('city', CityEnum.Vienna);
-    fixture.componentRef.setInput('retryToken', 0);
-    const failed = jasmine.createSpy('failed');
-    fixture.componentInstance.failed.subscribe(failed);
-    fixture.detectChanges();
-    httpMock
-      .expectOne('spots/vienna.geojson')
-      .flush('nope', { status: 500, statusText: 'Server Error' });
-    await fixture.whenStable();
-    expect(failed).toHaveBeenCalledWith('unreachable');
-  });
-
-  it('reports a city with no spots rather than opening on the null island', async () => {
-    fixture = TestBed.createComponent(SpotMapComponent);
-    fixture.componentRef.setInput('city', CityEnum.Vienna);
-    fixture.componentRef.setInput('retryToken', 0);
-    const failed = jasmine.createSpy('failed');
-    fixture.componentInstance.failed.subscribe(failed);
-    fixture.detectChanges();
-    httpMock
-      .expectOne('spots/vienna.geojson')
-      .flush({ type: 'FeatureCollection', features: [] });
-    await fixture.whenStable();
-    expect(failed).toHaveBeenCalledWith('unreachable');
-    expect(mapFactory).not.toHaveBeenCalled();
   });
 
   it('rebuilds the map when the retry token changes', async () => {
@@ -1003,44 +873,128 @@ describe('SpotMapComponent', () => {
     expect(fake.removed).toBe(true);
   });
 
-  describe('a spots request that a newer build has replaced', () => {
-    /** Starts a build and leaves its spots request unanswered. */
-    function startBuild(): { request: TestRequest; failed: jasmine.Spy } {
+  describe('construction from the spots input', () => {
+    /** Creates the map with `spots`, running the first detection. */
+    function createWith(spots: SpotListCollection | null) {
       fixture = TestBed.createComponent(SpotMapComponent);
+      fixture.nativeElement.style.cssText =
+        'display:block;width:1000px;height:600px;position:relative';
       fixture.componentRef.setInput('city', CityEnum.Vienna);
       fixture.componentRef.setInput('retryToken', 0);
-      const failed = jasmine.createSpy('failed');
-      fixture.componentInstance.failed.subscribe(failed);
+      fixture.componentRef.setInput('spots', spots);
       fixture.detectChanges();
-      return { request: httpMock.expectOne('spots/vienna.geojson'), failed };
     }
 
-    it('is cancelled by a city switch, which asks only for the new city', async () => {
-      const { request, failed } = startBuild();
-      expect(request.cancelled).toBeFalse();
-      fixture.componentRef.setInput('city', CityEnum.Graz);
+    /** Hands the map `spots` and lets the factory's await settle. */
+    async function giveSpots(spots: SpotListCollection | null) {
+      fixture.componentRef.setInput('spots', spots);
       fixture.detectChanges();
-      expect(request.cancelled).toBeTrue();
-      const current = httpMock.expectOne('spots/graz.geojson');
-      expect(current.cancelled).toBeFalse();
-      current.flush(COLLECTION);
       await fixture.whenStable();
-      expect(failed).not.toHaveBeenCalled();
+    }
+
+    it('does not construct while the spots are null', async () => {
+      createWith(null);
+      await fixture.whenStable();
+      expect(mapFactory).not.toHaveBeenCalled();
+    });
+
+    it('constructs once the spots arrive', async () => {
+      createWith(null);
+      await giveSpots(LIST);
       expect(mapFactory).toHaveBeenCalledTimes(1);
     });
 
-    it('is cancelled by a retry', () => {
-      const { request } = startBuild();
-      fixture.componentRef.setInput('retryToken', 1);
-      fixture.detectChanges();
-      expect(request.cancelled).toBeTrue();
-      httpMock.expectOne('spots/vienna.geojson');
+    it('constructs on the first detection when the spots are already there', async () => {
+      createWith(LIST);
+      await fixture.whenStable();
+      expect(mapFactory).toHaveBeenCalledTimes(1);
     });
 
-    it('is cancelled when the component is destroyed', () => {
-      const { request } = startBuild();
-      fixture.destroy();
-      expect(request.cancelled).toBeTrue();
+    it('still warms the terrain loader at build start, before the spots arrive', () => {
+      const warmed = jasmine.createSpy('loadElevation').and.resolveTo(null);
+      loadElevation = warmed;
+      createWith(null);
+      expect(warmed).toHaveBeenCalled();
+    });
+
+    it('frames the map on the spots in its constructor', async () => {
+      createWith(null);
+      await giveSpots(LIST);
+      expect(mapFactory.calls.mostRecent().args[0].bounds).toEqual([
+        [16.37, 48.2],
+        [16.4, 48.22],
+      ]);
+      fake.emit('load');
+      expect(fake.cameraMoves)
+        .withContext('no camera move follows the first paint')
+        .toEqual([]);
+    });
+
+    it('stays unbuilt on an unsupported browser when the spots arrive', async () => {
+      getContext.and.returnValue(null);
+      const failed = jasmine.createSpy('failed');
+      fixture = TestBed.createComponent(SpotMapComponent);
+      fixture.componentInstance.failed.subscribe(failed);
+      fixture.componentRef.setInput('city', CityEnum.Vienna);
+      fixture.componentRef.setInput('retryToken', 0);
+      fixture.componentRef.setInput('spots', null);
+      fixture.detectChanges();
+      expect(failed).toHaveBeenCalledOnceWith('unsupported');
+      await giveSpots(LIST);
+      expect(mapFactory).not.toHaveBeenCalled();
+    });
+
+    it('waits for the new spots after a retry', async () => {
+      createWith(LIST);
+      await fixture.whenStable();
+      fixture.componentRef.setInput('spots', null);
+      fixture.componentRef.setInput('retryToken', 1);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(mapFactory).toHaveBeenCalledTimes(1);
+      await giveSpots(LIST);
+      expect(mapFactory).toHaveBeenCalledTimes(2);
+    });
+
+    it('builds when a reload hands back the same collection object', async () => {
+      createWith(LIST);
+      await fixture.whenStable();
+      fixture.componentRef.setInput('retryToken', 1);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(mapFactory).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not construct twice for a second list during the factory’s await', async () => {
+      createWith(LIST);
+      fixture.componentRef.setInput('spots', { ...LIST });
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(mapFactory).toHaveBeenCalledTimes(1);
+    });
+
+    it('constructs once for the city it ends on after a switch during the wait', async () => {
+      createWith(null);
+      fixture.componentRef.setInput('city', CityEnum.Graz);
+      fixture.detectChanges();
+      await giveSpots(LIST);
+      expect(mapFactory).toHaveBeenCalledTimes(1);
+    });
+
+    it('drops a map whose build a teardown replaced during the factory’s await', async () => {
+      let resolveFirst!: (map: unknown) => void;
+      const first = new FakeMap();
+      mapFactory.and.returnValues(
+        new Promise((resolve) => (resolveFirst = resolve)),
+        Promise.resolve(fake),
+      );
+      createWith(LIST);
+      fixture.componentRef.setInput('retryToken', 1);
+      fixture.detectChanges();
+      resolveFirst(first);
+      await fixture.whenStable();
+      expect(first.removed).toBeTrue();
+      expect(fake.removed).toBeFalse();
     });
   });
 
@@ -1248,62 +1202,10 @@ describe('SpotMapComponent', () => {
       expect(empty).toHaveBeenCalledTimes(1);
     });
 
-    it('reports the loaded spots in the list shape before the map paints, and feeds the pins that shape', async () => {
-      fixture = TestBed.createComponent(SpotMapComponent);
-      const loaded: SpotListCollection[] = [];
-      fixture.componentInstance.spotsLoaded.subscribe((c) => loaded.push(c));
-      fixture.componentRef.setInput('city', CityEnum.Vienna);
-      fixture.componentRef.setInput('retryToken', 0);
-      fixture.detectChanges();
-      httpMock.expectOne('spots/vienna.geojson').flush(COLLECTION);
-      await fixture.whenStable();
-      const expected: SpotListCollection = {
-        type: 'FeatureCollection',
-        features: [
-          {
-            type: 'Feature',
-            geometry: { type: 'Point', coordinates: [16.37, 48.2] },
-            properties: {
-              id: 'a',
-              name: 'Alpha Bank',
-              status: 'active',
-              cover: 'spots/vienna/a-1.webp',
-              photoCount: 1,
-            },
-          },
-          {
-            type: 'Feature',
-            geometry: { type: 'Point', coordinates: [16.4, 48.22] },
-            properties: {
-              id: 'b',
-              name: 'Beta Ledge',
-              status: 'demolished',
-              cover: 'spots/vienna/b-1.webp',
-              photoCount: 1,
-            },
-          },
-        ],
-      };
-      expect(loaded).toEqual([expected]);
+    it('feeds the pins the spots input as the spot source’s data', async () => {
+      await create();
       fake.emit('load');
-      expect((fake.sources['spots'] as { data: unknown }).data).toEqual(
-        expected,
-      );
-    });
-
-    it('reports only the spots of the build a city switch left standing', async () => {
-      fixture = TestBed.createComponent(SpotMapComponent);
-      const loaded: SpotListCollection[] = [];
-      fixture.componentInstance.spotsLoaded.subscribe((c) => loaded.push(c));
-      fixture.componentRef.setInput('city', CityEnum.Vienna);
-      fixture.componentRef.setInput('retryToken', 0);
-      fixture.detectChanges();
-      httpMock.expectOne('spots/vienna.geojson');
-      fixture.componentRef.setInput('city', CityEnum.Graz);
-      fixture.detectChanges();
-      httpMock.expectOne('spots/graz.geojson').flush(COLLECTION);
-      await fixture.whenStable();
-      expect(loaded.length).toBe(1);
+      expect((fake.sources['spots'] as { data: unknown }).data).toBe(LIST);
     });
   });
 
@@ -1394,8 +1296,10 @@ describe('SpotMapComponent', () => {
     const replaced = fake;
     fake = new FakeMap();
     fixture.componentRef.setInput('city', CityEnum.Graz);
+    fixture.componentRef.setInput('spots', null);
     fixture.detectChanges();
-    httpMock.expectOne('spots/graz.geojson').flush(COLLECTION);
+    fixture.componentRef.setInput('spots', LIST);
+    fixture.detectChanges();
     await fixture.whenStable();
     fake.emit('load');
     resolveElevation(ELEVATION_TILES);
@@ -1507,8 +1411,8 @@ describe('SpotMapComponent', () => {
       );
       fixture.componentRef.setInput('city', CityEnum.Vienna);
       fixture.componentRef.setInput('retryToken', 0);
+      fixture.componentRef.setInput('spots', LIST);
       fixture.detectChanges();
-      httpMock.expectOne('spots/vienna.geojson').flush(COLLECTION);
       await fixture.whenStable();
       fixture.detectChanges();
       return events;
@@ -1528,8 +1432,6 @@ describe('SpotMapComponent', () => {
       fake.emit('sourcedata', basemapTile);
       fake.emit('load');
       expect(events.map((event) => event.kind)).toEqual([
-        'spots-sent',
-        'spots-done',
         'renderer-ready',
         'style-loaded',
         'tiles',
@@ -2156,7 +2058,7 @@ describe('SpotMapComponent', () => {
 
     it('flies no flag for a spot without a photo, and leaves the photo pins alone', async () => {
       await create({
-        collection: {
+        collection: toListCollection({
           type: 'FeatureCollection',
           features: [
             {
@@ -2171,7 +2073,7 @@ describe('SpotMapComponent', () => {
               },
             },
           ],
-        },
+        } as unknown as SpotCollection),
       });
       fake.emit('load');
       select('a');
@@ -2351,7 +2253,6 @@ describe('SpotMapComponent', () => {
       select(null);
       expect(mapFactory).toHaveBeenCalledTimes(1);
       expect(fake.removed).toBeFalse();
-      httpMock.expectNone('spots/vienna.geojson');
     });
 
     it('keeps the same map when the covered strips and the opening focus change', async () => {

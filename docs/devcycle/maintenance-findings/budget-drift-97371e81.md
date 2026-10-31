@@ -1,0 +1,11 @@
+# Nothing in the build or CI watches the public site's load cost: warnings never fail, no Material/maplibre marker, no `public/` size cap
+- finding-kind: maintenance-finding
+- finding-id: budget-drift:97371e81
+- culprit-kind: budget-drift
+- severity: medium
+- confidence: verified
+- affected-files: spotmap-website/tools/verify-initial-bundle.mjs, spotmap-website/tools/verify-public-assets.mjs, spotmap-website/package.json, .github/workflows/ci.yml
+- first-seen: 2026-10-29
+- last-seen: 2026-10-29
+- passes: 1
+- verify: 

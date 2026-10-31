@@ -37,15 +37,6 @@
   overflow: hidden;
 }
 
-/* The banner's container centres its line; both bars read from the left, without the dot gutters
-   (`[dotGutters]="false"`). The component is ViewEncapsulation.None, but this page's own rules
-   are scoped and would never match the container's unscoped markup, so ::ng-deep is the only way
-   to reach it. */
-.map-header__banner ::ng-deep .ascii-container,
-.map-topbar__banner ::ng-deep .ascii-container {
-  justify-content: flex-start;
-}
-
 /* 40 px tall through Material's own field tokens, and as wide as its longest label,
    `bratislava · SK`, 15 glyphs: the field's 16 px side padding twice, the arrow (about 10 px, 12
    with a margin) and the glyphs at IBM Plex Mono's 0.6 em advance in the 13 px label size, the
@@ -87,7 +78,65 @@
   --mat-select-trigger-text-tracking: 0;
   --mat-form-field-container-height: 40px;
   --mat-form-field-container-vertical-padding: 7px;
-  display: block;
+}
+
+/* The picker's slot in either bar: the placeholder frame and the picker share one grid cell, so
+   the slot's box is the same with either in it and the swap is a crossfade in place. Its minimum
+   height holds the field's 40 px should the slot ever hold neither. */
+.city-slot {
+  display: grid;
+  min-height: var(--mat-form-field-container-height);
+}
+
+.city-slot > * {
+  grid-area: 1 / 1;
+  min-width: 0;
+}
+
+.city-slot__picker {
+  transition: opacity var(--dur-fast) ease-out;
+}
+
+/* Only the first picker fades in. It is inserted while the placeholder it replaces is still in the
+   slot, fading out, so the sibling tells it from one a layout switch builds later, which is simply
+   there. The reduced-motion net keeps the fade. */
+@starting-style {
+  .city-placeholder ~ .city-slot__picker {
+    opacity: 0;
+  }
+}
+
+/* The closed field's outline and floating label, with no value or arrow, drawn before Material's
+   own styles exist: the legend cuts the notch the label sits in, as the field's notched outline
+   does. Inert: it ignores the pointer and holds nothing focusable. */
+.city-placeholder {
+  box-sizing: border-box;
+  height: var(--mat-form-field-container-height);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--mat-sys-outline);
+  border-radius: var(--radius-md);
+  pointer-events: none;
+  transition: opacity var(--dur-fast) ease-out;
+}
+
+.city-placeholder__label {
+  margin-inline-start: 11px;
+  padding: 0 4px 0 4px;
+  translate: 0 -5px;
+  font-family: var(--mat-sys-body-large-font);
+  /* The 1rem body-large label at its floating scale of 0.75, written out so the 12px floor guard can read it. */
+  font-size: 0.75rem;
+  font-weight: var(--mat-sys-body-large-weight);
+  letter-spacing: var(--mat-sys-body-large-tracking);
+  line-height: 1;
+  color: var(--mat-sys-on-surface-variant);
+  text-shadow: var(--glow-text-standard);
+}
+
+.city-placeholder--leaving {
+  opacity: 0;
 }
 
 /* The window fills the rest of the page inside the gutter, the bottom edge included. */
@@ -234,13 +283,15 @@
   z-index: 2;
 }
 
-/* The pane: list and open spot share one grid cell, so they crossfade instead of stacking. */
+/* The pane: list and open spot share one grid cell, so they crossfade instead of stacking. Isolated
+   for the leaving view's z-index below. */
 .spot-pane {
   display: grid;
   flex: 1 1 auto;
   min-height: 0;
   height: 100%;
   overflow: hidden;
+  isolation: isolate;
 }
 
 .spot-pane__view {
@@ -258,6 +309,10 @@
 .spot-pane__view--list {
   box-sizing: border-box;
   padding: 8px;
+  transition:
+    opacity var(--dur-fast) ease-out,
+    transform var(--dur-fast) var(--ease-out-expo),
+    translate var(--dur-fast) var(--ease-out-expo);
 }
 
 /* Arriving views settle 8 px in from the right; the reduced-motion net keeps only the fade. */
@@ -268,8 +323,33 @@
   }
 }
 
+/* Under the view arriving in its place, as when each new view was inserted after the old one. */
 .spot-pane__view--leaving {
+  z-index: -1;
   opacity: 0;
   transform: translateX(-8px);
   pointer-events: none;
+}
+
+/* The mounted list behind an open spot. It leaves toward −8 px but must return from +8 px, which one
+   transition on one property cannot do: `transform` eases out, `translate` waits until the view is
+   invisible and then steps to 16 px, for a net +8 px, and on the way back both ease to zero. No
+   `visibility` step: the reduced-motion net would cut the fade. */
+.spot-pane__view--list-hidden {
+  opacity: 0;
+  transform: translateX(-8px);
+  translate: 16px 0;
+  pointer-events: none;
+  transition:
+    opacity var(--dur-fast) ease-out,
+    transform var(--dur-fast) var(--ease-out-expo),
+    translate 0s linear var(--dur-fast);
+}
+
+/* The net drops both properties from the transition, so they would step at once: fade only. */
+@media (prefers-reduced-motion: reduce) {
+  .spot-pane__view--list-hidden {
+    transform: none;
+    translate: none;
+  }
 }

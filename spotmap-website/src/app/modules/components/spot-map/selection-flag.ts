@@ -1,5 +1,5 @@
 import type { Map as MapLibreMap } from 'maplibre-gl';
-import type { ScreenPoint } from './selection-camera';
+import type { ScreenPoint } from '../../../models/map/map-camera';
 import { photoPinFilter, SPOT_PHOTO_LAYER_ID } from './spot-layers';
 
 /** How long the flag takes to rise out of its pin or dot, or to fall back: spec §7.2's ≈420 ms. */

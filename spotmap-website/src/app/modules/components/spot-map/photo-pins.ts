@@ -1,9 +1,7 @@
 import type { Map as MapLibreMap } from 'maplibre-gl';
-import type {
-  SpotListCollection,
-  SpotListFeature,
-} from '../../../models/spots/spot';
-import { photoUrl } from '../../../services/spotmap-backend';
+import type { SpotListFeature } from '../../../models/spots/spot';
+import type { SpotIndex } from '../../../models/spots/spot-index';
+import type { SpotPhotos } from '../../../services/spot-photos.service';
 import { TERMINAL_PALETTE } from './map-palette';
 import {
   PHOTO_PIN_IMAGE_PREFIX,
@@ -319,8 +317,6 @@ interface Fade {
  * `SelectionFlag`'s, over the map. Built only when a photo host is configured.
  */
 export class PhotoPins {
-  /** The build's spots, by id. */
-  private readonly spots: ReadonlyMap<string, SpotListFeature>;
   /** Image ids whose photo is drawn or fading in. */
   private readonly withPhoto = new Set<string>();
   /** Image ids waiting on their cover's photo. */
@@ -351,20 +347,16 @@ export class PhotoPins {
 
   /**
    * @param map the build's map, before its spot layers are added
-   * @param collection the build's spots, for each pin's cover photo and status
-   * @param photoBaseUrl `SpotmapBackend.photoBaseUrl`, non-empty
+   * @param spots the build's spots by id, for each pin's cover photo and status
+   * @param photos builds each pin's thumbnail URL
    * @param loadPhoto fetches one photo; specs pass a fake
    */
   constructor(
     private readonly map: MapLibreMap,
-    collection: SpotListCollection,
-    private readonly photoBaseUrl: string,
+    private readonly spots: SpotIndex,
+    private readonly photos: Pick<SpotPhotos, 'thumb'>,
     private readonly loadPhoto: PhotoLoader = loadCrossOriginPhoto,
-  ) {
-    this.spots = new Map(
-      collection.features.map((feature) => [feature.properties.id, feature]),
-    );
-  }
+  ) {}
 
   /**
    * Answers MapLibre's missing images and starts fetching placed photos as the map settles. Not
@@ -476,10 +468,7 @@ export class PhotoPins {
     }
     let inFlight = this.loading.get(cover);
     if (!inFlight) {
-      inFlight = this.loadPhoto(
-        photoUrl(this.photoBaseUrl, cover, 'thumb'),
-        this.loads.signal,
-      )
+      inFlight = this.loadPhoto(this.photos.thumb(cover), this.loads.signal)
         .then((photo) => {
           const tile = photoTile(photo);
           this.tiles.set(cover, tile);
@@ -513,6 +502,7 @@ export class PhotoPins {
     if (this.loads.signal.aborted) {
       return;
     }
+    let drew = false;
     for (const fade of [...this.fading]) {
       if (!this.map.hasImage(fade.imageId)) {
         this.fading.splice(this.fading.indexOf(fade), 1);
@@ -524,9 +514,15 @@ export class PhotoPins {
         fade.imageId,
         drawPinImage(fade.tile, fade.style, progress),
       );
+      drew = true;
       if (progress === 1) {
         this.fading.splice(this.fading.indexOf(fade), 1);
       }
+    }
+    // `updateImage` schedules no frame, and the new pixels reach the GPU only on the next one. The
+    // photos are fetched once the map has gone quiet, so no other frame may ever come.
+    if (drew) {
+      this.map.triggerRepaint();
     }
     while (this.fading.length < MAX_CONCURRENT_FADES && this.waiting.length) {
       this.fading.push(this.waiting.shift()!);

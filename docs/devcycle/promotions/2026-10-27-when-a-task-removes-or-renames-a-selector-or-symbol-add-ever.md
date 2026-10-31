@@ -1,0 +1,14 @@
+# When a task removes or renames a selector or symbol, add every dependent spec to its Files block
+- promotion-type: doc-edit
+- cluster-signature: novel:task-files-list-misses-dependent-spec
+- files-touched: docs/devcycle/lessons.md
+- affected-files: docs/devcycle/lessons.md
+- landed: 2026-10-27
+- commit: 
+- plugin-version: 0.28.0
+- sourced-from-memory: false
+- culprit-id: novel:task-files-list-misses-dependent-spec
+- rung: r2
+- audience: repo-devs
+- verify: journal-recurrence
+- aliases: 

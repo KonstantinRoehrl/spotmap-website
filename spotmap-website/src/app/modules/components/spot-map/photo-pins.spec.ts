@@ -1,5 +1,6 @@
 import type { Map as MapLibreMap } from 'maplibre-gl';
 import type { SpotListCollection } from '../../../models/spots/spot';
+import { spotIndexOf } from '../../../models/spots/spot-index';
 import {
   drawPinImage,
   FLAG_REACH_PX,
@@ -20,6 +21,7 @@ import { PIN_IMAGE_LIFT_PX } from './spot-layers';
 import { FakeMap } from './testing/fake-map';
 
 const PHOTO_HOST = 'https://photos.test';
+const PHOTOS = { thumb: (key: string) => `${PHOTO_HOST}/thumb/${key}` };
 
 /** Three spots: one standing with photos, one demolished with a photo, one with none. */
 const LIST: SpotListCollection = {
@@ -185,8 +187,8 @@ describe('PhotoPins', () => {
     spyOn(window, 'cancelAnimationFrame');
     pins = new PhotoPins(
       fake as unknown as MapLibreMap,
-      LIST,
-      PHOTO_HOST,
+      spotIndexOf(LIST),
+      PHOTOS,
       (url, signal) =>
         new Promise((resolve, reject) =>
           loads.push({ url, signal, resolve, reject }),
@@ -255,6 +257,36 @@ describe('PhotoPins', () => {
       PIN_IMAGE_WIDTH * PIN_PIXEL_RATIO,
     );
     expect(frames).withContext('the fade is over').toEqual([]);
+  });
+
+  it('asks the map for a frame after every fade frame that drew, with no other map activity', async () => {
+    resolveImage('spot-photo:a');
+    fake.placedPhotos = [{ properties: { id: 'a' } }];
+    fake.emit('idle');
+    loads[0]!.resolve(greenPhoto());
+    await settle();
+    expect(fake.repaintRequests).withContext('before the fade').toBe(0);
+
+    runFrames(1000);
+    expect(fake.repaintRequests).withContext('first frame').toBe(1);
+    runFrames(1100);
+    expect(fake.repaintRequests).withContext('second frame').toBe(2);
+    runFrames(1200);
+    expect(fake.repaintRequests).withContext('the last frame').toBe(3);
+  });
+
+  it('asks for no frame when a fade frame drew nothing', async () => {
+    resolveImage('spot-photo:a');
+    fake.placedPhotos = [{ properties: { id: 'a' } }];
+    fake.emit('idle');
+    loads[0]!.resolve(greenPhoto());
+    await settle();
+    fake.images.delete('spot-photo:a');
+
+    runFrames(1000);
+
+    expect(fake.imageUpdates).toEqual([]);
+    expect(fake.repaintRequests).toBe(0);
   });
 
   it('keeps the placeholder for a photo that fails, and never asks again', async () => {
@@ -334,8 +366,8 @@ describe('PhotoPins', () => {
       };
       pins = new PhotoPins(
         fake as unknown as MapLibreMap,
-        many,
-        PHOTO_HOST,
+        spotIndexOf(many),
+        PHOTOS,
         (url, signal) =>
           new Promise((resolve, reject) =>
             loads.push({ url, signal, resolve, reject }),

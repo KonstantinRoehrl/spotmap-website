@@ -1,0 +1,11 @@
+# The spot column listens to `transitionend` in the zone and receives every bubbling transition inside it
+- finding-kind: maintenance-finding
+- finding-id: in-zone-listener:cd35427c
+- culprit-kind: in-zone-listener
+- severity: medium
+- confidence: verified
+- affected-files: spotmap-website/src/app/modules/pages/map/map.component.html, spotmap-website/src/app/modules/pages/map/map.component.ts, spotmap-website/src/app/modules/pages/map/map.component.spec.ts
+- first-seen: 2026-10-29
+- last-seen: 2026-10-29
+- passes: 1
+- verify: 

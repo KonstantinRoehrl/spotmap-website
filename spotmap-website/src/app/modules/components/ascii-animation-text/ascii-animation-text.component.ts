@@ -3,7 +3,9 @@ import {
   Component,
   computed,
   ElementRef,
+  inject,
   input,
+  NgZone,
   OnDestroy,
   output,
   signal,
@@ -27,6 +29,11 @@ const MEASURE_REFERENCE_PX = 100;
  * By default the line is fitted to its container and sits between two dot
  * gutters; the map page's banners set it at a fixed size without gutters,
  * on a row of their own.
+ *
+ * The frames and the resize listener run outside Angular's zone: a frame writes its text directly
+ * and changes no bound state, so a zone turn per frame would run change detection for nothing. A
+ * size change still renders, since a signal write schedules its own tick; the outputs re-enter the
+ * zone for their handlers. While the tab is hidden a frame does nothing and holds its place.
  */
 @Component({
   selector: 'app-ascii-animation-text',
@@ -79,8 +86,13 @@ export class AsciiAnimationTextComponent implements AfterViewInit, OnDestroy {
   private readonly asciiContainer =
     viewChild.required<ElementRef<HTMLElement>>('asciiContainer');
 
-  baseText = signal<string>(''); // main text
-  dots = signal<string>(''); // animated dots
+  private readonly zone = inject(NgZone);
+  private readonly asciiLine =
+    viewChild.required<ElementRef<HTMLElement>>('asciiLine');
+  // Inside `@if (dotGutters())`, so absent on a banner without gutters.
+  private readonly trailingDots =
+    viewChild<ElementRef<HTMLElement>>('trailingDots');
+
   fontSize = signal<number>(22); // default 22px
   /** The size the line is set in: the fixed one when given, else the fitted one. */
   protected readonly renderedFontSize = computed(
@@ -116,6 +128,19 @@ export class AsciiAnimationTextComponent implements AfterViewInit, OnDestroy {
 
   private resizeListener?: () => void;
 
+  /** Compares against the element itself, so a re-created one can never be taken as up to date. */
+  private writeText(element: HTMLElement | undefined, text: string) {
+    if (element && element.textContent !== text) element.textContent = text;
+  }
+
+  private writeLine(text: string) {
+    this.writeText(this.asciiLine().nativeElement, text);
+  }
+
+  private writeDots(text: string) {
+    this.writeText(this.trailingDots()?.nativeElement, text);
+  }
+
   ngAfterViewInit(): void {
     this.updateFontSize();
 
@@ -131,10 +156,11 @@ export class AsciiAnimationTextComponent implements AfterViewInit, OnDestroy {
     this.startAnimation();
 
     // Listen for window resize
-    this.resizeListener = () => {
-      this.updateFontSize();
-    };
-    window.addEventListener('resize', this.resizeListener);
+    const resizeListener = () => this.updateFontSize();
+    this.resizeListener = resizeListener;
+    this.zone.runOutsideAngular(() =>
+      window.addEventListener('resize', resizeListener),
+    );
   }
 
   ngOnDestroy() {
@@ -157,7 +183,7 @@ export class AsciiAnimationTextComponent implements AfterViewInit, OnDestroy {
     if (prefersReducedMotion()) {
       const messages = this.messages();
       const finalMessage = messages.length ? messages[messages.length - 1] : '';
-      this.baseText.set(this.animateLoadingDots(finalMessage));
+      this.writeLine(this.animateLoadingDots(finalMessage));
       if (messages.length) {
         this.lineStart.emit(finalMessage);
       }
@@ -175,76 +201,80 @@ export class AsciiAnimationTextComponent implements AfterViewInit, OnDestroy {
       return;
     }
 
-    this.interval = setInterval(() => {
-      const currentMessage = this.messages()[this.currentIndex];
+    this.interval = this.zone.runOutsideAngular(() =>
+      setInterval(() => {
+        if (document.hidden) return;
 
-      // Typing phase
-      if (this.charIndex < currentMessage.length) {
-        if (this.charIndex === 0) {
-          this.lineStart.emit(currentMessage);
+        const currentMessage = this.messages()[this.currentIndex];
+
+        // Typing phase
+        if (this.charIndex < currentMessage.length) {
+          if (this.charIndex === 0) {
+            this.zone.run(() => this.lineStart.emit(currentMessage));
+          }
+          const baseText = currentMessage.substring(0, this.charIndex + 1);
+          this.writeLine(this.applyEffects(baseText, true) + '_');
+          this.charIndex++;
         }
-        const baseText = currentMessage.substring(0, this.charIndex + 1);
-        this.baseText.set(this.applyEffects(baseText, true) + '_');
-        this.charIndex++;
-      }
-      // Show complete message
-      else if (this.charIndex === currentMessage.length) {
-        const finalText = this.applyEffects(currentMessage, false);
-        this.baseText.set(finalText);
-        this.charIndex++;
-      }
-      // Wait with effects
-      else if (this.charIndex < currentMessage.length + this.waitFrames()) {
-        const finalText = this.applyEffects(currentMessage, false);
-        this.baseText.set(finalText);
-        this.charIndex++;
-      }
-      // Collapse animation
-      else if (
-        this.charIndex <
-        currentMessage.length + this.waitFrames() + this.collapseFrames
-      ) {
-        const collapseStep =
-          this.charIndex - currentMessage.length - this.waitFrames();
-        this.baseText.set(this.collapseText(currentMessage, collapseStep));
-        this.charIndex++;
-      }
-      // Short break (text fully cleared)
-      else if (
-        this.charIndex <
-        currentMessage.length +
-          this.waitFrames() +
-          this.collapseFrames +
-          this.breakFrames()
-      ) {
-        this.baseText.set(''); // keep screen empty
-        this.charIndex++;
-      }
-      // Next message or finish
-      else {
-        this.charIndex = 0;
-        this.glitchedPositions.clear();
+        // Show complete message
+        else if (this.charIndex === currentMessage.length) {
+          const finalText = this.applyEffects(currentMessage, false);
+          this.writeLine(finalText);
+          this.charIndex++;
+        }
+        // Wait with effects
+        else if (this.charIndex < currentMessage.length + this.waitFrames()) {
+          const finalText = this.applyEffects(currentMessage, false);
+          this.writeLine(finalText);
+          this.charIndex++;
+        }
+        // Collapse animation
+        else if (
+          this.charIndex <
+          currentMessage.length + this.waitFrames() + this.collapseFrames
+        ) {
+          const collapseStep =
+            this.charIndex - currentMessage.length - this.waitFrames();
+          this.writeLine(this.collapseText(currentMessage, collapseStep));
+          this.charIndex++;
+        }
+        // Short break (text fully cleared)
+        else if (
+          this.charIndex <
+          currentMessage.length +
+            this.waitFrames() +
+            this.collapseFrames +
+            this.breakFrames()
+        ) {
+          this.writeLine(''); // keep screen empty
+          this.charIndex++;
+        }
+        // Next message or finish
+        else {
+          this.charIndex = 0;
+          this.glitchedPositions.clear();
 
-        if (this.loop()) {
-          let nextIndex: number;
-          do {
-            nextIndex = Math.floor(Math.random() * this.messages().length);
-          } while (
-            nextIndex === this.currentIndex &&
-            this.messages().length > 1
-          );
-          this.currentIndex = nextIndex;
-        } else {
-          this.currentIndex++;
-          if (this.currentIndex >= this.messages().length) {
-            this.hasFinished = true;
-            clearInterval(this.interval);
-            this.animationFinished.emit();
-            return;
+          if (this.loop()) {
+            let nextIndex: number;
+            do {
+              nextIndex = Math.floor(Math.random() * this.messages().length);
+            } while (
+              nextIndex === this.currentIndex &&
+              this.messages().length > 1
+            );
+            this.currentIndex = nextIndex;
+          } else {
+            this.currentIndex++;
+            if (this.currentIndex >= this.messages().length) {
+              this.hasFinished = true;
+              clearInterval(this.interval);
+              this.zone.run(() => this.animationFinished.emit());
+              return;
+            }
           }
         }
-      }
-    }, this.animationSpeed());
+      }, this.animationSpeed()),
+    );
   }
 
   // Collapse animation: randomly remove characters
@@ -338,12 +368,12 @@ export class AsciiAnimationTextComponent implements AfterViewInit, OnDestroy {
 
   private animateLoadingDots(text: string): string {
     if (!text.includes('...')) {
-      this.dots.set(''); // no dots for this line
+      this.writeDots(''); // no dots for this line
       return text;
     }
 
     const dotCycle = Math.floor(Date.now() / 500) % 3;
-    this.dots.set(['.', '..', '...'][dotCycle]);
+    this.writeDots(['.', '..', '...'][dotCycle]);
 
     return text.replace(/\.{3}/g, ''); // strip "..." placeholder
   }

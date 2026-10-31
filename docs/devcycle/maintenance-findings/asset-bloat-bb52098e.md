@@ -1,0 +1,11 @@
+# Opening the photo viewer requests every thumbnail in its strip at once, at the 640 px size
+- finding-kind: maintenance-finding
+- finding-id: asset-bloat:bb52098e
+- culprit-kind: asset-bloat
+- severity: medium
+- confidence: verified
+- affected-files: spotmap-website/src/app/modules/components/spot-photo-viewer/spot-photo-viewer.component.html, spotmap-website/src/app/modules/components/spot-photo-viewer/spot-photo-viewer.component.spec.ts
+- first-seen: 2026-10-29
+- last-seen: 2026-10-29
+- passes: 1
+- verify: 

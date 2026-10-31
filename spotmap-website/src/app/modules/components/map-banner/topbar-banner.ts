@@ -30,7 +30,7 @@ function monoWidth(glyphs: number, fontPx: number): number {
 
 /**
  * The rendered width, px, of `line` (cursor included) in the banner at `fontPx`. It matches the
- * banner only with its dot gutters off (`[dotGutters]="false"`), which is how the map page sets it.
+ * banner only with its dot gutters off (`[dotGutters]="false"`), which is how MapBannerComponent sets it.
  */
 export function bannerLineWidth(line: string, fontPx: number): number {
   return Math.ceil(monoWidth(glyphCount(line) + 1, fontPx));

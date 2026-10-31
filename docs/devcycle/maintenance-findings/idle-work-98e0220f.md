@@ -1,0 +1,11 @@
+# A split-handle drag writes `localStorage` on every `pointermove`
+- finding-kind: maintenance-finding
+- finding-id: idle-work:98e0220f
+- culprit-kind: idle-work
+- severity: low
+- confidence: verified
+- affected-files: spotmap-website/src/app/modules/pages/map/map.component.ts, spotmap-website/src/app/modules/components/split-handle/split-handle.component.ts
+- first-seen: 2026-10-29
+- last-seen: 2026-10-29
+- passes: 1
+- verify: 

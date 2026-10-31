@@ -1,0 +1,11 @@
+# Each spot selection re-filters the `spots` source up to 4 times (~3 worker reloads), and each reload re-clones every photo-pin image
+- finding-kind: maintenance-finding
+- finding-id: selection-relayout:63277768
+- culprit-kind: selection-relayout
+- severity: medium
+- confidence: verified
+- affected-files: spotmap-website/src/app/modules/components/spot-map/lock-on-pulse.ts, spotmap-website/src/app/modules/components/spot-map/spot-selection.ts, spotmap-website/src/app/modules/components/spot-map/selection-flag.ts, spotmap-website/src/app/modules/components/spot-map/lock-on-pulse.spec.ts
+- first-seen: 2026-10-29
+- last-seen: 2026-10-29
+- passes: 1
+- verify: 

@@ -1,0 +1,11 @@
+# Opening or closing a spot destroys and re-creates the whole 551-row list, and every re-created row runs an opacity transition
+- finding-kind: maintenance-finding
+- finding-id: unbounded-dom:a6622bd4
+- culprit-kind: unbounded-dom
+- severity: medium
+- confidence: verified
+- affected-files: spotmap-website/src/app/modules/pages/map/map.component.html, spotmap-website/src/app/modules/pages/map/map.component.css, spotmap-website/src/app/modules/pages/map/map.component.ts, spotmap-website/src/app/modules/components/spot-list/spot-list.component.ts, spotmap-website/src/app/modules/components/spot-list/spot-list.component.css
+- first-seen: 2026-10-29
+- last-seen: 2026-10-29
+- passes: 1
+- verify: 

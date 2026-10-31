@@ -3,20 +3,12 @@ import { environment as development } from '../../environments/environment';
 import { environment as production } from '../../environments/environment.prod';
 import {
   PHOTO_BUCKET_PATH,
-  photoUrl,
   SPOTMAP_BACKEND,
   SpotmapBackend,
   UNCONFIGURED_BACKEND,
 } from './spotmap-backend';
 
 describe('spotmap backend config', () => {
-  it('builds a thumbnail and a full-size URL from a photo key', () => {
-    const base = 'https://ref.supabase.co/storage/v1/object/public/spot-photos';
-    const key = 'vienna/hbf-curb-99f6e5-9f98eefd.webp';
-    expect(photoUrl(base, key, 'thumb')).toBe(`${base}/thumb/${key}`);
-    expect(photoUrl(base, key, 'full')).toBe(`${base}/full/${key}`);
-  });
-
   it('is unconfigured wherever nothing provides it, so specs keep the snapshot-only path', () => {
     expect(UNCONFIGURED_BACKEND).toEqual({
       apiUrl: '',

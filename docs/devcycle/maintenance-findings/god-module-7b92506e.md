@@ -1,0 +1,11 @@
+# MapComponent has ~6 reasons to change; the selection transition and the banner markup are each duplicated
+- finding-kind: maintenance-finding
+- finding-id: god-module:7b92506e
+- culprit-kind: god-module
+- severity: medium
+- confidence: verified
+- affected-files: spotmap-website/src/app/modules/pages/map/map.component.ts, spotmap-website/src/app/modules/pages/map/map.component.html, spotmap-website/src/app/modules/pages/map/map.component.css, spotmap-website/src/app/modules/pages/map/spot-browser.store.ts, spotmap-website/src/app/modules/components/map-banner/topbar-banner.ts, spotmap-website/src/app/modules/components/split-handle/column-split.ts, spotmap-website/src/app/modules/components/spot-sheet/spot-sheet-state.ts
+- first-seen: 2026-10-29
+- last-seen: 2026-10-29
+- passes: 1
+- verify: 

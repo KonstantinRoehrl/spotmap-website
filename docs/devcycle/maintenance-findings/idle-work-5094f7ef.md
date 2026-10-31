@@ -1,0 +1,11 @@
+# Two always-on text animations produce the whole idle heartbeat: the looping banner (45 ms) and the active nav link's glitch (80 ms)
+- finding-kind: maintenance-finding
+- finding-id: idle-work:5094f7ef
+- culprit-kind: idle-work
+- severity: high
+- confidence: verified
+- affected-files: spotmap-website/src/app/modules/components/ascii-animation-text/ascii-animation-text.component.ts, spotmap-website/src/app/modules/directives/glitch-text.directive.ts, spotmap-website/src/app/modules/components/nav-bar/nav-bar.component.css
+- first-seen: 2026-10-29
+- last-seen: 2026-10-29
+- passes: 1
+- verify: 
