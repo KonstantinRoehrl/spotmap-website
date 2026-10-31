@@ -77,7 +77,10 @@ interface FrameSize {
  * its slot until then. The page owns which layout is on screen and so what the map is told is
  * covered, and where keyboard focus goes when an open spot closes. The banner is
  * {@link MapBannerComponent}'s, the column's width {@link ColumnSplitState}'s, the sheet's height
- * {@link SheetController}'s, and everything else the {@link SpotBrowserStore}'s.
+ * {@link SheetController}'s. The page keeps what follows from its own layout: the breakpoint
+ * signals, the frame measurement, the list's mount and key, the count line, the live-region
+ * announcements and the picker bookkeeping. Spot data and the selection are the
+ * {@link SpotBrowserStore}'s.
  */
 @Component({
   selector: 'app-map',

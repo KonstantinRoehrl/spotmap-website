@@ -967,7 +967,7 @@ describe('MapComponent', () => {
           fixture.detectChanges();
           await nextFrames();
           fixture.detectChanges();
-          // Queried afresh: the city's own line changes the banner's lines, which recreates it.
+          // Queried afresh each time: the city's own line changes the lines the banner plays.
           const row = (selector: string) =>
             host.querySelector<HTMLElement>(selector)!.getBoundingClientRect()
               .width;
