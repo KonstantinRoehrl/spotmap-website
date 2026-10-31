@@ -874,6 +874,17 @@ describe('SpotBrowserStore', () => {
       expect(first.request.observed).toBeFalse();
     });
 
+    /** A retry from SIGNAL LOST can land while the first request hangs; it must supersede that one. */
+    it('cancels the request in flight when a retry reloads the list', async () => {
+      await openPage('/map');
+      const first = listRequests[0];
+      store.reloadList();
+      expect(first.request.observed).toBeFalse();
+      expect(listRequests.length).toBe(2);
+      expect(listRequests[1].city).toBe(first.city);
+      expect(listRequests[1].request.observed).toBeTrue();
+    });
+
     it('asks no list while a cold link holds the map, then asks for the spot’s city', async () => {
       await openPage('/spot/a');
       expect(loadSpotList).not.toHaveBeenCalled();
