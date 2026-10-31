@@ -26,7 +26,7 @@ import {
   SPOT_FOCUS_ZOOM,
   ViewBounds,
 } from '../../../models/map/map-camera';
-import { SUPPORTED_CITIES } from '../../../models/map/supported-cities';
+import { parseCity } from '../../../models/map/supported-cities';
 import type {
   SpotDetail,
   SpotListCollection,
@@ -42,10 +42,7 @@ import {
   SpotsService,
 } from '../../../services/spots.service';
 import { SPOT_ID_PARAM } from '../../../utils/map-page-path';
-import {
-  readStoredCity,
-  storeCity,
-} from '../../components/city-picker/stored-city';
+import { readStoredCity, storeCity } from './stored-city';
 
 /** Follows an open spot's name in the document title: `ALPHA BANK · SPOTMAP`. */
 export const DOCUMENT_TITLE_SUFFIX = ' · SPOTMAP';
@@ -362,8 +359,7 @@ export class SpotBrowserStore {
       this.showRememberedMapIfHeld();
       return;
     }
-    const city =
-      result.type === 'found' ? supportedCity(result.spot.city) : null;
+    const city = result.type === 'found' ? parseCity(result.spot.city) : null;
     if (result.type === 'not-found' || city === null) {
       this.onNotFound();
       return;
@@ -458,16 +454,6 @@ function sameSpots(
       a.length === b.length &&
       a.every((spot, index) => spot === b[index]))
   );
-}
-
-/**
- * The picker's entry for a city slug, or null for one the app has no map for. `Object.hasOwn`, so
- * a slug such as `constructor` cannot reach an `Object.prototype` member.
- */
-function supportedCity(slug: string): MapItem | null {
-  return Object.hasOwn(SUPPORTED_CITIES, slug)
-    ? SUPPORTED_CITIES[slug as CityEnum]
-    : null;
 }
 
 /** Where a map built for `spot`'s city opens: on the spot, close enough for its photo pin. */

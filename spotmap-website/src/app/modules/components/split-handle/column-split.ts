@@ -1,7 +1,7 @@
 /*
  * The wide layout's split between the map and the spot column: its limits, and the share of the
- * frame it is remembered as. Kept beside the handle, as the city choice is kept beside the picker
- * (`stored-city.ts`): the handle only reports widths, and the map page remembers them.
+ * frame it is remembered as. Kept beside the handle whose limits these are: the handle only
+ * reports widths, and the map page remembers them.
  */
 
 /** The column's width before the visitor has moved the handle, in px. */

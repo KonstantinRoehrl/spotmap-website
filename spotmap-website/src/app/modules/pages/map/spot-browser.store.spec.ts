@@ -23,7 +23,7 @@ import {
   SpotsService,
 } from '../../../services/spots.service';
 import { matchMapPage } from '../../../utils/map-page-path';
-import { USER_CITY_STORAGE_KEY } from '../../components/city-picker/stored-city';
+import { USER_CITY_STORAGE_KEY } from './stored-city';
 import { DOCUMENT_TITLE_SUFFIX, SpotBrowserStore } from './spot-browser.store';
 
 /** The map page as the router sees it: one routed component that provides the store. */
