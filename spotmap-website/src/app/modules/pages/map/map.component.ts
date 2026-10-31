@@ -28,14 +28,9 @@ import { SpotDetailComponent } from '../../components/spot-detail/spot-detail.co
 import { SpotListComponent } from '../../components/spot-list/spot-list.component';
 import { SpotMapComponent } from '../../components/spot-map/spot-map.component';
 import { SpotSheetComponent } from '../../components/spot-sheet/spot-sheet.component';
-import {
-  INITIAL_SHEET,
-  nextSheet,
-  SheetEvent,
-  SheetModel,
-  sheetHeight,
-} from '../../components/spot-sheet/spot-sheet-state';
+import { sheetHeight } from '../../components/spot-sheet/spot-sheet-state';
 import { ColumnSplitState } from './column-split-state';
+import { SheetController } from './sheet-controller';
 import { SpotBrowserStore } from './spot-browser.store';
 
 /** The width the page switches from the sheet to the map + column layout at. */
@@ -81,7 +76,8 @@ interface FrameSize {
  * city picker, and the Material it is built on, loads once the page is idle; an inert frame holds
  * its slot until then. The page owns which layout is on screen and so what the map is told is
  * covered, and where keyboard focus goes when an open spot closes; the column's width is the
- * {@link ColumnSplitState}'s, and everything else is the {@link SpotBrowserStore}'s.
+ * {@link ColumnSplitState}'s, the sheet's height the {@link SheetController}'s, and everything else
+ * the {@link SpotBrowserStore}'s.
  */
 @Component({
   selector: 'app-map',
@@ -110,6 +106,9 @@ export class MapComponent {
   /** The page's state: city, selection, list, detail, notice. */
   protected readonly store = inject(SpotBrowserStore);
 
+  /** The sheet's height and what moves it; drives the layouts under 1024 px only. */
+  protected readonly sheet = new SheetController(this.store);
+
   /** Watches the viewport width for the 1024 px and 768 px layout switches. */
   private readonly breakpoints = inject(BreakpointObserver);
 
@@ -127,13 +126,6 @@ export class MapComponent {
       .observe(PHONE_LAYOUT_QUERY)
       .pipe(map((state) => state.matches)),
     { initialValue: this.breakpoints.isMatched(PHONE_LAYOUT_QUERY) },
-  );
-
-  /** The sheet's height and where it returns to; drives the layouts under 1024 px only. */
-  protected readonly sheet = signal<SheetModel>(
-    this.store.selectedId() === null
-      ? INITIAL_SHEET
-      : nextSheet(INITIAL_SHEET, 'opened'),
   );
 
   /**
@@ -204,7 +196,7 @@ export class MapComponent {
       ? NO_INSETS
       : {
           ...NO_INSETS,
-          bottom: sheetHeight(this.sheet().state, this.frameSize().height),
+          bottom: sheetHeight(this.sheet.state(), this.frameSize().height),
         },
   );
 
@@ -247,13 +239,6 @@ export class MapComponent {
    */
   protected readonly pickerLoaded = signal(false);
 
-  /**
-   * Set while the sheet's own back or close is closing the spot, so the route change that follows
-   * does not also move the sheet back to its resting height. Cleared when a spot is open again,
-   * so a close that never reached the route cannot swallow a later one.
-   */
-  private closingFromSheet = false;
-
   /** The page's own element, searched for the controls focus moves between. */
   private readonly host =
     inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
@@ -282,58 +267,11 @@ export class MapComponent {
       }
     });
 
-    let previousId = this.store.selectedId();
     effect(() => {
-      const id = this.store.selectedId();
-      untracked(() => {
-        if (id !== null) {
-          this.closingFromSheet = false;
-        }
-        if (previousId === null && id !== null) {
-          this.feedSheet('opened');
-        } else if (previousId !== null && id === null) {
-          this.restoreFocusAfterClose();
-          if (this.closingFromSheet) {
-            this.closingFromSheet = false;
-          } else {
-            this.feedSheet('closed-elsewhere');
-          }
-        }
-        previousId = id;
-      });
-    });
-
-    effect(() => {
-      if (this.store.notice() === 'not-found') {
-        untracked(() => this.feedSheet('not-found'));
+      if (this.store.selectionEvent()?.kind === 'closed') {
+        untracked(() => this.restoreFocusAfterClose());
       }
     });
-  }
-
-  /** Moves the sheet by one event of its state machine. */
-  protected feedSheet(event: SheetEvent): void {
-    this.sheet.update((model) => nextSheet(model, event));
-  }
-
-  /** The sheet's < OVERVIEW plate: back to the list, closing the spot. */
-  protected onSheetBack(): void {
-    this.feedSheet('back');
-    this.closeSpot();
-  }
-
-  /** The sheet's `✕`: down to the peek bar, closing the spot. */
-  protected onSheetClose(): void {
-    this.feedSheet('close');
-    this.closeSpot();
-  }
-
-  /** A tap on the map that missed every pin closes an open spot, down to the peek bar. */
-  protected onEmptyMapTap(): void {
-    if (this.store.selectedId() === null) {
-      return;
-    }
-    this.feedSheet('map-tap');
-    this.closeSpot();
   }
 
   /**
@@ -371,14 +309,5 @@ export class MapComponent {
       },
       { injector: this.injector },
     );
-  }
-
-  /** Closes the open spot on the sheet's behalf. */
-  private closeSpot(): void {
-    if (this.store.selectedId() === null) {
-      return;
-    }
-    this.closingFromSheet = true;
-    this.store.close();
   }
 }

@@ -1,5 +1,5 @@
 import { BreakpointObserver } from '@angular/cdk/layout';
-import { Component, input, signal } from '@angular/core';
+import { Component, input, linkedSignal, signal } from '@angular/core';
 import {
   ComponentFixture,
   DeferBlockBehavior,
@@ -54,7 +54,7 @@ import {
   RESTING_BANNER_LINE,
   TOPBAR_BANNER_FONT_PX,
 } from '../../components/map-banner/topbar-banner';
-import { SpotBrowserStore } from './spot-browser.store';
+import { SpotBrowserStore, type SelectionEvent } from './spot-browser.store';
 
 /**
  * The map factories and the elevation loader are injected the moment SpotMapComponent is built;
@@ -98,11 +98,32 @@ function painted(property: string, token: string): string {
 
 /** A store the specs drive by hand: every state a writable signal, every action a spy. */
 function fakeStore() {
+  const selectedId = signal<string | null>(null);
   return {
     city: signal(SUPPORTED_CITIES[CityEnum.Vienna]),
     mapCity: signal<CityEnum | null>(CityEnum.Vienna),
     openOn: signal<MapFocus | null>(null),
-    selectedId: signal<string | null>(null),
+    selectedId,
+    /**
+     * Derived, so a spec keeps driving the page through `selectedId`: the value it holds when first
+     * read is a cold link's, and no change.
+     */
+    selectionEvent: linkedSignal<string | null, SelectionEvent | null>({
+      source: selectedId,
+      computation: (id, previous) => {
+        if (!previous || previous.source === id) {
+          return previous?.value ?? null;
+        }
+        return {
+          kind:
+            id === null
+              ? 'closed'
+              : previous.source === null
+                ? 'opened'
+                : 'switched',
+        };
+      },
+    }),
     shownSpots: signal<readonly SpotListFeature[] | null>(null),
     mapSpots: signal<SpotListCollection | null>(null),
     listEvents: signal<readonly MapLoadEvent[]>([]),

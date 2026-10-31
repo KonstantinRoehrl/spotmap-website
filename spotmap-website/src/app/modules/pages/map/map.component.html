@@ -92,7 +92,7 @@
               (failed)="loadFrame.onFailed($event); store.mapGaveUp()"
               (boundsChange)="store.setBounds($event)"
               (spotClick)="store.open($event, 'pin')"
-              (emptyClick)="onEmptyMapTap()"
+              (emptyClick)="sheet.mapTap()"
               (pinHover)="store.setHovered($event)"
             />
           </app-map-container>
@@ -143,12 +143,12 @@
       } @else {
         <app-spot-sheet
           class="map-page__sheet"
-          [state]="sheet().state"
+          [state]="sheet.state()"
           [availableHeight]="frameSize().height"
           [count]="count()"
-          (headTap)="feedSheet('head')"
-          (back)="onSheetBack()"
-          (close)="onSheetClose()"
+          (headTap)="sheet.headTap()"
+          (back)="sheet.back()"
+          (close)="sheet.close()"
         >
           <div class="spot-pane">
             <ng-container [ngTemplateOutlet]="pane" />
