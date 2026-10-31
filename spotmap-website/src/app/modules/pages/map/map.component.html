@@ -82,19 +82,32 @@
       <div class="map-page__map">
         @if (store.mapCity(); as city) {
           <app-map-container
+            #loadFrame
             class="map-page__map-container select-none"
             [city]="city"
-            [selectedId]="store.selectedId()"
-            [hoveredId]="store.hoveredId()"
-            [openOn]="store.openOn()"
-            [coveredInsets]="coveredInsets()"
-            [attributionCorner]="wide() ? 'bottom-right' : 'top-right'"
-            (spotsLoaded)="store.setList($event)"
-            (boundsChange)="store.setBounds($event)"
-            (spotClick)="store.open($event, 'pin')"
-            (emptyClick)="onEmptyMapTap()"
-            (pinHover)="store.setHovered($event)"
-          />
+            [spotEvents]="store.listEvents()"
+            [listFailed]="store.listFailed()"
+            (retry)="store.reloadList()"
+          >
+            <app-spot-map
+              class="w-full h-full block"
+              [city]="city"
+              [spots]="store.mapSpots()"
+              [retryToken]="store.listAttempt()"
+              [selectedId]="store.selectedId()"
+              [hoveredId]="store.hoveredId()"
+              [openOn]="store.openOn()"
+              [coveredInsets]="coveredInsets()"
+              [attributionCorner]="wide() ? 'bottom-right' : 'top-right'"
+              (loadEvent)="loadFrame.report($event)"
+              (ready)="loadFrame.onReady()"
+              (failed)="loadFrame.onFailed($event); store.mapGaveUp()"
+              (boundsChange)="store.setBounds($event)"
+              (spotClick)="store.open($event, 'pin')"
+              (emptyClick)="onEmptyMapTap()"
+              (pinHover)="store.setHovered($event)"
+            />
+          </app-map-container>
         }
       </div>
 

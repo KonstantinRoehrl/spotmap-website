@@ -11,13 +11,16 @@ import { Title } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   catchError,
+  defaultIfEmpty,
   distinctUntilChanged,
   EMPTY,
+  filter,
   map,
   Observable,
   of,
   Subject,
   switchMap,
+  tap,
 } from 'rxjs';
 import { MapItem } from '../../../models/enums/interfaces/map-item-interface';
 import { CityEnum } from '../../../models/enums/map-enum';
@@ -26,6 +29,7 @@ import {
   SPOT_FOCUS_ZOOM,
   ViewBounds,
 } from '../../../models/map/map-camera';
+import type { MapLoadEvent } from '../../../models/map/map-load-event';
 import { parseCity } from '../../../models/map/supported-cities';
 import type {
   SpotDetail,
@@ -40,6 +44,8 @@ import {
 } from '../../../models/spots/spots-in-view';
 import {
   SpotDetailResult,
+  SpotListLoaded,
+  SpotListLoadEvent,
   SpotsService,
 } from '../../../services/spots.service';
 import { SPOT_ID_PARAM } from '../../../utils/map-page-path';
@@ -47,6 +53,14 @@ import { readStoredCity, storeCity } from './stored-city';
 
 /** Follows an open spot's name in the document title: `ALPHA BANK · SPOTMAP`. */
 export const DOCUMENT_TITLE_SUFFIX = ' · SPOTMAP';
+
+/** The view the store assumes once the map has given up: no map, so nothing is out of view. */
+const WHOLE_WORLD: ViewBounds = {
+  west: -180,
+  south: -90,
+  east: 180,
+  north: 90,
+};
 
 /** One finished detail load: what it found, or `null` when no source could answer. */
 interface DetailAnswer {
@@ -67,6 +81,11 @@ interface DetailAnswer {
  * pushed, or replaces a link that was opened cold with `/map`. A cold link holds the map back
  * (`mapCity` null) until the spot's detail names its city, so the remembered city is never built
  * only to be replaced.
+ *
+ * The store also owns the city's spot-list load: it records the load's milestones
+ * ({@link listEvents}) and its failure ({@link listFailed}), reloads it on a retry
+ * ({@link reloadList}, counted by {@link listAttempt}), hands the map the list to build from
+ * ({@link mapSpots}), and lists everything when the map gives up ({@link mapGaveUp}).
  */
 @Injectable()
 export class SpotBrowserStore {
@@ -108,6 +127,25 @@ export class SpotBrowserStore {
    * the city. Read once per build by the map; replaced by the next city change.
    */
   readonly openOn = this.openOnState.asReadonly();
+
+  private readonly mapSpotsState = signal<SpotListCollection | null>(null);
+  /** The current load's list, non-empty; null while it loads or after it failed. The map builds from this. */
+  readonly mapSpots = this.mapSpotsState.asReadonly();
+
+  private readonly listEventsState = signal<readonly MapLoadEvent[]>([]);
+  /**
+   * The current load's milestones so far, in order; reset when a load starts. A log, because the
+   * first fires before the loader exists, and a fallback and the snapshot's request share one tick.
+   */
+  readonly listEvents = this.listEventsState.asReadonly();
+
+  private readonly listFailedState = signal(false);
+  /** The current load ended with no usable list: every source failed, or the answer was empty. */
+  readonly listFailed = this.listFailedState.asReadonly();
+
+  private readonly listAttemptState = signal(0);
+  /** Bumped by every reload; the map rebuilds on any change. */
+  readonly listAttempt = this.listAttemptState.asReadonly();
 
   /**
    * The spots in the current view, A–Z; null until both the list and the view are known. Equal
@@ -159,6 +197,8 @@ export class SpotBrowserStore {
   private readonly viewQueries = new Subject<void>();
   /** The detail loads, one per opened id; `null` cancels the one running. */
   private readonly detailLoads = new Subject<string | null>();
+  /** The list loads, one per city or reload; a new one cancels the one running. */
+  private readonly listLoads = new Subject<CityEnum>();
 
   /** The id the route carried last, to tell an opening (none → id) from a switch (id → id). */
   private previousId: string | null = null;
@@ -211,6 +251,26 @@ export class SpotBrowserStore {
       )
       .subscribe(({ id, result }) => this.onDetailAnswer(id, result));
 
+    this.listLoads
+      .pipe(
+        switchMap((city) =>
+          this.spots.loadSpotList(city).pipe(
+            tap((event) => this.logListEvent(event)),
+            filter((event): event is SpotListLoaded => event.type === 'done'),
+            map((loaded): SpotListCollection | null => loaded.collection),
+            defaultIfEmpty(null),
+            catchError(() => of(null)),
+          ),
+        ),
+        takeUntilDestroyed(),
+      )
+      .subscribe((collection) => this.onListAnswer(collection));
+
+    const openingCity = this.mapCityState();
+    if (openingCity !== null) {
+      this.startListLoad(openingCity);
+    }
+
     // Subscribed after the two pipelines above, so a cold link's first id can start its load.
     this.routeIds
       .pipe(takeUntilDestroyed())
@@ -232,11 +292,18 @@ export class SpotBrowserStore {
     this.switchCity(city, null);
   }
 
-  /** The map's list of the city's spots, as it arrived for the current build. */
-  setList(collection: SpotListCollection): void {
-    this.spotIndex = spotIndexOf(collection);
-    this.inView = new LoadedSpotsInView(collection);
-    this.viewQueries.next();
+  /** Loads the current city's list again, live first: the frame's RETRY. Rows on screen stay. */
+  reloadList(): void {
+    const city = this.mapCityState();
+    if (city !== null) {
+      this.listAttemptState.update((attempt) => attempt + 1);
+      this.startListLoad(city);
+    }
+  }
+
+  /** The map gave up, so no view will come: list everything. */
+  mapGaveUp(): void {
+    this.setBounds(WHOLE_WORLD);
   }
 
   /** The map's visible bounds — on a phone the part the sheet does not cover. */
@@ -368,8 +435,8 @@ export class SpotBrowserStore {
     if (city.city !== this.cityState().city) {
       this.switchCity(city, focus);
     } else if (this.mapCityState() === null) {
-      this.mapCityState.set(city.city);
       this.openOnState.set(focus);
+      this.showMapOf(city.city);
     }
     this.setDetail({ status: 'loaded', id, spot: result.spot });
   }
@@ -385,14 +452,61 @@ export class SpotBrowserStore {
   /** Builds the remembered city's map if a cold link was holding it back. */
   private showRememberedMapIfHeld(): void {
     if (this.mapCityState() === null) {
-      this.mapCityState.set(this.cityState().city);
+      this.showMapOf(this.cityState().city);
     }
+  }
+
+  /**
+   * Gives the map its city and starts that city's list together, in one tick, so the map can never
+   * see a new city with the old city's spots. An effect on `mapCity` would run too late for that.
+   */
+  private showMapOf(city: CityEnum): void {
+    this.mapCityState.set(city);
+    this.startListLoad(city);
+  }
+
+  /** Resets the load's own state and asks for `city`'s list; the list and view shown are not touched. */
+  private startListLoad(city: CityEnum): void {
+    this.mapSpotsState.set(null);
+    this.listEventsState.set([]);
+    this.listFailedState.set(false);
+    this.listLoads.next(city);
+  }
+
+  /** Adds one milestone of the current load to the log the loader folds. */
+  private logListEvent(event: SpotListLoadEvent): void {
+    const kinds = {
+      sent: 'spots-sent',
+      headers: 'spots-headers',
+      fallback: 'spots-fallback',
+      done: 'spots-done',
+    } as const;
+    this.listEventsState.update((events) => [
+      ...events,
+      { kind: kinds[event.type] },
+    ]);
+  }
+
+  /** Applies a finished load; `null` or an empty list is a failed load, and nothing is applied. */
+  private onListAnswer(collection: SpotListCollection | null): void {
+    if (collection === null || collection.features.length === 0) {
+      this.listFailedState.set(true);
+      return;
+    }
+    this.setList(collection);
+    this.mapSpotsState.set(collection);
+  }
+
+  /** Applies a non-empty list to the in-view source and the id index. */
+  private setList(collection: SpotListCollection): void {
+    this.spotIndex = spotIndexOf(collection);
+    this.inView = new LoadedSpotsInView(collection);
+    this.viewQueries.next();
   }
 
   /** Makes `city` the shown, built and remembered city, opening on `focus` when given. */
   private switchCity(city: MapItem, focus: MapFocus | null): void {
     this.cityState.set(city);
-    this.mapCityState.set(city.city);
     storeCity(city.city);
     this.openOnState.set(focus);
     this.inView = null;
@@ -401,6 +515,7 @@ export class SpotBrowserStore {
     this.frozenSpots.set(null);
     this.hoveredIdState.set(null);
     this.viewQueries.next();
+    this.showMapOf(city.city);
   }
 
   /**

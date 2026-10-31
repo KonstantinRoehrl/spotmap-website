@@ -33,6 +33,7 @@ import {
 import { SplitHandleComponent } from '../../components/split-handle/split-handle.component';
 import { SpotDetailComponent } from '../../components/spot-detail/spot-detail.component';
 import { SpotListComponent } from '../../components/spot-list/spot-list.component';
+import { SpotMapComponent } from '../../components/spot-map/spot-map.component';
 import { SpotSheetComponent } from '../../components/spot-sheet/spot-sheet.component';
 import {
   INITIAL_SHEET,
@@ -126,6 +127,7 @@ interface FrameSize {
     SplitHandleComponent,
     SpotDetailComponent,
     SpotListComponent,
+    SpotMapComponent,
     SpotSheetComponent,
   ],
   providers: [SpotBrowserStore],
