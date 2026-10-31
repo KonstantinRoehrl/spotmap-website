@@ -21,6 +21,7 @@ import type {
 import { filter, lastValueFrom, Subject, takeUntil, tap } from 'rxjs';
 import { CityEnum } from '../../../models/enums/map-enum';
 import { SpotListCollection } from '../../../models/spots/spot';
+import { type SpotIndex, spotIndexOf } from '../../../models/spots/spot-index';
 import {
   SpotListLoaded,
   SpotListLoadEvent,
@@ -309,8 +310,8 @@ export class SpotMapComponent {
   private selection?: SpotSelection;
   /** Keeps the current build's selected pin in view; set once its pins are drawn. */
   private camera?: SelectionCamera;
-  /** The current build's spots, for a selected id's coordinates; set once its pins are drawn. */
-  private collection?: SpotListCollection;
+  /** The current build's spots by id, for a selected id's coordinates; set once its pins are drawn. */
+  private spotIndex?: SpotIndex;
   /**
    * The frame the selection was last kept in view in. A change detection that hands over an equal
    * but new `coveredInsets` object must not re-centre a map the visitor has panned since.
@@ -658,16 +659,17 @@ export class SpotMapComponent {
       }
       this.outcome = 'painted';
       this.reportLoad({ kind: 'painted' }, generation);
+      const spotIndex = spotIndexOf(collection);
       // The resolver must be in place before the layers that ask it for images.
       if (this.spotPhotos.enabled) {
-        this.photoPins = new PhotoPins(map, collection, this.spotPhotos);
+        this.photoPins = new PhotoPins(map, spotIndex, this.spotPhotos);
         this.photoPins.install();
       }
       this.drawSpots(map, collection);
       // Feature state needs the spot source, so the selection starts here. One already in the URL
       // — a shared link opened cold, or a rebuild — is no tap: it shows without the pulse, and the
       // camera seats it in the middle of the uncovered part without animation.
-      this.collection = collection;
+      this.spotIndex = spotIndex;
       this.selection = new SpotSelection(map);
       if (this.photoPins) {
         // Its signal write still schedules the render from outside the zone.
@@ -898,12 +900,7 @@ export class SpotMapComponent {
     if (!flag) {
       return;
     }
-    const spot =
-      id === null
-        ? undefined
-        : this.collection?.features.find(
-            (feature) => feature.properties.id === id,
-          );
+    const spot = id === null ? undefined : this.spotIndex?.get(id);
     const photo = this.spotPhotos.coverThumb(spot?.properties);
     flag.show(
       spot && photo
@@ -939,10 +936,7 @@ export class SpotMapComponent {
   }
   /** Where the current build draws the spot `id`, or `null` for a spot it does not hold. */
   private coordinatesOf(id: string): [number, number] | null {
-    return (
-      this.collection?.features.find((feature) => feature.properties.id === id)
-        ?.geometry.coordinates ?? null
-    );
+    return this.spotIndex?.get(id)?.geometry.coordinates ?? null;
   }
 
   /** Reports the bounds, and moves the tooltip and the flag, on the next animation frame, once however many moves ask for it. */
@@ -966,8 +960,7 @@ export class SpotMapComponent {
   private hasCover(id: string | null): boolean {
     return (
       id !== null &&
-      (this.collection?.features.find((feature) => feature.properties.id === id)
-        ?.properties.cover ?? null) !== null
+      (this.spotIndex?.get(id)?.properties.cover ?? null) !== null
     );
   }
 
@@ -1009,9 +1002,7 @@ export class SpotMapComponent {
     const spot =
       !map || !this.selection || id === null || id === this.selectedId()
         ? undefined
-        : this.collection?.features.find(
-            (feature) => feature.properties.id === id,
-          );
+        : this.spotIndex?.get(id);
     if (!map || !spot) {
       if (this.tooltip() !== null) {
         this.tooltip.set(null);
@@ -1065,7 +1056,7 @@ export class SpotMapComponent {
    */
   private releaseCamera(): void {
     this.camera = undefined;
-    this.collection = undefined;
+    this.spotIndex = undefined;
     this.framedFor = undefined;
     if (this.boundsFrame !== undefined) {
       cancelAnimationFrame(this.boundsFrame);

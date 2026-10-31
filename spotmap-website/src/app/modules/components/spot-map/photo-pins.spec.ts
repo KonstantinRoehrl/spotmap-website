@@ -1,5 +1,6 @@
 import type { Map as MapLibreMap } from 'maplibre-gl';
 import type { SpotListCollection } from '../../../models/spots/spot';
+import { spotIndexOf } from '../../../models/spots/spot-index';
 import {
   drawPinImage,
   FLAG_REACH_PX,
@@ -186,7 +187,7 @@ describe('PhotoPins', () => {
     spyOn(window, 'cancelAnimationFrame');
     pins = new PhotoPins(
       fake as unknown as MapLibreMap,
-      LIST,
+      spotIndexOf(LIST),
       PHOTOS,
       (url, signal) =>
         new Promise((resolve, reject) =>
@@ -335,7 +336,7 @@ describe('PhotoPins', () => {
       };
       pins = new PhotoPins(
         fake as unknown as MapLibreMap,
-        many,
+        spotIndexOf(many),
         PHOTOS,
         (url, signal) =>
           new Promise((resolve, reject) =>
