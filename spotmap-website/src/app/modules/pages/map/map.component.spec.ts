@@ -1,5 +1,5 @@
 import { BreakpointObserver } from '@angular/cdk/layout';
-import { Component, input, signal } from '@angular/core';
+import { Component, input, linkedSignal, signal } from '@angular/core';
 import {
   ComponentFixture,
   DeferBlockBehavior,
@@ -24,6 +24,7 @@ import type {
 import type { SpotDetailView } from '../../../models/spots/spot-detail-view';
 import { AsciiAnimationTextComponent } from '../../components/ascii-animation-text/ascii-animation-text.component';
 import { CityPickerComponent } from '../../components/city-picker/city-picker.component';
+import { MapBannerComponent } from '../../components/map-banner/map-banner.component';
 import { MapContainerComponent } from '../../components/map-container/map-container.component';
 import {
   ELEVATION_LOADER,
@@ -40,8 +41,8 @@ import {
 } from '../../components/split-handle/column-split';
 import { SplitHandleComponent } from '../../components/split-handle/split-handle.component';
 import { sheetHeight } from '../../components/spot-sheet/spot-sheet-state';
+import { COLUMN_RESET_EASE_MS } from './column-split-state';
 import {
-  COLUMN_RESET_EASE_MS,
   COUNT_ANNOUNCE_DEBOUNCE_MS,
   MapComponent,
   PHONE_LAYOUT_QUERY,
@@ -52,8 +53,8 @@ import {
   HEADER_BANNER_FONT_PX,
   RESTING_BANNER_LINE,
   TOPBAR_BANNER_FONT_PX,
-} from './topbar-banner';
-import { SpotBrowserStore } from './spot-browser.store';
+} from '../../components/map-banner/topbar-banner';
+import { SpotBrowserStore, type SelectionEvent } from './spot-browser.store';
 
 /**
  * The map factories and the elevation loader are injected the moment SpotMapComponent is built;
@@ -97,11 +98,32 @@ function painted(property: string, token: string): string {
 
 /** A store the specs drive by hand: every state a writable signal, every action a spy. */
 function fakeStore() {
+  const selectedId = signal<string | null>(null);
   return {
     city: signal(SUPPORTED_CITIES[CityEnum.Vienna]),
     mapCity: signal<CityEnum | null>(CityEnum.Vienna),
     openOn: signal<MapFocus | null>(null),
-    selectedId: signal<string | null>(null),
+    selectedId,
+    /**
+     * Derived, so a spec keeps driving the page through `selectedId`: the value it holds when first
+     * read is a cold link's, and no change.
+     */
+    selectionEvent: linkedSignal<string | null, SelectionEvent | null>({
+      source: selectedId,
+      computation: (id, previous) => {
+        if (!previous || previous.source === id) {
+          return previous?.value ?? null;
+        }
+        return {
+          kind:
+            id === null
+              ? 'closed'
+              : previous.source === null
+                ? 'opened'
+                : 'switched',
+        };
+      },
+    }),
     shownSpots: signal<readonly SpotListFeature[] | null>(null),
     mapSpots: signal<SpotListCollection | null>(null),
     listEvents: signal<readonly MapLoadEvent[]>([]),
@@ -177,7 +199,7 @@ describe('MapComponent', () => {
     TestBed.overrideComponent(MapComponent, {
       set: { providers: [{ provide: SpotBrowserStore, useValue: store }] },
     });
-    TestBed.overrideComponent(MapComponent, {
+    TestBed.overrideComponent(MapBannerComponent, {
       remove: { imports: [AsciiAnimationTextComponent] },
       add: { imports: [StubBannerComponent] },
     });
@@ -308,7 +330,9 @@ describe('MapComponent', () => {
 
       const banner = fixture.debugElement.query(By.css('.map-header__banner'));
       expect(banner).not.toBeNull();
-      const stub = banner?.componentInstance as StubBannerComponent;
+      const stub = fixture.debugElement.query(
+        By.css('.map-header__banner app-ascii-animation-text'),
+      ).componentInstance as StubBannerComponent;
       expect(stub.fixedFontSize()).toBe(HEADER_BANNER_FONT_PX);
       expect(stub.dotGutters()).toBeFalse();
       expect(stub.messages()[0]).toBe('VIENNA SPOTMAP');
@@ -867,8 +891,9 @@ describe('MapComponent', () => {
 
       /** The banner in the top bar. */
       function topbarBanner(): StubBannerComponent {
-        return fixture.debugElement.query(By.css('.map-topbar__banner'))
-          .componentInstance as StubBannerComponent;
+        return fixture.debugElement.query(
+          By.css('.map-topbar__banner app-ascii-animation-text'),
+        ).componentInstance as StubBannerComponent;
       }
 
       /** The bar's width inside its padding: what each of its two rows spans. */
@@ -942,7 +967,7 @@ describe('MapComponent', () => {
           fixture.detectChanges();
           await nextFrames();
           fixture.detectChanges();
-          // Queried afresh: the city's own line changes the banner's lines, which recreates it.
+          // Queried afresh each time: the city's own line changes the lines the banner plays.
           const row = (selector: string) =>
             host.querySelector<HTMLElement>(selector)!.getBoundingClientRect()
               .width;
@@ -1023,7 +1048,9 @@ describe('MapComponent', () => {
 
       const banner = fixture.debugElement.query(By.css('.map-header__banner'));
       expect(banner).not.toBeNull();
-      const stub = banner.componentInstance as StubBannerComponent;
+      const stub = fixture.debugElement.query(
+        By.css('.map-header__banner app-ascii-animation-text'),
+      ).componentInstance as StubBannerComponent;
       expect(stub.fixedFontSize()).toBe(HEADER_BANNER_FONT_PX);
       expect(stub.dotGutters()).toBeFalse();
       expect(stub.messages()[0]).toBe('VIENNA SPOTMAP');
@@ -1527,8 +1554,7 @@ describe('MapComponent', () => {
         phone.next(true);
         fixture.detectChanges();
         fixture.detectChanges();
-        // No placeholder in the passes that built the bar, and the slot already holds the field's
-        // 40 px; only the picker itself takes a microtask, its code being in already.
+        // No placeholder in the passes that built the bar, and the slot holds the field's 40 px.
         expect(host.querySelector('.city-placeholder')).toBeNull();
         expect(
           Math.round(

@@ -4,7 +4,7 @@
 - culprit-kind: duplicated-concept
 - severity: low
 - confidence: verified
-- affected-files: spotmap-website/src/app/modules/components/ascii-animation-text/ascii-animation-text.component.ts, spotmap-website/src/app/modules/directives/glitch-text.directive.ts, spotmap-website/src/app/modules/pages/map/topbar-banner.ts
+- affected-files: spotmap-website/src/app/modules/components/ascii-animation-text/ascii-animation-text.component.ts, spotmap-website/src/app/modules/directives/glitch-text.directive.ts, spotmap-website/src/app/modules/components/map-banner/topbar-banner.ts
 - first-seen: 2026-10-29
 - last-seen: 2026-10-29
 - passes: 1

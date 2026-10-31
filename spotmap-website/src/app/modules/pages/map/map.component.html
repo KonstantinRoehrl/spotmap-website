@@ -4,73 +4,25 @@
   [class.map-page--phone]="phone()"
 >
   @if (phone()) {
-    <header #topbar class="map-topbar">
-      <!-- Keyed by its lines: a new set recreates the banner, whose typewriter keeps an index into
-           them, instead of handing a running one a shorter list. -->
-      @for (lines of [topbarMessages()]; track lines.join('|')) {
-        <app-ascii-animation-text
-          class="map-topbar__banner"
-          [messages]="lines"
-          [fixedFontSize]="topbarBannerFontPx"
-          [dotGutters]="false"
-          [waitFrames]="40"
-          [animationSpeed]="45"
-          [loop]="true"
-        />
-      }
-      <!-- The picker, and the Material it is built on, loads once the page is idle, off the map's
-           critical path. Until then an inert frame holds its slot, and the two crossfade in one
-           grid cell. A slot built after that first load (a layout switch) shows the picker at once. -->
+    <header class="map-topbar">
+      <app-map-banner
+        class="map-topbar__banner"
+        variant="topbar"
+        [city]="store.city().city"
+      />
       <div class="map-topbar__picker city-slot">
-        @if (!pickerLoaded()) {
-          <fieldset
-            class="city-placeholder"
-            aria-hidden="true"
-            animate.leave="city-placeholder--leaving"
-          >
-            <legend class="city-placeholder__label">City</legend>
-          </fieldset>
-        }
-        @defer (on idle; when pickerLoaded(); prefetch on idle) {
-          <app-city-picker
-            #cityPicker
-            class="city-slot__picker"
-            [selected]="store.city()"
-            (citySelected)="store.selectCity($event)"
-          />
-        }
+        <ng-container [ngTemplateOutlet]="citySlot" />
       </div>
     </header>
   } @else {
     <header class="map-header">
-      <app-ascii-animation-text
+      <app-map-banner
         class="map-header__banner"
-        [messages]="bannerMessages()"
-        [fixedFontSize]="headerBannerFontPx"
-        [dotGutters]="false"
-        [waitFrames]="40"
-        [animationSpeed]="45"
-        [loop]="true"
+        variant="header"
+        [city]="store.city().city"
       />
-      <!-- Deferred behind a placeholder, as in the top bar. -->
       <div class="map-header__picker city-slot">
-        @if (!pickerLoaded()) {
-          <fieldset
-            class="city-placeholder"
-            aria-hidden="true"
-            animate.leave="city-placeholder--leaving"
-          >
-            <legend class="city-placeholder__label">City</legend>
-          </fieldset>
-        }
-        @defer (on idle; when pickerLoaded(); prefetch on idle) {
-          <app-city-picker
-            #cityPicker
-            class="city-slot__picker"
-            [selected]="store.city()"
-            (citySelected)="store.selectCity($event)"
-          />
-        }
+        <ng-container [ngTemplateOutlet]="citySlot" />
       </div>
     </header>
   }
@@ -104,7 +56,7 @@
               (failed)="loadFrame.onFailed($event); store.mapGaveUp()"
               (boundsChange)="store.setBounds($event)"
               (spotClick)="store.open($event, 'pin')"
-              (emptyClick)="onEmptyMapTap()"
+              (emptyClick)="sheet.mapTap()"
               (pinHover)="store.setHovered($event)"
             />
           </app-map-container>
@@ -114,17 +66,17 @@
       @if (wide()) {
         <app-split-handle
           class="map-window__handle"
-          [columnWidth]="columnWidth()"
+          [columnWidth]="column.width()"
           [frameWidth]="frameSize().width"
-          (widthChange)="onColumnWidth($event)"
-          (widthCommit)="persistColumnShare()"
-          (widthReset)="resetColumnWidth()"
+          (widthChange)="column.resize($event)"
+          (widthCommit)="column.persist()"
+          (widthReset)="column.reset()"
         />
         <aside
           class="spot-column"
           aria-label="Spots"
-          [class.spot-column--easing]="columnEasing()"
-          [style.width.px]="columnWidth()"
+          [class.spot-column--easing]="column.easing()"
+          [style.width.px]="column.width()"
         >
           <!-- Both variants share one grid cell, so swapping them is a crossfade, not a cut. -->
           <div class="spot-column__toolbar">
@@ -155,12 +107,12 @@
       } @else {
         <app-spot-sheet
           class="map-page__sheet"
-          [state]="sheet().state"
+          [state]="sheet.state()"
           [availableHeight]="frameSize().height"
           [count]="count()"
-          (headTap)="feedSheet('head')"
-          (back)="onSheetBack()"
-          (close)="onSheetClose()"
+          (headTap)="sheet.headTap()"
+          (back)="sheet.back()"
+          (close)="sheet.close()"
         >
           <div class="spot-pane">
             <ng-container [ngTemplateOutlet]="pane" />
@@ -178,6 +130,30 @@
     {{ noticeAnnouncement() }}
   </p>
 </div>
+
+<!-- The city slot, rendered into whichever header exists. The picker, and the Material it is built
+     on, loads once the page is idle, off the map's critical path. Until then an inert frame holds
+     its slot, and the two crossfade in one grid cell. A slot built after that first load (a layout
+     switch) shows the picker at once. -->
+<ng-template #citySlot>
+  @if (!pickerLoaded()) {
+    <fieldset
+      class="city-placeholder"
+      aria-hidden="true"
+      animate.leave="city-placeholder--leaving"
+    >
+      <legend class="city-placeholder__label">City</legend>
+    </fieldset>
+  }
+  @defer (on idle; when pickerLoaded(); prefetch on idle) {
+    <app-city-picker
+      #cityPicker
+      class="city-slot__picker"
+      [selected]="store.city()"
+      (citySelected)="store.selectCity($event)"
+    />
+  }
+</ng-template>
 
 <!-- The one pane, rendered into the column or the sheet. The list stays mounted behind an open spot,
      keeping its rows and scroll; the key rebuilds it only when a close finds different rows. It sits

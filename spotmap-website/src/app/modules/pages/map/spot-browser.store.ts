@@ -62,6 +62,11 @@ const WHOLE_WORLD: ViewBounds = {
   north: 90,
 };
 
+/** One change of the open spot: none to one, one to none, or one to another. */
+export type SelectionEvent = {
+  readonly kind: 'opened' | 'closed' | 'switched';
+};
+
 /** One finished detail load: what it found, or `null` when no source could answer. */
 interface DetailAnswer {
   readonly id: string;
@@ -169,6 +174,10 @@ export class SpotBrowserStore {
   private readonly noticeState = signal<'not-found' | null>(null);
   /** `not-found` after a link to a spot the archive no longer has, until the next interaction. */
   readonly notice = this.noticeState.asReadonly();
+
+  private readonly selectionEventState = signal<SelectionEvent | null>(null);
+  /** The last change of the open spot; null until the first. A cold link's first id is not a change. */
+  readonly selectionEvent = this.selectionEventState.asReadonly();
 
   private readonly hoveredIdState = signal<string | null>(null);
   /**
@@ -377,6 +386,12 @@ export class SpotBrowserStore {
     const openedFromRow = this.openedFromRow;
     this.previousId = id;
     this.firstRouteValue = false;
+    if (!first) {
+      this.selectionEventState.set({
+        kind:
+          id === null ? 'closed' : previous === null ? 'opened' : 'switched',
+      });
+    }
     this.openedFromRow = null;
     this.closing = false;
     this.hoveredIdState.set(null);

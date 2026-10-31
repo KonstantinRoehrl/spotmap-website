@@ -37,15 +37,6 @@
   overflow: hidden;
 }
 
-/* The banner's container centres its line; both bars read from the left, without the dot gutters
-   (`[dotGutters]="false"`). The component is ViewEncapsulation.None, but this page's own rules
-   are scoped and would never match the container's unscoped markup, so ::ng-deep is the only way
-   to reach it. */
-.map-header__banner ::ng-deep .ascii-container,
-.map-topbar__banner ::ng-deep .ascii-container {
-  justify-content: flex-start;
-}
-
 /* 40 px tall through Material's own field tokens, and as wide as its longest label,
    `bratislava · SK`, 15 glyphs: the field's 16 px side padding twice, the arrow (about 10 px, 12
    with a margin) and the glyphs at IBM Plex Mono's 0.6 em advance in the 13 px label size, the
@@ -91,8 +82,7 @@
 
 /* The picker's slot in either bar: the placeholder frame and the picker share one grid cell, so
    the slot's box is the same with either in it and the swap is a crossfade in place. Its minimum
-   height holds the field's 40 px for the moment a later slot has neither: the picker's code is
-   already in, but the block still takes a microtask to render it. */
+   height holds the field's 40 px should the slot ever hold neither. */
 .city-slot {
   display: grid;
   min-height: var(--mat-form-field-container-height);

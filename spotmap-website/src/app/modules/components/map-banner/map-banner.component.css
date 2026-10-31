@@ -1,0 +1,12 @@
+/* The page sizes the host; the animation fills it, so the bars' 40 px and 24 px rows hold. */
+app-ascii-animation-text {
+  display: block;
+  height: 100%;
+}
+
+/* The animation's container centres its line; both bars read from the left, without the dot
+   gutters. The component is ViewEncapsulation.None, but this stylesheet's rules are scoped and
+   would never match the container's unscoped markup, so ::ng-deep is the only way to reach it. */
+:host ::ng-deep .ascii-container {
+  justify-content: flex-start;
+}

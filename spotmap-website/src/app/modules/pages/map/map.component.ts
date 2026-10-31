@@ -19,36 +19,19 @@ import {
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { debounceTime, map } from 'rxjs';
 import { MapInsets, NO_INSETS } from '../../../models/map/map-camera';
-import { prefersReducedMotion } from '../../../utils/prefers-reduced-motion';
-import { AsciiAnimationTextComponent } from '../../components/ascii-animation-text/ascii-animation-text.component';
 import { CityPickerComponent } from '../../components/city-picker/city-picker.component';
+import { MapBannerComponent } from '../../components/map-banner/map-banner.component';
 import { MapContainerComponent } from '../../components/map-container/map-container.component';
 import { OverviewBackComponent } from '../../components/overview-back/overview-back.component';
-import {
-  clearColumnShare,
-  columnWidthFor,
-  readColumnShare,
-  storeColumnShare,
-} from '../../components/split-handle/column-split';
 import { SplitHandleComponent } from '../../components/split-handle/split-handle.component';
 import { SpotDetailComponent } from '../../components/spot-detail/spot-detail.component';
 import { SpotListComponent } from '../../components/spot-list/spot-list.component';
 import { SpotMapComponent } from '../../components/spot-map/spot-map.component';
 import { SpotSheetComponent } from '../../components/spot-sheet/spot-sheet.component';
-import {
-  INITIAL_SHEET,
-  nextSheet,
-  SheetEvent,
-  SheetModel,
-  sheetHeight,
-} from '../../components/spot-sheet/spot-sheet-state';
+import { sheetHeight } from '../../components/spot-sheet/spot-sheet-state';
+import { ColumnSplitState } from './column-split-state';
+import { SheetController } from './sheet-controller';
 import { SpotBrowserStore } from './spot-browser.store';
-import {
-  fittingBannerLines,
-  HEADER_BANNER_FONT_PX,
-  RESTING_BANNER_LINE,
-  TOPBAR_BANNER_FONT_PX,
-} from './topbar-banner';
 
 /** The width the page switches from the sheet to the map + column layout at. */
 export const WIDE_LAYOUT_QUERY = '(min-width: 1024px)';
@@ -75,27 +58,6 @@ const SHOWN_ROW = 'app-spot-list:not([inert]) a.spot-row';
 /** How long the count must hold still before the live region reads it, so a pan does not chatter. */
 export const COUNT_ANNOUNCE_DEBOUNCE_MS = 800;
 
-/**
- * How long the column eases back to its default width after a double-click on the split handle:
- * the sheet's and the camera's 330 ms, so the page's own resizes all move on one beat.
- */
-export const COLUMN_RESET_EASE_MS = 330;
-
-/** The banner's lines after the city's own; the house voice the map page has always cycled. */
-const BANNER_LINES = [
-  'RESPECT THE LOCALS',
-  'EXPLORE THE CONCRETE JUNGLE',
-  'TOUCH THE UNTOUCHED SPOTS',
-  'CAN SOMEONE BRING WAX?',
-  'LET`S GO PLAZA',
-  'SKATEVIDEOS > INSTAGRAM',
-  'SUPPORTED BY ROLLTROTTEL-VERBAND',
-  'ANYONE HAS A PIN?',
-  'JUST SOME RANDOM TEXT',
-  'FOR EDUCATIONAL PURPOSES ONLY',
-  'CONTINUOUSLY UPDATED',
-];
-
 /** The map window's size in px, as the page measured it. */
 interface FrameSize {
   readonly width: number;
@@ -113,14 +75,18 @@ interface FrameSize {
  * fixed rows, the banner over the picker, neither sized by the line playing or the city chosen. The
  * city picker, and the Material it is built on, loads once the page is idle; an inert frame holds
  * its slot until then. The page owns which layout is on screen and so what the map is told is
- * covered, how wide the column is, and where keyboard focus goes when an open spot closes;
- * everything else is the {@link SpotBrowserStore}'s.
+ * covered, and where keyboard focus goes when an open spot closes. The banner is
+ * {@link MapBannerComponent}'s, the column's width {@link ColumnSplitState}'s, the sheet's height
+ * {@link SheetController}'s. The page keeps what follows from its own layout: the breakpoint
+ * signals, the frame measurement, the list's mount and key, the count line, the live-region
+ * announcements and the picker bookkeeping. Spot data and the selection are the
+ * {@link SpotBrowserStore}'s.
  */
 @Component({
   selector: 'app-map',
   imports: [
-    AsciiAnimationTextComponent,
     CityPickerComponent,
+    MapBannerComponent,
     MapContainerComponent,
     NgTemplateOutlet,
     OverviewBackComponent,
@@ -143,6 +109,9 @@ export class MapComponent {
   /** The page's state: city, selection, list, detail, notice. */
   protected readonly store = inject(SpotBrowserStore);
 
+  /** The sheet's height and what moves it; drives the layouts under 1024 px only. */
+  protected readonly sheet = new SheetController(this.store);
+
   /** Watches the viewport width for the 1024 px and 768 px layout switches. */
   private readonly breakpoints = inject(BreakpointObserver);
 
@@ -162,64 +131,16 @@ export class MapComponent {
     { initialValue: this.breakpoints.isMatched(PHONE_LAYOUT_QUERY) },
   );
 
-  /** The banner's lines: the city's own name first, then the house voice. */
-  protected readonly bannerMessages = computed(() => [
-    `${this.store.city().city.toUpperCase()} SPOTMAP`,
-    ...BANNER_LINES,
-  ]);
-
-  /** The header row's banner size: set, not fitted, so the row's height never moves. */
-  protected readonly headerBannerFontPx = HEADER_BANNER_FONT_PX;
-
-  /** The top bar's banner size: the Display tier's small size. */
-  protected readonly topbarBannerFontPx = TOPBAR_BANNER_FONT_PX;
-
-  /** The top bar's width inside its padding, measured: the banner row's width. 0 until measured. */
-  private readonly topbarWidth = signal(0);
-
-  /**
-   * The top bar banner's lines: the resting `SPOTMAP` first, then the city's line and the house
-   * voice, less every line wider than the bar's banner row. Before the bar is measured, and should
-   * nothing fit, the resting line alone.
-   */
-  protected readonly topbarMessages = computed(() => {
-    const width = this.topbarWidth();
-    const lines =
-      width > 0
-        ? fittingBannerLines(
-            [RESTING_BANNER_LINE, ...this.bannerMessages()],
-            width,
-          )
-        : [];
-    return lines.length > 0 ? lines : [RESTING_BANNER_LINE];
-  });
-
-  /** The sheet's height and where it returns to; drives the layouts under 1024 px only. */
-  protected readonly sheet = signal<SheetModel>(
-    this.store.selectedId() === null
-      ? INITIAL_SHEET
-      : nextSheet(INITIAL_SHEET, 'opened'),
-  );
-
   /**
    * The map window's size, measured: the sheet's heights are shares of its height, and the
    * column's width and limits come from its width.
    */
   protected readonly frameSize = signal<FrameSize>({ width: 0, height: 0 });
 
-  /** The column's remembered share of the window, or `null` while it has its default width. */
-  private readonly columnShare = signal(readColumnShare());
-
-  /**
-   * The column's width in px on a wide screen: its share of the window, or the default, held
-   * inside the handle's limits. The share is what holds when the window is resized.
-   */
-  protected readonly columnWidth = computed(() =>
-    columnWidthFor(this.columnShare(), this.frameSize().width),
+  /** The spot column's width, reset ease and persistence, against the measured window. */
+  protected readonly column = new ColumnSplitState(
+    computed(() => this.frameSize().width),
   );
-
-  /** Set while the column eases back to its default width after the handle's reset. */
-  protected readonly columnEasing = signal(false);
 
   /**
    * Whether the list exists: from the first moment no spot is open. A cold `/spot/<id>` link builds
@@ -278,7 +199,7 @@ export class MapComponent {
       ? NO_INSETS
       : {
           ...NO_INSETS,
-          bottom: sheetHeight(this.sheet().state, this.frameSize().height),
+          bottom: sheetHeight(this.sheet.state(), this.frameSize().height),
         },
   );
 
@@ -309,9 +230,6 @@ export class MapComponent {
   /** The map window, measured for the sheet's heights and the column's width. */
   private readonly frame = viewChild.required<ElementRef<HTMLElement>>('frame');
 
-  /** The phone top bar, measured for the room its banner and picker share; absent elsewhere. */
-  private readonly topbar = viewChild<ElementRef<HTMLElement>>('topbar');
-
   /**
    * The deferred city pickers on screen, found by their template name: naming the picker's class
    * here would load it, and the Material it is built on, with this page instead of on idle.
@@ -324,16 +242,6 @@ export class MapComponent {
    */
   protected readonly pickerLoaded = signal(false);
 
-  /**
-   * Set while the sheet's own back or close is closing the spot, so the route change that follows
-   * does not also move the sheet back to its resting height. Cleared when a spot is open again,
-   * so a close that never reached the route cannot swallow a later one.
-   */
-  private closingFromSheet = false;
-
-  /** Ends the column's reset ease, just after the 330 ms the width takes. */
-  private columnEaseTimer?: ReturnType<typeof setTimeout>;
-
   /** The page's own element, searched for the controls focus moves between. */
   private readonly host =
     inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
@@ -343,8 +251,6 @@ export class MapComponent {
 
   constructor() {
     const destroyRef = inject(DestroyRef);
-    destroyRef.onDestroy(() => clearTimeout(this.columnEaseTimer));
-
     afterNextRender(() => {
       const frame = this.frame().nativeElement;
       const measure = () =>
@@ -358,126 +264,17 @@ export class MapComponent {
       destroyRef.onDestroy(() => observer.disconnect());
     });
 
-    // The bar comes and goes with the phone breakpoint, so the one observer follows whichever bar
-    // is on screen. Its content box is the room inside the bar's padding.
-    const topbarObserver = new ResizeObserver((entries) => {
-      const width = entries[entries.length - 1]?.contentRect.width;
-      if (width !== undefined) {
-        this.topbarWidth.set(width);
-      }
-    });
-    destroyRef.onDestroy(() => topbarObserver.disconnect());
-    effect(() => {
-      const bar = this.topbar()?.nativeElement;
-      topbarObserver.disconnect();
-      if (bar) {
-        topbarObserver.observe(bar);
-      }
-    });
-
     effect(() => {
       if (this.pickers().length > 0) {
         this.pickerLoaded.set(true);
       }
     });
 
-    let previousId = this.store.selectedId();
     effect(() => {
-      const id = this.store.selectedId();
-      untracked(() => {
-        if (id !== null) {
-          this.closingFromSheet = false;
-        }
-        if (previousId === null && id !== null) {
-          this.feedSheet('opened');
-        } else if (previousId !== null && id === null) {
-          this.restoreFocusAfterClose();
-          if (this.closingFromSheet) {
-            this.closingFromSheet = false;
-          } else {
-            this.feedSheet('closed-elsewhere');
-          }
-        }
-        previousId = id;
-      });
-    });
-
-    effect(() => {
-      if (this.store.notice() === 'not-found') {
-        untracked(() => this.feedSheet('not-found'));
+      if (this.store.selectionEvent()?.kind === 'closed') {
+        untracked(() => this.restoreFocusAfterClose());
       }
     });
-  }
-
-  /** Moves the sheet by one event of its state machine. */
-  protected feedSheet(event: SheetEvent): void {
-    this.sheet.update((model) => nextSheet(model, event));
-  }
-
-  /** The sheet's < OVERVIEW plate: back to the list, closing the spot. */
-  protected onSheetBack(): void {
-    this.feedSheet('back');
-    this.closeSpot();
-  }
-
-  /** The sheet's `✕`: down to the peek bar, closing the spot. */
-  protected onSheetClose(): void {
-    this.feedSheet('close');
-    this.closeSpot();
-  }
-
-  /** A tap on the map that missed every pin closes an open spot, down to the peek bar. */
-  protected onEmptyMapTap(): void {
-    if (this.store.selectedId() === null) {
-      return;
-    }
-    this.feedSheet('map-tap');
-    this.closeSpot();
-  }
-
-  /**
-   * The handle moved: the column takes the new width, held as its share of the window so a later
-   * window size keeps the proportion. The handle has already clamped the width.
-   */
-  protected onColumnWidth(width: number): void {
-    const frameWidth = this.frameSize().width;
-    if (frameWidth <= 0) {
-      return;
-    }
-    this.columnShare.set(Math.min(width / frameWidth, 0.5));
-  }
-
-  /** The handle finished moving: the share is written now, not on every move of a drag. */
-  protected persistColumnShare(): void {
-    const share = this.columnShare();
-    if (share !== null) {
-      storeColumnShare(share);
-    }
-  }
-
-  /**
-   * The handle was double-clicked: the column goes back to its default width and the share is
-   * forgotten. The width eases over {@link COLUMN_RESET_EASE_MS}; under reduced motion it changes at
-   * once (the motion net would drop the width transition anyway, so no class is set there).
-   */
-  protected resetColumnWidth(): void {
-    clearColumnShare();
-    this.stopColumnEase();
-    if (!prefersReducedMotion()) {
-      this.columnEasing.set(true);
-      this.columnEaseTimer = setTimeout(
-        () => this.stopColumnEase(),
-        COLUMN_RESET_EASE_MS + 50,
-      );
-    }
-    this.columnShare.set(null);
-  }
-
-  /** Drops the reset ease and its timer, so a drag after it follows the pointer at once. */
-  private stopColumnEase(): void {
-    clearTimeout(this.columnEaseTimer);
-    this.columnEaseTimer = undefined;
-    this.columnEasing.set(false);
   }
 
   /**
@@ -515,14 +312,5 @@ export class MapComponent {
       },
       { injector: this.injector },
     );
-  }
-
-  /** Closes the open spot on the sheet's behalf. */
-  private closeSpot(): void {
-    if (this.store.selectedId() === null) {
-      return;
-    }
-    this.closingFromSheet = true;
-    this.store.close();
   }
 }

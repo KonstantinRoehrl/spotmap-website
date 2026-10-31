@@ -1,0 +1,17 @@
+<!-- In the top bar, keyed by its lines: a new set recreates the animation, whose typewriter keeps
+     an index into them, instead of handing a running one a shorter list. The key must derive from
+     the loop item, since Angular compares the old and the new item's keys. The header's list only
+     swaps its city line, so one instance plays on. -->
+@for (
+  lines of [messages()];
+  track variant() === 'topbar' ? lines.join('|') : 0
+) {
+  <app-ascii-animation-text
+    [messages]="lines"
+    [fixedFontSize]="fontPx()"
+    [dotGutters]="false"
+    [waitFrames]="40"
+    [animationSpeed]="45"
+    [loop]="true"
+  />
+}
