@@ -13,6 +13,7 @@ import { NavBarComponent } from './modules/components/nav-bar/nav-bar.component'
 import { PointerBloomDirective } from './modules/directives/pointer-bloom.directive';
 import { isAdminPath } from './utils/admin-path';
 import { isMapPagePath, isSpotPath } from './utils/map-page-path';
+import { safeSessionStorage } from './utils/safe-storage';
 
 // Session-scoped flag so the intro only plays on the first visit of a browser
 // session. Cleared automatically when the tab/session ends.
@@ -106,20 +107,13 @@ export class AppComponent {
     this.introFinished.set(true);
   }
 
+  /** Whether the intro already played this session; blocked storage fails open and plays it. */
   private hasSeenIntro(): boolean {
-    try {
-      return sessionStorage.getItem(INTRO_SEEN_KEY) === '1';
-    } catch {
-      // Private mode / storage disabled: fail open and just play the intro.
-      return false;
-    }
+    return safeSessionStorage.getItem(INTRO_SEEN_KEY) === '1';
   }
 
+  /** Remembers the intro played; blocked storage just shows it again next load. */
   private markIntroSeen(): void {
-    try {
-      sessionStorage.setItem(INTRO_SEEN_KEY, '1');
-    } catch {
-      // Storage unavailable: harmless, the intro simply shows again next load.
-    }
+    safeSessionStorage.setItem(INTRO_SEEN_KEY, '1');
   }
 }

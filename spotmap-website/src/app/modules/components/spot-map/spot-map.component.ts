@@ -27,6 +27,7 @@ import {
   SpotsService,
 } from '../../../services/spots.service';
 import { SpotPhotos } from '../../../services/spot-photos.service';
+import { canHover } from '../../../utils/input-capabilities';
 import { prefersReducedMotion } from '../../../utils/prefers-reduced-motion';
 import { demMaxzoomFor, type ElevationTiles } from './elevation';
 import {
@@ -186,14 +187,6 @@ interface SpotTooltip {
 function spotIdOf(feature: MapGeoJSONFeature | undefined): string | undefined {
   const id = feature?.id ?? feature?.properties?.['id'];
   return id === undefined ? undefined : String(id);
-}
-
-/** Whether the visitor's pointer can hover: a tap on a touch screen must leave no hover behind. */
-function hasHoverPointer(): boolean {
-  return (
-    typeof window.matchMedia === 'function' &&
-    window.matchMedia('(hover: hover)').matches
-  );
 }
 
 /**
@@ -784,7 +777,7 @@ export class SpotMapComponent {
         this.spotUnder(map, event.point, this.pinsAt(map, event)) ??
         null;
       map.getCanvas().style.cursor = id === null ? '' : 'pointer';
-      if (hasHoverPointer()) {
+      if (canHover()) {
         this.reportPinHover(id);
       }
     });

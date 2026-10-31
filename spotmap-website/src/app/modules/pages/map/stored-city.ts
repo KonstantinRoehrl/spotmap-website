@@ -4,6 +4,7 @@ import {
   parseCity,
   SUPPORTED_CITIES,
 } from '../../../models/map/supported-cities';
+import { safeLocalStorage } from '../../../utils/safe-storage';
 
 /** The localStorage key holding the visitor's last city, a `CityEnum` value. */
 export const USER_CITY_STORAGE_KEY = 'userCity';
@@ -15,12 +16,7 @@ export const USER_CITY_STORAGE_KEY = 'userCity';
  * reference.
  */
 export function readStoredCity(): MapItem {
-  let stored: string | null = null;
-  try {
-    stored = localStorage.getItem(USER_CITY_STORAGE_KEY);
-  } catch {
-    // Private mode / blocked storage: fall through to Vienna.
-  }
+  const stored = safeLocalStorage.getItem(USER_CITY_STORAGE_KEY);
   return (
     (stored === null ? null : parseCity(stored)) ??
     SUPPORTED_CITIES[CityEnum.Vienna]
@@ -29,9 +25,5 @@ export function readStoredCity(): MapItem {
 
 /** Remembers `city` for the next visit; storage that refuses the write is not an error. */
 export function storeCity(city: CityEnum): void {
-  try {
-    localStorage.setItem(USER_CITY_STORAGE_KEY, city);
-  } catch {
-    // Storage unavailable (private mode / blocked cookies): the choice just is not remembered.
-  }
+  safeLocalStorage.setItem(USER_CITY_STORAGE_KEY, city);
 }

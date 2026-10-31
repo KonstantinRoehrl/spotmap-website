@@ -1,3 +1,5 @@
+import { safeLocalStorage } from '../../../utils/safe-storage';
+
 /*
  * The wide layout's split between the map and the spot column: its limits, and the share of the
  * frame it is remembered as. Kept beside the handle whose limits these are: the handle only
@@ -55,30 +57,17 @@ export function columnWidthFor(
  * (0, 0.5], or storage is unavailable.
  */
 export function readColumnShare(): number | null {
-  let stored: string | null = null;
-  try {
-    stored = localStorage.getItem(COLUMN_SHARE_STORAGE_KEY);
-  } catch {
-    // Private mode / blocked storage: nothing is remembered.
-  }
+  const stored = safeLocalStorage.getItem(COLUMN_SHARE_STORAGE_KEY);
   const share = stored === null ? NaN : Number(stored);
   return Number.isFinite(share) && share > 0 && share <= 0.5 ? share : null;
 }
 
 /** Remembers `share` for the next visit; storage that refuses the write is not an error. */
 export function storeColumnShare(share: number): void {
-  try {
-    localStorage.setItem(COLUMN_SHARE_STORAGE_KEY, String(share));
-  } catch {
-    // Storage unavailable: the split just is not remembered.
-  }
+  safeLocalStorage.setItem(COLUMN_SHARE_STORAGE_KEY, String(share));
 }
 
 /** Forgets the remembered share (the double-click reset); storage that refuses is not an error. */
 export function clearColumnShare(): void {
-  try {
-    localStorage.removeItem(COLUMN_SHARE_STORAGE_KEY);
-  } catch {
-    // Storage unavailable: there was nothing it could have kept.
-  }
+  safeLocalStorage.removeItem(COLUMN_SHARE_STORAGE_KEY);
 }

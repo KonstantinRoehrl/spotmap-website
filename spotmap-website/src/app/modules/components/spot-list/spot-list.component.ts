@@ -13,6 +13,7 @@ import {
 } from '@angular/core';
 import type { SpotListFeature } from '../../../models/spots/spot';
 import { SpotPhotos } from '../../../services/spot-photos.service';
+import { canHover } from '../../../utils/input-capabilities';
 import { PointerBloomRowsDirective } from '../../directives/pointer-bloom.directive';
 
 /** One row as the template draws it, derived once per list change. */
@@ -80,15 +81,6 @@ export class SpotListComponent {
 
   /** Hangs the hover listeners outside the zone; a hover emit re-enters it. */
   private readonly zone = inject(NgZone);
-
-  /**
-   * Whether the pointer can hover, cached once as PointerBloomDirective caches its query: `.matches`
-   * stays live. A touch screen fires `mouseover` on a tap, which must not light a pin.
-   */
-  private readonly hoverPointer =
-    typeof window !== 'undefined' && typeof window.matchMedia === 'function'
-      ? window.matchMedia('(hover: hover)')
-      : null;
 
   /** The {@link focusId} value focus has already moved to, so each value moves it once. */
   private focusedId: string | null = null;
@@ -203,7 +195,7 @@ export class SpotListComponent {
 
   /** Reports the hover on a hover-capable pointer only, back in the zone the page's state lives in. */
   private reportHover(id: string | null): void {
-    if (this.hoverPointer?.matches) {
+    if (canHover()) {
       this.zone.run(() => this.hover.emit(id));
     }
   }
