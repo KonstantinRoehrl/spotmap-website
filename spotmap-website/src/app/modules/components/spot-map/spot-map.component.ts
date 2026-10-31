@@ -18,15 +18,9 @@ import type {
   MapGeoJSONFeature,
   MapMouseEvent,
 } from 'maplibre-gl';
-import { filter, lastValueFrom, Subject, takeUntil, tap } from 'rxjs';
 import { CityEnum } from '../../../models/enums/map-enum';
 import { SpotListCollection } from '../../../models/spots/spot';
 import { type SpotIndex, spotIndexOf } from '../../../models/spots/spot-index';
-import {
-  SpotListLoaded,
-  SpotListLoadEvent,
-  SpotsService,
-} from '../../../services/spots.service';
 import { SpotPhotos } from '../../../services/spot-photos.service';
 import { canHover } from '../../../utils/input-capabilities';
 import { prefersReducedMotion } from '../../../utils/prefers-reduced-motion';
@@ -130,18 +124,6 @@ function namesAnUnusableSource(
 }
 
 /**
- * The view reported for a build whose map will never paint: the whole world, which holds every
- * spot. With no map there is nothing out of view, and the page lists a city's spots only once it
- * knows a view.
- */
-const WHOLE_WORLD: ViewBounds = {
-  west: -180,
-  south: -90,
-  east: 180,
-  north: 90,
-};
-
-/**
  * The tooltip card's outer width, in px, padding and border included: the `.spot-map__tooltip-card`
  * width in the stylesheet, which sets `border-box` itself so the figure holds without the global
  * reset.
@@ -159,6 +141,14 @@ const TOOLTIP_PHOTO_CARD_HEIGHT_PX = 156;
 
 /** The tallest a name-only plate gets, in px: a three-line name. */
 const TOOLTIP_PLATE_HEIGHT_PX = 60;
+
+/** What a started build decided up front, for its map to be constructed from once the spots are in. */
+interface PendingBuild {
+  /** Where the map opens instead of the city's framing, read once as the build starts. */
+  readonly focus: MapFocus | null;
+  /** The elevation zoom for the build's city. */
+  readonly demMaxzoom: number;
+}
 
 /** What the hover tooltip shows, and where: the hovered pin's canvas position. */
 interface SpotTooltip {
@@ -191,9 +181,10 @@ function spotIdOf(feature: MapGeoJSONFeature | undefined): string | undefined {
 }
 
 /**
- * Draws a city's spots on a MapLibre map, reports the loaded spots, pin taps and taps on empty
- * map, and shows the selection its `selectedId` input names — the URL's, which is the selection's
- * one source. The container owns the loading and failure chrome. With a photo host it
+ * Draws a city's spots on a MapLibre map, reports pin taps and taps on empty map, and shows the
+ * selection its `selectedId` input names — the URL's, which is the selection's one source. The
+ * spots come in through {@link spots}: the page's store loads them, and the map is constructed from
+ * them. The page owns the loading and failure chrome. With a photo host it
  * frames each spot's first photo on its pin where there is room, and raises the selected one's out
  * of its pin as an amber flag drawn over the map ({@link SelectionFlag}); a hovered pin lights and
  * shows a tooltip.
@@ -214,8 +205,10 @@ export class SpotMapComponent {
   /** The city whose spots are drawn; any change rebuilds the map on that city. */
   city = input.required<CityEnum>();
 
-  /** Bumped by the container on RETRY; any change rebuilds the map from scratch. */
+  /** Bumped by the store on RETRY; any change rebuilds the map from scratch. */
   retryToken = input.required<number>();
+  /** The current build's spots; null until they arrive. The map is constructed from them. */
+  spots = input.required<SpotListCollection | null>();
 
   /**
    * The spot the URL has open, or `null`. Shown as the selected pin once the pins are drawn; a
@@ -242,18 +235,13 @@ export class SpotMapComponent {
 
   /** The pins are on the painted map — the end of DRAW. */
   ready = output<void>();
-  /** The map can never paint this build; the container shows its failure chrome for the reason. */
+  /** The map can never paint this build; the page shows its failure chrome for the reason. */
   failed = output<MapFailureReason>();
   /**
    * Every real loading milestone of the current build, for the loader's progress; DRAW's
    * completion is `ready`.
    */
   loadEvent = output<MapLoadEvent>();
-  /**
-   * The current build's spots in the list shape, as soon as they arrive and before the map
-   * paints; never from a build a city switch, a retry or destruction has replaced.
-   */
-  spotsLoaded = output<SpotListCollection>();
   /**
    * A pin was tapped: its spot id. Selecting is the page's call — it navigates, and the URL comes
    * back as `selectedId` — so a tap alone selects nothing.
@@ -263,9 +251,7 @@ export class SpotMapComponent {
   emptyClick = output<void>();
   /**
    * The bounds of the uncovered part of the map, on paint, on every move (at most once a frame)
-   * and whenever the covered strips change; never from a build that has been replaced. A build
-   * whose map gives up after its spots are out, or can never be drawn, reports the whole world
-   * once instead, so the page lists every spot beside the failure chrome.
+   * and whenever the covered strips change; never from a build that has been replaced.
    */
   boundsChange = output<ViewBounds>();
   /** The pin under a hovering pointer, or `null` once it leaves; only from pointers that hover. */
@@ -273,7 +259,6 @@ export class SpotMapComponent {
 
   private readonly canvasHost =
     viewChild.required<ElementRef<HTMLDivElement>>('canvasHost');
-  private readonly spots = inject(SpotsService);
   private readonly mapFactory = inject(MAP_FACTORY);
   private readonly loadElevation = inject(ELEVATION_LOADER);
   /** Where the photos come from; with no photo host there are no photo pins or tooltip photos. */
@@ -297,12 +282,10 @@ export class SpotMapComponent {
    */
   private outcome: 'pending' | 'painted' | 'failed' = 'pending';
 
-  /**
-   * Whether the current build has reported its spots. A map that fails after that, or a build that
-   * never gets one, can no longer report a view of its own, so the whole world is reported in its
-   * place. Every teardown resets it, because the next build reports its own spots.
-   */
-  private spotsReported = false;
+  /** The build under way; null after a teardown and for a browser that cannot draw the map. */
+  private readonly currentBuild = signal<PendingBuild | null>(null);
+  /** Whether the current build has started constructing its map; every teardown resets it. */
+  private constructionStarted = false;
 
   /** The visitor's hold on the current map; set while a map is attached. */
   private pointerHold?: PointerHold;
@@ -347,9 +330,6 @@ export class SpotMapComponent {
    */
   private generation = 0;
 
-  /** Fires on every teardown, ending the spots request of the build it replaces. */
-  private readonly superseded = new Subject<void>();
-
   constructor() {
     inject(DestroyRef).onDestroy(() => {
       // A destroyed component's outputs are closed, so teardown has no hover left to report.
@@ -357,15 +337,26 @@ export class SpotMapComponent {
       this.teardown();
     });
 
-    // The container reuses this instance across city selections and retries, so both inputs
-    // re-arm the renderer: drop the old map (releasing its WebGL context) and rebuild.
+    // The page reuses this instance across city selections and retries, so both inputs re-arm the
+    // renderer: drop the old map, releasing its WebGL context, and start a new build.
     effect(() => {
       const city = this.city();
       this.retryToken();
       untracked(() => {
         this.teardown();
-        void this.build(city);
+        this.startBuild(city);
       });
+    });
+
+    // Declared after the effect above, which on a retry or a city switch tears down first. Tracks
+    // `currentBuild` too: a reload that hands back the same collection object leaves `spots`
+    // unchanged, and this effect must still run for the new build.
+    effect(() => {
+      const build = this.currentBuild();
+      const spots = this.spots();
+      if (build !== null && spots !== null) {
+        untracked(() => void this.construct(build, spots));
+      }
     });
 
     // The URL owns the selection and the page the covered strips. Before the pins are drawn
@@ -391,52 +382,49 @@ export class SpotMapComponent {
   }
 
   /**
-   * Builds the map for `city`: fetches its spots, reports them, constructs a map already framed
-   * on them — or on the spot a cold link opened — then attaches it and wires its listeners. Every
-   * await re-checks the generation, so a build that lost its race to a teardown drops its result
-   * instead of attaching it.
+   * Starts a build for `city`: reads where it opens, refuses a browser that can never draw this
+   * map, and warms the terrain imports. The map itself waits for {@link spots}.
    */
-  private async build(city: CityEnum): Promise<void> {
-    const generation = this.generation;
+  private startBuild(city: CityEnum): void {
     // Read now, while it belongs to the city this build is for.
     const focus = this.openOn();
 
-    // Probed before anything is fetched: a browser without WebGL can never draw this map,
-    // and the container withholds RETRY for `unsupported`.
+    // Probed first: a browser without WebGL can never draw this map, and the frame withholds RETRY
+    // for `unsupported`. The store's list loads regardless, and the page lists everything.
     if (!this.hasWebGl()) {
-      this.fail('unsupported', generation);
-      await this.listWithoutMap(city, generation);
+      this.fail('unsupported', this.generation);
       return;
     }
 
     // Elevation is decoration, so nothing waits on it. This call only warms the loader: it starts
-    // the terrain library imports alongside the spot fetch and the map's own chunk, and its result
-    // is ignored. The result that counts comes from a second call after `load`, so the loader's
-    // timeout bounds how long after `load` relief may still be added rather than how long after
-    // the build began — a phone whose map paints late would otherwise lose relief the library
-    // already had ready. The loader memoises its setup, so that second call reuses these imports.
+    // the terrain library imports alongside the store's spot request and the map's own chunk, and
+    // its result is ignored. The result that counts comes from a second call after `load`, so the
+    // loader's timeout bounds how long after `load` relief may still be added rather than how long
+    // after the build began — a phone whose map paints late would otherwise lose relief the
+    // library already had ready. The loader memoises its setup, so that second call reuses these
+    // imports.
     const demMaxzoom = demMaxzoomFor(city);
     void this.loadElevation(demMaxzoom);
 
-    let collection: SpotListCollection;
-    try {
-      collection = await this.loadCollection(city, generation);
-    } catch {
-      this.fail('unreachable', generation);
-      return;
-    }
-    if (generation !== this.generation) {
-      return;
-    }
+    this.currentBuild.set({ focus, demMaxzoom });
+  }
 
-    // A city whose spot set is still empty has nothing to frame: with no bounds the map would
-    // open on the null island (lng 0, lat 0, zoom 0) with no sign that anything is missing, so
-    // the container's failure chrome — which already offers RETRY — is the honest outcome.
-    if (collection.features.length === 0) {
-      this.fail('unreachable', generation);
+  /**
+   * Constructs `build`'s map already framed on `collection`, or on the spot a cold link opened, then
+   * attaches it and wires its listeners. Once per build; the await re-checks the generation, so a
+   * build that lost its race to a teardown drops its map instead of attaching it.
+   */
+  private async construct(
+    { focus, demMaxzoom }: PendingBuild,
+    collection: SpotListCollection,
+  ): Promise<void> {
+    // `map` is only assigned after the await, so "no map yet" could not stop a second list in the
+    // same build from constructing a second map and leaking its WebGL context.
+    if (this.constructionStarted || this.outcome !== 'pending') {
       return;
     }
-    this.announceSpots(collection);
+    this.constructionStarted = true;
+    const generation = this.generation;
 
     // The map is built already framed on the city: MapLibre applies `bounds` in its constructor
     // with no animation (`fitBounds` at `duration: 0`), so its first paint is the framed city and
@@ -474,8 +462,8 @@ export class SpotMapComponent {
       // cached index.html asks for a hashed chunk that is gone — or the `Map` constructor threw
       // because the GPU would not give it a context the probe just held. Both are a build that
       // failed rather than a browser that can never render, so RETRY is worth offering. Saying
-      // so here is the only way it gets said at all: `build()` is launched with `void`, so an
-      // escaping rejection leaves the container on its spinner until the watchdog gives up.
+      // so here is the only way it gets said at all: `construct()` is launched with `void`, so an
+      // escaping rejection leaves the page on its spinner until the frame's watchdog gives up.
       // Logging it is the other half of that: catching the rejection is what took the browser's
       // own unhandled-rejection report away, and no map exists to fire the `error` event that
       // reports every other failure below, so without this the console never names what went
@@ -497,56 +485,6 @@ export class SpotMapComponent {
       demMaxzoom,
     );
     this.wireInteractions(map, generation);
-  }
-
-  /**
-   * Fetches the city's spots in the list shape, reporting each loading milestone. A city switch or
-   * retry has no use for the request any more: ending it frees the connection and the live query's
-   * deadline timer instead of leaving them to run out.
-   */
-  private async loadCollection(
-    city: CityEnum,
-    generation: number,
-  ): Promise<SpotListCollection> {
-    const loaded = await lastValueFrom(
-      this.spots.loadSpotList(city).pipe(
-        tap((event) => this.reportSpots(event, generation)),
-        filter((event): event is SpotListLoaded => event.type === 'done'),
-        takeUntil(this.superseded),
-      ),
-    );
-    return loaded.collection;
-  }
-
-  /**
-   * Still reports the spots of a build whose map can never be drawn, so the list beside the
-   * container's failure chrome works. A failed request leaves the list empty: the chrome already
-   * says why the page has no map.
-   */
-  private async listWithoutMap(
-    city: CityEnum,
-    generation: number,
-  ): Promise<void> {
-    try {
-      const collection = await this.loadCollection(city, generation);
-      if (generation === this.generation) {
-        this.announceSpots(collection);
-      }
-    } catch {
-      // Nothing more to report: the failure is already out.
-    }
-  }
-
-  /**
-   * Reports the build's spots to the page. A build whose map has already given up reports the
-   * whole world as its view alongside: it never will paint, so no view of its own will follow.
-   */
-  private announceSpots(collection: SpotListCollection): void {
-    this.spotsLoaded.emit(collection);
-    this.spotsReported = true;
-    if (this.outcome === 'failed') {
-      this.boundsChange.emit(WHOLE_WORLD);
-    }
   }
 
   /**
@@ -1082,7 +1020,7 @@ export class SpotMapComponent {
   }
 
   /**
-   * Gives up on this build: the container puts its failure chrome up, so the map is released
+   * Gives up on this build: the page puts its failure chrome up, so the map is released
    * rather than left holding a WebGL context behind it. A build that already lost its race, or
    * one that has already painted or failed, reports nothing.
    */
@@ -1098,11 +1036,6 @@ export class SpotMapComponent {
     this.map?.remove();
     this.map = undefined;
     this.failed.emit(reason);
-    // A list the page already holds waits on a view the failed map can no longer report; the spots
-    // of a build still fetching are given theirs as they arrive (see `announceSpots`).
-    if (this.spotsReported) {
-      this.boundsChange.emit(WHOLE_WORLD);
-    }
   }
 
   /**
@@ -1132,18 +1065,7 @@ export class SpotMapComponent {
     map.addLayer(SPOT_FOOTPRINT_LAYER);
   }
 
-  /** Reports one spot-load milestone as the matching load event. */
-  private reportSpots(event: SpotListLoadEvent, generation: number): void {
-    const kinds = {
-      sent: 'spots-sent',
-      headers: 'spots-headers',
-      fallback: 'spots-fallback',
-      done: 'spots-done',
-    } as const;
-    this.reportLoad({ kind: kinds[event.type] }, generation);
-  }
-
-  /** Reports one load event for the container's loader, unless this build has been replaced. */
+  /** Reports one load event for the page's loader, unless this build has been replaced. */
   private reportLoad(event: MapLoadEvent, generation: number): void {
     if (generation === this.generation) {
       this.loadEvent.emit(event);
@@ -1233,9 +1155,9 @@ export class SpotMapComponent {
   /** Releases the map's WebGL context — the browser caps how many may be alive at once. */
   private teardown(): void {
     this.generation += 1;
-    this.superseded.next();
+    this.currentBuild.set(null);
+    this.constructionStarted = false;
     this.outcome = 'pending';
-    this.spotsReported = false;
     // Before the map goes: a running pulse puts its ring to rest on the live style.
     this.selection?.dispose();
     this.selection = undefined;

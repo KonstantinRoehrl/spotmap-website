@@ -287,13 +287,6 @@ export class SpotBrowserStore {
     this.switchCity(city, null);
   }
 
-  /** The map's list of the city's spots, as it arrived for the current build. */
-  setList(collection: SpotListCollection): void {
-    this.spotIndex = spotIndexOf(collection);
-    this.inView = new LoadedSpotsInView(collection);
-    this.viewQueries.next();
-  }
-
   /** Loads the current city's list again, live first: the frame's RETRY. Rows on screen stay. */
   reloadList(): void {
     const city = this.mapCityState();
@@ -497,6 +490,13 @@ export class SpotBrowserStore {
     }
     this.setList(collection);
     this.mapSpotsState.set(collection);
+  }
+
+  /** Applies a non-empty list to the in-view source and the id index. */
+  private setList(collection: SpotListCollection): void {
+    this.spotIndex = spotIndexOf(collection);
+    this.inView = new LoadedSpotsInView(collection);
+    this.viewQueries.next();
   }
 
   /** Makes `city` the shown, built and remembered city, opening on `focus` when given. */

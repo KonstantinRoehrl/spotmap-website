@@ -1,6 +1,4 @@
 import { BreakpointObserver } from '@angular/cdk/layout';
-import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { Component, input, signal } from '@angular/core';
 import {
   ComponentFixture,
@@ -114,7 +112,6 @@ function fakeStore() {
     hoveredId: signal<string | null>(null),
     returnFocusTo: signal<string | null>(null),
     selectCity: jasmine.createSpy('selectCity'),
-    setList: jasmine.createSpy('setList'),
     setBounds: jasmine.createSpy('setBounds'),
     open: jasmine.createSpy('open'),
     close: jasmine.createSpy('close'),
@@ -158,8 +155,6 @@ describe('MapComponent', () => {
       imports: [MapComponent],
       deferBlockBehavior: deferBehavior,
       providers: [
-        provideHttpClient(),
-        provideHttpClientTesting(),
         { provide: MAP_FACTORY, useValue: neverResolves },
         { provide: ELEVATION_LOADER, useValue: neverResolves },
         {
@@ -1595,19 +1590,20 @@ describe('MapComponent', () => {
     expect(spotMap().openOn()).toEqual(focus);
   });
 
+  it('hands the store’s list to the map', () => {
+    const list = { type: 'FeatureCollection' as const, features: [ALPHA] };
+    store.mapSpots.set(list);
+    create();
+    expect(spotMap().spots()).toBe(list);
+  });
+
   it('feeds what the map reports into the store', () => {
     create();
-    const collection = {
-      type: 'FeatureCollection' as const,
-      features: [ALPHA],
-    };
     const bounds = { west: 16, south: 48, east: 17, north: 49 };
-    spotMap().spotsLoaded.emit(collection);
     spotMap().boundsChange.emit(bounds);
     spotMap().spotClick.emit('a');
     spotMap().pinHover.emit('b');
 
-    expect(store.setList).toHaveBeenCalledWith(collection);
     expect(store.setBounds).toHaveBeenCalledWith(bounds);
     expect(store.open).toHaveBeenCalledWith('a', 'pin');
     expect(store.setHovered).toHaveBeenCalledWith('b');
