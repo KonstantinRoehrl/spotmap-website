@@ -955,4 +955,43 @@ describe('SpotBrowserStore', () => {
       expect(shownIds()).toEqual([]);
     });
   });
+
+  describe('selectionEvent', () => {
+    it('stays null on the route’s first value with no spot', async () => {
+      await openPage('/map');
+      expect(store.selectionEvent()).toBeNull();
+    });
+
+    it('stays null on a cold link’s first id', async () => {
+      await openPage('/spot/a');
+      expect(store.selectionEvent()).toBeNull();
+    });
+
+    it('reports a spot opening, switching and closing', async () => {
+      await openPage('/map');
+      await harness.navigateByUrl('/spot/a');
+      expect(store.selectionEvent()).toEqual({ kind: 'opened' });
+      await harness.navigateByUrl('/spot/b');
+      expect(store.selectionEvent()).toEqual({ kind: 'switched' });
+      await harness.navigateByUrl('/map');
+      expect(store.selectionEvent()).toEqual({ kind: 'closed' });
+    });
+
+    it('reports the close of a cold link', async () => {
+      await openPage('/spot/a');
+      await harness.navigateByUrl('/map');
+      expect(store.selectionEvent()).toEqual({ kind: 'closed' });
+    });
+
+    it('makes a new object per event, so a repeated kind still notifies', async () => {
+      await openPage('/map');
+      await harness.navigateByUrl('/spot/a');
+      const first = store.selectionEvent();
+      await harness.navigateByUrl('/map');
+      await harness.navigateByUrl('/spot/b');
+      const second = store.selectionEvent();
+      expect(second).toEqual({ kind: 'opened' });
+      expect(second).not.toBe(first);
+    });
+  });
 });
