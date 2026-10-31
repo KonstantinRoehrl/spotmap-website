@@ -1,9 +1,9 @@
 <section class="spot-detail" role="region" [attr.aria-labelledby]="headingId">
   @if (spot(); as spot) {
-    @if (thumbnails().length > 0) {
+    @if (photoUrls().thumbs.length > 0) {
       <div class="spot-detail__photos">
         <app-spot-photo-rail
-          [photos]="thumbnails()"
+          [photos]="photoUrls().thumbs"
           [spotName]="spot.name"
           (open)="openPhoto($event)"
         />

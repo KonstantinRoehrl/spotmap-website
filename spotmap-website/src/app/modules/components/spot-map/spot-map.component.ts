@@ -26,7 +26,7 @@ import {
   SpotListLoadEvent,
   SpotsService,
 } from '../../../services/spots.service';
-import { photoUrl, SPOTMAP_BACKEND } from '../../../services/spotmap-backend';
+import { SpotPhotos } from '../../../services/spot-photos.service';
 import { prefersReducedMotion } from '../../../utils/prefers-reduced-motion';
 import { demMaxzoomFor, type ElevationTiles } from './elevation';
 import {
@@ -283,7 +283,7 @@ export class SpotMapComponent {
   private readonly mapFactory = inject(MAP_FACTORY);
   private readonly loadElevation = inject(ELEVATION_LOADER);
   /** Where the photos come from; with no photo host there are no photo pins or tooltip photos. */
-  private readonly backend = inject(SPOTMAP_BACKEND);
+  private readonly spotPhotos = inject(SpotPhotos);
   /** Runs the selection flag's timers outside the zone, so a landing flag never holds `whenStable`. */
   private readonly zone = inject(NgZone);
 
@@ -666,12 +666,8 @@ export class SpotMapComponent {
       this.outcome = 'painted';
       this.reportLoad({ kind: 'painted' }, generation);
       // The resolver must be in place before the layers that ask it for images.
-      if (this.backend.photoBaseUrl) {
-        this.photoPins = new PhotoPins(
-          map,
-          collection,
-          this.backend.photoBaseUrl,
-        );
+      if (this.spotPhotos.enabled) {
+        this.photoPins = new PhotoPins(map, collection, this.spotPhotos);
         this.photoPins.install();
       }
       this.drawSpots(map, collection);
@@ -906,7 +902,6 @@ export class SpotMapComponent {
    */
   private showFlag(id: string | null, animate: boolean): void {
     const flag = this.selectionFlag;
-    const base = this.backend.photoBaseUrl;
     if (!flag) {
       return;
     }
@@ -916,12 +911,12 @@ export class SpotMapComponent {
         : this.collection?.features.find(
             (feature) => feature.properties.id === id,
           );
-    const cover = spot?.properties.cover;
+    const photo = this.spotPhotos.coverThumb(spot?.properties);
     flag.show(
-      spot && cover && base
+      spot && photo
         ? {
             id: spot.properties.id,
-            photo: photoUrl(base, cover, 'thumb'),
+            photo,
             demolished: spot.properties.status === 'demolished',
             coordinates: spot.geometry.coordinates,
           }
@@ -1031,9 +1026,7 @@ export class SpotMapComponent {
       return;
     }
     const { x, y } = map.project(spot.geometry.coordinates);
-    const base = this.backend.photoBaseUrl;
-    const cover = spot.properties.cover;
-    const photo = base && cover ? photoUrl(base, cover, 'thumb') : null;
+    const photo = this.spotPhotos.coverThumb(spot.properties);
     // The card is centred on the pin, above it. Near an edge it slides back inside the map, and
     // with no room above it flips below the pin.
     const reach = TOOLTIP_WIDTH_PX / 2 + TOOLTIP_EDGE_GAP_PX;

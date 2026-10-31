@@ -3,7 +3,7 @@ import type {
   SpotListCollection,
   SpotListFeature,
 } from '../../../models/spots/spot';
-import { photoUrl } from '../../../services/spotmap-backend';
+import type { SpotPhotos } from '../../../services/spot-photos.service';
 import { TERMINAL_PALETTE } from './map-palette';
 import {
   PHOTO_PIN_IMAGE_PREFIX,
@@ -352,13 +352,13 @@ export class PhotoPins {
   /**
    * @param map the build's map, before its spot layers are added
    * @param collection the build's spots, for each pin's cover photo and status
-   * @param photoBaseUrl `SpotmapBackend.photoBaseUrl`, non-empty
+   * @param photos builds each pin's thumbnail URL
    * @param loadPhoto fetches one photo; specs pass a fake
    */
   constructor(
     private readonly map: MapLibreMap,
     collection: SpotListCollection,
-    private readonly photoBaseUrl: string,
+    private readonly photos: Pick<SpotPhotos, 'thumb'>,
     private readonly loadPhoto: PhotoLoader = loadCrossOriginPhoto,
   ) {
     this.spots = new Map(
@@ -476,10 +476,7 @@ export class PhotoPins {
     }
     let inFlight = this.loading.get(cover);
     if (!inFlight) {
-      inFlight = this.loadPhoto(
-        photoUrl(this.photoBaseUrl, cover, 'thumb'),
-        this.loads.signal,
-      )
+      inFlight = this.loadPhoto(this.photos.thumb(cover), this.loads.signal)
         .then((photo) => {
           const tile = photoTile(photo);
           this.tiles.set(cover, tile);

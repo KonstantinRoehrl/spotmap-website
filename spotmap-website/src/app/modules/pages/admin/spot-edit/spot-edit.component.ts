@@ -22,10 +22,7 @@ import {
   PhotoPipeline,
   type ProcessedPhoto,
 } from '../../../../services/admin/photo-pipeline/photo-pipeline';
-import {
-  photoUrl,
-  SPOTMAP_BACKEND,
-} from '../../../../services/spotmap-backend';
+import { SpotPhotos } from '../../../../services/spot-photos.service';
 import {
   PICKER_DETAIL_ZOOM,
   SatellitePickerComponent,
@@ -149,7 +146,7 @@ function errorText(error: unknown): string {
 export class SpotEditComponent {
   private readonly repository = inject(AdminRepository);
   private readonly pipeline = inject(PhotoPipeline);
-  private readonly backend = inject(SPOTMAP_BACKEND);
+  private readonly spotPhotos = inject(SpotPhotos);
   private readonly imagery = inject(IMAGERY_CONFIG);
   private readonly host: HTMLElement = inject(ElementRef).nativeElement;
   private readonly injector = inject(Injector);
@@ -279,11 +276,9 @@ export class SpotEditComponent {
     return (event.target as HTMLSelectElement).value as SpotStatus;
   }
 
-  /** The public URL of a photo's thumbnail; null when the backend has no photo base URL. */
+  /** The public URL of a photo's thumbnail; null without a photo host. */
   protected thumbUrl(key: string): string | null {
-    return this.backend.photoBaseUrl === ''
-      ? null
-      : photoUrl(this.backend.photoBaseUrl, key, 'thumb');
+    return this.spotPhotos.enabled ? this.spotPhotos.thumb(key) : null;
   }
 
   /** The details form's submit: one `updateSpot` with only the changed fields. */

@@ -40,22 +40,3 @@ export const SPOTMAP_BACKEND = new InjectionToken<SpotmapBackend>(
 
 /** The public `spot-photos` bucket's path under a Supabase project URL. */
 export const PHOTO_BUCKET_PATH = '/storage/v1/object/public/spot-photos';
-
-/** A photo's two renditions in the bucket: the 640 px thumbnail and the 1400 px original. */
-export type PhotoSize = 'thumb' | 'full';
-
-/**
- * The URL of one rendition of one photo.
- *
- * @param photoBaseUrl `SpotmapBackend.photoBaseUrl`; callers check it is non-empty
- * @param key an object key from `SpotProperties.photos`, e.g. `vienna/hbf-curb-99f6e5-9f98eefd.webp`
- * @param size which rendition
- * @returns `${photoBaseUrl}/${size}/${key}`
- */
-export function photoUrl(
-  photoBaseUrl: string,
-  key: string,
-  size: PhotoSize,
-): string {
-  return `${photoBaseUrl}/${size}/${key}`;
-}

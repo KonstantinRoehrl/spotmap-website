@@ -40,7 +40,7 @@ export interface SpotProperties {
   notes: string | null;
   /**
    * Photo object keys under the photo host, `<city>/<file>.webp`, in gallery order — keys, never
-   * URLs: `photoUrl()` turns one into a thumbnail or full-size URL.
+   * URLs: `SpotPhotos` turns one into a thumbnail or full-size URL.
    */
   photos: string[];
 }

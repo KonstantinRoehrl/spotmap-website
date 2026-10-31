@@ -20,6 +20,7 @@ import { PIN_IMAGE_LIFT_PX } from './spot-layers';
 import { FakeMap } from './testing/fake-map';
 
 const PHOTO_HOST = 'https://photos.test';
+const PHOTOS = { thumb: (key: string) => `${PHOTO_HOST}/thumb/${key}` };
 
 /** Three spots: one standing with photos, one demolished with a photo, one with none. */
 const LIST: SpotListCollection = {
@@ -186,7 +187,7 @@ describe('PhotoPins', () => {
     pins = new PhotoPins(
       fake as unknown as MapLibreMap,
       LIST,
-      PHOTO_HOST,
+      PHOTOS,
       (url, signal) =>
         new Promise((resolve, reject) =>
           loads.push({ url, signal, resolve, reject }),
@@ -335,7 +336,7 @@ describe('PhotoPins', () => {
       pins = new PhotoPins(
         fake as unknown as MapLibreMap,
         many,
-        PHOTO_HOST,
+        PHOTOS,
         (url, signal) =>
           new Promise((resolve, reject) =>
             loads.push({ url, signal, resolve, reject }),

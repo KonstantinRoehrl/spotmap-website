@@ -7,7 +7,7 @@ import type {
   NewSpotFields,
   SpotPatch,
 } from '../../models/admin/admin-spot';
-import type { PhotoSize } from '../spotmap-backend';
+import { PHOTO_RENDITIONS, type PhotoRendition } from '../spot-photos.service';
 import { AdminSession } from './admin-session';
 import { photoKey } from './photo-pipeline/hashing';
 import type { ProcessedPhoto } from './photo-pipeline/photo-pipeline';
@@ -69,9 +69,6 @@ const UPLOAD_OPTIONS = {
   upsert: false,
 } as const;
 
-/** Both rendition folders, full first (the order uploads and deletes run in). */
-const PHOTO_SIZES: readonly PhotoSize[] = ['full', 'thumb'];
-
 /** The fields of a PostgREST error this file reads. */
 interface PostgrestFailure {
   code?: string;
@@ -119,7 +116,7 @@ function newPhotos(
 }
 
 /** The Storage path of one rendition of a photo key, e.g. `full/vienna/x-1a2b3c4d.webp`. */
-function objectPath(size: PhotoSize, key: string): string {
+function objectPath(size: PhotoRendition, key: string): string {
   return `${size}/${key}`;
 }
 
@@ -391,7 +388,9 @@ export class AdminRepository {
       { p_spot_id: spot.id, p_key: key },
       'Removing the photo',
     );
-    await this.deleteObjects(PHOTO_SIZES.map((size) => objectPath(size, key)));
+    await this.deleteObjects(
+      PHOTO_RENDITIONS.map((size) => objectPath(size, key)),
+    );
     return updated;
   }
 
@@ -512,7 +511,7 @@ export class AdminRepository {
     const bucket = (await this.client()).storage.from(PHOTO_BUCKET);
     const created: string[] = [];
     for (const [index, photo] of photos.entries()) {
-      for (const size of PHOTO_SIZES) {
+      for (const size of PHOTO_RENDITIONS) {
         const path = objectPath(size, keys[index]);
         const { error } = await bucket.upload(
           path,
