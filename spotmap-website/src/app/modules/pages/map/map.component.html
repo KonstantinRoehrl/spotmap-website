@@ -102,17 +102,17 @@
       @if (wide()) {
         <app-split-handle
           class="map-window__handle"
-          [columnWidth]="columnWidth()"
+          [columnWidth]="column.width()"
           [frameWidth]="frameSize().width"
-          (widthChange)="onColumnWidth($event)"
-          (widthCommit)="persistColumnShare()"
-          (widthReset)="resetColumnWidth()"
+          (widthChange)="column.resize($event)"
+          (widthCommit)="column.persist()"
+          (widthReset)="column.reset()"
         />
         <aside
           class="spot-column"
           aria-label="Spots"
-          [class.spot-column--easing]="columnEasing()"
-          [style.width.px]="columnWidth()"
+          [class.spot-column--easing]="column.easing()"
+          [style.width.px]="column.width()"
         >
           <!-- Both variants share one grid cell, so swapping them is a crossfade, not a cut. -->
           <div class="spot-column__toolbar">

@@ -41,8 +41,8 @@ import {
 } from '../../components/split-handle/column-split';
 import { SplitHandleComponent } from '../../components/split-handle/split-handle.component';
 import { sheetHeight } from '../../components/spot-sheet/spot-sheet-state';
+import { COLUMN_RESET_EASE_MS } from './column-split-state';
 import {
-  COLUMN_RESET_EASE_MS,
   COUNT_ANNOUNCE_DEBOUNCE_MS,
   MapComponent,
   PHONE_LAYOUT_QUERY,
