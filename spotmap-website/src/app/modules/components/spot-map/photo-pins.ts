@@ -502,6 +502,7 @@ export class PhotoPins {
     if (this.loads.signal.aborted) {
       return;
     }
+    let drew = false;
     for (const fade of [...this.fading]) {
       if (!this.map.hasImage(fade.imageId)) {
         this.fading.splice(this.fading.indexOf(fade), 1);
@@ -513,9 +514,15 @@ export class PhotoPins {
         fade.imageId,
         drawPinImage(fade.tile, fade.style, progress),
       );
+      drew = true;
       if (progress === 1) {
         this.fading.splice(this.fading.indexOf(fade), 1);
       }
+    }
+    // `updateImage` schedules no frame, and the new pixels reach the GPU only on the next one. The
+    // photos are fetched once the map has gone quiet, so no other frame may ever come.
+    if (drew) {
+      this.map.triggerRepaint();
     }
     while (this.fading.length < MAX_CONCURRENT_FADES && this.waiting.length) {
       this.fading.push(this.waiting.shift()!);

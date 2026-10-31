@@ -154,6 +154,8 @@ export class FakeMap {
   readonly imageOptions = new Map<string, unknown>();
   /** The id of every `updateImage` call, in order. */
   readonly imageUpdates: string[] = [];
+  /** How many times a frame was asked for through `triggerRepaint`. */
+  repaintRequests = 0;
   /** The missing-image resolver the component installed, if any. */
   missingImageResolver: ((id: string) => void | Promise<void>) | null = null;
   /** The photo pins MapLibre has placed on screen: what `queryRenderedFeatures` finds on the photo layer. */
@@ -357,6 +359,10 @@ export class FakeMap {
     this.images.set(id, image);
     this.imageUpdates.push(id);
     return this;
+  }
+  /** Records the request; rendering a frame is left to the spec, through `emit('render')`. */
+  triggerRepaint() {
+    this.repaintRequests++;
   }
   /** Whether the style holds an image with this id. */
   hasImage(id: string) {

@@ -259,6 +259,36 @@ describe('PhotoPins', () => {
     expect(frames).withContext('the fade is over').toEqual([]);
   });
 
+  it('asks the map for a frame after every fade frame that drew, with no other map activity', async () => {
+    resolveImage('spot-photo:a');
+    fake.placedPhotos = [{ properties: { id: 'a' } }];
+    fake.emit('idle');
+    loads[0]!.resolve(greenPhoto());
+    await settle();
+    expect(fake.repaintRequests).withContext('before the fade').toBe(0);
+
+    runFrames(1000);
+    expect(fake.repaintRequests).withContext('first frame').toBe(1);
+    runFrames(1100);
+    expect(fake.repaintRequests).withContext('second frame').toBe(2);
+    runFrames(1200);
+    expect(fake.repaintRequests).withContext('the last frame').toBe(3);
+  });
+
+  it('asks for no frame when a fade frame drew nothing', async () => {
+    resolveImage('spot-photo:a');
+    fake.placedPhotos = [{ properties: { id: 'a' } }];
+    fake.emit('idle');
+    loads[0]!.resolve(greenPhoto());
+    await settle();
+    fake.images.delete('spot-photo:a');
+
+    runFrames(1000);
+
+    expect(fake.imageUpdates).toEqual([]);
+    expect(fake.repaintRequests).toBe(0);
+  });
+
   it('keeps the placeholder for a photo that fails, and never asks again', async () => {
     resolveImage('spot-photo:a');
     fake.placedPhotos = [{ properties: { id: 'a' } }];
