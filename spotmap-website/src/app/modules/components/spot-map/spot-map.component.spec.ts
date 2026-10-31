@@ -833,7 +833,9 @@ describe('SpotMapComponent', () => {
 
     /** Answers the unanswered spots request and lets the build's promise chain settle. */
     async function answerSpots() {
-      httpMock.expectOne('spots/vienna.geojson').flush(COLLECTION);
+      httpMock
+        .match((request) => request.url.endsWith('.geojson'))
+        .forEach((request) => request.flush(COLLECTION));
       await fixture.whenStable();
       await new Promise((resolve) => setTimeout(resolve));
     }

@@ -20,6 +20,7 @@ import type {
 } from '../../../models/spots/spot';
 import {
   SpotDetailResult,
+  SpotListLoadEvent,
   SpotsService,
 } from '../../../services/spots.service';
 import { matchMapPage } from '../../../utils/map-page-path';
@@ -93,6 +94,9 @@ describe('SpotBrowserStore', () => {
   /** The detail loads asked for, newest last per id; each answers when a spec says so. */
   let requests: Map<string, Subject<SpotDetailResult>>;
   let loadSpotDetail: jasmine.Spy;
+  /** The list loads asked for, oldest first; each answers when a spec says so. */
+  let listRequests: { city: CityEnum; request: Subject<SpotListLoadEvent> }[];
+  let loadSpotList: jasmine.Spy;
   let harness: RouterTestingHarness;
   let store: SpotBrowserStore;
   let router: Router;
@@ -109,6 +113,14 @@ describe('SpotBrowserStore', () => {
         requests.set(id, request);
         return request;
       });
+    listRequests = [];
+    loadSpotList = jasmine
+      .createSpy('loadSpotList')
+      .and.callFake((city: CityEnum) => {
+        const request = new Subject<SpotListLoadEvent>();
+        listRequests.push({ city, request });
+        return request;
+      });
     TestBed.configureTestingModule({
       providers: [
         provideRouter([
@@ -116,7 +128,7 @@ describe('SpotBrowserStore', () => {
           { path: 'home', component: OtherPageComponent },
         ]),
         provideLocationMocks(),
-        { provide: SpotsService, useValue: { loadSpotDetail } },
+        { provide: SpotsService, useValue: { loadSpotDetail, loadSpotList } },
       ],
     });
     router = TestBed.inject(Router);
@@ -151,10 +163,17 @@ describe('SpotBrowserStore', () => {
     requests.get(id)!.error(new Error('no source answered'));
   }
 
+  /** Answers the newest list load with `collection`. */
+  function answerList(collection: SpotListCollection = VIENNA_LIST): void {
+    const { request } = listRequests.at(-1)!;
+    request.next({ type: 'done', collection, source: 'live' });
+    request.complete();
+  }
+
   /** The map page with Vienna's list loaded and the whole city in view. */
   async function openViennaMap(): Promise<void> {
     await openPage('/map');
-    store.setList(VIENNA_LIST);
+    answerList();
     store.setBounds(ALL_OF_VIENNA);
   }
 
@@ -187,7 +206,7 @@ describe('SpotBrowserStore', () => {
     expect(store.shownSpots()).toBeNull();
     store.setBounds(ALL_OF_VIENNA);
     expect(store.shownSpots()).toBeNull();
-    store.setList(VIENNA_LIST);
+    answerList();
     expect(store.shownSpots()).toEqual([ALPHA, BETA]);
   });
 
@@ -195,7 +214,7 @@ describe('SpotBrowserStore', () => {
     // A map that never comes up reports no view of its own, so it stands in for one that holds
     // everything: the list must show the city rather than wait on a view that will never arrive.
     await openPage('/map');
-    store.setList(VIENNA_LIST);
+    answerList();
     expect(store.shownSpots()).toBeNull();
 
     store.setBounds({ west: -180, south: -90, east: 180, north: 90 });
@@ -488,7 +507,7 @@ describe('SpotBrowserStore', () => {
     await openPage('/spot/nope');
     answer('nope', { type: 'not-found' });
     await settle();
-    store.setList(VIENNA_LIST);
+    answerList();
 
     store.open('a', 'list');
     expect(store.notice()).toBeNull();
@@ -529,7 +548,12 @@ describe('SpotBrowserStore', () => {
 
     it('saves nothing for a link opened cold: the list follows the view, and Back shows the current one', async () => {
       await openPage('/spot/a');
-      store.setList(VIENNA_LIST);
+      answer('a', {
+        type: 'found',
+        spot: spotDetail('a', 'vienna', 'Alpha Bank', [16.37, 48.2]),
+        source: 'live',
+      });
+      answerList();
       store.setBounds(ALL_OF_VIENNA);
       expect(store.shownSpots()).toEqual([ALPHA, BETA]);
       store.setBounds(EMPTY_CORNER);
@@ -717,7 +741,8 @@ describe('SpotBrowserStore', () => {
       store.open('a', 'pin');
       await settle();
       failLoad('a');
-      store.setList({
+      store.reloadList();
+      answerList({
         type: 'FeatureCollection',
         features: [
           BETA,
@@ -756,5 +781,167 @@ describe('SpotBrowserStore', () => {
     await harness.navigateByUrl('/home');
 
     expect(title.getTitle()).toBe(PAGE_TITLE);
+  });
+
+  describe('the city list load', () => {
+    const kinds = () => store.listEvents().map((event) => event.kind);
+    const shownIds = () =>
+      store.shownSpots()?.map((spot) => spot.properties.id) ?? null;
+
+    it('asks for the remembered city as the page opens, in the store rather than the map', async () => {
+      await openPage('/map');
+      expect(loadSpotList).toHaveBeenCalledOnceWith(store.city().city);
+    });
+
+    it('logs every milestone in order, including a fallback and the snapshot request behind it', async () => {
+      await openPage('/map');
+      const { request } = listRequests[0];
+      request.next({ type: 'sent' });
+      request.next({ type: 'fallback' });
+      request.next({ type: 'sent' });
+      request.next({ type: 'headers' });
+      request.next({
+        type: 'done',
+        collection: VIENNA_LIST,
+        source: 'snapshot',
+      });
+      expect(kinds()).toEqual([
+        'spots-sent',
+        'spots-fallback',
+        'spots-sent',
+        'spots-headers',
+        'spots-done',
+      ]);
+    });
+
+    it('hands the map the list once it arrives, and not before', async () => {
+      await openPage('/map');
+      expect(store.mapSpots()).toBeNull();
+      answerList();
+      expect(store.mapSpots()).toBe(VIENNA_LIST);
+      expect(store.listFailed()).toBeFalse();
+    });
+
+    it('fails the load on a request error and applies nothing', async () => {
+      await openPage('/map');
+      store.setBounds(ALL_OF_VIENNA);
+      listRequests[0].request.error(new Error('no source answered'));
+      expect(store.listFailed()).toBeTrue();
+      expect(store.mapSpots()).toBeNull();
+      expect(store.shownSpots()).toBeNull();
+    });
+
+    it('fails the load on an empty answer and applies nothing', async () => {
+      await openPage('/map');
+      store.setBounds(ALL_OF_VIENNA);
+      answerList({ type: 'FeatureCollection', features: [] });
+      expect(store.listFailed()).toBeTrue();
+      expect(store.mapSpots()).toBeNull();
+      expect(store.shownSpots()).toBeNull();
+    });
+
+    it('fails the load when the stream completes with no answer', async () => {
+      await openPage('/map');
+      listRequests[0].request.complete();
+      expect(store.listFailed()).toBeTrue();
+      expect(store.mapSpots()).toBeNull();
+    });
+
+    it('cancels the request in flight on a city switch, which never shows the old city’s spots', async () => {
+      await openPage('/map');
+      const first = listRequests[0];
+      first.request.next({ type: 'sent' });
+      store.selectCity(SUPPORTED_CITIES[CityEnum.Graz]);
+      expect(first.request.observed).toBeFalse();
+      expect(listRequests.at(-1)!.city).toBe(CityEnum.Graz);
+      expect(store.mapSpots()).toBeNull();
+      expect(store.listEvents()).toEqual([]);
+    });
+
+    it('starts the new city’s load in the same tick as the map’s city, after a loaded list', async () => {
+      await openViennaMap();
+      store.selectCity(SUPPORTED_CITIES[CityEnum.Graz]);
+      expect(store.mapCity()).toBe(CityEnum.Graz);
+      expect(store.mapSpots()).toBeNull();
+      expect(listRequests.at(-1)!.city).toBe(CityEnum.Graz);
+      expect(store.shownSpots()).toBeNull();
+    });
+
+    it('cancels the request in flight when the page goes', async () => {
+      await openPage('/map');
+      const first = listRequests[0];
+      await harness.navigateByUrl('/home');
+      expect(first.request.observed).toBeFalse();
+    });
+
+    it('asks no list while a cold link holds the map, then asks for the spot’s city', async () => {
+      await openPage('/spot/a');
+      expect(loadSpotList).not.toHaveBeenCalled();
+      answer('a', {
+        type: 'found',
+        spot: spotDetail('a', CityEnum.Graz, 'Alpha Bank', [15.44, 47.07]),
+        source: 'live',
+      });
+      expect(loadSpotList).toHaveBeenCalledOnceWith(CityEnum.Graz);
+    });
+
+    it('asks for the remembered city when a held cold link’s spot is gone', async () => {
+      await openPage('/spot/nope');
+      answer('nope', { type: 'not-found' });
+      expect(loadSpotList).toHaveBeenCalledOnceWith(store.city().city);
+    });
+
+    it('asks for the remembered city when a held cold link’s detail fails', async () => {
+      await openPage('/spot/a');
+      failLoad('a');
+      expect(loadSpotList).toHaveBeenCalledOnceWith(store.city().city);
+    });
+
+    it('keeps the rows on a reload, resets the load and bumps the attempt', async () => {
+      await openViennaMap();
+      const before = shownIds();
+      store.reloadList();
+      expect(shownIds()).toEqual(before);
+      expect(store.mapSpots()).toBeNull();
+      expect(store.listEvents()).toEqual([]);
+      expect(store.listAttempt()).toBe(1);
+      expect(listRequests.length).toBe(2);
+      expect(listRequests[1].city).toBe(listRequests[0].city);
+    });
+
+    it('clears a failed load on a reload and keeps the rows through a failed one', async () => {
+      await openViennaMap();
+      const before = shownIds();
+      store.reloadList();
+      listRequests[1].request.error(new Error('no source answered'));
+      expect(store.listFailed()).toBeTrue();
+      expect(shownIds()).toEqual(before);
+      store.reloadList();
+      expect(store.listFailed()).toBeFalse();
+    });
+
+    it('lists everything when the map gives up before the list arrives', async () => {
+      await openPage('/map');
+      store.mapGaveUp();
+      expect(store.shownSpots()).toBeNull();
+      answerList();
+      expect(shownIds()).toEqual(['a', 'b']);
+    });
+
+    it('lists everything at once when the map gives up after the list arrived', async () => {
+      await openPage('/map');
+      answerList();
+      expect(store.shownSpots()).toBeNull();
+      store.mapGaveUp();
+      expect(shownIds()).toEqual(['a', 'b']);
+    });
+
+    it('follows the real view when a map paints after giving up', async () => {
+      await openPage('/map');
+      answerList();
+      store.mapGaveUp();
+      store.setBounds(EMPTY_CORNER);
+      expect(shownIds()).toEqual([]);
+    });
   });
 });
