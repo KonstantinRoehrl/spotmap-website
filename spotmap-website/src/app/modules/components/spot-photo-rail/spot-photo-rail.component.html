@@ -4,21 +4,21 @@
       #photoButton
       type="button"
       class="rail__photo phosphor-bloom phosphor-bloom--inset"
-      [class.rail__photo--instant]="instant().has(src)"
+      [class.rail__photo--instant]="images.instant().has(src)"
       appPointerBloom
       [attr.aria-label]="
         'Open photo ' +
         (i + 1) +
         ' of ' +
         total +
-        (failed().has(src) ? ', did not load' : '')
+        (images.failed().has(src) ? ', did not load' : '')
       "
       (click)="open.emit(i)"
     >
-      @if (failed().has(src)) {
+      @if (images.failed().has(src)) {
         <app-spot-photo-failed class="rail__failed" />
       } @else {
-        @if (!loaded().has(src)) {
+        @if (!images.loaded().has(src)) {
           <span
             class="rail__loading"
             aria-hidden="true"
@@ -29,7 +29,7 @@
         }
         <img
           class="rail__img"
-          [class.rail__img--loaded]="loaded().has(src)"
+          [class.rail__img--loaded]="images.loaded().has(src)"
           [src]="src"
           alt=""
           loading="lazy"

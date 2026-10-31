@@ -712,6 +712,28 @@ describe('SpotBrowserStore', () => {
       });
     });
 
+    it('stays what the frozen list showed when the list changes before a retry', async () => {
+      await openViennaMap();
+      store.open('a', 'pin');
+      await settle();
+      failLoad('a');
+      store.setList({
+        type: 'FeatureCollection',
+        features: [
+          BETA,
+          listFeature('a', 'Alpha Bank, renamed', [16.37, 48.2]),
+        ],
+      });
+
+      store.retryDetail();
+
+      expect(store.detail()).toEqual({
+        status: 'loading',
+        id: 'a',
+        preview: ALPHA,
+      });
+    });
+
     it('is empty before the city has loaded', async () => {
       await openPage('/map');
 

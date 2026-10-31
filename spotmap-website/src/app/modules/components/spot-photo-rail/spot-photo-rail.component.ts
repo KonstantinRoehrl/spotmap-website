@@ -53,12 +53,6 @@ export class SpotPhotoRailComponent {
 
   /** The load state of the rail's images. */
   protected readonly images = new ImageLoadTracker();
-  /** The URLs whose image has loaded; their frames show the photo. */
-  protected readonly loaded = this.images.loaded;
-  /** The URLs whose image failed to load; their frames show the placeholder. */
-  protected readonly failed = this.images.failed;
-  /** The URLs whose image was already complete on render; their frames show it without a fade. */
-  protected readonly instant = this.images.instant;
 
   constructor() {
     const host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;

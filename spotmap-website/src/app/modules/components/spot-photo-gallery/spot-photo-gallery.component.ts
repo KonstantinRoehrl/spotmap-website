@@ -84,16 +84,6 @@ export class SpotPhotoGalleryComponent {
 
   /** The load state of the gallery's images. */
   protected readonly images = new ImageLoadTracker();
-  /** The URLs whose image failed to load. */
-  private readonly failed = this.images.failed;
-  /** The URLs whose image has loaded. */
-  private readonly loaded = this.images.loaded;
-  /**
-   * The URLs whose image was already complete when the first slide rendered; those show without
-   * a crossfade. Per URL, so a photo that loads later still crossfades in. Emptied by the first
-   * step, since a photo stepped to always has the one stepped from to fade over.
-   */
-  private readonly instantUrls = this.images.instant;
   /**
    * The photo the last step left, still drawn beneath the incoming one until that has faded in,
    * or `null` when there is none. At most this one extra layer exists, so rapid stepping never
@@ -103,17 +93,17 @@ export class SpotPhotoGalleryComponent {
 
   /** True once the slide's thumb has loaded. */
   protected readonly thumbLoaded = computed(() =>
-    this.loaded().has(this.current()),
+    this.images.loaded().has(this.current()),
   );
   /** True once the slide's full-size photo has loaded; it then covers the thumb. */
   protected readonly fullLoaded = computed(() => {
     const full = this.currentFull();
-    return full !== null && this.loaded().has(full);
+    return full !== null && this.images.loaded().has(full);
   });
   /** Whether the slide's full-size photo is drawn at all: there is one and it has not failed. */
   protected readonly showsFull = computed(() => {
     const full = this.currentFull();
-    return full !== null && !this.failed().has(full);
+    return full !== null && !this.images.failed().has(full);
   });
   /** True once either of the slide's photos has loaded; until then it shows the rain. */
   protected readonly currentLoaded = computed(
@@ -121,7 +111,7 @@ export class SpotPhotoGalleryComponent {
   );
   /** True while the slide's thumb is broken and no full-size photo has loaded over it. */
   protected readonly currentFailed = computed(
-    () => this.failed().has(this.current()) && !this.fullLoaded(),
+    () => this.images.failed().has(this.current()) && !this.fullLoaded(),
   );
   /**
    * Whether the rain shows: the slide has nothing loaded yet and has not failed. It shows over
@@ -137,12 +127,12 @@ export class SpotPhotoGalleryComponent {
   );
   /** True while the slide's thumb was complete on the first render and so shows without a crossfade. */
   protected readonly currentInstant = computed(() =>
-    this.instantUrls().has(this.current()),
+    this.images.instant().has(this.current()),
   );
   /** True while the slide's full-size photo was complete on the first render and so shows without a crossfade. */
   protected readonly fullInstant = computed(() => {
     const full = this.currentFull();
-    return full !== null && this.instantUrls().has(full);
+    return full !== null && this.images.instant().has(full);
   });
 
   /** The slide's thumb element, absent while the slide shows the failure placeholder. */
@@ -254,7 +244,7 @@ export class SpotPhotoGalleryComponent {
     thumb: string;
     full: string | null;
   }): string | null {
-    const loaded = this.loaded();
+    const loaded = this.images.loaded();
     if (slide.full !== null && loaded.has(slide.full)) {
       return slide.full;
     }
@@ -266,7 +256,7 @@ export class SpotPhotoGalleryComponent {
    * be asked. A detached image is complete at once for a cached URL.
    */
   private noteCached(url: string): void {
-    if (this.loaded().has(url)) {
+    if (this.images.loaded().has(url)) {
       return;
     }
     const probe = new Image();
