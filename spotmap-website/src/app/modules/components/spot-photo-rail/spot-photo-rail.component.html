@@ -16,13 +16,7 @@
       (click)="open.emit(i)"
     >
       @if (failed().has(src)) {
-        <span class="rail__failed" aria-hidden="true">
-          <span class="rail__failed-line rail__failed-line--lost"
-            >&gt; SIGNAL LOST</span
-          >&ngsp;<span class="rail__failed-line rail__failed-line--dim"
-            >PHOTO UNREACHABLE</span
-          >
-        </span>
+        <app-spot-photo-failed class="rail__failed" />
       } @else {
         @if (!loaded().has(src)) {
           <span
@@ -40,8 +34,8 @@
           alt=""
           loading="lazy"
           decoding="async"
-          (load)="onImageLoad($event)"
-          (error)="onImageError($event)"
+          (load)="images.onLoad($event)"
+          (error)="images.onError($event)"
         />
       }
     </button>

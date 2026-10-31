@@ -1,0 +1,25 @@
+:host {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-align: center;
+  color: var(--color-phosphor);
+}
+
+/* Only the SIGNAL LOST line takes the Standard tier; the dim line beside it stays unlit. */
+.spot-photo-failed__line--lost {
+  text-shadow: var(--glow-text-standard);
+}
+
+.spot-photo-failed__line--dim {
+  color: var(--color-phosphor-dim);
+  text-shadow: none;
+}

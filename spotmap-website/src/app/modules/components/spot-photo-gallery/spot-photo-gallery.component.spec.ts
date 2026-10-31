@@ -118,7 +118,7 @@ describe('SpotPhotoGalleryComponent', () => {
     el.style.width = '270px';
     failCurrentImage();
     const lines = Array.from(
-      el.querySelectorAll('.gallery__placeholder-line'),
+      el.querySelectorAll('.spot-photo-failed__line'),
     ).map((line) => line.getBoundingClientRect());
     const arrows = Array.from(el.querySelectorAll('button')).map((button) =>
       button.getBoundingClientRect(),
@@ -772,12 +772,34 @@ describe('SpotPhotoGalleryComponent', () => {
     create(['a.webp']);
     failCurrentImage();
     const [line, dim] = fixture.nativeElement.querySelectorAll(
-      '.gallery__placeholder-line',
+      '.spot-photo-failed__line',
     );
     expect(getComputedStyle(line).textShadow).toBe(
       painted('text-shadow', 'var(--glow-text-standard)'),
     );
     expect(getComputedStyle(dim).textShadow).toBe('none');
+  });
+
+  it('draws a failed photo as the failure voice, filling the panel and clear of the arrows', () => {
+    create(['a.webp']);
+    failCurrentImage();
+    const el: HTMLElement = fixture.nativeElement;
+    const placeholder = el.querySelector<HTMLElement>('.gallery__placeholder')!;
+    const panel = placeholder.parentElement!;
+    const style = getComputedStyle(placeholder);
+    expect(style.display).toBe('flex');
+    expect(style.flexDirection).toBe('column');
+    expect(style.alignItems).toBe('center');
+    expect(style.justifyContent).toBe('center');
+    expect(style.rowGap).toBe('4px');
+    expect(style.paddingLeft).toBe('56px');
+    expect(style.paddingRight).toBe('56px');
+    expect(style.paddingTop).toBe('0px');
+    expect(style.fontSize).toBe('12px');
+    expect(style.letterSpacing).toBe('0.96px');
+    expect(style.textAlign).toBe('center');
+    expect(placeholder.offsetWidth).toBe(panel.clientWidth);
+    expect(placeholder.offsetHeight).toBe(panel.clientHeight);
   });
 });
 

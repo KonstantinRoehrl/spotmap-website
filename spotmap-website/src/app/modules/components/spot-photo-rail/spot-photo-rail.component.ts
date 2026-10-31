@@ -6,11 +6,12 @@ import {
   inject,
   input,
   output,
-  signal,
   viewChildren,
 } from '@angular/core';
 import { PointerBloomDirective } from '../../directives/pointer-bloom.directive';
 import { AsciiRainComponent } from '../ascii-rain/ascii-rain.component';
+import { ImageLoadTracker } from '../spot-photo-load/image-load-tracker';
+import { SpotPhotoFailedComponent } from '../spot-photo-load/spot-photo-failed.component';
 
 /**
  * A spot's photos as a horizontal rail of 4:3 frames in the detail, 8 px apart, each as wide as the
@@ -28,13 +29,17 @@ import { AsciiRainComponent } from '../ascii-rain/ascii-rain.component';
  */
 @Component({
   selector: 'app-spot-photo-rail',
-  imports: [AsciiRainComponent, PointerBloomDirective],
+  imports: [
+    AsciiRainComponent,
+    PointerBloomDirective,
+    SpotPhotoFailedComponent,
+  ],
   templateUrl: './spot-photo-rail.component.html',
   styleUrl: './spot-photo-rail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SpotPhotoRailComponent {
-  /** Thumbnail URLs (`photoUrl(base, key, 'thumb')`) in gallery order; at least one. */
+  /** Thumbnail URLs (`SpotPhotos.thumb`) in gallery order; at least one. */
   readonly photos = input.required<readonly string[]>();
   /** The spot's name, for each photo's alt text. */
   readonly spotName = input.required<string>();
@@ -46,12 +51,14 @@ export class SpotPhotoRailComponent {
   private readonly buttons =
     viewChildren<ElementRef<HTMLButtonElement>>('photoButton');
 
+  /** The load state of the rail's images. */
+  protected readonly images = new ImageLoadTracker();
   /** The URLs whose image has loaded; their frames show the photo. */
-  protected readonly loaded = signal<ReadonlySet<string>>(new Set());
+  protected readonly loaded = this.images.loaded;
   /** The URLs whose image failed to load; their frames show the placeholder. */
-  protected readonly failed = signal<ReadonlySet<string>>(new Set());
+  protected readonly failed = this.images.failed;
   /** The URLs whose image was already complete on render; their frames show it without a fade. */
-  protected readonly instant = signal<ReadonlySet<string>>(new Set());
+  protected readonly instant = this.images.instant;
 
   constructor() {
     const host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
@@ -62,16 +69,7 @@ export class SpotPhotoRailComponent {
       for (const image of Array.from(
         host.querySelectorAll<HTMLImageElement>('img.rail__img'),
       )) {
-        const src = image.getAttribute('src');
-        if (
-          src &&
-          image.complete &&
-          image.naturalWidth > 0 &&
-          !this.loaded().has(src)
-        ) {
-          this.instant.update((urls) => new Set(urls).add(src));
-          this.markLoaded(src);
-        }
+        this.images.noteComplete(image, { instant: true });
       }
     });
   }
@@ -79,26 +77,5 @@ export class SpotPhotoRailComponent {
   /** The button showing photo `index`, or `null` when there is none; the viewer grows out of it and focus returns to it. */
   photoButton(index: number): HTMLElement | null {
     return this.buttons()[index]?.nativeElement ?? null;
-  }
-
-  /** Marks the URL the image element was showing, read from the element itself. */
-  protected onImageLoad(event: Event): void {
-    const src = (event.target as HTMLImageElement).getAttribute('src');
-    if (src !== null) {
-      this.markLoaded(src);
-    }
-  }
-
-  /** Marks the URL the failing image was showing, so its frame shows the placeholder. */
-  protected onImageError(event: Event): void {
-    const src = (event.target as HTMLImageElement).getAttribute('src');
-    if (src !== null) {
-      this.failed.update((failed) => new Set(failed).add(src));
-    }
-  }
-
-  /** Remembers a loaded URL, so its frame never shows the rain again. */
-  private markLoaded(src: string): void {
-    this.loaded.update((loaded) => new Set(loaded).add(src));
   }
 }
