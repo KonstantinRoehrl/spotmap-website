@@ -37,15 +37,6 @@
   overflow: hidden;
 }
 
-/* The banner's container centres its line; both bars read from the left, without the dot gutters
-   (`[dotGutters]="false"`). The component is ViewEncapsulation.None, but this page's own rules
-   are scoped and would never match the container's unscoped markup, so ::ng-deep is the only way
-   to reach it. */
-.map-header__banner ::ng-deep .ascii-container,
-.map-topbar__banner ::ng-deep .ascii-container {
-  justify-content: flex-start;
-}
-
 /* 40 px tall through Material's own field tokens, and as wide as its longest label,
    `bratislava · SK`, 15 glyphs: the field's 16 px side padding twice, the arrow (about 10 px, 12
    with a margin) and the glyphs at IBM Plex Mono's 0.6 em advance in the 13 px label size, the

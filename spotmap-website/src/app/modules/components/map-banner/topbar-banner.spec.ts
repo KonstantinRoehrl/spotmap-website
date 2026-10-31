@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { AsciiAnimationTextComponent } from '../../components/ascii-animation-text/ascii-animation-text.component';
+import { AsciiAnimationTextComponent } from '../ascii-animation-text/ascii-animation-text.component';
 import {
   bannerLineWidth,
   fittingBannerLines,

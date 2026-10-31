@@ -24,6 +24,7 @@ import type {
 import type { SpotDetailView } from '../../../models/spots/spot-detail-view';
 import { AsciiAnimationTextComponent } from '../../components/ascii-animation-text/ascii-animation-text.component';
 import { CityPickerComponent } from '../../components/city-picker/city-picker.component';
+import { MapBannerComponent } from '../../components/map-banner/map-banner.component';
 import { MapContainerComponent } from '../../components/map-container/map-container.component';
 import {
   ELEVATION_LOADER,
@@ -52,7 +53,7 @@ import {
   HEADER_BANNER_FONT_PX,
   RESTING_BANNER_LINE,
   TOPBAR_BANNER_FONT_PX,
-} from './topbar-banner';
+} from '../../components/map-banner/topbar-banner';
 import { SpotBrowserStore } from './spot-browser.store';
 
 /**
@@ -177,7 +178,7 @@ describe('MapComponent', () => {
     TestBed.overrideComponent(MapComponent, {
       set: { providers: [{ provide: SpotBrowserStore, useValue: store }] },
     });
-    TestBed.overrideComponent(MapComponent, {
+    TestBed.overrideComponent(MapBannerComponent, {
       remove: { imports: [AsciiAnimationTextComponent] },
       add: { imports: [StubBannerComponent] },
     });
@@ -308,7 +309,9 @@ describe('MapComponent', () => {
 
       const banner = fixture.debugElement.query(By.css('.map-header__banner'));
       expect(banner).not.toBeNull();
-      const stub = banner?.componentInstance as StubBannerComponent;
+      const stub = fixture.debugElement.query(
+        By.css('.map-header__banner app-ascii-animation-text'),
+      ).componentInstance as StubBannerComponent;
       expect(stub.fixedFontSize()).toBe(HEADER_BANNER_FONT_PX);
       expect(stub.dotGutters()).toBeFalse();
       expect(stub.messages()[0]).toBe('VIENNA SPOTMAP');
@@ -867,8 +870,9 @@ describe('MapComponent', () => {
 
       /** The banner in the top bar. */
       function topbarBanner(): StubBannerComponent {
-        return fixture.debugElement.query(By.css('.map-topbar__banner'))
-          .componentInstance as StubBannerComponent;
+        return fixture.debugElement.query(
+          By.css('.map-topbar__banner app-ascii-animation-text'),
+        ).componentInstance as StubBannerComponent;
       }
 
       /** The bar's width inside its padding: what each of its two rows spans. */
@@ -1023,7 +1027,9 @@ describe('MapComponent', () => {
 
       const banner = fixture.debugElement.query(By.css('.map-header__banner'));
       expect(banner).not.toBeNull();
-      const stub = banner.componentInstance as StubBannerComponent;
+      const stub = fixture.debugElement.query(
+        By.css('.map-header__banner app-ascii-animation-text'),
+      ).componentInstance as StubBannerComponent;
       expect(stub.fixedFontSize()).toBe(HEADER_BANNER_FONT_PX);
       expect(stub.dotGutters()).toBeFalse();
       expect(stub.messages()[0]).toBe('VIENNA SPOTMAP');

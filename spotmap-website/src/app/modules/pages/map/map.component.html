@@ -4,20 +4,12 @@
   [class.map-page--phone]="phone()"
 >
   @if (phone()) {
-    <header #topbar class="map-topbar">
-      <!-- Keyed by its lines: a new set recreates the banner, whose typewriter keeps an index into
-           them, instead of handing a running one a shorter list. -->
-      @for (lines of [topbarMessages()]; track lines.join('|')) {
-        <app-ascii-animation-text
-          class="map-topbar__banner"
-          [messages]="lines"
-          [fixedFontSize]="topbarBannerFontPx"
-          [dotGutters]="false"
-          [waitFrames]="40"
-          [animationSpeed]="45"
-          [loop]="true"
-        />
-      }
+    <header class="map-topbar">
+      <app-map-banner
+        class="map-topbar__banner"
+        variant="topbar"
+        [city]="store.city().city"
+      />
       <!-- The picker, and the Material it is built on, loads once the page is idle, off the map's
            critical path. Until then an inert frame holds its slot, and the two crossfade in one
            grid cell. A slot built after that first load (a layout switch) shows the picker at once. -->
@@ -43,14 +35,10 @@
     </header>
   } @else {
     <header class="map-header">
-      <app-ascii-animation-text
+      <app-map-banner
         class="map-header__banner"
-        [messages]="bannerMessages()"
-        [fixedFontSize]="headerBannerFontPx"
-        [dotGutters]="false"
-        [waitFrames]="40"
-        [animationSpeed]="45"
-        [loop]="true"
+        variant="header"
+        [city]="store.city().city"
       />
       <!-- Deferred behind a placeholder, as in the top bar. -->
       <div class="map-header__picker city-slot">

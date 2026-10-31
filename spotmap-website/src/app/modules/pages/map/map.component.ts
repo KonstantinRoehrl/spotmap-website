@@ -20,8 +20,8 @@ import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { debounceTime, map } from 'rxjs';
 import { MapInsets, NO_INSETS } from '../../../models/map/map-camera';
 import { prefersReducedMotion } from '../../../utils/prefers-reduced-motion';
-import { AsciiAnimationTextComponent } from '../../components/ascii-animation-text/ascii-animation-text.component';
 import { CityPickerComponent } from '../../components/city-picker/city-picker.component';
+import { MapBannerComponent } from '../../components/map-banner/map-banner.component';
 import { MapContainerComponent } from '../../components/map-container/map-container.component';
 import { OverviewBackComponent } from '../../components/overview-back/overview-back.component';
 import {
@@ -43,12 +43,6 @@ import {
   sheetHeight,
 } from '../../components/spot-sheet/spot-sheet-state';
 import { SpotBrowserStore } from './spot-browser.store';
-import {
-  fittingBannerLines,
-  HEADER_BANNER_FONT_PX,
-  RESTING_BANNER_LINE,
-  TOPBAR_BANNER_FONT_PX,
-} from './topbar-banner';
 
 /** The width the page switches from the sheet to the map + column layout at. */
 export const WIDE_LAYOUT_QUERY = '(min-width: 1024px)';
@@ -81,21 +75,6 @@ export const COUNT_ANNOUNCE_DEBOUNCE_MS = 800;
  */
 export const COLUMN_RESET_EASE_MS = 330;
 
-/** The banner's lines after the city's own; the house voice the map page has always cycled. */
-const BANNER_LINES = [
-  'RESPECT THE LOCALS',
-  'EXPLORE THE CONCRETE JUNGLE',
-  'TOUCH THE UNTOUCHED SPOTS',
-  'CAN SOMEONE BRING WAX?',
-  'LET`S GO PLAZA',
-  'SKATEVIDEOS > INSTAGRAM',
-  'SUPPORTED BY ROLLTROTTEL-VERBAND',
-  'ANYONE HAS A PIN?',
-  'JUST SOME RANDOM TEXT',
-  'FOR EDUCATIONAL PURPOSES ONLY',
-  'CONTINUOUSLY UPDATED',
-];
-
 /** The map window's size in px, as the page measured it. */
 interface FrameSize {
   readonly width: number;
@@ -119,8 +98,8 @@ interface FrameSize {
 @Component({
   selector: 'app-map',
   imports: [
-    AsciiAnimationTextComponent,
     CityPickerComponent,
+    MapBannerComponent,
     MapContainerComponent,
     NgTemplateOutlet,
     OverviewBackComponent,
@@ -161,38 +140,6 @@ export class MapComponent {
       .pipe(map((state) => state.matches)),
     { initialValue: this.breakpoints.isMatched(PHONE_LAYOUT_QUERY) },
   );
-
-  /** The banner's lines: the city's own name first, then the house voice. */
-  protected readonly bannerMessages = computed(() => [
-    `${this.store.city().city.toUpperCase()} SPOTMAP`,
-    ...BANNER_LINES,
-  ]);
-
-  /** The header row's banner size: set, not fitted, so the row's height never moves. */
-  protected readonly headerBannerFontPx = HEADER_BANNER_FONT_PX;
-
-  /** The top bar's banner size: the Display tier's small size. */
-  protected readonly topbarBannerFontPx = TOPBAR_BANNER_FONT_PX;
-
-  /** The top bar's width inside its padding, measured: the banner row's width. 0 until measured. */
-  private readonly topbarWidth = signal(0);
-
-  /**
-   * The top bar banner's lines: the resting `SPOTMAP` first, then the city's line and the house
-   * voice, less every line wider than the bar's banner row. Before the bar is measured, and should
-   * nothing fit, the resting line alone.
-   */
-  protected readonly topbarMessages = computed(() => {
-    const width = this.topbarWidth();
-    const lines =
-      width > 0
-        ? fittingBannerLines(
-            [RESTING_BANNER_LINE, ...this.bannerMessages()],
-            width,
-          )
-        : [];
-    return lines.length > 0 ? lines : [RESTING_BANNER_LINE];
-  });
 
   /** The sheet's height and where it returns to; drives the layouts under 1024 px only. */
   protected readonly sheet = signal<SheetModel>(
@@ -309,9 +256,6 @@ export class MapComponent {
   /** The map window, measured for the sheet's heights and the column's width. */
   private readonly frame = viewChild.required<ElementRef<HTMLElement>>('frame');
 
-  /** The phone top bar, measured for the room its banner and picker share; absent elsewhere. */
-  private readonly topbar = viewChild<ElementRef<HTMLElement>>('topbar');
-
   /**
    * The deferred city pickers on screen, found by their template name: naming the picker's class
    * here would load it, and the Material it is built on, with this page instead of on idle.
@@ -356,23 +300,6 @@ export class MapComponent {
       const observer = new ResizeObserver(measure);
       observer.observe(frame);
       destroyRef.onDestroy(() => observer.disconnect());
-    });
-
-    // The bar comes and goes with the phone breakpoint, so the one observer follows whichever bar
-    // is on screen. Its content box is the room inside the bar's padding.
-    const topbarObserver = new ResizeObserver((entries) => {
-      const width = entries[entries.length - 1]?.contentRect.width;
-      if (width !== undefined) {
-        this.topbarWidth.set(width);
-      }
-    });
-    destroyRef.onDestroy(() => topbarObserver.disconnect());
-    effect(() => {
-      const bar = this.topbar()?.nativeElement;
-      topbarObserver.disconnect();
-      if (bar) {
-        topbarObserver.observe(bar);
-      }
     });
 
     effect(() => {
