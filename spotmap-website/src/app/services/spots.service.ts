@@ -67,24 +67,13 @@ export type SpotDetailResult =
     }
   | { readonly type: 'not-found' };
 
-/** One milestone of a collection load, live or from the snapshot, whatever shape it carries. */
-type CollectionLoadEvent<C> =
-  | { readonly type: 'sent' }
-  | { readonly type: 'headers' }
-  | { readonly type: 'fallback' }
-  | {
-      readonly type: 'done';
-      readonly collection: C;
-      readonly source: 'live' | 'snapshot';
-    };
-
 /**
  * Loads a city's spots and single spots. A city's spots come live from the Supabase query
  * `city_spot_list()`, in the list shape, when a backend is configured, otherwise, or when the live request fails, takes longer than
  * {@link LIVE_SPOTS_TIMEOUT_MS} in total, or answers with no spots, from the bundled
  * `spots/<city>.geojson` snapshot (the full shape, cut down for the list). Every city has spots, so
  * an empty live answer means an unseeded or out-of-date backend, not an empty city. A snapshot
- * failure reaches the caller (the map's error state and its RETRY, which asks live first again).
+ * failure reaches the caller (the store's `listFailed`, then the frame's RETRY, which asks live first again).
  * One spot comes live from `spot_detail()`, whose "no such spot" is final; only a failed or late
  * live request looks it up in the snapshot, through {@link SPOT_INDEX_URL}. The one exception keeps
  * a list and its rows coherent for an unseeded or out-of-date backend: a spot this service listed
@@ -113,16 +102,9 @@ export class SpotsService {
     // Deferred so every subscription (a retry resubscribes) starts from a fresh answer flag.
     return defer(() => {
       let liveAnsweredEmpty = false;
-      return this.loadCollection<SpotListCollection>(
+      return this.loadCityList(
         city,
-        'city_spot_list',
-        this.snapshotEvents(city).pipe(
-          map((event) =>
-            event.type === 'done'
-              ? { ...event, collection: toListCollection(event.collection) }
-              : event,
-          ),
-        ),
+        this.snapshotEvents(city),
         () => (liveAnsweredEmpty = true),
       ).pipe(
         tap((event) => this.rememberListSource(city, event, liveAnsweredEmpty)),
@@ -224,31 +206,33 @@ export class SpotsService {
   }
 
   /**
-   * A city's collection load through `rpc`, falling back to `snapshot` — the pipeline behind
+   * A city's list load through `city_spot_list`, falling back to `snapshot` — the pipeline behind
    * {@link loadSpotList}; see the class comment for the rules.
    *
    * @param onEmptyLiveAnswer called when the fallback happens because the live request answered
    *   with no spots, as opposed to failing or running out of time
    */
-  private loadCollection<C extends { readonly features?: readonly unknown[] }>(
+  private loadCityList(
     city: CityEnum,
-    rpc: 'city_spot_list',
-    snapshot: Observable<CollectionLoadEvent<C>>,
+    snapshot: Observable<SpotListLoadEvent>,
     onEmptyLiveAnswer: () => void,
-  ): Observable<CollectionLoadEvent<C>> {
+  ): Observable<SpotListLoadEvent> {
     if (!this.backend.apiUrl) {
       return snapshot;
     }
     const live = this.http
-      .get<C>(`${this.backend.apiUrl}/rest/v1/rpc/${rpc}`, {
-        params: { p_city: city },
-        headers: this.apiHeaders(),
-        observe: 'events',
-        reportProgress: true,
-      })
+      .get<SpotListCollection>(
+        `${this.backend.apiUrl}/rest/v1/rpc/city_spot_list`,
+        {
+          params: { p_city: city },
+          headers: this.apiHeaders(),
+          observe: 'events',
+          reportProgress: true,
+        },
+      )
       .pipe(
-        map((event) => toLoadEvent(event, 'live')),
-        filter((event): event is CollectionLoadEvent<C> => event !== null),
+        map((event) => toLoadEvent(event, 'live', (list) => list)),
+        filter((event): event is SpotListLoadEvent => event !== null),
         map((event) => {
           if (
             event.type === 'done' &&
@@ -274,21 +258,19 @@ export class SpotsService {
     );
   }
 
-  /** The bundled snapshot's milestones, base-relative: production is served under /spotmap-website/. */
-  private snapshotEvents(
-    city: CityEnum,
-  ): Observable<CollectionLoadEvent<SpotCollection>> {
+  /**
+   * The bundled snapshot's milestones, cut down to the list shape; base-relative, as production is
+   * served under /spotmap-website/.
+   */
+  private snapshotEvents(city: CityEnum): Observable<SpotListLoadEvent> {
     return this.http
       .get<SpotCollection>(`spots/${city}.geojson`, {
         observe: 'events',
         reportProgress: true,
       })
       .pipe(
-        map((event) => toLoadEvent(event, 'snapshot')),
-        filter(
-          (event): event is CollectionLoadEvent<SpotCollection> =>
-            event !== null,
-        ),
+        map((event) => toLoadEvent(event, 'snapshot', toListCollection)),
+        filter((event): event is SpotListLoadEvent => event !== null),
       );
   }
 
@@ -360,18 +342,21 @@ function liveDeadline(what: string): Observable<never> {
  * The milestone an HTTP event stands for, or `null` for one that is none: download progress carries
  * no total here (the live endpoint sends no `Content-Length`), so it says nothing about how far along
  * the load is.
+ *
+ * @param toList turns the response's body into the list shape
  */
-function toLoadEvent<C>(
-  event: HttpEvent<C>,
+function toLoadEvent<B>(
+  event: HttpEvent<B>,
   source: 'live' | 'snapshot',
-): CollectionLoadEvent<C> | null {
+  toList: (body: B) => SpotListCollection,
+): SpotListLoadEvent | null {
   switch (event.type) {
     case HttpEventType.Sent:
       return { type: 'sent' };
     case HttpEventType.ResponseHeader:
       return { type: 'headers' };
     case HttpEventType.Response:
-      return { type: 'done', collection: event.body as C, source };
+      return { type: 'done', collection: toList(event.body as B), source };
     default:
       return null;
   }
