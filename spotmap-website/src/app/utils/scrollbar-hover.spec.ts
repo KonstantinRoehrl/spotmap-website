@@ -113,6 +113,22 @@ describe('scrollbar hover', () => {
     expect(lastDuration(element)).toBe(700);
   });
 
+  it('presses the thumb in the saturated phosphor green, not the pale bright one', () => {
+    stubMedia((query) => query === '(hover: hover)');
+    const element = tracked();
+    spyOn(element, 'animate').and.callThrough();
+    uninstall = installScrollbarHover(document, zone);
+    fire(element, 'pointerdown', { clientX: 90, buttons: 1 });
+    const keyframes = (element.animate as jasmine.Spy).calls.mostRecent()
+      .args[0] as Record<string, string[]>;
+    const rootStyle = getComputedStyle(document.documentElement);
+    const phosphor = rootStyle.getPropertyValue('--color-phosphor').trim();
+    const bright = rootStyle.getPropertyValue('--color-phosphor-bright').trim();
+    expect(phosphor).not.toBe('');
+    expect(keyframes['--scrollbar-thumb-edge'].at(-1)).toBe(phosphor);
+    expect(keyframes['--scrollbar-thumb-edge'].at(-1)).not.toBe(bright);
+  });
+
   it('ignores touch', () => {
     stubMedia((query) => query === '(hover: hover)');
     const element = tracked();

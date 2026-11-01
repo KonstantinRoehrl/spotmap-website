@@ -4,11 +4,14 @@ import { prefersReducedMotion } from './prefers-reduced-motion';
 /** How a thumb looks: at rest, with the pointer over its bar, or pressed. */
 type ThumbLook = 'rest' | 'lit' | 'held';
 
-/** Each look's fill and edge, as tokens or literal colours. The lit fills are the bloom's own greens. */
+/**
+ * Each look's fill and edge, as tokens or literal colours. The lit and held fills are the bloom's own
+ * greens, and the held edge the saturated `--color-phosphor`: `--color-phosphor-bright` reads white.
+ */
 const THUMB_COLOURS: Record<ThumbLook, { fill: string; edge: string }> = {
   rest: { fill: '--color-phosphor-deep', edge: '--color-phosphor-dim' },
   lit: { fill: 'rgba(0, 255, 0, 0.4)', edge: '--color-phosphor' },
-  held: { fill: 'rgba(0, 255, 0, 0.6)', edge: '--color-phosphor-bright' },
+  held: { fill: 'rgba(0, 255, 0, 0.6)', edge: '--color-phosphor' },
 };
 
 /**
