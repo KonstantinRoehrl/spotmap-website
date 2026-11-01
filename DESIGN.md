@@ -296,7 +296,7 @@ The roles are CSS tokens on `:root`: `--space-gutter`, `--space-inset`, `--space
 One themed bar on every scrolling surface, for a pointer that can hover. Touch devices keep their native overlay bar, darkened by `color-scheme: dark` where the OS allows; iPhone Safari draws its own. Surfaces that hide their bar (the photo rail, the viewer) keep doing so.
 - **Thumb:** `phosphor-deep` fill, a 1px `phosphor-dim` edge, 4px radius (`{rounded.sm}`), 12px wide. The width is a component size, off the spacing scale on purpose.
 - **Track:** `surface-raised`, a 1px `line` rule on its left.
-- **Lit (pointer over the bar):** 40% green fill, `phosphor` edge. **Held:** 60% fill, `phosphor` edge (the pale `phosphor-bright` would read white). The halo is inset-only, as inside any clipping box. It lights over 120 ms and decays over 700 ms, like the pointer bloom; under reduced motion it fades at `--dur-fade`.
+- **Lit (pointer over the bar):** 40% green fill, `phosphor` edge. **Held:** 60% fill, `phosphor` edge (the pale `phosphor-bright` would read white). The halo is inset-only, as inside any clipping box. Every step to a brighter look (lit, held) takes 120 ms and every step to a dimmer one (letting go of a press included) takes 700 ms, like the pointer bloom; under reduced motion it fades at `--dur-fade`.
 - **Firefox:** the two rest colours and no hover.
 
 ### Map Surface (signature)

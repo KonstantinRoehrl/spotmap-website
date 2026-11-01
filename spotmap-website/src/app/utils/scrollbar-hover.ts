@@ -4,6 +4,13 @@ import { prefersReducedMotion } from './prefers-reduced-motion';
 /** How a thumb looks: at rest, with the pointer over its bar, or pressed. */
 type ThumbLook = 'rest' | 'lit' | 'held';
 
+/** How bright each look is, so a fade can tell brightening from dimming. */
+const THUMB_BRIGHTNESS: Record<ThumbLook, number> = {
+  rest: 0,
+  lit: 1,
+  held: 2,
+};
+
 /**
  * Each look's fill and edge, as tokens or literal colours. The lit and held fills are the bloom's own
  * greens, and the held edge the saturated `--color-phosphor`: `--color-phosphor-bright` reads white.
@@ -60,8 +67,13 @@ export function installScrollbarHover(doc: Document, zone: NgZone): () => void {
   let shown: HTMLElement | null = null;
   let look: ThumbLook = 'rest';
 
-  /** Fades `scroller` from whatever it shows now to `next`. */
+  /**
+   * Fades `scroller` from whatever it shows now to `next`: over the buttons' 120 ms toward a brighter
+   * look and their 700 ms toward a dimmer one, the press and its release included.
+   */
   const fade = (scroller: HTMLElement, next: ThumbLook): void => {
+    const from = scroller === shown ? look : 'rest';
+    const brightening = THUMB_BRIGHTNESS[next] > THUMB_BRIGHTNESS[from];
     const style = view.getComputedStyle(scroller);
     const fill = style.getPropertyValue('--scrollbar-thumb-fill');
     const edge = style.getPropertyValue('--scrollbar-thumb-edge');
@@ -74,7 +86,7 @@ export function installScrollbarHover(doc: Document, zone: NgZone): () => void {
       {
         duration: prefersReducedMotion()
           ? ms('--dur-fade')
-          : ms(next === 'rest' ? '--dur-hover-out' : '--dur-hover-in'),
+          : ms(brightening ? '--dur-hover-in' : '--dur-hover-out'),
         easing: 'ease-out',
         fill: 'forwards',
       },

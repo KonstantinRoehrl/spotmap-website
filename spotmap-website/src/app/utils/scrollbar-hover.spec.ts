@@ -113,6 +113,26 @@ describe('scrollbar hover', () => {
     expect(lastDuration(element)).toBe(700);
   });
 
+  it('presses a lit thumb in over 120 ms, like the buttons', () => {
+    stubMedia((query) => query === '(hover: hover)');
+    const element = tracked();
+    spyOn(element, 'animate').and.callThrough();
+    uninstall = installScrollbarHover(document, zone);
+    fire(element, 'pointermove', { clientX: 90 });
+    fire(element, 'pointerdown', { clientX: 90, buttons: 1 });
+    expect(lastDuration(element)).toBe(120);
+  });
+
+  it('decays over 700 ms when a press is let go on the bar, rather than snapping back', () => {
+    stubMedia((query) => query === '(hover: hover)');
+    const element = tracked();
+    spyOn(element, 'animate').and.callThrough();
+    uninstall = installScrollbarHover(document, zone);
+    fire(element, 'pointerdown', { clientX: 90, buttons: 1 });
+    fire(element, 'pointerup', { clientX: 90 });
+    expect(lastDuration(element)).toBe(700);
+  });
+
   it('presses the thumb in the saturated phosphor green, not the pale bright one', () => {
     stubMedia((query) => query === '(hover: hover)');
     const element = tracked();
