@@ -1,38 +1,74 @@
 /* --------------------
-   Base Navbar
+   Base Navbar: a 60 px bar. The hairline edge (top on mobile, bottom on desktop) is drawn over the
+   bar rather than as a border, because a border would leave 59 px and 8 + 44 + 8 would overflow.
 -------------------- */
 .nav-bar {
+  height: 60px;
   overflow: visible;
-  /* The bar's hairline edge: top on mobile, bottom on desktop. */
   --nav-hairline: color-mix(in srgb, var(--color-phosphor) 30%, transparent);
+}
+
+.nav-bar::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--nav-hairline);
+  pointer-events: none;
 }
 
 .nav-bar ul {
   display: flex;
+  height: 100%;
   margin: 0;
   padding: 0;
   list-style: none;
-  align-items: center;
 }
 
 .nav-bar li {
+  position: relative;
   display: flex;
+  align-items: center;
+}
+
+/* The hairline between two cells. */
+.nav-bar li + li::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 1px;
+  height: 24px;
+  translate: 0 -50%;
+  background: var(--nav-hairline);
+  pointer-events: none;
 }
 
 /* Terminal glyph icons (Unicode text symbols, not emoji). Force text presentation so no
    browser/font ever substitutes a colour emoji glyph; colour and glow come from the link. */
 .nav-icon {
+  font-size: 1rem;
   font-variant-emoji: text;
   line-height: 1;
 }
 
+/* Label type (DESIGN.md §3): uppercase by style alone, so the DOM keeps the link's own words. */
+.nav-text {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 /* The hover / focus / press look is the shared pointer bloom (styles.css). The 1px border is
-   transparent until the link is the current page; 9px padding keeps the old 10px box. */
+   transparent until the link is the current page. */
 .nav-bar a {
-  padding: 9px;
-  min-height: 44px;
   display: flex;
   align-items: center;
+  gap: 4px;
+  box-sizing: border-box;
+  min-height: var(--target-min);
+  padding-inline: var(--space-item);
   text-decoration: none;
   border-width: 1px;
   border-style: solid;
@@ -48,25 +84,9 @@
 }
 
 /* --------------------
-   Separator
--------------------- */
-.nav-separator {
-  width: 2px;
-  flex-shrink: 0;
-  background: linear-gradient(
-    to bottom,
-    transparent,
-    color-mix(in srgb, var(--color-phosphor) 60%, transparent),
-    transparent
-  );
-  min-height: 60px;
-  margin: 0 1rem;
-  align-self: center;
-  display: block;
-}
-
-/* --------------------
-   Mobile - Bottom Navbar
+   Mobile - Bottom Navbar: three equal cells, every pixel of each taking the tap. The link is drawn
+   44 px tall inside the cell's 8 px padding, and ::after (::before is the bloom's) reaches past that
+   padding and the link's 1 px border to the cell's edges.
 -------------------- */
 @media (max-width: 768px) {
   .nav-bar {
@@ -74,64 +94,56 @@
     bottom: 0;
     left: 0;
     right: 0;
-    height: 60px;
-    border-top: 1px solid var(--nav-hairline);
     background-color: color-mix(in srgb, var(--color-bg) 95%, transparent);
     z-index: 1000;
   }
 
-  .nav-bar ul {
-    justify-content: space-around;
-    height: 100%;
+  .nav-bar::after {
+    top: 0;
   }
 
   .nav-bar li {
-    flex: 1;
-    justify-content: center;
+    flex: 1 1 0;
+    min-width: 0;
+    padding: var(--space-item);
+  }
+
+  .nav-bar li + li::before {
+    left: 0;
   }
 
   .nav-bar a {
-    flex-direction: row;
-    gap: 0.3rem;
-    border-radius: var(--radius-lg);
+    flex: 1 1 auto;
+    justify-content: center;
   }
 
-  .nav-icon {
-    font-size: 1.2rem;
-  }
-
-  .nav-text {
-    font-size: 0.75rem;
-  }
-
-  .nav-separator {
-    height: 70%;
+  .nav-bar a::after {
+    content: '';
+    position: absolute;
+    inset: calc(-1 * var(--space-item) - 1px);
   }
 }
 
+/* --------------------
+   From 769 px: links start on the page gutter, with the same hairline between them and 8 px either
+   side of it. Each later cell makes room for the line and those two gaps.
+-------------------- */
 @media (min-width: 769px) {
   .nav-bar {
     position: relative;
-    border-bottom: 1px solid var(--nav-hairline);
-    padding: 0.8rem 2rem;
+    box-sizing: border-box;
+    padding-inline: var(--space-gutter);
   }
 
-  .nav-bar ul {
-    justify-content: flex-start;
+  .nav-bar::after {
+    bottom: 0;
   }
 
-  .nav-icon {
-    font-size: 1rem;
-    padding-right: 4px;
+  .nav-bar li + li {
+    padding-left: calc(2 * var(--space-item) + 1px);
   }
 
-  .nav-separator {
-    margin-right: 32px;
-    margin-left: 32px;
-  }
-
-  .nav-text {
-    font-size: 1rem;
-    font-weight: 500;
+  .nav-bar li + li::before {
+    left: var(--space-item);
   }
 }

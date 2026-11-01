@@ -123,4 +123,47 @@ describe('SheetController', () => {
     TestBed.tick();
     expect(sheet.state()).toBe('list');
   });
+
+  it('settles at full and back to half without touching the spot', () => {
+    const store = fakeStore();
+    const controller = create(store);
+    controller.settle('full');
+    expect(controller.state()).toBe('list');
+    expect(controller.full()).toBeTrue();
+    controller.settle('half');
+    expect(controller.full()).toBeFalse();
+    expect(store.close).not.toHaveBeenCalled();
+  });
+
+  it('closes the open spot when it settles at peek, as the close button does', () => {
+    const store = fakeStore('a');
+    const controller = create(store);
+    controller.settle('peek');
+    expect(controller.state()).toBe('peek');
+    expect(store.close).toHaveBeenCalledTimes(1);
+    // The route change that follows must not move the sheet again.
+    raise(store, 'closed', null);
+    expect(controller.state()).toBe('peek');
+  });
+
+  it('keeps full when a spot opens from the full list, and when it goes back', () => {
+    const store = fakeStore();
+    const controller = create(store);
+    controller.settle('full');
+    raise(store, 'opened', 'a');
+    expect(controller.state()).toBe('detail');
+    expect(controller.full()).toBeTrue();
+    controller.back();
+    expect(controller.state()).toBe('list');
+    expect(controller.full()).toBeTrue();
+  });
+
+  it('clears full when the close button closes a full spot', () => {
+    const store = fakeStore('a');
+    const controller = create(store);
+    controller.settle('full');
+    controller.close();
+    expect(controller.state()).toBe('peek');
+    expect(controller.full()).toBeFalse();
+  });
 });

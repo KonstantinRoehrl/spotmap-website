@@ -40,7 +40,10 @@ import {
   DEFAULT_COLUMN_WIDTH_PX,
 } from '../../components/split-handle/column-split';
 import { SplitHandleComponent } from '../../components/split-handle/split-handle.component';
-import { sheetHeight } from '../../components/spot-sheet/spot-sheet-state';
+import {
+  sheetHeight,
+  type SheetStop,
+} from '../../components/spot-sheet/spot-sheet-state';
 import { COLUMN_RESET_EASE_MS } from './column-split-state';
 import {
   COUNT_ANNOUNCE_DEBOUNCE_MS,
@@ -341,7 +344,7 @@ describe('MapComponent', () => {
       const bannerBox = (
         banner?.nativeElement as HTMLElement
       ).getBoundingClientRect();
-      expect(Math.round(bannerBox.height)).toBe(40);
+      expect(Math.round(bannerBox.height)).toBe(44);
       expect(Math.round(bannerBox.top - host.getBoundingClientRect().top)).toBe(
         GUTTER,
       );
@@ -350,14 +353,14 @@ describe('MapComponent', () => {
       ).toBe(GUTTER);
     });
 
-    it('sets the header row’s city select 40 px tall', async () => {
+    it('sets the header row’s city select 44 px tall', async () => {
       const host = create();
       await loadPicker();
       const field = host.querySelector<HTMLElement>(
         '.map-header .mat-mdc-text-field-wrapper',
       );
       expect(field).not.toBeNull();
-      expect(Math.round(field!.getBoundingClientRect().height)).toBe(40);
+      expect(Math.round(field!.getBoundingClientRect().height)).toBe(44);
     });
 
     it('frames the map, the handle and the column in one window inside the gutter', () => {
@@ -710,7 +713,7 @@ describe('MapComponent', () => {
     /** The gutter round the framed map below 1024 px (DESIGN.md spacing `md`). */
     const GUTTER = 16;
 
-    it('frames the map below the top bar and 16 px in from the sides and the bottom, with the sheet inside it', () => {
+    it('frames the map below the top bar and 16 px in from the sides and the bottom, with the sheet resting on the frame', () => {
       const host = create(390);
 
       const frame = host.querySelector<HTMLElement>('.map-window')!;
@@ -730,11 +733,140 @@ describe('MapComponent', () => {
       expect(Math.round(page.bottom - box.bottom)).toBe(GUTTER);
 
       const sheetHost = host.querySelector<HTMLElement>('app-spot-sheet')!;
-      expect(frame.contains(sheetHost)).toBeTrue();
+      expect(frame.contains(sheetHost)).toBeFalse();
+      expect(sheetHost.parentElement).toBe(host.querySelector('.map-page'));
       const sheetBox = sheetHost.getBoundingClientRect();
       expect(Math.round(sheetBox.left)).toBe(Math.round(box.left));
       expect(Math.round(sheetBox.right)).toBe(Math.round(box.right));
       expect(Math.round(sheetBox.bottom)).toBe(Math.round(box.bottom));
+    });
+
+    /** Settles the sheet at `stop`, as a drag or the handle would, and finishes its ease. */
+    function settleAt(host: HTMLElement, stop: SheetStop): HTMLElement {
+      sheet().settle.emit(stop);
+      fixture.detectChanges();
+      const sheetHost = host.querySelector<HTMLElement>('app-spot-sheet')!;
+      sheetHost.getAnimations().forEach((animation) => animation.finish());
+      return sheetHost;
+    }
+
+    it('reaches the whole page area at full, its gutters gone, and leaves the map’s inset at half', () => {
+      const host = create(390);
+      const half = Math.round(frameHeight(host) * 0.5);
+      const box = settleAt(host, 'full').getBoundingClientRect();
+      const page = host
+        .querySelector<HTMLElement>('.map-page')!
+        .getBoundingClientRect();
+      expect(sheet().full()).toBeTrue();
+      expect(sheet().pageHeight()).toBe(Math.round(page.height));
+      expect(Math.round(box.top)).toBe(Math.round(page.top));
+      expect(Math.round(box.bottom)).toBe(Math.round(page.bottom));
+      expect(Math.round(box.left)).toBe(Math.round(page.left));
+      expect(Math.round(box.right)).toBe(Math.round(page.right));
+      expect(spotMap().coveredInsets().bottom).toBe(half);
+    });
+
+    it('keeps the sheet above the banner and the city select', () => {
+      const host = create(390);
+      const sheetHost = settleAt(host, 'full');
+      const zIndex = Number(getComputedStyle(sheetHost).zIndex);
+      expect(zIndex).toBeGreaterThan(3);
+      expect(zIndex).toBeLessThan(1000);
+    });
+
+    it('opens a spot at the list’s height, and comes back to it', () => {
+      const host = create(390);
+      settleAt(host, 'full');
+      showSpot('a', ALPHA);
+      fixture.detectChanges();
+      expect(sheet().state()).toBe('detail');
+      expect(sheet().full()).toBeTrue();
+      expect(spotMap().coveredInsets().bottom).toBe(
+        Math.round(frameHeight(host) * 0.5),
+      );
+    });
+
+    it('closes the spot when the sheet settles at peek', () => {
+      const host = create(390);
+      showSpot('a', ALPHA);
+      fixture.detectChanges();
+      settleAt(host, 'peek');
+      expect(store.close).toHaveBeenCalled();
+      expect(sheet().state()).toBe('peek');
+    });
+
+    it('takes the top bar and the map out of reach while the sheet is full', () => {
+      const host = create(390);
+      const covered = () => [
+        host.querySelector<HTMLElement>('.map-topbar')!.inert,
+        host.querySelector<HTMLElement>('app-spot-map')!.inert,
+      ];
+      expect(covered()).toEqual([false, false]);
+      settleAt(host, 'full');
+      fixture.detectChanges();
+      expect(covered()).toEqual([true, true]);
+      settleAt(host, 'half');
+      fixture.detectChanges();
+      expect(covered()).toEqual([false, false]);
+    });
+
+    it('leaves the map container reachable, so its live regions keep announcing', () => {
+      const host = create(390);
+      settleAt(host, 'full');
+      fixture.detectChanges();
+      expect(
+        host.querySelector<HTMLElement>('app-map-container')!.inert,
+      ).toBeFalse();
+    });
+
+    it('moves focus to the handle when a settle at full covers it', () => {
+      const host = create(390);
+      const banner = host.querySelector<HTMLElement>('.map-topbar__banner')!;
+      banner.tabIndex = -1;
+      banner.focus();
+      settleAt(host, 'full');
+      fixture.detectChanges();
+      TestBed.tick();
+      expect(document.activeElement).toBe(
+        host.querySelector('.spot-sheet__handle'),
+      );
+    });
+
+    it('moves focus to the toggle when a settle at peek hides the list it was in', () => {
+      const host = create(390);
+      settleAt(host, 'half');
+      fixture.detectChanges();
+      const body = host.querySelector<HTMLElement>('.spot-sheet__body')!;
+      body.tabIndex = -1;
+      body.focus();
+      settleAt(host, 'peek');
+      fixture.detectChanges();
+      TestBed.tick();
+      expect(document.activeElement).toBe(
+        host.querySelector('.spot-sheet__toggle'),
+      );
+    });
+
+    it('leaves focus alone when a settle covers nothing it sits in', () => {
+      const host = create(390);
+      const handle = host.querySelector<HTMLElement>('.spot-sheet__handle')!;
+      handle.focus();
+      settleAt(host, 'half');
+      settleAt(host, 'full');
+      fixture.detectChanges();
+      TestBed.tick();
+      expect(document.activeElement).toBe(handle);
+    });
+
+    it('never rebuilds the map for a height change', () => {
+      const host = create(390);
+      const map = spotMap();
+      const frame = host.querySelector('.map-window');
+      settleAt(host, 'full');
+      settleAt(host, 'half');
+      settleAt(host, 'peek');
+      expect(spotMap()).toBe(map);
+      expect(host.querySelector('.map-window')).toBe(frame);
     });
 
     it('caps the open sheet at half the framed map, list and detail alike', () => {
@@ -913,7 +1045,7 @@ describe('MapComponent', () => {
         return host;
       }
 
-      it('pads the bar 16 px on every side and sets the city select 40 px tall', async () => {
+      it('pads the bar 16 px on every side and sets the city select 44 px tall', async () => {
         const host = await createPhone(360);
         const bar = host.querySelector<HTMLElement>('.map-topbar')!;
         const style = getComputedStyle(bar);
@@ -927,8 +1059,22 @@ describe('MapComponent', () => {
         const field = host.querySelector<HTMLElement>(
           '.map-topbar .mat-mdc-text-field-wrapper',
         )!;
-        expect(Math.round(field.getBoundingClientRect().height)).toBe(40);
+        expect(Math.round(field.getBoundingClientRect().height)).toBe(44);
         expect(host.querySelector('.map-header')).toBeNull();
+      });
+
+      it('keeps the city’s value centred in the 44 px field', async () => {
+        const host = await createPhone(390);
+        const field = host
+          .querySelector<HTMLElement>(
+            '.map-topbar .mat-mdc-text-field-wrapper',
+          )!
+          .getBoundingClientRect();
+        const value = host
+          .querySelector<HTMLElement>('.map-topbar .mat-mdc-select-trigger')!
+          .getBoundingClientRect();
+        const centre = (box: DOMRect) => box.top + box.height / 2;
+        expect(Math.abs(centre(value) - centre(field))).toBeLessThanOrEqual(1);
       });
 
       it('starts the banner on its resting line, set in the bar’s small size', async () => {
@@ -938,7 +1084,7 @@ describe('MapComponent', () => {
         expect(topbarBanner().dotGutters()).toBeFalse();
       });
 
-      it('stacks a 24 px banner row over a 40 px picker row, 8 px apart, each as wide as the bar’s content', async () => {
+      it('stacks a 24 px banner row over a 44 px picker row, 8 px apart, each as wide as the bar’s content', async () => {
         const host = await createPhone(390);
         const banner = host.querySelector<HTMLElement>('.map-topbar__banner')!;
         const picker = host.querySelector<HTMLElement>('.map-topbar__picker')!;
@@ -952,7 +1098,7 @@ describe('MapComponent', () => {
           host
             .querySelector<HTMLElement>('.map-topbar')!
             .getBoundingClientRect().height,
-        ).toBe(104);
+        ).toBe(108);
       });
 
       it('sizes neither row by the line playing or the city chosen', async () => {
@@ -1069,7 +1215,8 @@ describe('MapComponent', () => {
       expect(Math.round(box.left - page.left)).toBe(GUTTER);
       expect(Math.round(page.right - box.right)).toBe(GUTTER);
       expect(Math.round(page.bottom - box.bottom)).toBe(GUTTER);
-      expect(frame.querySelector('app-spot-sheet')).not.toBeNull();
+      expect(frame.querySelector('app-spot-sheet')).toBeNull();
+      expect(host.querySelector('.map-page > app-spot-sheet')).not.toBeNull();
     });
 
     it('covers the framed map by the sheet and keeps the credits top right', () => {
@@ -1079,6 +1226,28 @@ describe('MapComponent', () => {
         bottom: sheetHeight('peek', frameHeight(host)),
       });
       expect(spotMap().attributionCorner()).toBe('top-right');
+    });
+
+    it('takes the header row out of reach while the sheet is full', () => {
+      const host = create(900);
+      sheet().settle.emit('full');
+      fixture.detectChanges();
+      expect(host.querySelector<HTMLElement>('.map-header')!.inert).toBeTrue();
+    });
+
+    it('never leaves a rotated tablet dead, and returns to full on turning back', () => {
+      const host = create(900);
+      sheet().settle.emit('full');
+      fixture.detectChanges();
+      wide.next(true);
+      fixture.detectChanges();
+      expect(host.querySelector<HTMLElement>('.map-header')!.inert).toBeFalse();
+      expect(
+        host.querySelector<HTMLElement>('app-spot-map')!.inert,
+      ).toBeFalse();
+      wide.next(false);
+      fixture.detectChanges();
+      expect(sheet().full()).toBeTrue();
     });
   });
 
@@ -1393,7 +1562,7 @@ describe('MapComponent', () => {
           return host;
         }
 
-        it('holds the slot with an inert, hidden 40 px placeholder until the picker loads', async () => {
+        it('holds the slot with an inert, hidden 44 px placeholder until the picker loads', async () => {
           const host = await createSite();
           const slot = host.querySelector<HTMLElement>(site.slot)!;
           const placeholder =
@@ -1408,7 +1577,7 @@ describe('MapComponent', () => {
             ).length,
           ).toBe(0);
           expect(placeholder!.textContent!.trim()).toBe('City');
-          expect(Math.round(slot.getBoundingClientRect().height)).toBe(40);
+          expect(Math.round(slot.getBoundingClientRect().height)).toBe(44);
         });
 
         it('swaps the placeholder for the picker without moving or resizing anything', async () => {
@@ -1554,14 +1723,14 @@ describe('MapComponent', () => {
         phone.next(true);
         fixture.detectChanges();
         fixture.detectChanges();
-        // No placeholder in the passes that built the bar, and the slot holds the field's 40 px.
+        // No placeholder in the passes that built the bar, and the slot holds the field's 44 px.
         expect(host.querySelector('.city-placeholder')).toBeNull();
         expect(
           Math.round(
             host.querySelector('.map-topbar__picker')!.getBoundingClientRect()
               .height,
           ),
-        ).toBe(40);
+        ).toBe(44);
         await frameUntil(
           () => host.querySelector('.map-topbar app-city-picker') !== null,
         );

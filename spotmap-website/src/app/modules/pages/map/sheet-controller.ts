@@ -4,6 +4,7 @@ import {
   nextSheet,
   SheetEvent,
   SheetModel,
+  SheetStop,
 } from '../../components/spot-sheet/spot-sheet-state';
 import type { SelectionEvent, SpotBrowserStore } from './spot-browser.store';
 
@@ -30,6 +31,9 @@ export class SheetController {
 
   /** The sheet's height. */
   readonly state = computed(() => this.model().state);
+
+  /** Whether the open sheet is at the page's full height. */
+  readonly full = computed(() => this.model().full);
 
   constructor(private readonly store: SheetStore) {
     // A cold link's first id raises no event, so the sheet starts open for it.
@@ -75,6 +79,15 @@ export class SheetController {
     }
     this.feed('map-tap');
     this.closeSpot();
+  }
+
+  /** A drag, a handle tap or a key brought the sheet to rest at `stop`. At peek an open spot closes. */
+  settle(stop: SheetStop): void {
+    if (stop === 'peek' && this.model().state === 'detail') {
+      this.close();
+      return;
+    }
+    this.feed(`settled-${stop}`);
   }
 
   /** Moves the sheet for a change of the open spot. */

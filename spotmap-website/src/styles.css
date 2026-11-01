@@ -113,6 +113,21 @@
   --dur-hover-in: 120ms; /* pointer bloom lighting up: quick */
   --dur-hover-out: 700ms; /* pointer bloom letting go: a slow phosphor decay */
   --dur-crossfade: 300ms; /* overlay ↔ map and gallery rain ↔ photo: a crossfade, longer than a fade */
+
+  /* Spacing roles (DESIGN.md "Map page spacing"): the 8-point scale by what it is for. */
+  --space-gutter: 16px; /* page edge → nav links, header row, frame */
+  --space-inset: 16px; /* a panel's edge → its content */
+  --space-group: 16px; /* between groups in a pane */
+  --space-item: 8px; /* inside a group */
+  --target-min: 44px; /* the smallest touch target */
+
+  color-scheme: dark;
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --space-gutter: 24px;
+  }
 }
 
 /* --------------------
@@ -339,6 +354,65 @@ body {
    ring. */
 .spot-photo-viewer-pane .cdk-dialog-container:focus {
   outline: none;
+}
+
+/* --------------------
+   Scrollbar (DESIGN.md §5). The parts cannot transition, so the thumb reads two registered colours
+   that utils/scrollbar-hover.ts animates on the scroller. Their initial values repeat
+   --color-phosphor-deep and --color-phosphor-dim, because @property cannot read a variable.
+   Touch devices keep their native overlay bar: Android honours the parts, and a permanent strip
+   nobody can hover would take width from phone lists.
+-------------------- */
+@property --scrollbar-thumb-fill {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: oklch(45% 0.14 145);
+}
+
+@property --scrollbar-thumb-edge {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: oklch(70% 0.22 145);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  ::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--color-surface-raised);
+    border-left: 1px solid var(--color-line);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb-fill);
+    border: 1px solid var(--scrollbar-thumb-edge);
+    border-radius: var(--radius-sm);
+  }
+
+  ::-webkit-scrollbar-corner {
+    background: var(--color-surface-raised);
+  }
+
+  /* So a list that stops overflowing does not shift. On the views, not .spot-pane, which never
+     scrolls and would only reserve an empty strip. */
+  .spot-pane__view,
+  .mat-mdc-select-panel {
+    scrollbar-gutter: stable;
+  }
+
+  /* Setting these makes Chrome ignore the parts above, so only other browsers get them. */
+  @supports not selector(::-webkit-scrollbar) {
+    :root {
+      scrollbar-color: var(--color-phosphor-deep) var(--color-surface-raised);
+    }
+
+    * {
+      scrollbar-width: thin;
+    }
+  }
 }
 
 /* --------------------

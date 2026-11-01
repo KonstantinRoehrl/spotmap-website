@@ -55,6 +55,12 @@ const HIDDEN_LIST = 'app-spot-list[inert]';
 /** A row the visitor can actually be on: the hidden list's rows do not count. */
 const SHOWN_ROW = 'app-spot-list:not([inert]) a.spot-row';
 
+/** What the full sheet lies over, out of reach while it does. The map's container stays outside, for its live regions. */
+const COVERED_AT_FULL = '.map-topbar, .map-header, app-spot-map';
+
+/** The sheet's pane, which a settle at peek shuts away. */
+const SHEET_BODY = '.spot-sheet__body';
+
 /** How long the count must hold still before the live region reads it, so a pan does not chatter. */
 export const COUNT_ANNOUNCE_DEBOUNCE_MS = 800;
 
@@ -70,12 +76,12 @@ interface FrameSize {
  * gutter. From 1024 px a header row carries the banner and the city picker above it, and the
  * window holds the map, a split handle that resizes it against the spot column, and the column
  * with its toolbar and the list or the open spot. The list stays mounted behind an open spot. From
- * 769 to 1023 px the same header row sits over a window whose bottom sheet (peek / list / detail,
- * never more than half of it) holds that pane. On a phone a top bar carries them instead as two
+ * 769 to 1023 px the same header row sits over the window, and a bottom sheet over both (peek, half
+ * or full) holds that pane. On a phone a top bar carries them instead as two
  * fixed rows, the banner over the picker, neither sized by the line playing or the city chosen. The
  * city picker, and the Material it is built on, loads once the page is idle; an inert frame holds
  * its slot until then. The page owns which layout is on screen and so what the map is told is
- * covered, and where keyboard focus goes when an open spot closes. The banner is
+ * covered, and where keyboard focus goes when an open spot closes or the sheet covers it. The banner is
  * {@link MapBannerComponent}'s, the column's width {@link ColumnSplitState}'s, the sheet's height
  * {@link SheetController}'s. The page keeps what follows from its own layout: the breakpoint
  * signals, the frame measurement, the list's mount and key, the count line, the live-region
@@ -192,7 +198,8 @@ export class MapComponent {
 
   /**
    * The part of the map the UI covers: nothing in the wide window, where the column sits beside
-   * the map; the sheet's height, a share of the window, below 1024 px.
+   * the map; the sheet's height below 1024 px, capped at half however high the sheet is. So the
+   * list's in-view set stays what it was at half, and the camera always has a rectangle to fit.
    */
   protected readonly coveredInsets = computed<MapInsets>(() =>
     this.wide()
@@ -201,6 +208,11 @@ export class MapComponent {
           ...NO_INSETS,
           bottom: sheetHeight(this.sheet.state(), this.frameSize().height),
         },
+  );
+
+  /** Whether the sheet lies over the bars and the map. Never in the wide layout, which has no sheet. */
+  protected readonly covered = computed(
+    () => this.sheet.full() && !this.wide(),
   );
 
   /** What the polite live region reads: the count once it has held still, plain words. */
@@ -226,6 +238,12 @@ export class MapComponent {
       ? 'Spot not found. It is gone from the archive.'
       : '',
   );
+
+  /** The page area's height, measured: what the sheet takes at full. */
+  protected readonly pageHeight = signal(0);
+
+  /** The page area, measured for the sheet's full height. */
+  private readonly page = viewChild.required<ElementRef<HTMLElement>>('page');
 
   /** The map window, measured for the sheet's heights and the column's width. */
   private readonly frame = viewChild.required<ElementRef<HTMLElement>>('frame');
@@ -262,6 +280,14 @@ export class MapComponent {
       const observer = new ResizeObserver(measure);
       observer.observe(frame);
       destroyRef.onDestroy(() => observer.disconnect());
+
+      // Its own observer: a page resize that leaves the frame alone must not re-report the frame's size.
+      const page = this.page().nativeElement;
+      const measurePage = () => this.pageHeight.set(page.clientHeight);
+      measurePage();
+      const pageObserver = new ResizeObserver(measurePage);
+      pageObserver.observe(page);
+      destroyRef.onDestroy(() => pageObserver.disconnect());
     });
 
     effect(() => {
@@ -274,6 +300,12 @@ export class MapComponent {
       if (this.store.selectionEvent()?.kind === 'closed') {
         untracked(() => this.restoreFocusAfterClose());
       }
+    });
+
+    effect(() => {
+      const atPeek = this.sheet.state() === 'peek';
+      const covered = this.covered();
+      untracked(() => this.moveFocusOutOfCover(covered, atPeek));
     });
   }
 
@@ -309,6 +341,30 @@ export class MapComponent {
             )
             ?.focus();
         },
+      },
+      { injector: this.injector },
+    );
+  }
+
+  /**
+   * Keeps focus on something the visitor can reach when a settle covers it: the picker's trigger, the
+   * map's canvas or a list row. It runs before this render makes them inert, so `activeElement` is still
+   * true. Focus at peek ends on the head's toggle, the same place a ✕ leaves it.
+   */
+  private moveFocusOutOfCover(covered: boolean, atPeek: boolean): void {
+    const active = this.host.ownerDocument.activeElement;
+    const target =
+      covered && active?.closest(COVERED_AT_FULL)
+        ? '.spot-sheet__handle'
+        : atPeek && active?.closest(SHEET_BODY)
+          ? '.spot-sheet__toggle'
+          : null;
+    if (target === null) {
+      return;
+    }
+    afterNextRender(
+      {
+        read: () => this.host.querySelector<HTMLElement>(target)?.focus(),
       },
       { injector: this.injector },
     );

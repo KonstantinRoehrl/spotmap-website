@@ -1,0 +1,64 @@
+/* The handle's 88 × 44 target, at the top centre of the head: above the toggle and, where they meet,
+   below the detail's plates. */
+.spot-sheet__handle {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 88px;
+  height: var(--target-min);
+  padding-top: 4px;
+  translate: -50% 0;
+  cursor: grab;
+  outline: none;
+}
+
+/* The grip plate, the split handle's grip laid flat, on the surface so it reads over the map. */
+.spot-sheet__grip {
+  box-sizing: border-box;
+  width: 40px;
+  height: 8px;
+  --bloom-rest-bg: var(--color-surface);
+  pointer-events: none;
+}
+
+/* The grip lights from the handle's state: the handle is what is hovered, focused or dragged. Hover
+   only on a pointer that hovers, like the bloom itself. */
+@media (hover: hover) {
+  .spot-sheet__handle:hover .spot-sheet__grip {
+    border-color: transparent;
+    box-shadow:
+      0 0 var(--bloom-halo) var(--bloom-edge),
+      inset 0 0 0 1px var(--bloom-edge);
+    transition-duration: var(--dur-hover-in);
+  }
+
+  .spot-sheet__handle:hover .spot-sheet__grip::before {
+    opacity: 1;
+    transition-duration: var(--dur-hover-in);
+  }
+}
+
+.spot-sheet__handle:focus-visible .spot-sheet__grip,
+:host(.spot-sheet--dragging) .spot-sheet__grip {
+  border-color: transparent;
+  box-shadow:
+    0 0 var(--bloom-halo) var(--bloom-edge),
+    inset 0 0 0 1px var(--bloom-edge);
+  transition-duration: var(--dur-hover-in);
+}
+
+.spot-sheet__handle:focus-visible .spot-sheet__grip::before,
+:host(.spot-sheet--dragging) .spot-sheet__grip::before {
+  opacity: 1;
+  transition-duration: var(--dur-hover-in);
+}
+
+/* The keyboard ring sits on the grip, the one visible part of the separator. */
+.spot-sheet__handle:focus-visible .spot-sheet__grip {
+  outline: 1px solid var(--color-phosphor);
+  outline-offset: 2px;
+}

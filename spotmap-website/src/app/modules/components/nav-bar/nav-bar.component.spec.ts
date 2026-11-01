@@ -116,6 +116,54 @@ describe('NavBarComponent', () => {
     )!;
   }
 
+  it('keeps only list items directly inside the list', () => {
+    fixture.detectChanges();
+    const list = (fixture.nativeElement as HTMLElement).querySelector('ul')!;
+    expect(
+      Array.from(list.children).every((child) => child.tagName === 'LI'),
+    ).toBeTrue();
+    expect(list.children.length).toBe(3);
+  });
+
+  it('sets a 60 px bar, its height not decided by a separator', () => {
+    fixture.detectChanges();
+    const bar = (fixture.nativeElement as HTMLElement).querySelector('nav')!;
+    expect(bar.getBoundingClientRect().height).toBe(60);
+  });
+
+  it('draws a 44 px link with a 16 px glyph and a 13 px uppercase label, 4 px apart', () => {
+    fixture.detectChanges();
+    const map = link('Map');
+    expect(map.getBoundingClientRect().height).toBe(44);
+    const style = getComputedStyle(map);
+    expect(style.columnGap).toBe('4px');
+    expect(style.borderTopLeftRadius).toBe('6px');
+    const glyph = map.querySelector('.nav-icon') as HTMLElement;
+    expect(getComputedStyle(glyph).fontSize).toBe('16px');
+    expect(getComputedStyle(glyph).marginInlineEnd).toBe('0px');
+    const label = getComputedStyle(map.querySelector('.nav-text')!);
+    expect(label.fontSize).toBe('13px');
+    expect(label.fontWeight).toBe('500');
+    expect(label.textTransform).toBe('uppercase');
+    expect(label.letterSpacing).toBe('1.04px');
+  });
+
+  it('keeps the labels mixed case in the DOM, uppercase by style alone', () => {
+    fixture.detectChanges();
+    expect(link('Map').querySelector('.nav-text')!.textContent!.trim()).toBe(
+      'Map',
+    );
+  });
+
+  it('draws a 1 px, 24 px hairline before every cell but the first', () => {
+    fixture.detectChanges();
+    const items = (fixture.nativeElement as HTMLElement).querySelectorAll('li');
+    const line = getComputedStyle(items[1], '::before');
+    expect(line.width).toBe('1px');
+    expect(line.height).toBe('24px');
+    expect(getComputedStyle(items[0], '::before').content).toBe('none');
+  });
+
   it('gives every link the shared pointer bloom', () => {
     fixture.detectChanges();
     for (const label of ['Home', 'Map', 'About']) {

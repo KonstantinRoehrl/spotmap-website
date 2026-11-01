@@ -1,6 +1,8 @@
-import { Location } from '@angular/common';
+import { DOCUMENT, Location } from '@angular/common';
 import {
   Component,
+  DestroyRef,
+  NgZone,
   signal,
   ChangeDetectionStrategy,
   inject,
@@ -14,6 +16,7 @@ import { PointerBloomDirective } from './modules/directives/pointer-bloom.direct
 import { isAdminPath } from './utils/admin-path';
 import { isMapPagePath, isSpotPath } from './utils/map-page-path';
 import { safeSessionStorage } from './utils/safe-storage';
+import { installScrollbarHover } from './utils/scrollbar-hover';
 
 // Session-scoped flag so the intro only plays on the first visit of a browser
 // session. Cleared automatically when the tab/session ends.
@@ -65,6 +68,9 @@ export class AppComponent {
   );
 
   constructor() {
+    inject(DestroyRef).onDestroy(
+      installScrollbarHover(inject(DOCUMENT), inject(NgZone)),
+    );
     inject(Router)
       .events.pipe(
         filter(
