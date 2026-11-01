@@ -4,18 +4,22 @@ import {
   Component,
   computed,
   DestroyRef,
+  effect,
   ElementRef,
   inject,
   input,
   NgZone,
   output,
   signal,
+  untracked,
   viewChild,
 } from '@angular/core';
+import { prefersReducedMotion } from '../../../utils/prefers-reduced-motion';
 import { PointerBloomDirective } from '../../directives/pointer-bloom.directive';
 import { OverviewBackComponent } from '../overview-back/overview-back.component';
 import { attachBodyTouch } from './sheet-body-touch';
 import { attachHeadDrag, SheetDrag } from './sheet-drag-session';
+import { SheetSettleFade } from './sheet-settle-fade';
 import {
   SheetState,
   SheetStop,
@@ -115,19 +119,55 @@ export class SpotSheetComponent {
   private readonly head = viewChild.required<ElementRef<HTMLElement>>('head');
   private readonly body = viewChild.required<ElementRef<HTMLElement>>('body');
 
+  /** The settle's crossfade under reduced motion, in place of the travel. */
+  private readonly fade = new SheetSettleFade(this.hostElement);
+
   /** The drag, fed by whichever input begins it. */
   private readonly drag = new SheetDrag(this.hostElement, () => this.stops(), {
-    started: () => this.zone.run(() => this.dragging.set(true)),
+    started: () =>
+      this.zone.run(() => {
+        this.fade.cancel();
+        this.dragging.set(true);
+      }),
     settled: (stop) =>
       this.zone.run(() => {
         this.dragging.set(false);
         this.settle.emit(stop);
       }),
-    release: (clearHeldGeometry) => clearHeldGeometry(),
+    release: (clearHeldGeometry) => {
+      if (prefersReducedMotion()) {
+        this.fade.run(clearHeldGeometry);
+      } else {
+        clearHeldGeometry();
+      }
+    },
   });
 
   constructor() {
     const destroyRef = inject(DestroyRef);
+    // Required inputs can't be read before their first binding, so the first run only records where
+    // the sheet is, which also means the first render never fades. The effect runs in the binding's
+    // tick, before paint, so the hold's write lands before the new height can show.
+    let shownStop: SheetStop | null = null;
+    let shownHeight = 0;
+    effect(() => {
+      const stop = this.stop();
+      const height = this.height();
+      untracked(() => {
+        if (
+          shownStop !== null &&
+          stop !== shownStop &&
+          prefersReducedMotion() &&
+          !this.fade.goingOut &&
+          !this.dragging()
+        ) {
+          this.fade.run(this.drag.hold(shownHeight));
+        }
+        shownStop = stop;
+        shownHeight = height;
+      });
+    });
+    destroyRef.onDestroy(() => this.fade.cancel());
     afterNextRender(() => {
       destroyRef.onDestroy(
         attachHeadDrag(this.head().nativeElement, this.drag, this.zone),

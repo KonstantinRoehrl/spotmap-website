@@ -13,7 +13,7 @@ import { SheetState } from './spot-sheet-state';
       <app-spot-sheet
         [state]="state()"
         [full]="full()"
-        [availableHeight]="800"
+        [availableHeight]="available()"
         [pageHeight]="784"
         [count]="count()"
         (settle)="events.push('settle:' + $event)"
@@ -29,6 +29,7 @@ import { SheetState } from './spot-sheet-state';
 class HostComponent {
   readonly state = signal<SheetState>('peek');
   readonly full = signal(false);
+  readonly available = signal(800);
   readonly count = signal<number | null>(9);
   readonly events: string[] = [];
 }
@@ -489,6 +490,114 @@ describe('SpotSheetComponent', () => {
       pointer(document, 'pointerup', 280);
       toggle.click();
       expect(fixture.componentInstance.events).not.toContain('head');
+    });
+  });
+
+  it('starts no fade when motion is allowed', () => {
+    const sheet = create('list');
+    fixture.componentInstance.full.set(true);
+    fixture.detectChanges();
+    TestBed.tick();
+    expect(
+      sheet
+        .getAnimations()
+        .some((animation) => !(animation instanceof CSSTransition)),
+    ).toBeFalse();
+  });
+
+  describe('under reduced motion', () => {
+    beforeEach(() => {
+      spyOn(window, 'matchMedia').and.callFake(
+        (query: string) =>
+          ({
+            matches: query.includes('prefers-reduced-motion'),
+            media: query,
+          }) as unknown as MediaQueryList,
+      );
+    });
+
+    /** Runs every animation on `element` to its end, letting its finish handlers run. */
+    async function finishFades(element: HTMLElement): Promise<void> {
+      for (const animation of element.getAnimations()) {
+        animation.finish();
+        await animation.finished.catch(() => undefined);
+      }
+      await Promise.resolve();
+    }
+
+    /** Fires a pointer event for pointer 1 at `y`. */
+    function pointer(target: EventTarget, type: string, y: number): void {
+      target.dispatchEvent(
+        new PointerEvent(type, {
+          pointerId: 1,
+          isPrimary: true,
+          button: 0,
+          clientY: y,
+          bubbles: true,
+        }),
+      );
+    }
+
+    it('fades out on the old height, takes the new one, and fades back in', async () => {
+      const sheet = create('list');
+      fixture.componentInstance.full.set(true);
+      fixture.detectChanges();
+      TestBed.tick();
+      // Held at half while the sheet fades out.
+      expect(sheet.style.getPropertyValue('--sheet-drag-height')).toBe('400px');
+      expect(sheet.getAnimations().length).toBeGreaterThan(0);
+      await finishFades(sheet);
+      // The bound height is the full one, and the hold has let go of it.
+      expect(sheet.style.getPropertyValue('--sheet-drag-height')).toBe('');
+      expect(sheet.style.getPropertyValue('--sheet-height')).toBe('784px');
+      await finishFades(sheet);
+      expect(
+        sheet
+          .getAnimations()
+          .some((animation) => !(animation instanceof CSSTransition)),
+      ).toBeFalse();
+    });
+
+    it('holds a released drag where the finger left it until the fade has hidden it', async () => {
+      const sheet = create('list');
+      const head = sheet.querySelector<HTMLElement>('.spot-sheet__head')!;
+      spyOn(head, 'setPointerCapture');
+      pointer(head, 'pointerdown', 300);
+      pointer(document, 'pointermove', 290);
+      pointer(document, 'pointermove', 250);
+      pointer(document, 'pointerup', 250);
+      expect(sheet.style.getPropertyValue('--sheet-drag-height')).toBe('440px');
+      await finishFades(sheet);
+      expect(sheet.style.getPropertyValue('--sheet-drag-height')).toBe('');
+    });
+
+    it('does not fade for a frame resize, only for a change of stop', () => {
+      const sheet = create('list');
+      fixture.componentInstance.available.set(700);
+      fixture.detectChanges();
+      TestBed.tick();
+      expect(sheet.style.getPropertyValue('--sheet-drag-height')).toBe('');
+      expect(sheet.style.getPropertyValue('--sheet-height')).toBe('350px');
+    });
+
+    it('never fades on the first render', () => {
+      const sheet = create('list');
+      expect(sheet.getAnimations().length).toBe(0);
+    });
+
+    it('gives way to a press during the fade', async () => {
+      const sheet = create('list');
+      fixture.componentInstance.full.set(true);
+      fixture.detectChanges();
+      TestBed.tick();
+      const head = sheet.querySelector<HTMLElement>('.spot-sheet__head')!;
+      spyOn(head, 'setPointerCapture');
+      pointer(head, 'pointerdown', 300);
+      pointer(document, 'pointermove', 280);
+      expect(sheet.getAnimations().length).toBe(0);
+      expect(getComputedStyle(sheet).opacity).toBe('1');
+      pointer(document, 'pointercancel', 280);
+      await finishFades(sheet);
     });
   });
 

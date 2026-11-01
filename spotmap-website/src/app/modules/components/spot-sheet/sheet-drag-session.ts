@@ -75,6 +75,12 @@ export class SheetDrag {
     this.events.release(() => this.clear());
   }
 
+  /** Holds the sheet at `height` with no drag under way, until the returned function lets go. */
+  hold(height: number): () => void {
+    this.write(height);
+    return () => this.clear();
+  }
+
   /** Holds the sheet at `height`; `clear` lets go. */
   private write(height: number): void {
     this.height = height;
