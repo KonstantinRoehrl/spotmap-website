@@ -795,6 +795,69 @@ describe('MapComponent', () => {
       expect(sheet().state()).toBe('peek');
     });
 
+    it('takes the top bar and the map out of reach while the sheet is full', () => {
+      const host = create(390);
+      const covered = () => [
+        host.querySelector<HTMLElement>('.map-topbar')!.inert,
+        host.querySelector<HTMLElement>('app-spot-map')!.inert,
+      ];
+      expect(covered()).toEqual([false, false]);
+      settleAt(host, 'full');
+      fixture.detectChanges();
+      expect(covered()).toEqual([true, true]);
+      settleAt(host, 'half');
+      fixture.detectChanges();
+      expect(covered()).toEqual([false, false]);
+    });
+
+    it('leaves the map container reachable, so its live regions keep announcing', () => {
+      const host = create(390);
+      settleAt(host, 'full');
+      fixture.detectChanges();
+      expect(
+        host.querySelector<HTMLElement>('app-map-container')!.inert,
+      ).toBeFalse();
+    });
+
+    it('moves focus to the handle when a settle at full covers it', () => {
+      const host = create(390);
+      const banner = host.querySelector<HTMLElement>('.map-topbar__banner')!;
+      banner.tabIndex = -1;
+      banner.focus();
+      settleAt(host, 'full');
+      fixture.detectChanges();
+      TestBed.tick();
+      expect(document.activeElement).toBe(
+        host.querySelector('.spot-sheet__handle'),
+      );
+    });
+
+    it('moves focus to the toggle when a settle at peek hides the list it was in', () => {
+      const host = create(390);
+      settleAt(host, 'half');
+      fixture.detectChanges();
+      const body = host.querySelector<HTMLElement>('.spot-sheet__body')!;
+      body.tabIndex = -1;
+      body.focus();
+      settleAt(host, 'peek');
+      fixture.detectChanges();
+      TestBed.tick();
+      expect(document.activeElement).toBe(
+        host.querySelector('.spot-sheet__toggle'),
+      );
+    });
+
+    it('leaves focus alone when a settle covers nothing it sits in', () => {
+      const host = create(390);
+      const handle = host.querySelector<HTMLElement>('.spot-sheet__handle')!;
+      handle.focus();
+      settleAt(host, 'half');
+      settleAt(host, 'full');
+      fixture.detectChanges();
+      TestBed.tick();
+      expect(document.activeElement).toBe(handle);
+    });
+
     it('never rebuilds the map for a height change', () => {
       const host = create(390);
       const map = spotMap();
@@ -1163,6 +1226,28 @@ describe('MapComponent', () => {
         bottom: sheetHeight('peek', frameHeight(host)),
       });
       expect(spotMap().attributionCorner()).toBe('top-right');
+    });
+
+    it('takes the header row out of reach while the sheet is full', () => {
+      const host = create(900);
+      sheet().settle.emit('full');
+      fixture.detectChanges();
+      expect(host.querySelector<HTMLElement>('.map-header')!.inert).toBeTrue();
+    });
+
+    it('never leaves a rotated tablet dead, and returns to full on turning back', () => {
+      const host = create(900);
+      sheet().settle.emit('full');
+      fixture.detectChanges();
+      wide.next(true);
+      fixture.detectChanges();
+      expect(host.querySelector<HTMLElement>('.map-header')!.inert).toBeFalse();
+      expect(
+        host.querySelector<HTMLElement>('app-spot-map')!.inert,
+      ).toBeFalse();
+      wide.next(false);
+      fixture.detectChanges();
+      expect(sheet().full()).toBeTrue();
     });
   });
 

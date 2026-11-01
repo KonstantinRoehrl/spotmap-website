@@ -5,7 +5,7 @@
   [class.map-page--phone]="phone()"
 >
   @if (phone()) {
-    <header class="map-topbar">
+    <header class="map-topbar" [inert]="covered()">
       <app-map-banner
         class="map-topbar__banner"
         variant="topbar"
@@ -16,7 +16,7 @@
       </div>
     </header>
   } @else {
-    <header class="map-header">
+    <header class="map-header" [inert]="covered()">
       <app-map-banner
         class="map-header__banner"
         variant="header"
@@ -44,6 +44,7 @@
           >
             <app-spot-map
               class="w-full h-full block"
+              [inert]="covered()"
               [city]="city"
               [spots]="store.mapSpots()"
               [retryToken]="store.listAttempt()"
