@@ -8,11 +8,27 @@
 
 <!-- Both head variants share one grid cell, so swapping them is a crossfade, not a cut. -->
 <div
+  #head
   class="spot-sheet__head"
   [class.spot-sheet__head--open]="state() !== 'peek'"
 >
-  <div class="spot-sheet__handle" aria-hidden="true">
-    <span class="spot-sheet__grip"></span>
+  <div
+    class="spot-sheet__handle"
+    role="separator"
+    tabindex="0"
+    aria-orientation="horizontal"
+    aria-label="Resize spot sheet"
+    aria-valuemin="0"
+    aria-valuemax="100"
+    [attr.aria-valuenow]="handleValue()"
+    [attr.aria-valuetext]="handleValueText()"
+    (click)="onHandleClick()"
+    (keydown)="onHandleKeydown($event)"
+  >
+    <span
+      class="spot-sheet__grip phosphor-bloom phosphor-bloom--plate"
+      aria-hidden="true"
+    ></span>
   </div>
   @if (state() === 'detail') {
     <div
@@ -55,8 +71,8 @@
 
 <div
   class="spot-sheet__body"
-  [class.spot-sheet__body--hidden]="state() === 'peek'"
-  [inert]="state() === 'peek'"
+  [class.spot-sheet__body--hidden]="state() === 'peek' && !dragging()"
+  [inert]="state() === 'peek' && !dragging()"
 >
   <ng-content />
 </div>

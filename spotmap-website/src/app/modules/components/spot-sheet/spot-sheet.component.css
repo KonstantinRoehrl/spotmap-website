@@ -1,21 +1,41 @@
-/* Pinned to the bottom of the map frame the page puts it in; the height comes from the host
-   binding and eases on the house curve. Under prefers-reduced-motion the global net drops `height`
-   from the transitioned properties, so the height then changes at once while the head and body
-   still fade. That is the net's rule: movement stops, fades stay. Rounded on every corner like the
-   frame it sits in. */
+/* Pinned to the bottom of the page area the page puts it in. Its gutters and bottom radii ease to
+   nothing as it rises from half to full (--sheet-rise, 0 or 1; a drag writes it in between), so they
+   rest on the scale and never jump. The height falls back from a drag's own write, which the drag can
+   clear even when the bound height has not changed. Under prefers-reduced-motion the global net drops
+   all of these from the transitioned properties. Above the map's controls and the header, below the
+   nav's 1000. */
 :host {
+  --sheet-current-rise: var(--sheet-drag-rise, var(--sheet-rise, 0));
+  --sheet-current-gutter: calc(
+    var(--space-gutter) * (1 - var(--sheet-current-rise))
+  );
+  --sheet-bottom-radius: calc(
+    var(--radius-lg) * (1 - var(--sheet-current-rise))
+  );
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 2;
+  left: var(--sheet-current-gutter);
+  right: var(--sheet-current-gutter);
+  bottom: var(--sheet-current-gutter);
+  z-index: 10;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  height: var(--sheet-drag-height, var(--sheet-height));
+  max-height: calc(100% - env(safe-area-inset-top));
   overflow: hidden;
   background: var(--color-surface);
-  border-radius: var(--radius-lg);
-  transition: height 330ms var(--ease-out-expo);
+  border-radius: var(--radius-lg) var(--radius-lg) var(--sheet-bottom-radius)
+    var(--sheet-bottom-radius);
+  transition-property:
+    height, left, right, bottom, border-bottom-left-radius,
+    border-bottom-right-radius;
+  transition-duration: 330ms;
+  transition-timing-function: var(--ease-out-expo);
+}
+
+/* A drag follows the finger with no easing. */
+:host(.spot-sheet--dragging) {
+  transition: none;
 }
 
 /* The 1px line frame, drawn over the content rather than as a border: a border would take 2 px of
@@ -39,7 +59,10 @@
   display: grid;
   box-sizing: border-box;
   height: 64px;
-  padding: 16px;
+  padding: var(--space-inset);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 /* The rule between the head and the pane, shown only while the sheet is open. It fades by opacity,
@@ -61,25 +84,6 @@
   opacity: 1;
 }
 
-/* The grab handle sits in the head's top padding and never takes a tap: the toggle under it does. */
-.spot-sheet__handle {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 16px;
-  display: grid;
-  place-items: center;
-  pointer-events: none;
-}
-
-.spot-sheet__grip {
-  width: 36px;
-  height: 4px;
-  border-radius: var(--radius-sm);
-  background: var(--color-phosphor-deep);
-}
-
 .spot-sheet__head-content {
   grid-area: 1 / 1;
   display: flex;
@@ -98,9 +102,17 @@
   opacity: 0;
 }
 
+/* The plates sit above the handle and let the gap between them through to it. */
 .spot-sheet__head-content--detail {
+  position: relative;
+  z-index: 2;
   justify-content: space-between;
   gap: 8px;
+  pointer-events: none;
+}
+
+.spot-sheet__head-content--detail > * {
+  pointer-events: auto;
 }
 
 /* Label type (DESIGN.md §3): 13px, 500, 0.08em, uppercase. */
@@ -124,8 +136,8 @@
   align-items: center;
   gap: 8px;
   height: 64px;
-  margin: -16px;
-  padding: 16px;
+  margin: calc(-1 * var(--space-inset));
+  padding: var(--space-inset);
   border: none;
   border-radius: var(--radius-lg);
 }

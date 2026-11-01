@@ -1,35 +1,66 @@
 import {
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   computed,
+  DestroyRef,
+  ElementRef,
+  inject,
   input,
+  NgZone,
   output,
+  signal,
+  viewChild,
 } from '@angular/core';
 import { PointerBloomDirective } from '../../directives/pointer-bloom.directive';
 import { OverviewBackComponent } from '../overview-back/overview-back.component';
-import { SheetState, sheetHeight } from './spot-sheet-state';
+import { attachHeadDrag, SheetDrag } from './sheet-drag-session';
+import {
+  SheetState,
+  SheetStop,
+  sheetStopOf,
+  sheetStops,
+  stopAbove,
+  stopAfterHandleTap,
+  stopBelow,
+} from './spot-sheet-state';
+
+/** The handle's separator value at each stop. */
+const HANDLE_VALUE: Record<SheetStop, { now: number; text: string }> = {
+  peek: { now: 0, text: 'Closed' },
+  half: { now: 50, text: 'Half height' },
+  full: { now: 100, text: 'Full height' },
+};
 
 /**
  * The phone and tablet layout's sheet inside the map frame: a 64 px head (the grab handle in its
  * top padding, its controls 16 px from every edge) over a scrolling body holding the projected
  * pane. It is presentational. The page keeps the `SheetModel`, feeds `nextSheet()` from the
  * outputs below, and reads the same `sheetHeight()` to tell the map how much of it is covered.
- * Heights change by tapping the head. The handle only marks the sheet as one, and dragging is not
- * offered.
+ * Heights change by tapping the head or the handle, by the handle's keys, or by dragging either.
+ * The drag lives in `sheet-drag-session.ts`.
  */
 @Component({
   selector: 'app-spot-sheet',
   imports: [PointerBloomDirective, OverviewBackComponent],
   templateUrl: './spot-sheet.component.html',
-  styleUrl: './spot-sheet.component.css',
+  styleUrls: ['./spot-sheet.component.css', './spot-sheet-handle.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { '[style.height.px]': 'height()' },
+  host: {
+    '[style.--sheet-height]': "height() + 'px'",
+    '[style.--sheet-rise]': "stop() === 'full' ? 1 : 0",
+    '[class.spot-sheet--dragging]': 'dragging()',
+  },
 })
 export class SpotSheetComponent {
   /** How far the sheet is open. */
   state = input.required<SheetState>();
   /** The height in px of the frame the sheet sits in; the open list and detail take half of it. */
   availableHeight = input.required<number>();
+  /** Whether the open sheet is at the page's full height. */
+  full = input(false);
+  /** The height in px of the page area, which the full sheet takes. */
+  pageHeight = input(0);
   /** How many spots are in view, or `null` while the city's spots are still loading. */
   count = input<number | null>(null);
 
@@ -39,10 +70,33 @@ export class SpotSheetComponent {
   back = output<void>();
   /** The detail's close button (✕): close the detail to the peek bar. */
   close = output<void>();
+  /** The sheet came to rest at a height by a drag, or by the handle's tap or keys. */
+  settle = output<SheetStop>();
 
-  /** The sheet's height for its state, in px. */
-  protected readonly height = computed(() =>
-    sheetHeight(this.state(), this.availableHeight()),
+  /** Each stop's height in px. */
+  private readonly stops = computed(() =>
+    sheetStops(this.availableHeight(), this.pageHeight()),
+  );
+
+  /** The stop the sheet rests at. */
+  protected readonly stop = computed(() =>
+    sheetStopOf(this.state(), this.full()),
+  );
+
+  /** The sheet's height for its stop, in px. */
+  protected readonly height = computed(() => this.stops()[this.stop()]);
+
+  /** Whether a drag is under way: the pane shows, even from peek, and the grip stays lit. */
+  protected readonly dragging = signal(false);
+
+  /** The separator's value at this stop. */
+  protected readonly handleValue = computed(
+    () => HANDLE_VALUE[this.stop()].now,
+  );
+
+  /** The separator's value in words at this stop. */
+  protected readonly handleValueText = computed(
+    () => HANDLE_VALUE[this.stop()].text,
   );
 
   /** The head's count line: plural, singular, or the loading line while the count is unknown. */
@@ -53,4 +107,53 @@ export class SpotSheetComponent {
     }
     return count === 1 ? '> 1 SPOT IN VIEW' : `> ${count} SPOTS IN VIEW`;
   });
+
+  private readonly hostElement =
+    inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
+  private readonly zone = inject(NgZone);
+  private readonly head = viewChild.required<ElementRef<HTMLElement>>('head');
+
+  /** The drag, fed by whichever input begins it. */
+  private readonly drag = new SheetDrag(this.hostElement, () => this.stops(), {
+    started: () => this.zone.run(() => this.dragging.set(true)),
+    settled: (stop) =>
+      this.zone.run(() => {
+        this.dragging.set(false);
+        this.settle.emit(stop);
+      }),
+    release: (clearHeldGeometry) => clearHeldGeometry(),
+  });
+
+  constructor() {
+    const destroyRef = inject(DestroyRef);
+    afterNextRender(() =>
+      destroyRef.onDestroy(
+        attachHeadDrag(this.head().nativeElement, this.drag, this.zone),
+      ),
+    );
+  }
+
+  /** A tap on the handle. A press that became a drag never gets here. */
+  protected onHandleClick(): void {
+    this.settle.emit(stopAfterHandleTap(this.stop()));
+  }
+
+  /** Moves the sheet by a key on the handle; other keys are the page's. */
+  protected onHandleKeydown(event: KeyboardEvent): void {
+    const stop = this.stop();
+    const targets: Record<string, SheetStop | undefined> = {
+      ArrowUp: stopAbove(stop),
+      ArrowDown: stopBelow(stop),
+      Home: 'peek',
+      End: 'full',
+      Enter: stopAfterHandleTap(stop),
+      ' ': stopAfterHandleTap(stop),
+    };
+    const target = targets[event.key];
+    if (target === undefined) {
+      return;
+    }
+    event.preventDefault();
+    this.settle.emit(target);
+  }
 }
