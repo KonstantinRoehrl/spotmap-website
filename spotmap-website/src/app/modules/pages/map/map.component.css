@@ -9,6 +9,7 @@
    class rather than a media query, so it always agrees with the layout the page chose. */
 .map-page {
   --space-gutter: 16px;
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -157,8 +158,8 @@
 }
 
 /* The map frame (DESIGN.md "Map Canvas"), at every width: an 8 px radius, the surface backing
-   and the 24 px edge glow. It clips the map, the handle, the column and the sheet to its
-   corners; its own halo is outside the clip. */
+   and the 24 px edge glow. It clips the map, the handle and the column to its corners; its own
+   halo is outside the clip. */
 .map-window {
   position: relative;
   display: flex;
@@ -274,15 +275,6 @@
 
 .spot-column__order {
   color: var(--color-phosphor-dim);
-}
-
-/* Under 1024 px: the sheet inside the window, on its left, right and bottom edges, over the map. */
-.map-page__sheet {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 2;
 }
 
 /* The pane: list and open spot share one grid cell, so they crossfade instead of stacking. Isolated

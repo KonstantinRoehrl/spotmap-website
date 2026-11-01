@@ -1,4 +1,5 @@
 <div
+  #page
   class="map-page"
   [class.map-page--wide]="wide()"
   [class.map-page--phone]="phone()"
@@ -104,23 +105,29 @@
             <ng-container [ngTemplateOutlet]="pane" />
           </div>
         </aside>
-      } @else {
-        <app-spot-sheet
-          class="map-page__sheet"
-          [state]="sheet.state()"
-          [availableHeight]="frameSize().height"
-          [count]="count()"
-          (headTap)="sheet.headTap()"
-          (back)="sheet.back()"
-          (close)="sheet.close()"
-        >
-          <div class="spot-pane">
-            <ng-container [ngTemplateOutlet]="pane" />
-          </div>
-        </app-spot-sheet>
       }
     </div>
   </div>
+
+  <!-- Outside the window, which would clip it: the sheet rises past the frame to the page's edges.
+       After the body in the DOM, so it stacks over the map. -->
+  @if (!wide()) {
+    <app-spot-sheet
+      [state]="sheet.state()"
+      [full]="sheet.full()"
+      [availableHeight]="frameSize().height"
+      [pageHeight]="pageHeight()"
+      [count]="count()"
+      (headTap)="sheet.headTap()"
+      (back)="sheet.back()"
+      (close)="sheet.close()"
+      (settle)="sheet.settle($event)"
+    >
+      <div class="spot-pane">
+        <ng-container [ngTemplateOutlet]="pane" />
+      </div>
+    </app-spot-sheet>
+  }
 
   <p class="sr-only" role="status" aria-live="polite">{{ announcement() }}</p>
   <!-- Always in the page, so it exists before the notice it reads out: a live region created

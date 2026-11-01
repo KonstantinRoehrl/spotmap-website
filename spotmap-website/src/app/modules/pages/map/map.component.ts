@@ -70,8 +70,8 @@ interface FrameSize {
  * gutter. From 1024 px a header row carries the banner and the city picker above it, and the
  * window holds the map, a split handle that resizes it against the spot column, and the column
  * with its toolbar and the list or the open spot. The list stays mounted behind an open spot. From
- * 769 to 1023 px the same header row sits over a window whose bottom sheet (peek / list / detail,
- * never more than half of it) holds that pane. On a phone a top bar carries them instead as two
+ * 769 to 1023 px the same header row sits over the window, and a bottom sheet over both (peek, half
+ * or full) holds that pane. On a phone a top bar carries them instead as two
  * fixed rows, the banner over the picker, neither sized by the line playing or the city chosen. The
  * city picker, and the Material it is built on, loads once the page is idle; an inert frame holds
  * its slot until then. The page owns which layout is on screen and so what the map is told is
@@ -192,7 +192,8 @@ export class MapComponent {
 
   /**
    * The part of the map the UI covers: nothing in the wide window, where the column sits beside
-   * the map; the sheet's height, a share of the window, below 1024 px.
+   * the map; the sheet's height below 1024 px, capped at half however high the sheet is. So the
+   * list's in-view set stays what it was at half, and the camera always has a rectangle to fit.
    */
   protected readonly coveredInsets = computed<MapInsets>(() =>
     this.wide()
@@ -226,6 +227,12 @@ export class MapComponent {
       ? 'Spot not found. It is gone from the archive.'
       : '',
   );
+
+  /** The page area's height, measured: what the sheet takes at full. */
+  protected readonly pageHeight = signal(0);
+
+  /** The page area, measured for the sheet's full height. */
+  private readonly page = viewChild.required<ElementRef<HTMLElement>>('page');
 
   /** The map window, measured for the sheet's heights and the column's width. */
   private readonly frame = viewChild.required<ElementRef<HTMLElement>>('frame');
@@ -262,6 +269,14 @@ export class MapComponent {
       const observer = new ResizeObserver(measure);
       observer.observe(frame);
       destroyRef.onDestroy(() => observer.disconnect());
+
+      // Its own observer: a page resize that leaves the frame alone must not re-report the frame's size.
+      const page = this.page().nativeElement;
+      const measurePage = () => this.pageHeight.set(page.clientHeight);
+      measurePage();
+      const pageObserver = new ResizeObserver(measurePage);
+      pageObserver.observe(page);
+      destroyRef.onDestroy(() => pageObserver.disconnect());
     });
 
     effect(() => {
