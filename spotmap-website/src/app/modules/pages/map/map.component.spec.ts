@@ -341,7 +341,7 @@ describe('MapComponent', () => {
       const bannerBox = (
         banner?.nativeElement as HTMLElement
       ).getBoundingClientRect();
-      expect(Math.round(bannerBox.height)).toBe(40);
+      expect(Math.round(bannerBox.height)).toBe(44);
       expect(Math.round(bannerBox.top - host.getBoundingClientRect().top)).toBe(
         GUTTER,
       );
@@ -350,14 +350,14 @@ describe('MapComponent', () => {
       ).toBe(GUTTER);
     });
 
-    it('sets the header row’s city select 40 px tall', async () => {
+    it('sets the header row’s city select 44 px tall', async () => {
       const host = create();
       await loadPicker();
       const field = host.querySelector<HTMLElement>(
         '.map-header .mat-mdc-text-field-wrapper',
       );
       expect(field).not.toBeNull();
-      expect(Math.round(field!.getBoundingClientRect().height)).toBe(40);
+      expect(Math.round(field!.getBoundingClientRect().height)).toBe(44);
     });
 
     it('frames the map, the handle and the column in one window inside the gutter', () => {
@@ -913,7 +913,7 @@ describe('MapComponent', () => {
         return host;
       }
 
-      it('pads the bar 16 px on every side and sets the city select 40 px tall', async () => {
+      it('pads the bar 16 px on every side and sets the city select 44 px tall', async () => {
         const host = await createPhone(360);
         const bar = host.querySelector<HTMLElement>('.map-topbar')!;
         const style = getComputedStyle(bar);
@@ -927,8 +927,22 @@ describe('MapComponent', () => {
         const field = host.querySelector<HTMLElement>(
           '.map-topbar .mat-mdc-text-field-wrapper',
         )!;
-        expect(Math.round(field.getBoundingClientRect().height)).toBe(40);
+        expect(Math.round(field.getBoundingClientRect().height)).toBe(44);
         expect(host.querySelector('.map-header')).toBeNull();
+      });
+
+      it('keeps the city’s value centred in the 44 px field', async () => {
+        const host = await createPhone(390);
+        const field = host
+          .querySelector<HTMLElement>(
+            '.map-topbar .mat-mdc-text-field-wrapper',
+          )!
+          .getBoundingClientRect();
+        const value = host
+          .querySelector<HTMLElement>('.map-topbar .mat-mdc-select-trigger')!
+          .getBoundingClientRect();
+        const centre = (box: DOMRect) => box.top + box.height / 2;
+        expect(Math.abs(centre(value) - centre(field))).toBeLessThanOrEqual(1);
       });
 
       it('starts the banner on its resting line, set in the bar’s small size', async () => {
@@ -938,7 +952,7 @@ describe('MapComponent', () => {
         expect(topbarBanner().dotGutters()).toBeFalse();
       });
 
-      it('stacks a 24 px banner row over a 40 px picker row, 8 px apart, each as wide as the bar’s content', async () => {
+      it('stacks a 24 px banner row over a 44 px picker row, 8 px apart, each as wide as the bar’s content', async () => {
         const host = await createPhone(390);
         const banner = host.querySelector<HTMLElement>('.map-topbar__banner')!;
         const picker = host.querySelector<HTMLElement>('.map-topbar__picker')!;
@@ -952,7 +966,7 @@ describe('MapComponent', () => {
           host
             .querySelector<HTMLElement>('.map-topbar')!
             .getBoundingClientRect().height,
-        ).toBe(104);
+        ).toBe(108);
       });
 
       it('sizes neither row by the line playing or the city chosen', async () => {
@@ -1393,7 +1407,7 @@ describe('MapComponent', () => {
           return host;
         }
 
-        it('holds the slot with an inert, hidden 40 px placeholder until the picker loads', async () => {
+        it('holds the slot with an inert, hidden 44 px placeholder until the picker loads', async () => {
           const host = await createSite();
           const slot = host.querySelector<HTMLElement>(site.slot)!;
           const placeholder =
@@ -1408,7 +1422,7 @@ describe('MapComponent', () => {
             ).length,
           ).toBe(0);
           expect(placeholder!.textContent!.trim()).toBe('City');
-          expect(Math.round(slot.getBoundingClientRect().height)).toBe(40);
+          expect(Math.round(slot.getBoundingClientRect().height)).toBe(44);
         });
 
         it('swaps the placeholder for the picker without moving or resizing anything', async () => {
@@ -1554,14 +1568,14 @@ describe('MapComponent', () => {
         phone.next(true);
         fixture.detectChanges();
         fixture.detectChanges();
-        // No placeholder in the passes that built the bar, and the slot holds the field's 40 px.
+        // No placeholder in the passes that built the bar, and the slot holds the field's 44 px.
         expect(host.querySelector('.city-placeholder')).toBeNull();
         expect(
           Math.round(
             host.querySelector('.map-topbar__picker')!.getBoundingClientRect()
               .height,
           ),
-        ).toBe(40);
+        ).toBe(44);
         await frameUntil(
           () => host.querySelector('.map-topbar app-city-picker') !== null,
         );
