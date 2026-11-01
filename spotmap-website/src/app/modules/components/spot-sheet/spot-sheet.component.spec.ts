@@ -7,11 +7,16 @@ import { SheetState } from './spot-sheet-state';
 @Component({
   imports: [SpotSheetComponent],
   template: `
-    <div style="position: relative; height: 800px; width: 390px">
+    <div
+      style="position: relative; height: 800px; width: 390px; --space-gutter: 16px"
+    >
       <app-spot-sheet
         [state]="state()"
-        [availableHeight]="800"
+        [full]="full()"
+        [availableHeight]="available()"
+        [pageHeight]="784"
         [count]="count()"
+        (settle)="events.push('settle:' + $event)"
         (headTap)="events.push('head')"
         (back)="events.push('back')"
         (close)="events.push('close')"
@@ -23,6 +28,8 @@ import { SheetState } from './spot-sheet-state';
 })
 class HostComponent {
   readonly state = signal<SheetState>('peek');
+  readonly full = signal(false);
+  readonly available = signal(800);
   readonly count = signal<number | null>(9);
   readonly events: string[] = [];
 }
@@ -46,6 +53,8 @@ describe('SpotSheetComponent', () => {
     fixture.componentInstance.state.set(state);
     fixture.componentInstance.count.set(count);
     fixture.detectChanges();
+    // A fixture's detectChanges runs no render hooks, so the head's drag attaches on a tick.
+    TestBed.tick();
     return (fixture.nativeElement as HTMLElement).querySelector(
       'app-spot-sheet',
     ) as HTMLElement;
@@ -65,12 +74,25 @@ describe('SpotSheetComponent', () => {
 
   afterEach(() => fixture?.destroy());
 
-  it('takes the height its state asks for: the head, or half the frame', () => {
-    expect(create('peek').style.height).toBe('64px');
+  it('takes the height its state asks for: the head, half the frame, or the page', () => {
+    const height = (sheet: HTMLElement) => getComputedStyle(sheet).height;
+    expect(height(create('peek'))).toBe('64px');
     fixture.destroy();
-    expect(create('list').style.height).toBe('400px');
+    expect(height(create('list'))).toBe('400px');
     fixture.destroy();
-    expect(create('detail').style.height).toBe('400px');
+    expect(height(create('detail'))).toBe('400px');
+    fixture.destroy();
+    fixture = TestBed.createComponent(HostComponent);
+    fixture.componentInstance.state.set('list');
+    fixture.componentInstance.full.set(true);
+    fixture.detectChanges();
+    expect(
+      height(
+        (fixture.nativeElement as HTMLElement).querySelector(
+          'app-spot-sheet',
+        ) as HTMLElement,
+      ),
+    ).toBe('784px');
   });
 
   it('eases between heights', () => {
@@ -270,20 +292,313 @@ describe('SpotSheetComponent', () => {
     expect(line.pointerEvents).toBe('none');
   });
 
-  it('keeps a decorative grab handle inside the head’s top padding', () => {
+  it('draws the grip as a 40 × 8 plate inside the head’s top padding', () => {
     const sheet = create('peek');
-    const handle = sheet.querySelector('.spot-sheet__handle')!;
-    expect(handle.getAttribute('aria-hidden')).toBe('true');
-    const grip = sheet
-      .querySelector('.spot-sheet__grip')!
-      .getBoundingClientRect();
+    const grip = sheet.querySelector<HTMLElement>('.spot-sheet__grip')!;
+    const box = grip.getBoundingClientRect();
     const top = sheet.getBoundingClientRect().top;
-    expect(grip.top - top).toBeGreaterThan(0);
-    expect(grip.bottom - top).toBeLessThanOrEqual(16);
+    expect(box.width).toBe(40);
+    expect(box.height).toBe(8);
+    expect(box.top - top).toBeGreaterThan(0);
+    expect(box.bottom - top).toBeLessThanOrEqual(16);
+    const style = getComputedStyle(grip);
+    expect(style.borderTopLeftRadius).toBe('4px');
+    expect(style.borderTopWidth).toBe('1px');
+    expect(grip.classList).toContain('phosphor-bloom');
+  });
+
+  it('gives the handle an 88 × 44 target above the toggle', () => {
+    const sheet = create('peek');
+    const handle = sheet.querySelector<HTMLElement>('.spot-sheet__handle')!;
+    const box = handle.getBoundingClientRect();
+    expect(box.width).toBe(88);
+    expect(box.height).toBe(44);
+    sheet.scrollIntoView({ block: 'start' });
+    const again = handle.getBoundingClientRect();
     expect(
-      getComputedStyle(sheet.querySelector('.spot-sheet__handle')!)
-        .pointerEvents,
-    ).toBe('none');
+      document
+        .elementFromPoint(again.left + 44, again.top + 22)
+        ?.closest('.spot-sheet__handle'),
+    ).toBe(handle);
+  });
+
+  it('leaves the plates above the handle where they meet', () => {
+    const sheet = create('detail');
+    sheet.scrollIntoView({ block: 'start' });
+    const close = button(sheet, '.spot-sheet__close');
+    const box = close.getBoundingClientRect();
+    expect(
+      document.elementFromPoint(box.left + 16, box.top + 16)?.closest('button'),
+    ).toBe(close);
+  });
+
+  it('exposes the handle as a named separator valued by height', () => {
+    const handle = create('peek').querySelector<HTMLElement>(
+      '.spot-sheet__handle',
+    )!;
+    expect(handle.getAttribute('role')).toBe('separator');
+    expect(handle.getAttribute('tabindex')).toBe('0');
+    expect(handle.getAttribute('aria-orientation')).toBe('horizontal');
+    expect(handle.getAttribute('aria-label')).toBe('Resize spot sheet');
+    expect(handle.getAttribute('aria-valuenow')).toBe('0');
+    expect(handle.getAttribute('aria-valuetext')).toBe('Closed');
+    fixture.destroy();
+    const half = create('list').querySelector('.spot-sheet__handle')!;
+    expect(half.getAttribute('aria-valuenow')).toBe('50');
+    expect(half.getAttribute('aria-valuetext')).toBe('Half height');
+  });
+
+  it('moves through the handle’s tap', () => {
+    const sheet = create('list');
+    sheet.querySelector<HTMLElement>('.spot-sheet__handle')!.click();
+    expect(fixture.componentInstance.events).toEqual(['settle:full']);
+  });
+
+  it('moves by the handle’s keys', () => {
+    const press = (key: string) => {
+      fixture.componentInstance.events.length = 0;
+      fixture.nativeElement.querySelector('.spot-sheet__handle').dispatchEvent(
+        new KeyboardEvent('keydown', {
+          key,
+          bubbles: true,
+          cancelable: true,
+        }),
+      );
+      return fixture.componentInstance.events;
+    };
+    create('list');
+    expect(press('ArrowUp')).toEqual(['settle:full']);
+    expect(press('ArrowDown')).toEqual(['settle:peek']);
+    expect(press('Home')).toEqual(['settle:peek']);
+    expect(press('End')).toEqual(['settle:full']);
+    expect(press('Enter')).toEqual(['settle:full']);
+    expect(press(' ')).toEqual(['settle:full']);
+    expect(press('a')).toEqual([]);
+  });
+
+  it('eases the gutters and bottom radii with the height, and rests at full on the page’s edges', () => {
+    const sheet = create('list');
+    const properties = getComputedStyle(sheet).transitionProperty;
+    for (const name of [
+      'left',
+      'right',
+      'bottom',
+      'border-bottom-left-radius',
+      'border-bottom-right-radius',
+    ]) {
+      expect(properties).withContext(name).toContain(name);
+    }
+    expect(getComputedStyle(sheet).left).toBe('16px');
+    fixture.componentInstance.full.set(true);
+    fixture.detectChanges();
+    sheet.getAnimations().forEach((animation) => animation.finish());
+    const style = getComputedStyle(sheet);
+    expect(style.left).toBe('0px');
+    expect(style.bottom).toBe('0px');
+    expect(style.borderBottomLeftRadius).toBe('0px');
+    expect(style.borderTopLeftRadius).toBe('8px');
+  });
+
+  describe('dragging the head', () => {
+    let sheet: HTMLElement;
+    let head: HTMLElement;
+
+    /** Fires a pointer event for pointer 1 at `y`. */
+    function pointer(target: EventTarget, type: string, y: number): void {
+      target.dispatchEvent(
+        new PointerEvent(type, {
+          pointerId: 1,
+          isPrimary: true,
+          button: 0,
+          clientY: y,
+          bubbles: true,
+          cancelable: true,
+        }),
+      );
+    }
+
+    beforeEach(() => {
+      sheet = create('list');
+      head = sheet.querySelector<HTMLElement>('.spot-sheet__head')!;
+      spyOn(head, 'setPointerCapture');
+      spyOn(head, 'hasPointerCapture').and.returnValue(false);
+    });
+
+    it('stays a tap under 8 px of travel', () => {
+      pointer(head, 'pointerdown', 300);
+      pointer(document, 'pointermove', 295);
+      pointer(document, 'pointerup', 295);
+      expect(sheet.style.getPropertyValue('--sheet-drag-height')).toBe('');
+      expect(fixture.componentInstance.events).toEqual([]);
+    });
+
+    it('follows the finger 1:1 from where it passed 8 px', () => {
+      pointer(head, 'pointerdown', 300);
+      pointer(document, 'pointermove', 290);
+      fixture.detectChanges();
+      expect(sheet.classList).toContain('spot-sheet--dragging');
+      pointer(document, 'pointermove', 250);
+      expect(sheet.style.getPropertyValue('--sheet-drag-height')).toBe('440px');
+      expect(fixture.componentInstance.events).toEqual([]);
+    });
+
+    it('shows the pane while dragging up from peek', () => {
+      fixture.destroy();
+      sheet = create('peek');
+      head = sheet.querySelector<HTMLElement>('.spot-sheet__head')!;
+      spyOn(head, 'setPointerCapture');
+      pointer(head, 'pointerdown', 300);
+      pointer(document, 'pointermove', 280);
+      fixture.detectChanges();
+      const body = sheet.querySelector<HTMLElement>('.spot-sheet__body')!;
+      expect(body.inert).toBeFalse();
+      expect(body.classList).not.toContain('spot-sheet__body--hidden');
+    });
+
+    it('settles on release and clears its own writes, even when it eases back', () => {
+      pointer(head, 'pointerdown', 300);
+      pointer(document, 'pointermove', 290);
+      pointer(document, 'pointerup', 290);
+      expect(fixture.componentInstance.events).toEqual(['settle:half']);
+      expect(sheet.style.getPropertyValue('--sheet-drag-height')).toBe('');
+      expect(sheet.style.getPropertyValue('--sheet-drag-rise')).toBe('');
+    });
+
+    it('treats a cancelled pointer as a slow release', () => {
+      pointer(head, 'pointerdown', 300);
+      pointer(document, 'pointermove', 290);
+      pointer(document, 'pointercancel', 290);
+      expect(fixture.componentInstance.events).toEqual(['settle:half']);
+    });
+
+    it('never starts on a plate', () => {
+      fixture.destroy();
+      sheet = create('detail');
+      const close = button(sheet, '.spot-sheet__close');
+      head = sheet.querySelector<HTMLElement>('.spot-sheet__head')!;
+      pointer(close, 'pointerdown', 300);
+      pointer(document, 'pointermove', 250);
+      pointer(document, 'pointerup', 250);
+      expect(sheet.style.getPropertyValue('--sheet-drag-height')).toBe('');
+      expect(fixture.componentInstance.events).toEqual([]);
+    });
+
+    it('swallows the click a drag’s release might still raise on the toggle', () => {
+      const toggle = button(sheet, '.spot-sheet__toggle');
+      pointer(toggle, 'pointerdown', 300);
+      pointer(document, 'pointermove', 280);
+      pointer(document, 'pointerup', 280);
+      toggle.click();
+      expect(fixture.componentInstance.events).not.toContain('head');
+    });
+  });
+
+  it('starts no fade when motion is allowed', () => {
+    const sheet = create('list');
+    fixture.componentInstance.full.set(true);
+    fixture.detectChanges();
+    TestBed.tick();
+    expect(
+      sheet
+        .getAnimations()
+        .some((animation) => !(animation instanceof CSSTransition)),
+    ).toBeFalse();
+  });
+
+  describe('under reduced motion', () => {
+    beforeEach(() => {
+      spyOn(window, 'matchMedia').and.callFake(
+        (query: string) =>
+          ({
+            matches: query.includes('prefers-reduced-motion'),
+            media: query,
+          }) as unknown as MediaQueryList,
+      );
+    });
+
+    /** Runs every animation on `element` to its end, letting its finish handlers run. */
+    async function finishFades(element: HTMLElement): Promise<void> {
+      for (const animation of element.getAnimations()) {
+        animation.finish();
+        await animation.finished.catch(() => undefined);
+      }
+      await Promise.resolve();
+    }
+
+    /** Fires a pointer event for pointer 1 at `y`. */
+    function pointer(target: EventTarget, type: string, y: number): void {
+      target.dispatchEvent(
+        new PointerEvent(type, {
+          pointerId: 1,
+          isPrimary: true,
+          button: 0,
+          clientY: y,
+          bubbles: true,
+        }),
+      );
+    }
+
+    it('fades out on the old height, takes the new one, and fades back in', async () => {
+      const sheet = create('list');
+      fixture.componentInstance.full.set(true);
+      fixture.detectChanges();
+      TestBed.tick();
+      // Held at half while the sheet fades out.
+      expect(sheet.style.getPropertyValue('--sheet-drag-height')).toBe('400px');
+      expect(sheet.getAnimations().length).toBeGreaterThan(0);
+      await finishFades(sheet);
+      // The bound height is the full one, and the hold has let go of it.
+      expect(sheet.style.getPropertyValue('--sheet-drag-height')).toBe('');
+      expect(sheet.style.getPropertyValue('--sheet-height')).toBe('784px');
+      await finishFades(sheet);
+      expect(
+        sheet
+          .getAnimations()
+          .some((animation) => !(animation instanceof CSSTransition)),
+      ).toBeFalse();
+    });
+
+    it('holds a released drag where the finger left it until the fade has hidden it', async () => {
+      const sheet = create('list');
+      const head = sheet.querySelector<HTMLElement>('.spot-sheet__head')!;
+      spyOn(head, 'setPointerCapture');
+      pointer(head, 'pointerdown', 300);
+      pointer(document, 'pointermove', 290);
+      pointer(document, 'pointermove', 250);
+      pointer(document, 'pointerup', 250);
+      expect(sheet.style.getPropertyValue('--sheet-drag-height')).toBe('440px');
+      await finishFades(sheet);
+      expect(sheet.style.getPropertyValue('--sheet-drag-height')).toBe('');
+    });
+
+    it('does not fade for a frame resize, only for a change of stop', () => {
+      const sheet = create('list');
+      fixture.componentInstance.available.set(700);
+      fixture.detectChanges();
+      TestBed.tick();
+      expect(sheet.style.getPropertyValue('--sheet-drag-height')).toBe('');
+      expect(sheet.style.getPropertyValue('--sheet-height')).toBe('350px');
+    });
+
+    it('never fades on the first render', () => {
+      const sheet = create('list');
+      expect(sheet.getAnimations().length).toBe(0);
+    });
+
+    it('gives way to a press during the fade', async () => {
+      const sheet = create('list');
+      fixture.componentInstance.full.set(true);
+      fixture.detectChanges();
+      TestBed.tick();
+      const head = sheet.querySelector<HTMLElement>('.spot-sheet__head')!;
+      spyOn(head, 'setPointerCapture');
+      pointer(head, 'pointerdown', 300);
+      pointer(document, 'pointermove', 280);
+      expect(sheet.getAnimations().length).toBe(0);
+      expect(getComputedStyle(sheet).opacity).toBe('1');
+      pointer(document, 'pointercancel', 280);
+      await finishFades(sheet);
+    });
   });
 
   it('rules the head off from the pane only while the sheet is open', () => {

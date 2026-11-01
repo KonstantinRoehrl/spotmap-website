@@ -8,7 +8,8 @@
 /* The page gutter (DESIGN.md spacing): 16 px, and 24 px in the wide layout. Set by the layout
    class rather than a media query, so it always agrees with the layout the page chose. */
 .map-page {
-  --map-page-gutter: 16px;
+  --space-gutter: 16px;
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -16,7 +17,7 @@
 }
 
 .map-page--wide {
-  --map-page-gutter: 24px;
+  --space-gutter: 24px;
 }
 
 /* From 769 px: the banner and the city select in one row under the top nav, inside the gutter.
@@ -25,29 +26,30 @@
   flex: none;
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: var(--map-page-gutter) var(--map-page-gutter) 0;
+  gap: var(--space-inset);
+  padding: var(--space-gutter) var(--space-gutter) 0;
 }
 
 .map-header__banner {
   display: block;
   flex: 1 1 auto;
   min-width: 0;
-  height: 40px;
+  height: var(--target-min);
   overflow: hidden;
 }
 
-/* 40 px tall through Material's own field tokens, and as wide as its longest label,
+/* 44 px tall through Material's own field tokens, and as wide as its longest label,
    `bratislava · SK`, 15 glyphs: the field's 16 px side padding twice, the arrow (about 10 px, 12
    with a margin) and the glyphs at IBM Plex Mono's 0.6 em advance in the 13 px label size, the
-   tracking removed. The field's content measures 25 px round the select's 24 px line, so 8 px of
-   padding would make it 41: 7 px lets the 40 px minimum height set it. */
+   tracking removed. The field's content measures 25 px round the select's 24 px line, so 9.5 px of
+   padding would make exactly 44: 9 px lets the 44 px minimum height set it, and the value stays
+   within a pixel of centre. */
 .map-header__picker {
   --city-label-glyphs: 15;
   --mat-select-trigger-text-size: 0.8125rem;
   --mat-select-trigger-text-tracking: 0;
-  --mat-form-field-container-height: 40px;
-  --mat-form-field-container-vertical-padding: 7px;
+  --mat-form-field-container-height: var(--target-min);
+  --mat-form-field-container-vertical-padding: 9px;
   flex: none;
   width: calc(2rem + 12px + var(--city-label-glyphs) * 0.6 * 0.8125rem);
 }
@@ -59,8 +61,9 @@
   flex: none;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: calc(16px + env(safe-area-inset-top)) 16px 16px;
+  gap: var(--space-item);
+  padding: calc(var(--space-inset) + env(safe-area-inset-top))
+    var(--space-inset) var(--space-inset);
 }
 
 /* Row one: the banner across the whole content width, in a fixed 24 px row. */
@@ -70,19 +73,19 @@
   overflow: hidden;
 }
 
-/* Row two: the city select across the whole content width, 40 px tall through Material's own field
-   tokens at the header picker's 7 px padding. Its floating CITY label rides the 8 px gap above it,
+/* Row two: the city select across the whole content width, 44 px tall through Material's own field
+   tokens at the header picker's 9 px padding. Its floating CITY label rides the 8 px gap above it,
    over the banner row's empty strip under its text. */
 .map-topbar__picker {
   --mat-select-trigger-text-size: 0.8125rem;
   --mat-select-trigger-text-tracking: 0;
-  --mat-form-field-container-height: 40px;
-  --mat-form-field-container-vertical-padding: 7px;
+  --mat-form-field-container-height: var(--target-min);
+  --mat-form-field-container-vertical-padding: 9px;
 }
 
 /* The picker's slot in either bar: the placeholder frame and the picker share one grid cell, so
    the slot's box is the same with either in it and the swap is a crossfade in place. Its minimum
-   height holds the field's 40 px should the slot ever hold neither. */
+   height holds the field's 44 px should the slot ever hold neither. */
 .city-slot {
   display: grid;
   min-height: var(--mat-form-field-container-height);
@@ -146,7 +149,7 @@
   flex: 1 1 auto;
   min-height: 0;
   box-sizing: border-box;
-  padding: var(--map-page-gutter);
+  padding: var(--space-gutter);
 }
 
 /* Phone: the top bar's own 16 px bottom padding is the gutter above the window. */
@@ -155,8 +158,8 @@
 }
 
 /* The map frame (DESIGN.md "Map Canvas"), at every width: an 8 px radius, the surface backing
-   and the 24 px edge glow. It clips the map, the handle, the column and the sheet to its
-   corners; its own halo is outside the clip. */
+   and the 24 px edge glow. It clips the map, the handle and the column to its corners; its own
+   halo is outside the clip. */
 .map-window {
   position: relative;
   display: flex;
@@ -218,7 +221,7 @@
   display: grid;
   box-sizing: border-box;
   height: 64px;
-  padding: 16px;
+  padding: var(--space-inset);
   font-family: var(--font-mono);
   font-size: 0.8125rem;
   font-weight: 500;
@@ -274,15 +277,6 @@
   color: var(--color-phosphor-dim);
 }
 
-/* Under 1024 px: the sheet inside the window, on its left, right and bottom edges, over the map. */
-.map-page__sheet {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 2;
-}
-
 /* The pane: list and open spot share one grid cell, so they crossfade instead of stacking. Isolated
    for the leaving view's z-index below. */
 .spot-pane {
@@ -308,7 +302,7 @@
    inset) from the panel's edge. The detail pads itself. */
 .spot-pane__view--list {
   box-sizing: border-box;
-  padding: 8px;
+  padding: var(--space-item);
   transition:
     opacity var(--dur-fast) ease-out,
     transform var(--dur-fast) var(--ease-out-expo),

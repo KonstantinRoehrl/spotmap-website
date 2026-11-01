@@ -1,6 +1,6 @@
 <nav class="nav-bar select-none">
   <ul>
-    @for (link of links(); track link.name; let isLast = $last) {
+    @for (link of links(); track link.name) {
       <li>
         <a
           class="phosphor-bloom"
@@ -9,13 +9,10 @@
           [appGlitchText]="link.name"
           appPointerBloom
         >
-          <span class="nav-icon me-1" aria-hidden="true">{{ link.icon }}</span>
+          <span class="nav-icon" aria-hidden="true">{{ link.icon }}</span>
           <span class="nav-text">{{ link.name }}</span>
         </a>
       </li>
-      @if (!isLast) {
-        <div class="nav-separator"></div>
-      }
     }
   </ul>
 </nav>
