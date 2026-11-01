@@ -14,6 +14,7 @@ import {
 } from '@angular/core';
 import { PointerBloomDirective } from '../../directives/pointer-bloom.directive';
 import { OverviewBackComponent } from '../overview-back/overview-back.component';
+import { attachBodyTouch } from './sheet-body-touch';
 import { attachHeadDrag, SheetDrag } from './sheet-drag-session';
 import {
   SheetState,
@@ -38,7 +39,7 @@ const HANDLE_VALUE: Record<SheetStop, { now: number; text: string }> = {
  * pane. It is presentational. The page keeps the `SheetModel`, feeds `nextSheet()` from the
  * outputs below, and reads the same `sheetHeight()` to tell the map how much of it is covered.
  * Heights change by tapping the head or the handle, by the handle's keys, or by dragging either.
- * The drag lives in `sheet-drag-session.ts`.
+ * The drag lives in `sheet-drag-session.ts` and `sheet-body-touch.ts`.
  */
 @Component({
   selector: 'app-spot-sheet',
@@ -112,6 +113,7 @@ export class SpotSheetComponent {
     inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
   private readonly zone = inject(NgZone);
   private readonly head = viewChild.required<ElementRef<HTMLElement>>('head');
+  private readonly body = viewChild.required<ElementRef<HTMLElement>>('body');
 
   /** The drag, fed by whichever input begins it. */
   private readonly drag = new SheetDrag(this.hostElement, () => this.stops(), {
@@ -126,11 +128,19 @@ export class SpotSheetComponent {
 
   constructor() {
     const destroyRef = inject(DestroyRef);
-    afterNextRender(() =>
+    afterNextRender(() => {
       destroyRef.onDestroy(
         attachHeadDrag(this.head().nativeElement, this.drag, this.zone),
-      ),
-    );
+      );
+      destroyRef.onDestroy(
+        attachBodyTouch(
+          this.body().nativeElement,
+          this.drag,
+          () => this.full(),
+          this.zone,
+        ),
+      );
+    });
   }
 
   /** A tap on the handle. A press that became a drag never gets here. */
